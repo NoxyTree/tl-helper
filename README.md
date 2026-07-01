@@ -1,61 +1,69 @@
 # TL Helper
 
-A static React community guide for Throne and Liberty. Currently covers the
-"Frozen Divide: Nix" expansion (the Nix Field Guide section); built to grow
-into more sections over time. No backend, no database — just a fast page on
-a global CDN.
+A static React community guide for Throne and Liberty, covering the
+**Frozen Divide: Nix** expansion. It's a single-scroll "intelligence board" —
+briefing, daily/weekly loop, systems, community farming intel and roadmap —
+with official vs. community sourcing labelled throughout. No backend, no
+database; just a fast page on a CDN.
+
+**Live:** https://tlhelper.org
+
+## Project structure
+
+| Path | What it is |
+|------|-----------|
+| `src/content.js` | **All the guide content** — plain data arrays. This is what you edit. |
+| `src/App.jsx`    | The React components that render the content. |
+| `src/styles.css` | The dark-fantasy design system (CSS custom-property tokens). |
+| `public/img/nix/`| Community screenshots (farm-spot maps, UI shots), each credited by handle. |
+| `public/assets/` | Hero / key art. |
 
 ## Editing content (the part you do often)
 
-All content lives in the clearly-marked DATA blocks at the top of `src/App.jsx`:
+Open `src/content.js` and edit the exported arrays — no component code required:
 
-- `HERO_BG`        — hero background image (URL or data URI; leave "" for the SVG look)
-- `DEADLINES`      — the live countdown cards (Right Now tab)
-- `PRIORITIES`     — "If You Only Do Four Things"
-- `DAILY` / `WEEKLY` / `WEEKLY_TARGETS` — The Loop
-- `SYS_WARN` / `SYS_CHANGES`           — Systems
-- `SECRETS` / `BIS`                    — Farm & Secrets  (source: "official" | "community")
-- `ROADMAP`        — What's Next timeline
+- `deadlines` — live countdown cards. `target: Date.UTC(year, monthIndex, day, hour, min, 0)` (month is 0-indexed: January = 0, July = 6).
+- `priorities` — "What matters right now".
+- `dailyLoop` / `weeklyLoop` / `targets` — the loop planner.
+- `warnings` / `systems` — system changes and risk notes.
+- `intel` / `builds` / `farmSpots` — community findings, BiS notes, and the farm-spot gallery.
+- `roadmap` — the timeline.
 
-To update the guide: edit those arrays, commit, done. New deadline? Add an entry to
-`DEADLINES` with a `target` of `Date.UTC(year, monthIndex, day, hour, min, 0)`
-(month is 0-indexed: January = 0, July = 6).
+Most entries take a `source` (`"official"` | `"community"`) and a `confidence`
+label. Any entry can carry an `image: { src, credit, caption, fit }` to show a
+screenshot (use `fit: "contain"` to display the whole image instead of a crop).
+Screenshots live in `public/img/nix/`; reference them via the `NIX` prefix.
 
-## Operate from anywhere
-
-Three ways to edit, all of which trigger an automatic deploy:
-
-1. **GitHub web editor** — open `src/App.jsx` on github.com, press `.` to launch the
-   browser editor, change the data, commit. Works from any browser, including a phone.
-2. **Any machine** — `git clone`, edit, `git push`.
-3. **Claude Code** — point it at the repo from whichever machine you're on.
-
-Every push to `main` rebuilds and redeploys in about a minute. Nothing needs to be
-running on your end.
+**Theme colours** (set in `styles.css`): frost blue = official/system · relic
+gold = priority/action · void violet = community intel · red frost = warnings ·
+aurora teal = verified/active.
 
 ## Run locally
 
-    npm install
-    npm run dev        # http://localhost:5173
-    npm run build      # outputs to dist/
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # outputs static site to dist/
+```
 
-## Deploy (one-time setup)
+## Deploy
 
-### Cloudflare Pages (recommended)
-1. Push this folder to a GitHub repo.
-2. Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git.
-3. Pick the repo. Framework preset: **Vite**. Build command `npm run build`.
-   Output directory `dist`. Save and Deploy.
-4. You get a free `*.pages.dev` URL. Add a custom domain under the project's
-   Custom Domains tab if you want one.
+Hosted on **Cloudflare Pages**, connected to this GitHub repo. Every push to
+`master` triggers a build and publishes to `tlhelper.org` in about a minute —
+no manual step. Pull requests automatically get their own preview URL.
 
-### Vercel (equivalent)
-1. Push to GitHub.
-2. vercel.com → New Project → import the repo. It auto-detects Vite. Deploy.
+Cloudflare build settings: build command `npm run build`, output directory
+`dist` (framework preset "None").
 
-Either host auto-deploys on every push to `main`.
+Ways to edit, all of which trigger a deploy:
 
-## Notes
-- Game screenshots and art are NCSoft / Amazon Games IP. Prefer your own captures,
-  official press/creator assets, or original AI-generated art, and consider a small
-  "not affiliated with NCSoft / Amazon Games" footer for a public site.
+1. **GitHub web editor** — open a file on github.com, press `.` for the browser editor, commit. Works from a phone.
+2. **Any machine** — `git clone`, edit, `git push`.
+3. **Claude Code** — point it at the repo.
+
+## Disclaimer
+
+Unofficial community resource. Not affiliated with NCSoft, Amazon Games, or
+Throne and Liberty. Game screenshots and art are the property of their owners;
+community-contributed screenshots are credited to the member who shared them.
+Public claims should be rechecked after patches and hotfixes.
