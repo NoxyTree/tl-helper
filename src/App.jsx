@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ASSETS, farmSpots, navItems, sourceLegend } from "./content";
+import { ASSETS, farmSpots, sourceLegend } from "./content";
 import { useLiveContent } from "./liveContent.js";
 
 function useCountdown(target) {

@@ -167,6 +167,7 @@ function renderProfile() {
     : signedIn
       ? displayName
       : "Not signed in";
+  els.profileStatus.hidden = !signedIn;
   els.heroProfileName.textContent = displayName;
   els.heroProfileCopy.textContent = signedIn
     ? state.profile?.username

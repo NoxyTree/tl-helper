@@ -290,19 +290,19 @@ a {
 }
 
 .topbar-account {
-  padding: 4px;
-  border: 1px solid rgba(126, 182, 216, 0.1);
+  min-height: 42px;
+  padding: 5px 6px;
+  border: 1px solid rgba(126, 182, 216, 0.12);
   border-radius: 999px;
-  background: rgba(7, 11, 19, 0.4);
+  background: rgba(7, 11, 19, 0.34);
 }
 
-.topbar-account__button,
-.topbar-account__link {
-  min-height: 34px;
+.topbar-account__button {
+  min-height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 11px;
+  padding: 0 14px;
   border: 1px solid rgba(126, 182, 216, 0.2);
   border-radius: 999px;
   color: var(--snow-white);
@@ -314,23 +314,29 @@ a {
   transition: 160ms ease;
 }
 
-.topbar-account__button:hover,
-.topbar-account__button:focus-visible,
-.topbar-account__link:hover,
-.topbar-account__link:focus-visible {
-  border-color: var(--gold-border);
-  outline: none;
-  transform: translateY(-1px);
+.topbar-account__identity {
+  min-width: 0;
+  max-width: 140px;
+  overflow: hidden;
+  color: var(--snow-white);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  text-overflow: ellipsis;
 }
 
-.topbar-account__button--danger {
-  border-color: rgba(196, 77, 82, 0.34);
-  color: #ffb0b0;
-  background: rgba(85, 22, 36, 0.34);
+.topbar-account__button:hover,
+.topbar-account__button:focus-visible,
+.topbar-account__identity:hover,
+.topbar-account__identity:focus-visible {
+  color: var(--relic-gold);
+  border-color: var(--gold-border);
+  outline: none;
 }
 
 .topbar-account__button[hidden],
-.topbar-account__link[hidden] {
+.topbar-account__identity[hidden] {
   display: none;
 }
 
@@ -522,13 +528,6 @@ h1 {
   margin: 12px 0 0;
   color: var(--steel-mist);
   line-height: 1.55;
-}
-
-.profile-panel-link {
-  width: 100%;
-  margin-top: 14px;
-  justify-content: center;
-  text-decoration: none;
 }
 
 .auth-panel,

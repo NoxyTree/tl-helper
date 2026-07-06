@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { resolve } from "node:path";
 
 // Served at the root of the custom domain (tlhelper.org), so no base path.
 export default defineConfig({
@@ -8,10 +7,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        achievements: resolve(__dirname, "achievements/index.html"),
-        admin: resolve(__dirname, "admin/index.html"),
-        profile: resolve(__dirname, "profile/index.html"),
+        main: "index.html",
+        achievements: "achievements/index.html",
+        admin: "admin/index.html",
+        profile: "profile/index.html",
       },
     },
   },

@@ -40,9 +40,8 @@
 
         <div class="topbar__status topbar-account" aria-label="Profile status">
           <span class="status-dot profile-orb"></span>
-          <span id="profileStatus">Local profile</span>
           <button id="openAuthButton" class="topbar-account__button" type="button">Sign in</button>
-          <button id="signOutButton" class="topbar-account__button topbar-account__button--danger" type="button" hidden>Sign out</button>
+          <span id="profileStatus" class="topbar-account__identity" hidden>Local profile</span>
         </div>
       </header>
 
@@ -104,6 +103,7 @@
                   <button id="cancelUsernameButton" class="text-action-button" type="button">Cancel</button>
                 </div>
               </div>
+              <button id="signOutButton" class="text-action-button danger-text account-signout-button" type="button">Sign out</button>
             </div>
           </article>
 

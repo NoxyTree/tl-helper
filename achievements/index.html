@@ -40,10 +40,8 @@
 
         <div class="topbar__status topbar-account" aria-label="Profile status">
           <span class="status-dot profile-orb"></span>
-          <span id="profileStatus">Local profile</span>
           <button id="openAuthButton" class="topbar-account__button" type="button">Sign in</button>
-          <a id="topbarProfileLink" class="topbar-account__link" href="/profile/" hidden>Profile</a>
-          <button id="signOutButton" class="topbar-account__button topbar-account__button--danger" type="button" hidden>Sign out</button>
+          <a id="topbarProfileLink" class="topbar-account__identity" href="/profile/" hidden>Profile</a>
         </div>
       </header>
 
@@ -69,15 +67,6 @@
 
         <div class="tracker-layout" id="tracker">
           <aside class="sidebar" aria-label="Achievement filters">
-            <section class="panel profile-panel" id="profile">
-              <div>
-                <p class="panel-label" id="profileMode">Profile</p>
-                <h2 id="profileName">Wanderer</h2>
-              </div>
-              <p class="panel-copy" id="profileCopy">Progress is stored locally. Connect Supabase to sync profiles.</p>
-              <a id="profilePanelLink" class="text-action-button profile-panel-link" href="/profile/" hidden>Open profile</a>
-            </section>
-
             <section class="panel controls-panel">
               <label class="search-label" for="searchInput">Search achievements</label>
               <input id="searchInput" class="search-input" type="search" placeholder="Raid, cooking, Laslan...">

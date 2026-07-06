@@ -115,12 +115,7 @@ const els = {
   categoryVisualEyebrow: document.querySelector("#categoryVisualEyebrow"),
   categoryVisualTitle: document.querySelector("#categoryVisualTitle"),
   categoryVisualBody: document.querySelector("#categoryVisualBody"),
-  profileStatus: document.querySelector("#profileStatus"),
   topbarProfileLink: document.querySelector("#topbarProfileLink"),
-  profileMode: document.querySelector("#profileMode"),
-  profileName: document.querySelector("#profileName"),
-  profileCopy: document.querySelector("#profileCopy"),
-  profilePanelLink: document.querySelector("#profilePanelLink"),
   openAuthButton: document.querySelector("#openAuthButton"),
   authOverlay: document.querySelector("#authOverlay"),
   authClose: document.querySelector("#authClose"),
@@ -130,7 +125,6 @@ const els = {
   profileSetupSignOutButton: document.querySelector("#profileSetupSignOutButton"),
   googleLoginButton: document.querySelector("#googleLoginButton"),
   discordLoginButton: document.querySelector("#discordLoginButton"),
-  signOutButton: document.querySelector("#signOutButton"),
   syncStatus: document.querySelector("#syncStatus"),
   toast: document.querySelector("#toast"),
 };
@@ -207,41 +201,22 @@ function promptForProfileNameIfNeeded() {
 
 function renderProfile() {
   if (!supabase) {
-    els.profileStatus.textContent = "Local profile";
-    els.profileMode.textContent = "Local profile";
-    els.profileName.textContent = "Local progress";
-    els.profileCopy.textContent = "Progress is saved in this browser.";
     els.openAuthButton.hidden = true;
-    els.signOutButton.hidden = true;
     els.topbarProfileLink.hidden = true;
-    els.profilePanelLink.hidden = true;
     els.syncStatus.textContent = "Local only";
     return;
   }
 
   if (!state.session) {
-    els.profileStatus.textContent = "Not signed in";
-    els.profileMode.textContent = "Profile";
-    els.profileName.textContent = "Local progress";
-    els.profileCopy.textContent = "Sign in from the header to sync across devices.";
     els.openAuthButton.hidden = false;
-    els.signOutButton.hidden = true;
     els.topbarProfileLink.hidden = true;
-    els.profilePanelLink.hidden = true;
     els.syncStatus.textContent = "Local only";
     return;
   }
 
-  els.profileStatus.textContent = getDisplayName();
-  els.profileMode.textContent = "Signed in";
-  els.profileName.textContent = getDisplayName();
-  els.profileCopy.textContent = state.profile?.username
-    ? "Progress syncs automatically."
-    : "Finish setup on your profile page.";
   els.openAuthButton.hidden = true;
-  els.signOutButton.hidden = false;
+  els.topbarProfileLink.textContent = getDisplayName();
   els.topbarProfileLink.hidden = false;
-  els.profilePanelLink.hidden = false;
   els.syncStatus.textContent = state.syncing ? "Syncing..." : "Cloud sync ready";
 }
 
@@ -1041,7 +1016,6 @@ els.profileSetupUsername.addEventListener("keydown", (event) => {
   }
 });
 els.profileSetupSignOutButton.addEventListener("click", signOut);
-els.signOutButton.addEventListener("click", signOut);
 
 render();
 void initSupabaseAuth();

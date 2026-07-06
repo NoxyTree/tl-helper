@@ -211,6 +211,11 @@
   display: none;
 }
 
+.account-signout-button {
+  justify-self: start;
+  margin-top: 2px;
+}
+
 .profile-link-button {
   display: inline-flex;
   align-items: center;
