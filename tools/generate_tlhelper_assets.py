@@ -19,6 +19,13 @@ STYLE_ANCHOR = (
     "premium game guide website asset, no text, no logo, no UI, no watermark"
 )
 
+LOGO_STYLE_ANCHOR = (
+    "TLHelper brand mark exploration, dark high-fantasy MMORPG utility logo, "
+    "clean centered emblem, antique gold metal, violet arcane glow, frost-blue highlights, "
+    "sharp readable silhouette for favicon scale, premium game helper identity, "
+    "no text, no letters, no watermark, no mockup"
+)
+
 NEGATIVE = (
     "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, "
     "anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, "
@@ -27,6 +34,34 @@ NEGATIVE = (
 )
 
 ASSETS = [
+    {
+        "slug": "logo-option-sigil-compass",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "a compass-star achievement sigil inside a slim ornate diamond frame, symmetrical, simple negative space, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
+    {
+        "slug": "logo-option-codex-star",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "an open fantasy codex forming a four-point star, small violet gem at the center, antique gold page edges, simple strong silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
+    {
+        "slug": "logo-option-crown-check",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "a legendary achievement crest combining a subtle check mark and crown shape, violet core crystal, gold filigree, bold readable silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
+    {
+        "slug": "logo-option-portal-pin",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "a magical map pin shaped like a portal rune, violet inner flame, antique gold outline, frost-blue spark accents, bold compact silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
     {
         "slug": "tracker-hero-wide",
         "kind": "layout-strip",
@@ -175,7 +210,15 @@ def workflow(asset, seed):
             "left third plain dark stone and shadow for readable page copy, main fantasy detail centered and right, "
             "full-bleed scene, absolutely no words, no letters, no title, no logo, no inscription, no UI"
         )
-    positive = f"{STYLE_ANCHOR}, {layout_hint}, {asset['prompt']}, no text, no logo, no UI"
+    style_anchor = LOGO_STYLE_ANCHOR if asset["kind"] == "brand-mark" else STYLE_ANCHOR
+    brand_hint = ""
+    if asset["kind"] == "brand-mark":
+        brand_hint = (
+            "single isolated emblem only, vector-logo-like silhouette, crisp edges, centered composition, "
+            "perfectly flat uniform #00ff00 background for alpha removal, no gradients in background, "
+            "no background texture, no cast shadow, no contact shadow"
+        )
+    positive = f"{style_anchor}, {layout_hint}, {brand_hint}, {asset['prompt']}, no text, no UI"
     return {
         "1": {
             "class_type": "UNETLoader",

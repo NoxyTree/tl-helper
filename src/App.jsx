@@ -83,18 +83,7 @@ function Lightbox({ shot, onClose }) {
 function BrandMark() {
   return (
     <div className="brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 64 64" role="img">
-        <defs>
-          <linearGradient id="sigilGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="var(--frost-blue)" />
-            <stop offset="0.55" stopColor="var(--aurora-teal)" />
-            <stop offset="1" stopColor="var(--relic-gold)" />
-          </linearGradient>
-        </defs>
-        <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="url(#sigilGlow)" strokeWidth="2.4" />
-        <circle cx="32" cy="32" r="11" fill="none" stroke="var(--frost-border-strong)" strokeWidth="2" />
-        <path d="M32 18v28M18 32h28" stroke="var(--snow-white)" strokeWidth="1.3" opacity=".72" />
-      </svg>
+      <img src="/assets/brand/logo.png" alt="" />
     </div>
   );
 }

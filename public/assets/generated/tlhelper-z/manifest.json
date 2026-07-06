@@ -286,5 +286,77 @@
         "type": "output"
       }
     }
+  },
+  {
+    "slug": "logo-option-sigil-compass",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, a compass-star achievement sigil inside a slim ornate diamond frame, symmetrical, simple negative space, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030001,
+    "src": "/assets/generated/tlhelper-z/logo-option-sigil-compass.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "comfy": {
+      "prompt_id": "f80e33c6-1c6d-45a7-8c8b-519f0c5ffbd1",
+      "source": {
+        "filename": "logo-option-sigil-compass_00001_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "logo-option-codex-star",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, an open fantasy codex forming a four-point star, small violet gem at the center, antique gold page edges, simple strong silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030002,
+    "src": "/assets/generated/tlhelper-z/logo-option-codex-star.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "comfy": {
+      "prompt_id": "70afce91-60d4-421c-a480-483f440b096c",
+      "source": {
+        "filename": "logo-option-codex-star_00001_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "logo-option-crown-check",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, a legendary achievement crest combining a subtle check mark and crown shape, violet core crystal, gold filigree, bold readable silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030003,
+    "src": "/assets/generated/tlhelper-z/logo-option-crown-check.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "comfy": {
+      "prompt_id": "c4bbf4f7-22e5-48ce-ba8b-8c586ad1a36a",
+      "source": {
+        "filename": "logo-option-crown-check_00001_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "logo-option-portal-pin",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, a magical map pin shaped like a portal rune, violet inner flame, antique gold outline, frost-blue spark accents, bold compact silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030004,
+    "src": "/assets/generated/tlhelper-z/logo-option-portal-pin.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "comfy": {
+      "prompt_id": "093fe64c-cc0b-48e1-98e5-343322b86789",
+      "source": {
+        "filename": "logo-option-portal-pin_00001_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
   }
 ]

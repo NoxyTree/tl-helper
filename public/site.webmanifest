@@ -1,0 +1,21 @@
+{
+  "name": "TL Helper",
+  "short_name": "TL Helper",
+  "description": "Throne and Liberty community guide and achievement tracker.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070b13",
+  "theme_color": "#070b13",
+  "icons": [
+    {
+      "src": "/assets/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

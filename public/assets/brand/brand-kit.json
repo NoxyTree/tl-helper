@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "sigil-compass",
+    "name": "Sigil Compass",
+    "role": "primary-logo",
+    "usage": "TLHelper logo, favicon, app icon",
+    "path": "/assets/brand/logo.png"
+  },
+  {
+    "slug": "codex-star",
+    "name": "Codex Star",
+    "role": "secondary-icon",
+    "usage": "guide, codex, knowledge, documentation sections",
+    "path": "/assets/brand/secondary/codex-star.png"
+  },
+  {
+    "slug": "crown-check",
+    "name": "Crown Check",
+    "role": "secondary-icon",
+    "usage": "completion, achievements, milestone rewards",
+    "path": "/assets/brand/secondary/crown-check.png"
+  },
+  {
+    "slug": "portal-pin",
+    "name": "Portal Pin",
+    "role": "secondary-icon",
+    "usage": "maps, locations, dungeon routes, future boss tools",
+    "path": "/assets/brand/secondary/portal-pin.png"
+  }
+]
