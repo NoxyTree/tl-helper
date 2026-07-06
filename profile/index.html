@@ -38,9 +38,11 @@
           <a class="topbar__link is-active" href="/profile/" aria-current="page">Profile</a>
         </nav>
 
-        <div class="topbar__status profile-preview" aria-label="Profile status">
+        <div class="topbar__status topbar-account" aria-label="Profile status">
           <span class="status-dot profile-orb"></span>
           <span id="profileStatus">Local profile</span>
+          <button id="openAuthButton" class="topbar-account__button" type="button">Sign in</button>
+          <button id="signOutButton" class="topbar-account__button topbar-account__button--danger" type="button" hidden>Sign out</button>
         </div>
       </header>
 
@@ -59,9 +61,7 @@
             </div>
           </div>
           <div class="profile-hero__actions">
-            <button id="openAuthButton" class="primary-auth-button" type="button">Sign up / Sign in</button>
             <a class="text-action-button profile-link-button" href="/achievements/">Open achievements</a>
-            <button id="signOutButton" class="text-action-button danger-text" type="button" hidden>Sign out</button>
           </div>
         </section>
 
@@ -91,12 +91,19 @@
             <h2 id="accountTitle">Local profile</h2>
             <p class="panel-copy" id="accountCopy">Progress is saved in this browser. Sign in with Google or Discord to sync it.</p>
             <div class="profile-actions" id="profileActions" hidden>
-              <label class="search-label" for="usernameInput">Username</label>
-              <div class="profile-name-row">
-                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
-                <button id="saveProfileButton" class="text-action-button" type="button">Change username</button>
+              <div class="username-summary">
+                <span id="currentUsername">@wanderer</span>
+                <button id="manageUsernameButton" class="text-action-button" type="button">Manage username</button>
               </div>
-              <p class="input-hint">Use 3-24 letters, numbers, or underscores. Nobody else can claim the same name.</p>
+              <div id="usernameForm" class="profile-name-form" hidden>
+                <label class="search-label" for="usernameInput">New username</label>
+                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
+                <p class="input-hint">Use 3-24 letters, numbers, or underscores. Nobody else can claim the same name.</p>
+                <div class="profile-name-row">
+                  <button id="saveProfileButton" class="text-action-button" type="button">Save username</button>
+                  <button id="cancelUsernameButton" class="text-action-button" type="button">Cancel</button>
+                </div>
+              </div>
             </div>
           </article>
 

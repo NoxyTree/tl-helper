@@ -289,6 +289,51 @@ a {
   white-space: nowrap;
 }
 
+.topbar-account {
+  padding: 4px;
+  border: 1px solid rgba(126, 182, 216, 0.1);
+  border-radius: 999px;
+  background: rgba(7, 11, 19, 0.4);
+}
+
+.topbar-account__button,
+.topbar-account__link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border: 1px solid rgba(126, 182, 216, 0.2);
+  border-radius: 999px;
+  color: var(--snow-white);
+  background: rgba(18, 29, 48, 0.58);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  transition: 160ms ease;
+}
+
+.topbar-account__button:hover,
+.topbar-account__button:focus-visible,
+.topbar-account__link:hover,
+.topbar-account__link:focus-visible {
+  border-color: var(--gold-border);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.topbar-account__button--danger {
+  border-color: rgba(196, 77, 82, 0.34);
+  color: #ffb0b0;
+  background: rgba(85, 22, 36, 0.34);
+}
+
+.topbar-account__button[hidden],
+.topbar-account__link[hidden] {
+  display: none;
+}
+
 .status-dot,
 .profile-orb,
 .spark {
@@ -477,6 +522,13 @@ h1 {
   margin: 12px 0 0;
   color: var(--steel-mist);
   line-height: 1.55;
+}
+
+.profile-panel-link {
+  width: 100%;
+  margin-top: 14px;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .auth-panel,
@@ -1422,11 +1474,15 @@ h1 {
 
 @media (max-width: 1120px) {
   .topbar {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
   .topbar__status {
     display: none;
+  }
+
+  .topbar-account {
+    display: inline-flex;
   }
 
   .topbar__nav {
@@ -1459,6 +1515,22 @@ h1 {
   .topbar {
     margin-top: 10px;
     border-radius: 18px;
+    grid-template-columns: 1fr auto;
+  }
+
+  .topbar__nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .topbar-account {
+    justify-self: end;
+  }
+
+  .topbar-account span:not(.status-dot) {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .brand em {

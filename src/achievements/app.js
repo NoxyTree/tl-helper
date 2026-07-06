@@ -116,11 +116,11 @@ const els = {
   categoryVisualTitle: document.querySelector("#categoryVisualTitle"),
   categoryVisualBody: document.querySelector("#categoryVisualBody"),
   profileStatus: document.querySelector("#profileStatus"),
+  topbarProfileLink: document.querySelector("#topbarProfileLink"),
   profileMode: document.querySelector("#profileMode"),
   profileName: document.querySelector("#profileName"),
   profileCopy: document.querySelector("#profileCopy"),
-  authPanel: document.querySelector("#authPanel"),
-  profileActions: document.querySelector("#profileActions"),
+  profilePanelLink: document.querySelector("#profilePanelLink"),
   openAuthButton: document.querySelector("#openAuthButton"),
   authOverlay: document.querySelector("#authOverlay"),
   authClose: document.querySelector("#authClose"),
@@ -130,9 +130,6 @@ const els = {
   profileSetupSignOutButton: document.querySelector("#profileSetupSignOutButton"),
   googleLoginButton: document.querySelector("#googleLoginButton"),
   discordLoginButton: document.querySelector("#discordLoginButton"),
-  usernameInput: document.querySelector("#usernameInput"),
-  saveProfileButton: document.querySelector("#saveProfileButton"),
-  syncProgressButton: document.querySelector("#syncProgressButton"),
   signOutButton: document.querySelector("#signOutButton"),
   syncStatus: document.querySelector("#syncStatus"),
   toast: document.querySelector("#toast"),
@@ -212,34 +209,39 @@ function renderProfile() {
   if (!supabase) {
     els.profileStatus.textContent = "Local profile";
     els.profileMode.textContent = "Local profile";
-    els.profileName.textContent = "Wanderer";
-    els.profileCopy.textContent = "Add Supabase env vars to enable synced profiles.";
-    els.authPanel.hidden = true;
-    els.profileActions.hidden = true;
+    els.profileName.textContent = "Local progress";
+    els.profileCopy.textContent = "Progress is saved in this browser.";
+    els.openAuthButton.hidden = true;
+    els.signOutButton.hidden = true;
+    els.topbarProfileLink.hidden = true;
+    els.profilePanelLink.hidden = true;
     els.syncStatus.textContent = "Local only";
     return;
   }
 
   if (!state.session) {
     els.profileStatus.textContent = "Not signed in";
-    els.profileMode.textContent = "Cloud profiles";
-    els.profileName.textContent = "Wanderer";
-    els.profileCopy.textContent = "Sign in to sync local progress and create a public profile later.";
-    els.authPanel.hidden = false;
-    els.profileActions.hidden = true;
+    els.profileMode.textContent = "Profile";
+    els.profileName.textContent = "Local progress";
+    els.profileCopy.textContent = "Sign in from the header to sync across devices.";
+    els.openAuthButton.hidden = false;
+    els.signOutButton.hidden = true;
+    els.topbarProfileLink.hidden = true;
+    els.profilePanelLink.hidden = true;
     els.syncStatus.textContent = "Local only";
     return;
   }
 
-  els.profileStatus.textContent = "Synced profile";
+  els.profileStatus.textContent = getDisplayName();
   els.profileMode.textContent = "Signed in";
   els.profileName.textContent = getDisplayName();
   els.profileCopy.textContent = state.profile?.username
-    ? `@${state.profile.username} is yours on TLHelper.`
-    : "Choose a unique username to finish setting up cloud sync.";
-  els.authPanel.hidden = true;
-  els.profileActions.hidden = false;
-  els.usernameInput.value = state.profile?.username || "";
+    ? "Progress syncs automatically."
+    : "Finish setup on your profile page.";
+  els.openAuthButton.hidden = true;
+  els.signOutButton.hidden = false;
+  els.topbarProfileLink.hidden = false;
+  els.profilePanelLink.hidden = false;
   els.syncStatus.textContent = state.syncing ? "Syncing..." : "Cloud sync ready";
 }
 
@@ -351,6 +353,7 @@ async function loadProfile() {
 async function saveProfile({ fromSetup = false } = {}) {
   if (!supabase || !state.session) return;
   const input = fromSetup ? els.profileSetupUsername : els.usernameInput;
+  if (!input) return;
   const username = normalizeUsername(input.value);
   input.value = username;
   if (!username) {
@@ -1038,8 +1041,6 @@ els.profileSetupUsername.addEventListener("keydown", (event) => {
   }
 });
 els.profileSetupSignOutButton.addEventListener("click", signOut);
-els.saveProfileButton.addEventListener("click", saveProfile);
-els.syncProgressButton.addEventListener("click", () => syncProgressToCloud());
 els.signOutButton.addEventListener("click", signOut);
 
 render();

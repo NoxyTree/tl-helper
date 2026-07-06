@@ -38,9 +38,12 @@
           <a class="topbar__link" href="/profile/">Profile</a>
         </nav>
 
-        <div class="topbar__status profile-preview" aria-label="Profile status">
+        <div class="topbar__status topbar-account" aria-label="Profile status">
           <span class="status-dot profile-orb"></span>
           <span id="profileStatus">Local profile</span>
+          <button id="openAuthButton" class="topbar-account__button" type="button">Sign in</button>
+          <a id="topbarProfileLink" class="topbar-account__link" href="/profile/" hidden>Profile</a>
+          <button id="signOutButton" class="topbar-account__button topbar-account__button--danger" type="button" hidden>Sign out</button>
         </div>
       </header>
 
@@ -72,21 +75,7 @@
                 <h2 id="profileName">Wanderer</h2>
               </div>
               <p class="panel-copy" id="profileCopy">Progress is stored locally. Connect Supabase to sync profiles.</p>
-
-              <div class="auth-panel" id="authPanel">
-                <button id="openAuthButton" class="primary-auth-button" type="button">Sign up / Sign in</button>
-              </div>
-
-              <div class="profile-actions" id="profileActions" hidden>
-                <label class="search-label" for="usernameInput">Username</label>
-                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
-                <p class="input-hint">This name is unique to your TLHelper profile.</p>
-                <div class="auth-actions">
-                  <button id="saveProfileButton" class="text-action-button" type="button">Change username</button>
-                  <button id="syncProgressButton" class="text-action-button" type="button">Sync now</button>
-                  <button id="signOutButton" class="text-action-button danger-text" type="button">Sign out</button>
-                </div>
-              </div>
+              <a id="profilePanelLink" class="text-action-button profile-panel-link" href="/profile/" hidden>Open profile</a>
             </section>
 
             <section class="panel controls-panel">

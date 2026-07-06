@@ -16,6 +16,7 @@ const state = {
   session: null,
   profile: null,
   syncing: false,
+  usernameEditing: false,
 };
 
 const els = {
@@ -31,8 +32,12 @@ const els = {
   accountTitle: document.querySelector("#accountTitle"),
   accountCopy: document.querySelector("#accountCopy"),
   profileActions: document.querySelector("#profileActions"),
+  currentUsername: document.querySelector("#currentUsername"),
+  manageUsernameButton: document.querySelector("#manageUsernameButton"),
+  usernameForm: document.querySelector("#usernameForm"),
   usernameInput: document.querySelector("#usernameInput"),
   saveProfileButton: document.querySelector("#saveProfileButton"),
+  cancelUsernameButton: document.querySelector("#cancelUsernameButton"),
   completionRing: document.querySelector("#completionRing"),
   completionPercent: document.querySelector("#completionPercent"),
   completedCount: document.querySelector("#completedCount"),
@@ -160,7 +165,7 @@ function renderProfile() {
   els.profileStatus.textContent = !supabase
     ? "Local profile"
     : signedIn
-      ? "Synced profile"
+      ? displayName
       : "Not signed in";
   els.heroProfileName.textContent = displayName;
   els.heroProfileCopy.textContent = signedIn
@@ -179,7 +184,12 @@ function renderProfile() {
       ? "This is the name reserved for your TLHelper profile."
       : "Progress is saved in this browser. Sign in with Google or Discord to sync it.";
   if (signedIn) {
-    els.usernameInput.value = state.profile?.username || handle;
+    els.currentUsername.textContent = `@${handle}`;
+    els.usernameForm.hidden = !state.usernameEditing;
+    els.manageUsernameButton.hidden = state.usernameEditing;
+    if (state.usernameEditing) {
+      els.usernameInput.value = state.profile?.username || handle;
+    }
   }
 
   els.completedCount.textContent = stats.completed;
@@ -261,6 +271,7 @@ async function initSupabaseAuth() {
   supabase.auth.onAuthStateChange(async (_event, session) => {
     state.session = session;
     state.profile = null;
+    state.usernameEditing = false;
     closeAuthDialog();
     if (session) {
       await loadCloudProfileAndProgress();
@@ -336,6 +347,7 @@ async function saveProfile() {
   }
 
   state.profile = data;
+  state.usernameEditing = false;
   renderProfile();
   showToast("Username changed");
 }
@@ -435,6 +447,7 @@ async function signOut() {
   await supabase.auth.signOut();
   state.session = null;
   state.profile = null;
+  state.usernameEditing = false;
   renderProfile();
   showToast("Signed out");
 }
@@ -479,6 +492,15 @@ els.discordLoginButton.addEventListener("click", () => {
 });
 els.saveProfileButton.addEventListener("click", () => {
   void saveProfile();
+});
+els.manageUsernameButton.addEventListener("click", () => {
+  state.usernameEditing = true;
+  renderProfile();
+  window.setTimeout(() => els.usernameInput.focus(), 0);
+});
+els.cancelUsernameButton.addEventListener("click", () => {
+  state.usernameEditing = false;
+  renderProfile();
 });
 els.usernameInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
