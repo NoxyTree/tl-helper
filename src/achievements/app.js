@@ -8,6 +8,64 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
+const GENERATED_ASSET_BASE = `${import.meta.env.BASE_URL}assets/generated/tlhelper-z/`;
+
+const CATEGORY_VISUALS = {
+  all: {
+    image: "og-achievement-tracker.png",
+    eyebrow: "Achievement Chronicle",
+    title: "All achievements",
+    body: "Filter by discipline, open achievement details, and keep your completion path moving.",
+  },
+  Adventure: {
+    image: "adventure-codex-banner.png",
+    eyebrow: "Adventure",
+    title: "Regional exploration and story progress",
+    body: "Track zone completion, regional objectives, and the codex work that turns wandering into progress.",
+  },
+  Content: {
+    image: "content-banner.png",
+    eyebrow: "Content",
+    title: "Codex, dungeons, events and secret clears",
+    body: "Keep long-form content achievements visible so nothing gets lost between dungeon runs and event rotations.",
+  },
+  Character: {
+    image: "character-banner.png",
+    eyebrow: "Character",
+    title: "Growth, items and account progression",
+    body: "Mark off the character milestones that quietly stack into a cleaner completion profile.",
+  },
+  Combat: {
+    image: "combat-banner.png",
+    eyebrow: "Combat",
+    title: "Raids, PvP and challenge victories",
+    body: "Separate the hard combat clears from the everyday checklist and see what still needs a group.",
+  },
+  Life: {
+    image: "life-banner.png",
+    eyebrow: "Life",
+    title: "Crafting, cooking, fishing and gathering",
+    body: "A quieter board for the life-skill achievements that build up through steady play.",
+  },
+  "Co-Op": {
+    image: "coop-banner.png",
+    eyebrow: "Co-Op",
+    title: "Guild and group achievements",
+    body: "Track the clears that need coordination, repeat runs, or a committed party.",
+  },
+  Special: {
+    image: "special-achievements-banner.png",
+    eyebrow: "Special",
+    title: "Rare feats and event achievements",
+    body: "Keep prestigious or time-sensitive achievements in their own spotlight.",
+  },
+  Unsorted: {
+    image: "hidden-achievements-banner.png",
+    eyebrow: "Hidden",
+    title: "Mystery and uncategorized objectives",
+    body: "Useful for achievements that do not fit the normal map yet, including odd seasonal or battleground entries.",
+  },
+};
 
 const state = {
   achievements: TL_ACHIEVEMENTS || [],
@@ -51,6 +109,11 @@ const els = {
   detailOverlay: document.querySelector("#detailOverlay"),
   detailBody: document.querySelector("#detailBody"),
   detailClose: document.querySelector("#detailClose"),
+  categoryVisual: document.querySelector("#categoryVisual"),
+  categoryVisualImage: document.querySelector("#categoryVisualImage"),
+  categoryVisualEyebrow: document.querySelector("#categoryVisualEyebrow"),
+  categoryVisualTitle: document.querySelector("#categoryVisualTitle"),
+  categoryVisualBody: document.querySelector("#categoryVisualBody"),
   profileStatus: document.querySelector("#profileStatus"),
   profileMode: document.querySelector("#profileMode"),
   profileName: document.querySelector("#profileName"),
@@ -568,6 +631,18 @@ function renderAchievements() {
   }
 }
 
+function renderCategoryVisual() {
+  const category = state.category === "all"
+    ? null
+    : state.achievements.find((achievement) => achievement.category === state.category);
+  const visual = CATEGORY_VISUALS[category?.categoryGroup || "all"] || CATEGORY_VISUALS.all;
+  els.categoryVisualImage.src = `${GENERATED_ASSET_BASE}${visual.image}`;
+  els.categoryVisualImage.alt = "";
+  els.categoryVisualEyebrow.textContent = visual.eyebrow;
+  els.categoryVisualTitle.textContent = state.category === "all" ? visual.title : state.category;
+  els.categoryVisualBody.textContent = visual.body;
+}
+
 function toggleAchievement(achievement) {
   const next = !isDone(achievement);
   const stageIndexes = next
@@ -632,6 +707,7 @@ function render() {
   renderStats();
   renderFilterChips();
   renderCategories();
+  renderCategoryVisual();
   renderAchievements();
 }
 
