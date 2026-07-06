@@ -105,3 +105,91 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
+
+-- ---------------------------------------------------------------------------
+-- Guide content: editable entries that replace the static content.js arrays.
+-- The site renders approved rows per section (falling back to the static
+-- arrays when a section has none). The research pipeline inserts drafts as
+-- status='pending' via the service role; admins review them at /admin.
+-- ---------------------------------------------------------------------------
+
+alter table public.profiles
+  add column if not exists is_admin boolean not null default false;
+
+create table if not exists public.guide_entries (
+  id uuid primary key default gen_random_uuid(),
+  section text not null check (section in (
+    'deadlines', 'priorities', 'targets', 'warnings',
+    'systems', 'intel', 'roadmap', 'builds',
+    'dailyLoop', 'weeklyLoop', 'featureCards', 'researchSources'
+  )),
+  payload jsonb not null,
+  status text not null default 'pending' check (status in (
+    'pending', 'approved', 'rejected', 'archived'
+  )),
+  sort_order integer not null default 0,
+  -- provenance: which pipeline run / source produced this draft
+  origin text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists guide_entries_section_status_idx
+  on public.guide_entries (section, status, sort_order);
+
+alter table public.guide_entries enable row level security;
+
+create policy "Approved entries are readable by everyone"
+on public.guide_entries
+for select
+using (
+  status = 'approved'
+  or exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid() and profiles.is_admin
+  )
+);
+
+create policy "Admins insert entries"
+on public.guide_entries
+for insert
+with check (
+  exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid() and profiles.is_admin
+  )
+);
+
+create policy "Admins update entries"
+on public.guide_entries
+for update
+using (
+  exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid() and profiles.is_admin
+  )
+)
+with check (
+  exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid() and profiles.is_admin
+  )
+);
+
+create policy "Admins delete entries"
+on public.guide_entries
+for delete
+using (
+  exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid() and profiles.is_admin
+  )
+);
+
+drop trigger if exists guide_entries_touch_updated_at on public.guide_entries;
+create trigger guide_entries_touch_updated_at
+before update on public.guide_entries
+for each row execute function public.touch_updated_at();
+
+-- Grant yourself admin once, in the Supabase SQL editor:
+--   update public.profiles set is_admin = true where id = '<your-auth-user-id>';

@@ -1,0 +1,79 @@
+/* Content admin — deliberately plain and dense; the public site carries the
+   fantasy styling, this page is a work surface. */
+:root {
+  --adm-bg: #070b13;
+  --adm-panel: #0d1424;
+  --adm-line: #1e2a44;
+  --adm-text: #d7e1f5;
+  --adm-dim: #8294b8;
+  --adm-frost: #5aa7ff;
+  --adm-ok: #3ecf8e;
+  --adm-no: #ff6b7a;
+  --adm-gold: #e8b45a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--adm-bg);
+  color: var(--adm-text);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.adm-shell { max-width: 1080px; margin: 0 auto; padding: 24px 20px 80px; }
+.adm-shell--center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; gap: 16px; }
+
+.adm-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.adm-top h1 { font-size: 20px; margin: 0; }
+.adm-top__right { display: flex; align-items: center; gap: 10px; }
+
+.adm-note { color: var(--adm-dim); }
+.adm-notice { background: var(--adm-panel); border: 1px solid var(--adm-line); border-left: 3px solid var(--adm-frost); padding: 8px 12px; border-radius: 6px; }
+
+.adm-auth { display: flex; gap: 12px; }
+
+.adm-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.adm-tab { background: transparent; border: 1px solid var(--adm-line); color: var(--adm-dim); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.adm-tab--on { color: var(--adm-text); border-color: var(--adm-frost); background: rgba(90, 167, 255, 0.12); }
+.adm-filters select { background: var(--adm-panel); color: var(--adm-text); border: 1px solid var(--adm-line); border-radius: 6px; padding: 5px 8px; }
+
+.adm-seed { border: 1px dashed var(--adm-line); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; }
+.adm-seed__btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+.adm-list { display: flex; flex-direction: column; gap: 14px; }
+
+.adm-card { background: var(--adm-panel); border: 1px solid var(--adm-line); border-radius: 10px; padding: 14px 16px; }
+.adm-card--pending { border-left: 3px solid var(--adm-gold); }
+.adm-card--approved { border-left: 3px solid var(--adm-ok); }
+.adm-card--rejected, .adm-card--archived { border-left: 3px solid var(--adm-line); opacity: 0.85; }
+
+.adm-card__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.adm-badge { background: rgba(90, 167, 255, 0.14); color: var(--adm-frost); border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+.adm-origin { color: var(--adm-dim); font-size: 12px; font-style: normal; }
+.adm-status { margin-left: auto; font-size: 12px; color: var(--adm-dim); }
+.adm-status--pending { color: var(--adm-gold); }
+.adm-status--approved { color: var(--adm-ok); }
+
+.adm-card__fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px 16px; }
+.adm-field { display: flex; flex-direction: column; gap: 3px; }
+.adm-field > span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--adm-dim); }
+.adm-field input[type="text"], .adm-field input[type="number"], .adm-field textarea {
+  background: var(--adm-bg); color: var(--adm-text); border: 1px solid var(--adm-line);
+  border-radius: 6px; padding: 6px 9px; font: inherit; width: 100%;
+}
+.adm-field textarea { resize: vertical; }
+.adm-field--check { flex-direction: row; align-items: center; gap: 8px; }
+.adm-field--json textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.adm-field--bad textarea { border-color: var(--adm-no); }
+.adm-field--sort { max-width: 120px; }
+
+.adm-card__actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.adm-btn {
+  background: var(--adm-panel); color: var(--adm-text); border: 1px solid var(--adm-line);
+  border-radius: 6px; padding: 6px 14px; cursor: pointer; font: inherit;
+}
+.adm-btn:hover { border-color: var(--adm-frost); }
+.adm-btn:disabled { opacity: 0.5; cursor: default; }
+.adm-btn--ok { border-color: var(--adm-ok); color: var(--adm-ok); }
+.adm-btn--no { border-color: var(--adm-no); color: var(--adm-no); }
+.adm-btn--save { border-color: var(--adm-gold); color: var(--adm-gold); }
