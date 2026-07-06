@@ -6,6 +6,10 @@
     <meta name="theme-color" content="#070b13">
     <title>Throne & Liberty Achievement Tracker | TL Helper</title>
     <meta name="description" content="Track Throne and Liberty achievements, filter what is left, and sync your TLHelper completion profile.">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/brand/favicon-64.png">
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
     <meta property="og:title" content="TL Helper Achievement Tracker">
     <meta property="og:description" content="A dark fantasy achievement tracker for Throne and Liberty completion profiles.">
     <meta property="og:image" content="/assets/generated/tlhelper-z/og-achievement-tracker.png">
@@ -20,18 +24,7 @@
       <header class="topbar">
         <a class="brand" href="/" aria-label="TL Helper home">
           <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
-              <defs>
-                <linearGradient id="trackerSigilGlow" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="var(--frost-blue)" />
-                  <stop offset="0.55" stop-color="var(--aurora-teal)" />
-                  <stop offset="1" stop-color="var(--relic-gold)" />
-                </linearGradient>
-              </defs>
-              <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="url(#trackerSigilGlow)" stroke-width="2.4" />
-              <circle cx="32" cy="32" r="11" fill="none" stroke="var(--frost-border-strong)" stroke-width="2" />
-              <path d="M32 18v28M18 32h28" stroke="var(--snow-white)" stroke-width="1.3" opacity=".72" />
-            </svg>
+            <img src="/assets/brand/logo.png" alt="">
           </span>
           <span>
             <strong>TL HELPER</strong>
@@ -40,10 +33,9 @@
         </a>
 
         <nav class="topbar__nav" aria-label="Primary navigation">
-          <a class="topbar__link" href="/">Nix Guide</a>
+          <a class="topbar__link" href="/">Home</a>
           <a class="topbar__link is-active" href="/achievements/" aria-current="page">Achievements</a>
-          <a class="topbar__link" href="#tracker">Tracker</a>
-          <a class="topbar__link" href="#profile">Profile</a>
+          <a class="topbar__link" href="/profile/">Profile</a>
         </nav>
 
         <div class="topbar__status profile-preview" aria-label="Profile status">
@@ -86,10 +78,11 @@
               </div>
 
               <div class="profile-actions" id="profileActions" hidden>
-                <label class="search-label" for="usernameInput">Public username</label>
-                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer">
+                <label class="search-label" for="usernameInput">Username</label>
+                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
+                <p class="input-hint">This name is unique to your TLHelper profile.</p>
                 <div class="auth-actions">
-                  <button id="saveProfileButton" class="text-action-button" type="button">Save profile</button>
+                  <button id="saveProfileButton" class="text-action-button" type="button">Change username</button>
                   <button id="syncProgressButton" class="text-action-button" type="button">Sync now</button>
                   <button id="signOutButton" class="text-action-button danger-text" type="button">Sign out</button>
                 </div>
@@ -190,11 +183,7 @@
 
       <footer class="footer">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64" role="img">
-            <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="var(--relic-gold)" stroke-width="2.4" />
-            <circle cx="32" cy="32" r="11" fill="none" stroke="var(--frost-border-strong)" stroke-width="2" />
-            <path d="M32 18v28M18 32h28" stroke="var(--snow-white)" stroke-width="1.3" opacity=".72" />
-          </svg>
+          <img src="/assets/brand/logo.png" alt="">
         </span>
         <div>
           <strong>TL Helper</strong>
@@ -269,9 +258,9 @@
         </div>
         <h2 id="profileSetupTitle">Choose a profile name</h2>
         <p>This becomes your public TLHelper handle when profile sharing goes live.</p>
-        <label class="search-label" for="profileSetupUsername">Profile name</label>
+        <label class="search-label" for="profileSetupUsername">Username</label>
         <input id="profileSetupUsername" class="search-input profile-name-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
-        <p class="input-hint">Use 3-24 letters, numbers, or underscores.</p>
+        <p class="input-hint">Use 3-24 letters, numbers, or underscores. Nobody else can claim the same name.</p>
         <div class="profile-setup-actions">
           <button id="profileSetupSaveButton" class="primary-auth-button" type="button">Create profile</button>
           <button id="profileSetupSignOutButton" class="text-button" type="button">Sign out instead</button>

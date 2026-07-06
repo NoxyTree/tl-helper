@@ -68,18 +68,7 @@ function Lightbox({ shot, onClose }) {
 function BrandMark() {
   return (
     <div className="brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 64 64" role="img">
-        <defs>
-          <linearGradient id="sigilGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="var(--frost-blue)" />
-            <stop offset="0.55" stopColor="var(--aurora-teal)" />
-            <stop offset="1" stopColor="var(--relic-gold)" />
-          </linearGradient>
-        </defs>
-        <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="url(#sigilGlow)" strokeWidth="2.4" />
-        <circle cx="32" cy="32" r="11" fill="none" stroke="var(--frost-border-strong)" strokeWidth="2" />
-        <path d="M32 18v28M18 32h28" stroke="var(--snow-white)" strokeWidth="1.3" opacity=".72" />
-      </svg>
+      <img src="/assets/brand/logo.png" alt="" />
     </div>
   );
 }
@@ -98,10 +87,9 @@ function SourceBadge({ source, confidence }) {
   );
 }
 
-function SectionHeader({ eyebrow, title, body, id, tone = "frost" }) {
+function SectionHeader({ eyebrow, title, body, id }) {
   return (
     <div id={id} className="section-header">
-      <div className={cx("section-header__bar", `section-header__bar--${tone}`)} />
       <div>
         <p className="eyebrow">{eyebrow}</p>
         <h2>{title}</h2>
@@ -232,7 +220,7 @@ function IntelCard({ item }) {
 
 function FeatureCard({ item }) {
   return (
-    <article className={cx("feature-card", `feature-card--${item.accent}`)}>
+    <article className="feature-card">
       <img src={item.image} alt="" />
       <div className="feature-card__scrim" />
       <div className="feature-card__content">
@@ -296,7 +284,6 @@ function SearchResults({ results, query, onClear }) {
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [activeSection, setActiveSection] = useState("briefing");
   const [zoom, setZoom] = useState(null);  // active screenshot for the lightbox
 
   // Approved Supabase entries take over their section; static content.js
@@ -338,20 +325,7 @@ export default function App() {
     return searchIndex.filter((item) => `${item.group} ${item.title} ${item.body}`.toLowerCase().includes(q)).slice(0, 12);
   }, [query, searchIndex]);
 
-  useEffect(() => {
-    const sections = navItems.map((item) => document.getElementById(item.id)).filter(Boolean);
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (visible?.target?.id) setActiveSection(visible.target.id);
-    }, { rootMargin: "-18% 0px -66% 0px", threshold: [0, 0.2, 0.6] });
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
-
   const jumpTo = (id) => {
-    setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -362,7 +336,7 @@ export default function App() {
       <div className="ambient ambient--void" />
 
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="TL Helper home">
+        <a className="brand" href="/" aria-label="TL Helper home">
           <BrandMark />
           <span>
             <strong>TL HELPER</strong>
@@ -371,18 +345,9 @@ export default function App() {
         </a>
 
         <nav className="topbar__nav" aria-label="Primary navigation">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={activeSection === item.id ? "is-active" : ""}
-              aria-current={activeSection === item.id ? "location" : undefined}
-              onClick={() => jumpTo(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-          <a className="topbar__link topbar__link--accent" href="/achievements/">Achievement Tracker</a>
+          <a className="topbar__link is-active" href="/" aria-current="page">Home</a>
+          <a className="topbar__link" href="/achievements/">Achievements</a>
+          <a className="topbar__link" href="/profile/">Profile</a>
         </nav>
 
         <div className="topbar__status">
@@ -483,13 +448,12 @@ export default function App() {
           </aside>
 
           <div className="main-stack">
-            <section className="panel-section panel-section--frost">
+            <section className="panel-section">
               <SectionHeader
                 id="briefing"
                 eyebrow="Command Briefing"
                 title="What matters right now"
                 body="Start the 49-day attendance track, protect your Redfrost drops, and avoid spending into systems that are about to receive cheaper acquisition paths."
-                tone="gold"
               />
 
               <div className="deadline-grid">
@@ -536,13 +500,12 @@ export default function App() {
               </div>
             </section>
 
-            <section className="panel-section panel-section--systems">
+            <section className="panel-section">
               <SectionHeader
                 id="systems"
                 eyebrow="System Changes"
                 title="The expensive mistakes to avoid"
                 body="Item Level replaced Enhancement, Inheritance replaced Sync, and traits, sealing and skill growth now consume enough materials to punish casual build switching."
-                tone="frost"
               />
 
               <div className="warning-grid">
@@ -576,13 +539,12 @@ export default function App() {
               </div>
             </section>
 
-            <section className="panel-section panel-section--void">
+            <section className="panel-section">
               <SectionHeader
                 id="intel"
                 eyebrow="Community Intel"
                 title="Useful findings, clearly labelled"
                 body="These routes come from player testing and transcript-backed demonstrations. Exact yields can change after hotfixes, so each claim keeps its confidence label."
-                tone="void"
               />
 
               <div className="art-split">
@@ -627,13 +589,12 @@ export default function App() {
               </div>
             </section>
 
-            <section className="panel-section panel-section--roadmap">
+            <section className="panel-section">
               <SectionHeader
                 id="roadmap"
                 eyebrow="Roadmap"
                 title="Confirmed dates and incoming relief"
                 body="The July Resistance Report gives firm dates for dungeon reductions, Character Boost additions, Tumgir Hollow changes, more free Seal Keys and Ramux."
-                tone="gold"
               />
 
               <div className="roadmap">

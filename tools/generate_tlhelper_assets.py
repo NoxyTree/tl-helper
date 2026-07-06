@@ -1,9 +1,12 @@
 import argparse
+import io
 import json
 import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+from PIL import Image
 
 
 COMFY_URL = "http://127.0.0.1:8188"
@@ -13,61 +16,108 @@ CLIP_1 = "qwen_3_4b.safetensors"
 VAE = "ae.safetensors"
 
 STYLE_ANCHOR = (
-    "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, "
-    "obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, "
+    "dark high-fantasy MMORPG panoramic environment artwork, "
+    "obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, "
     "frost-blue rim light, elegant cinematic lighting, detailed but readable, "
-    "premium game guide website asset, no text, no logo, no UI, no watermark"
+    "raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark"
+)
+
+LOGO_STYLE_ANCHOR = (
+    "TLHelper brand mark exploration, dark high-fantasy MMORPG utility logo, "
+    "clean centered emblem, antique gold metal, violet arcane glow, frost-blue highlights, "
+    "sharp readable silhouette for favicon scale, premium game helper identity, "
+    "no text, no letters, no watermark, no mockup"
 )
 
 NEGATIVE = (
     "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, "
     "anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, "
     "extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, "
-    "profile card, dashboard, screenshot, white background, white border, paper frame"
+    "profile card, dashboard, screenshot, white background, white border, paper frame, "
+    "words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, "
+    "book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, "
+    "fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, "
+    "framed card, ornate border, decorative frame, top border, bottom border, corner ornament, "
+    "arcane chronicle, chronicle, codex, helper, TLHelper, white panel, white block, white fade, blank white area"
+)
+
+NO_TEXT_GUARD = (
+    "ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, "
+    "no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, "
+    "no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, "
+    "no white panels, no bright blank blocks, no empty white fade"
 )
 
 ASSETS = [
+    {
+        "slug": "logo-option-sigil-compass",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "a compass-star achievement sigil inside a slim ornate diamond frame, symmetrical, simple negative space, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
+    {
+        "slug": "logo-option-codex-star",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "an open fantasy codex forming a four-point star, small violet gem at the center, antique gold page edges, simple strong silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
+    {
+        "slug": "logo-option-crown-check",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "a legendary achievement crest combining a subtle check mark and crown shape, violet core crystal, gold filigree, bold readable silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
+    {
+        "slug": "logo-option-portal-pin",
+        "kind": "brand-mark",
+        "width": 1024,
+        "height": 1024,
+        "prompt": "a magical map pin shaped like a portal rune, violet inner flame, antique gold outline, frost-blue spark accents, bold compact silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    },
     {
         "slug": "tracker-hero-wide",
         "kind": "layout-strip",
         "width": 3840,
         "height": 720,
-        "prompt": "ultra-wide achievement tracker header art with absolutely no words, no letters, no symbols resembling writing, no inscriptions, no title, no logo; left third is plain dark obsidian stone and soft shadow only for website copy; right two thirds show an ornate achievement board viewed from above, bright violet constellation paths, antique gold relic frames, frost-blue magical highlights, strong visible fantasy detail",
+        "prompt": "ultra-wide in-world fantasy scene; left third is plain dark obsidian stone and soft shadow; right two thirds show a magical completion constellation made from violet light paths, simple antique gold relic shapes, frost-blue magical highlights, natural environment edges",
     },
     {
         "slug": "achievement-overview-strip",
         "kind": "layout-strip",
         "width": 3200,
         "height": 512,
-        "prompt": "very wide panoramic achievement overview strip, ornate dark fantasy completion board with glowing violet achievement nodes, gold filigree border pieces, visible magical paths and relic medallions spread across the center and right side, left side softly dark for readable copy, no text",
+        "prompt": "very wide in-world dark fantasy panorama, magical completion constellation with glowing violet nodes, gold relic medallions, visible magical paths spread across the center and right side, left side softly dark and empty",
     },
     {
         "slug": "adventure-codex-banner",
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "ancient quest codex opened on a stone table, glowing map lines across Laslan wilderness, violet magical wind, gold quest markers as abstract light, distant castle silhouettes, heroic exploration mood",
+        "prompt": "wide heroic exploration environment, distant castle silhouettes, mountain paths made from abstract violet light, gold waypoint sparks as pure shapes, open wilderness and ruins",
     },
     {
         "slug": "content-banner",
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "grand archive chamber filled with floating parchment, dungeon maps, sealed scrolls, and blue-violet magical particles, gold-trimmed stone pillars, organized knowledge and discovery mood",
+        "prompt": "grand archive chamber with blank floating crystal shards, blue-violet magical particles, gold-trimmed stone pillars, organized knowledge and discovery mood",
     },
     {
         "slug": "character-banner",
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "heroic adventurer silhouette before an enchanted mirror, armor pieces and weapon sigils floating around them, violet aura, gold trim, frost-blue highlights, identity and progression mood",
+        "prompt": "heroic adventurer silhouette before an enchanted mirror, armor pieces and weapon silhouettes floating around them as pure shapes, violet aura, gold trim, frost-blue highlights, identity and progression mood",
     },
     {
         "slug": "combat-banner",
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "battlefield clash at twilight, sword trails, shield sparks, violet spell impact, gold embers, dramatic but not too busy, high-fantasy combat achievement mood",
+        "prompt": "battlefield clash at twilight, sword trails, shield sparks, violet spell impact, gold embers, dramatic combat scene, open environment",
     },
     {
         "slug": "life-banner",
@@ -81,21 +131,21 @@ ASSETS = [
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "four adventurer silhouettes entering a glowing dungeon gate together, violet portal, gold runes on stone archway, teamwork and raid preparation mood",
+        "prompt": "dark dungeon corridor with four adventurer silhouettes preparing together, violet light in the far background only, blue shadowed stone floor across the full width, teamwork and raid preparation mood, no portal glare, no bright opening",
     },
     {
         "slug": "special-achievements-banner",
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "rare golden achievement relic floating freely in a dark shrine, violet magical beams, frost-blue particles, ornate treasure-chamber atmosphere, prestigious completion mood, full bleed dark cinematic background, no pedestal, no plaque, no inscription",
+        "prompt": "rare golden achievement relic floating freely in a dark shrine, violet magical beams, frost-blue particles, treasure-chamber atmosphere, prestigious completion mood, full bleed dark cinematic background",
     },
     {
         "slug": "hidden-achievements-banner",
         "kind": "category-banner",
         "width": 3200,
         "height": 512,
-        "prompt": "concealed moonlit ruin behind a curtain of violet mist, hidden glyphs glowing faintly, gold key suspended in shadow, mystery and secret discovery mood",
+        "prompt": "concealed moonlit ruin behind a curtain of violet mist, gold key suspended in shadow, soft abstract light motes, mystery and secret discovery mood, no glyphs and no inscriptions",
     },
     {
         "slug": "milestone-10",
@@ -167,15 +217,52 @@ def get_bytes(path, params):
         return response.read()
 
 
+def remove_white_margins(data):
+    image = Image.open(io.BytesIO(data)).convert("RGB")
+    pixels = image.load()
+    width, height = image.size
+    min_x, min_y = width, height
+    max_x, max_y = -1, -1
+    for y in range(height):
+        for x in range(width):
+            r, g, b = pixels[x, y]
+            if not (r > 238 and g > 238 and b > 238):
+                min_x = min(min_x, x)
+                min_y = min(min_y, y)
+                max_x = max(max_x, x)
+                max_y = max(max_y, y)
+    if max_x < min_x:
+        return data
+
+    crop_w = max_x - min_x + 1
+    crop_h = max_y - min_y + 1
+    if crop_w >= width * 0.96 and crop_h >= height * 0.96:
+        return data
+
+    cropped = image.crop((min_x, min_y, max_x + 1, max_y + 1))
+    cropped = cropped.resize(image.size, Image.Resampling.LANCZOS)
+    out = io.BytesIO()
+    cropped.save(out, format="PNG")
+    return out.getvalue()
+
+
 def workflow(asset, seed):
     layout_hint = ""
     if asset["kind"] == "category-banner":
         layout_hint = (
-            "very wide panoramic website category strip composed for a 1600 by 256 pixel banner, "
-            "left third plain dark stone and shadow for readable page copy, main fantasy detail centered and right, "
-            "full-bleed scene, absolutely no words, no letters, no title, no logo, no inscription, no UI"
+            "very wide panoramic in-world scene composed for a 1600 by 256 crop, "
+            "left third plain dark stone and shadow, main fantasy detail centered and right, "
+            "full-bleed natural environment scene, no border, no frame, no plaque, no title area"
         )
-    positive = f"{STYLE_ANCHOR}, {layout_hint}, {asset['prompt']}, no text, no logo, no UI"
+    style_anchor = LOGO_STYLE_ANCHOR if asset["kind"] == "brand-mark" else STYLE_ANCHOR
+    brand_hint = ""
+    if asset["kind"] == "brand-mark":
+        brand_hint = (
+            "single isolated emblem only, vector-logo-like silhouette, crisp edges, centered composition, "
+            "perfectly flat uniform #00ff00 background for alpha removal, no gradients in background, "
+            "no background texture, no cast shadow, no contact shadow"
+        )
+    positive = f"{style_anchor}, {NO_TEXT_GUARD}, {layout_hint}, {brand_hint}, {asset['prompt']}"
     return {
         "1": {
             "class_type": "UNETLoader",
@@ -246,11 +333,13 @@ def wait_for_output(prompt_id):
 
 
 def generate(asset, seed):
-    prompt = {"prompt": workflow(asset, seed)}
+    graph = workflow(asset, seed)
+    prompt = {"prompt": graph}
     response = request_json("POST", "/prompt", prompt)
     prompt_id = response["prompt_id"]
     image = wait_for_output(prompt_id)
     data = get_bytes("/view", image)
+    data = remove_white_margins(data)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     target = OUT_DIR / f"{asset['slug']}.png"
     target.write_bytes(data)
@@ -258,7 +347,7 @@ def generate(asset, seed):
         **asset,
         "seed": seed,
         "src": f"/assets/generated/tlhelper-z/{asset['slug']}.png",
-        "prompt": f"{STYLE_ANCHOR}, {asset['prompt']}",
+        "prompt": graph["4"]["inputs"]["prompt"],
         "negative": NEGATIVE,
         "comfy": {"prompt_id": prompt_id, "source": image},
     }

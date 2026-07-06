@@ -90,36 +90,72 @@
     }
   },
   {
-    "slug": "og-achievement-tracker",
-    "kind": "social",
-    "width": 1200,
-    "height": 640,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, wide cinematic composition, achievement relics arranged across an obsidian command table, violet magical constellation lines connecting them, antique gold accents, empty readable dark center space, full bleed fantasy environment, absolutely no writing",
-    "seed": 72027003,
-    "src": "/assets/generated/tlhelper-z/og-achievement-tracker.png",
+    "slug": "logo-option-sigil-compass",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, a compass-star achievement sigil inside a slim ornate diamond frame, symmetrical, simple negative space, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030001,
+    "src": "/assets/generated/tlhelper-z/logo-option-sigil-compass.png",
     "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
     "comfy": {
-      "prompt_id": "6eb72d2f-3a69-4648-82a1-4120ba03b609",
+      "prompt_id": "f80e33c6-1c6d-45a7-8c8b-519f0c5ffbd1",
       "source": {
-        "filename": "og-achievement-tracker_00002_.png",
+        "filename": "logo-option-sigil-compass_00001_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
     }
   },
   {
-    "slug": "profile-share-card-bg",
-    "kind": "social",
-    "width": 1200,
-    "height": 640,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, heroic character silhouette standing before a wall of glowing achievement seals, violet magic aura, subtle gold filigree near the edges, dark readable center area, full bleed fantasy background, absolutely no writing or interface",
-    "seed": 72027004,
-    "src": "/assets/generated/tlhelper-z/profile-share-card-bg.png",
+    "slug": "logo-option-codex-star",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, an open fantasy codex forming a four-point star, small violet gem at the center, antique gold page edges, simple strong silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030002,
+    "src": "/assets/generated/tlhelper-z/logo-option-codex-star.png",
     "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
     "comfy": {
-      "prompt_id": "1d517194-c20b-4367-90e4-8deee8046d36",
+      "prompt_id": "70afce91-60d4-421c-a480-483f440b096c",
       "source": {
-        "filename": "profile-share-card-bg_00002_.png",
+        "filename": "logo-option-codex-star_00001_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "logo-option-crown-check",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, a legendary achievement crest combining a subtle check mark and crown shape, violet core crystal, gold filigree, bold readable silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030003,
+    "src": "/assets/generated/tlhelper-z/logo-option-crown-check.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "comfy": {
+      "prompt_id": "c4bbf4f7-22e5-48ce-ba8b-8c586ad1a36a",
+      "source": {
+        "filename": "logo-option-crown-check_00001_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "logo-option-portal-pin",
+    "kind": "brand-mark",
+    "width": 1024,
+    "height": 1024,
+    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, a magical map pin shaped like a portal rune, violet inner flame, antique gold outline, frost-blue spark accents, bold compact silhouette, icon centered with generous padding, flat pure #00ff00 chroma key background, no shadow, no floor, no scenery",
+    "seed": 72030004,
+    "src": "/assets/generated/tlhelper-z/logo-option-portal-pin.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "comfy": {
+      "prompt_id": "093fe64c-cc0b-48e1-98e5-343322b86789",
+      "source": {
+        "filename": "logo-option-portal-pin_00001_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -130,14 +166,32 @@
     "kind": "layout-strip",
     "width": 3840,
     "height": 720,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, ultra-wide achievement tracker header art with absolutely no words, no letters, no symbols resembling writing, no inscriptions, no title, no logo; left third is plain dark obsidian stone and soft shadow only for website copy; right two thirds show an ornate achievement board viewed from above, bright violet constellation paths, antique gold relic frames, frost-blue magical highlights, strong visible fantasy detail",
-    "seed": 72028001,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, , , ultra-wide in-world fantasy scene; left third is plain dark obsidian stone and soft shadow; right two thirds show a magical completion constellation made from violet light paths, simple antique gold relic shapes, frost-blue magical highlights, natural environment edges",
+    "seed": 72032001,
     "src": "/assets/generated/tlhelper-z/tracker-hero-wide.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "050b340a-7eb2-4a75-83b8-e5f0a2c46a9f",
+      "prompt_id": "a99a4285-fc86-41e4-abec-e3d329fd6cc1",
       "source": {
-        "filename": "tracker-hero-wide_00002_.png",
+        "filename": "tracker-hero-wide_00004_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "achievement-overview-strip",
+    "kind": "layout-strip",
+    "width": 3200,
+    "height": 512,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, , , very wide in-world dark fantasy panorama, magical completion constellation with glowing violet nodes, gold relic medallions, visible magical paths spread across the center and right side, left side softly dark and empty",
+    "seed": 72032002,
+    "src": "/assets/generated/tlhelper-z/achievement-overview-strip.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
+    "comfy": {
+      "prompt_id": "2a4c680e-6f0f-4e75-ba6f-5aaf2c488ca1",
+      "source": {
+        "filename": "achievement-overview-strip_00003_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -148,14 +202,14 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, ancient quest codex opened on a stone table, glowing map lines across Laslan wilderness, violet magical wind, gold quest markers as abstract light, distant castle silhouettes, heroic exploration mood",
-    "seed": 72029001,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , wide heroic exploration environment, distant castle silhouettes, mountain paths made from abstract violet light, gold waypoint sparks as pure shapes, open wilderness and ruins",
+    "seed": 72032003,
     "src": "/assets/generated/tlhelper-z/adventure-codex-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "5625322b-8691-42b6-8937-efd78c644305",
+      "prompt_id": "1f734f11-da28-4b61-a93e-47496c01da65",
       "source": {
-        "filename": "adventure-codex-banner_00002_.png",
+        "filename": "adventure-codex-banner_00004_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -166,14 +220,14 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, grand archive chamber filled with floating parchment, dungeon maps, sealed scrolls, and blue-violet magical particles, gold-trimmed stone pillars, organized knowledge and discovery mood",
-    "seed": 72029002,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , grand archive chamber with blank floating crystal shards, blue-violet magical particles, gold-trimmed stone pillars, organized knowledge and discovery mood",
+    "seed": 72032004,
     "src": "/assets/generated/tlhelper-z/content-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "f0cf89bd-d870-406c-b734-0b90bb91de50",
+      "prompt_id": "9d9bc1fa-49ea-4404-99f5-19ff99cd797a",
       "source": {
-        "filename": "content-banner_00002_.png",
+        "filename": "content-banner_00004_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -184,14 +238,14 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, heroic adventurer silhouette before an enchanted mirror, armor pieces and weapon sigils floating around them, violet aura, gold trim, frost-blue highlights, identity and progression mood",
-    "seed": 72029003,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , heroic adventurer silhouette before an enchanted mirror, armor pieces and weapon silhouettes floating around them as pure shapes, violet aura, gold trim, frost-blue highlights, identity and progression mood",
+    "seed": 72032005,
     "src": "/assets/generated/tlhelper-z/character-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "8c124cc7-ab47-463e-96c9-2a65283a62db",
+      "prompt_id": "7bad53c6-0e2c-42f2-97d5-88913d5cc15c",
       "source": {
-        "filename": "character-banner_00002_.png",
+        "filename": "character-banner_00004_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -202,14 +256,14 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, battlefield clash at twilight, sword trails, shield sparks, violet spell impact, gold embers, dramatic but not too busy, high-fantasy combat achievement mood",
-    "seed": 72029004,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , battlefield clash at twilight, sword trails, shield sparks, violet spell impact, gold embers, dramatic combat scene, open environment",
+    "seed": 72032006,
     "src": "/assets/generated/tlhelper-z/combat-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "ea503b1f-4cef-42fa-9729-2f316a8dc721",
+      "prompt_id": "a7079e1c-0623-40b6-9928-9bdf9b4e8fd5",
       "source": {
-        "filename": "combat-banner_00002_.png",
+        "filename": "combat-banner_00004_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -220,32 +274,14 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, fantasy crafting bench with herbs, cooking pot, fishing gear, alchemy bottles, warm gold candlelight, subtle violet magic, cozy progression mood",
-    "seed": 72029005,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , fantasy crafting bench with herbs, cooking pot, fishing gear, alchemy bottles, warm gold candlelight, subtle violet magic, cozy progression mood",
+    "seed": 72032007,
     "src": "/assets/generated/tlhelper-z/life-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "9a762f22-564d-4d66-ab02-9a70dd0434aa",
+      "prompt_id": "c42aed55-f1ac-4c0b-bc64-b544236e1bc8",
       "source": {
-        "filename": "life-banner_00002_.png",
-        "subfolder": "TLHelper",
-        "type": "output"
-      }
-    }
-  },
-  {
-    "slug": "coop-banner",
-    "kind": "category-banner",
-    "width": 3200,
-    "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, four adventurer silhouettes entering a glowing dungeon gate together, violet portal, gold runes on stone archway, teamwork and raid preparation mood",
-    "seed": 72029006,
-    "src": "/assets/generated/tlhelper-z/coop-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
-    "comfy": {
-      "prompt_id": "0d0b3519-4964-4c56-b8cb-56c3961e9df6",
-      "source": {
-        "filename": "coop-banner_00002_.png",
+        "filename": "life-banner_00004_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -256,14 +292,14 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, rare golden achievement relic floating freely in a dark shrine, violet magical beams, frost-blue particles, ornate treasure-chamber atmosphere, prestigious completion mood, full bleed dark cinematic background, no pedestal, no plaque, no inscription",
-    "seed": 72029007,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , rare golden achievement relic floating freely in a dark shrine, violet magical beams, frost-blue particles, treasure-chamber atmosphere, prestigious completion mood, full bleed dark cinematic background",
+    "seed": 72032009,
     "src": "/assets/generated/tlhelper-z/special-achievements-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "70792e92-cce6-437d-bd1e-717830548787",
+      "prompt_id": "651d7cb9-7e9c-4168-a776-dcd7aee934f6",
       "source": {
-        "filename": "special-achievements-banner_00004_.png",
+        "filename": "special-achievements-banner_00006_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }
@@ -274,14 +310,68 @@
     "kind": "category-banner",
     "width": 3200,
     "height": 512,
-    "prompt": "TLHelper arcane chronicle style, dark high-fantasy MMORPG interface artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold filigree, frost-blue rim light, elegant cinematic lighting, detailed but readable, premium game guide website asset, no text, no logo, no UI, no watermark, concealed moonlit ruin behind a curtain of violet mist, hidden glyphs glowing faintly, gold key suspended in shadow, mystery and secret discovery mood",
-    "seed": 72029008,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , concealed moonlit ruin behind a curtain of violet mist, gold key suspended in shadow, soft abstract light motes, mystery and secret discovery mood, no glyphs and no inscriptions",
+    "seed": 72032010,
     "src": "/assets/generated/tlhelper-z/hidden-achievements-banner.png",
-    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
     "comfy": {
-      "prompt_id": "bc8a0442-1a25-4a40-afe3-a561edba068f",
+      "prompt_id": "ae77b1fd-5642-452a-92f9-c397f503f2ab",
       "source": {
-        "filename": "hidden-achievements-banner_00002_.png",
+        "filename": "hidden-achievements-banner_00004_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "og-achievement-tracker",
+    "kind": "social",
+    "width": 1200,
+    "height": 640,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, , , wide cinematic composition, achievement relics arranged across an obsidian command table, violet magical constellation lines connecting them, antique gold accents, empty readable dark center space, full bleed fantasy environment, absolutely no writing",
+    "seed": 72032011,
+    "src": "/assets/generated/tlhelper-z/og-achievement-tracker.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
+    "comfy": {
+      "prompt_id": "b1e862bd-cd05-428c-af1a-87f6eb530298",
+      "source": {
+        "filename": "og-achievement-tracker_00004_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "profile-share-card-bg",
+    "kind": "social",
+    "width": 1200,
+    "height": 640,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, , , heroic character silhouette standing before a wall of glowing achievement seals, violet magic aura, subtle gold filigree near the edges, dark readable center area, full bleed fantasy background, absolutely no writing or interface",
+    "seed": 72032012,
+    "src": "/assets/generated/tlhelper-z/profile-share-card-bg.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper",
+    "comfy": {
+      "prompt_id": "ca303c8b-b7c6-4c7e-8ad8-121cf1958360",
+      "source": {
+        "filename": "profile-share-card-bg_00004_.png",
+        "subfolder": "TLHelper",
+        "type": "output"
+      }
+    }
+  },
+  {
+    "slug": "coop-banner",
+    "kind": "category-banner",
+    "width": 3200,
+    "height": 512,
+    "prompt": "dark high-fantasy MMORPG panoramic environment artwork, obsidian and midnight blue atmosphere, violet void magic, antique gold metal details, frost-blue rim light, elegant cinematic lighting, detailed but readable, raw in-world fantasy scene, no text, no letters, no logo, no UI, no watermark, ABSOLUTELY NO TEXT OR LETTERING ANYWHERE IN THE IMAGE, no fake text, no pseudo letters, no decorative writing, no readable symbols, no label plaques, no title bars, no UI frames, no ornamental borders, no framed card layout, no scrolls or books with marks, no maps with labels, no signage, no white panels, no bright blank blocks, no empty white fade, very wide panoramic in-world scene composed for a 1600 by 256 crop, left third plain dark stone and shadow, main fantasy detail centered and right, full-bleed natural environment scene, no border, no frame, no plaque, no title area, , dark dungeon corridor with four adventurer silhouettes preparing together, violet light in the far background only, blue shadowed stone floor across the full width, teamwork and raid preparation mood, no portal glare, no bright opening",
+    "seed": 72034001,
+    "src": "/assets/generated/tlhelper-z/coop-banner.png",
+    "negative": "text, letters, logo, watermark, blurry, low quality, modern city, sci-fi guns, anime, cartoon, goofy, overexposed, flat lighting, crowded composition, bad anatomy, extra limbs, distorted face, illegible symbols, typography, captions, interface, website mockup, profile card, dashboard, screenshot, white background, white border, paper frame, words, alphabet, numbers, title, subtitle, heading, label, sign, signage, nameplate, plaque, book text, parchment text, map labels, menu, button, UI frame, title banner, readable marks, fake writing, pseudo text, glyphs, runes, inscriptions, symbols arranged like writing, framed card, ornate border, decorative frame, top border, bottom border, corner ornament, arcane chronicle, chronicle, codex, helper, TLHelper, white panel, white block, white fade, blank white area",
+    "comfy": {
+      "prompt_id": "b6b00a5b-75d2-4073-814a-3da687590de5",
+      "source": {
+        "filename": "coop-banner_00006_.png",
         "subfolder": "TLHelper",
         "type": "output"
       }

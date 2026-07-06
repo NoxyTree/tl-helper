@@ -160,9 +160,8 @@ function normalizeUsername(value) {
 }
 
 function getDisplayName() {
-  return state.profile?.display_name
-    || state.profile?.username
-    || state.session?.user?.email
+  return state.profile?.username
+    || (state.session ? "Choose username" : null)
     || "Wanderer";
 }
 
@@ -177,6 +176,13 @@ function getSuggestedUsername() {
 
 function needsProfileNameSetup() {
   return Boolean(state.session && state.profile && !state.profile.username);
+}
+
+function getProfileSaveErrorMessage(error) {
+  if (error?.code === "23505" || /duplicate key|profiles_username_key|unique/i.test(error?.message || "")) {
+    return "That username is already taken";
+  }
+  return error?.message || "Could not save username";
 }
 
 function openProfileSetup() {
@@ -229,8 +235,8 @@ function renderProfile() {
   els.profileMode.textContent = "Signed in";
   els.profileName.textContent = getDisplayName();
   els.profileCopy.textContent = state.profile?.username
-    ? "Progress syncs to your TLHelper profile."
-    : "Choose a profile name to finish setting up cloud sync.";
+    ? `@${state.profile.username} is yours on TLHelper.`
+    : "Choose a unique username to finish setting up cloud sync.";
   els.authPanel.hidden = true;
   els.profileActions.hidden = false;
   els.usernameInput.value = state.profile?.username || "";
@@ -358,20 +364,20 @@ async function saveProfile({ fromSetup = false } = {}) {
 
   const { data, error } = await supabase
     .from("profiles")
-    .update({ username: username || null })
+    .update({ username, display_name: username })
     .eq("id", state.session.user.id)
     .select("id, username, display_name, avatar_url, is_public, created_at")
     .single();
 
   if (error) {
-    showToast(error.message);
+    showToast(getProfileSaveErrorMessage(error));
     return;
   }
 
   state.profile = data;
   closeProfileSetup();
   renderProfile();
-  showToast("Profile saved");
+  showToast(fromSetup ? "Username claimed" : "Username changed");
 }
 
 async function loadCloudProgress() {
