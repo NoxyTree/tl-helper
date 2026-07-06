@@ -12,7 +12,7 @@ const GENERATED_ASSET_BASE = `${import.meta.env.BASE_URL}assets/generated/tlhelp
 
 const CATEGORY_VISUALS = {
   all: {
-    image: "og-achievement-tracker.png",
+    image: "achievement-overview-strip.png",
     eyebrow: "Achievement Chronicle",
     title: "All achievements",
     body: "Filter by discipline, open achievement details, and keep your completion path moving.",

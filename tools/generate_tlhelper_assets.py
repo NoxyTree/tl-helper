@@ -28,59 +28,73 @@ NEGATIVE = (
 
 ASSETS = [
     {
+        "slug": "tracker-hero-wide",
+        "kind": "layout-strip",
+        "width": 3840,
+        "height": 720,
+        "prompt": "ultra-wide achievement tracker header art with absolutely no words, no letters, no symbols resembling writing, no inscriptions, no title, no logo; left third is plain dark obsidian stone and soft shadow only for website copy; right two thirds show an ornate achievement board viewed from above, bright violet constellation paths, antique gold relic frames, frost-blue magical highlights, strong visible fantasy detail",
+    },
+    {
+        "slug": "achievement-overview-strip",
+        "kind": "layout-strip",
+        "width": 3200,
+        "height": 512,
+        "prompt": "very wide panoramic achievement overview strip, ornate dark fantasy completion board with glowing violet achievement nodes, gold filigree border pieces, visible magical paths and relic medallions spread across the center and right side, left side softly dark for readable copy, no text",
+    },
+    {
         "slug": "adventure-codex-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "ancient quest codex opened on a stone table, glowing map lines across Laslan wilderness, violet magical wind, gold quest markers as abstract light, distant castle silhouettes, heroic exploration mood",
     },
     {
         "slug": "content-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "grand archive chamber filled with floating parchment, dungeon maps, sealed scrolls, and blue-violet magical particles, gold-trimmed stone pillars, organized knowledge and discovery mood",
     },
     {
         "slug": "character-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "heroic adventurer silhouette before an enchanted mirror, armor pieces and weapon sigils floating around them, violet aura, gold trim, frost-blue highlights, identity and progression mood",
     },
     {
         "slug": "combat-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "battlefield clash at twilight, sword trails, shield sparks, violet spell impact, gold embers, dramatic but not too busy, high-fantasy combat achievement mood",
     },
     {
         "slug": "life-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "fantasy crafting bench with herbs, cooking pot, fishing gear, alchemy bottles, warm gold candlelight, subtle violet magic, cozy progression mood",
     },
     {
         "slug": "coop-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "four adventurer silhouettes entering a glowing dungeon gate together, violet portal, gold runes on stone archway, teamwork and raid preparation mood",
     },
     {
         "slug": "special-achievements-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "rare golden achievement relic floating freely in a dark shrine, violet magical beams, frost-blue particles, ornate treasure-chamber atmosphere, prestigious completion mood, full bleed dark cinematic background, no pedestal, no plaque, no inscription",
     },
     {
         "slug": "hidden-achievements-banner",
         "kind": "category-banner",
-        "width": 1536,
-        "height": 640,
+        "width": 3200,
+        "height": 512,
         "prompt": "concealed moonlit ruin behind a curtain of violet mist, hidden glyphs glowing faintly, gold key suspended in shadow, mystery and secret discovery mood",
     },
     {
@@ -154,7 +168,14 @@ def get_bytes(path, params):
 
 
 def workflow(asset, seed):
-    positive = f"{STYLE_ANCHOR}, {asset['prompt']}, no text, no logo, no UI"
+    layout_hint = ""
+    if asset["kind"] == "category-banner":
+        layout_hint = (
+            "very wide panoramic website category strip composed for a 1600 by 256 pixel banner, "
+            "left third plain dark stone and shadow for readable page copy, main fantasy detail centered and right, "
+            "full-bleed scene, absolutely no words, no letters, no title, no logo, no inscription, no UI"
+        )
+    positive = f"{STYLE_ANCHOR}, {layout_hint}, {asset['prompt']}, no text, no logo, no UI"
     return {
         "1": {
             "class_type": "UNETLoader",
@@ -271,7 +292,7 @@ def main():
     manifest_path = OUT_DIR / "manifest.json"
     previous = []
     if manifest_path.exists() and not args.smoke:
-        previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+        previous = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
     merged = [entry for entry in previous if entry["slug"] not in {item["slug"] for item in manifest}]
     merged.extend(manifest)
     manifest_path.write_text(json.dumps(merged, indent=2), encoding="utf-8")

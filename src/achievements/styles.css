@@ -310,23 +310,41 @@ a {
 }
 
 .hero {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  min-height: 230px;
+  min-height: 260px;
   padding: clamp(24px, 3vw, 38px);
   border: 1px solid var(--frost-border);
   border-radius: 28px;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(126, 182, 216, 0.14), transparent 26rem),
-    radial-gradient(circle at 80% 12%, rgba(142, 108, 255, 0.18), transparent 24rem),
-    linear-gradient(180deg, rgba(18, 29, 48, 0.78), rgba(7, 11, 19, 0.68));
+  background: var(--deep-navy);
   box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
 
+.hero-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.98;
+}
+
+.hero-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(7, 11, 19, 0.9), rgba(7, 11, 19, 0.46) 42%, rgba(7, 11, 19, 0.14) 72%, rgba(7, 11, 19, 0.56)),
+    linear-gradient(180deg, rgba(7, 11, 19, 0.18), rgba(7, 11, 19, 0.78));
+}
+
 .hero-copy {
+  position: relative;
+  z-index: 1;
   max-width: 760px;
 }
 
@@ -370,6 +388,8 @@ h1 {
 }
 
 .hero-stats {
+  position: relative;
+  z-index: 1;
   min-width: 260px;
   display: flex;
   align-items: center;
@@ -671,7 +691,8 @@ h1 {
 
 .category-visual {
   position: relative;
-  min-height: 188px;
+  aspect-ratio: 1600 / 256;
+  min-height: 210px;
   display: grid;
   align-items: end;
   overflow: hidden;
@@ -688,21 +709,22 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.98) brightness(0.84);
+  object-position: center;
+  filter: saturate(1.1) brightness(0.98);
 }
 
 .category-visual__scrim {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(7, 11, 19, 0.94), rgba(7, 11, 19, 0.5) 48%, rgba(7, 11, 19, 0.24)),
-    linear-gradient(180deg, transparent 0%, rgba(7, 11, 19, 0.9) 100%);
+    linear-gradient(90deg, rgba(7, 11, 19, 0.88), rgba(7, 11, 19, 0.48) 36%, rgba(7, 11, 19, 0.06) 72%),
+    linear-gradient(180deg, rgba(7, 11, 19, 0.04) 0%, rgba(7, 11, 19, 0.62) 100%);
 }
 
 .category-visual__copy {
   position: relative;
   z-index: 1;
-  max-width: 680px;
+  max-width: 560px;
   padding: 24px;
 }
 
@@ -1286,7 +1308,8 @@ h1 {
   }
 
   .category-visual {
-    min-height: 170px;
+    min-height: 180px;
+    aspect-ratio: 16 / 6;
     border-radius: 16px;
   }
 
