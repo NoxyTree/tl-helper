@@ -123,21 +123,18 @@ export const featureCards = [
     kicker: "Do these first",
     body: "Buy the daily Phantomstone and scrolls, run both Nix contracts for 10,000 Flames, then spend tokens with mastery buffs active.",
     image: ASSETS.hero,
-    accent: "frost",
   },
   {
     title: "Three Purple Packs Solo",
     kicker: "Scar of Sacrifice",
     body: "Roll The Candle That Melts Eternity, enter Shallows of Sacrifice and clear the short tower-defence task. Credit resets after 30 minutes.",
     image: ASSETS.tower,
-    accent: "void",
   },
   {
     title: "Free Archboss Weapon Track",
     kicker: "Starts July 1",
     body: "Log in on 28 of the 49 event days for three traited Heroic selection chests and a Bellandir or Tevent weapon chest.",
     image: ASSETS.battle,
-    accent: "gold",
   },
 ];
 

@@ -113,10 +113,9 @@ function SourceBadge({ source, confidence }) {
   );
 }
 
-function SectionHeader({ eyebrow, title, body, id, tone = "frost" }) {
+function SectionHeader({ eyebrow, title, body, id }) {
   return (
     <div id={id} className="section-header">
-      <div className={cx("section-header__bar", `section-header__bar--${tone}`)} />
       <div>
         <p className="eyebrow">{eyebrow}</p>
         <h2>{title}</h2>
@@ -247,7 +246,7 @@ function IntelCard({ item }) {
 
 function FeatureCard({ item }) {
   return (
-    <article className={cx("feature-card", `feature-card--${item.accent}`)}>
+    <article className="feature-card">
       <img src={item.image} alt="" />
       <div className="feature-card__scrim" />
       <div className="feature-card__content">
@@ -390,7 +389,7 @@ export default function App() {
               {item.label}
             </button>
           ))}
-          <a className="topbar__link topbar__link--accent" href="/achievements/">Achievement Tracker</a>
+          <a className="topbar__link" href="/achievements/">Achievement Tracker</a>
         </nav>
 
         <div className="topbar__status">
@@ -491,13 +490,12 @@ export default function App() {
           </aside>
 
           <div className="main-stack">
-            <section className="panel-section panel-section--frost">
+            <section className="panel-section">
               <SectionHeader
                 id="briefing"
                 eyebrow="Command Briefing"
                 title="What matters right now"
                 body="Start the 49-day attendance track, protect your Redfrost drops, and avoid spending into systems that are about to receive cheaper acquisition paths."
-                tone="gold"
               />
 
               <div className="deadline-grid">
@@ -544,13 +542,12 @@ export default function App() {
               </div>
             </section>
 
-            <section className="panel-section panel-section--systems">
+            <section className="panel-section">
               <SectionHeader
                 id="systems"
                 eyebrow="System Changes"
                 title="The expensive mistakes to avoid"
                 body="Item Level replaced Enhancement, Inheritance replaced Sync, and traits, sealing and skill growth now consume enough materials to punish casual build switching."
-                tone="frost"
               />
 
               <div className="warning-grid">
@@ -584,13 +581,12 @@ export default function App() {
               </div>
             </section>
 
-            <section className="panel-section panel-section--void">
+            <section className="panel-section">
               <SectionHeader
                 id="intel"
                 eyebrow="Community Intel"
                 title="Useful findings, clearly labelled"
                 body="These routes come from player testing and transcript-backed demonstrations. Exact yields can change after hotfixes, so each claim keeps its confidence label."
-                tone="void"
               />
 
               <div className="art-split">
@@ -635,13 +631,12 @@ export default function App() {
               </div>
             </section>
 
-            <section className="panel-section panel-section--roadmap">
+            <section className="panel-section">
               <SectionHeader
                 id="roadmap"
                 eyebrow="Roadmap"
                 title="Confirmed dates and incoming relief"
                 body="The July Resistance Report gives firm dates for dungeon reductions, Character Boost additions, Tumgir Hollow changes, more free Seal Keys and Ramux."
-                tone="gold"
               />
 
               <div className="roadmap">

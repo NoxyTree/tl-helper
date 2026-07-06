@@ -1267,15 +1267,6 @@ h1 {
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.56), 0 0 40px rgba(142, 108, 255, 0.14);
 }
 
-.auth-dialog::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: linear-gradient(90deg, var(--frost-blue), var(--void-violet), var(--relic-gold));
-  opacity: 0.86;
-}
-
 .auth-close-button {
   position: absolute;
   top: 14px;
