@@ -390,7 +390,7 @@ export default function App() {
               {item.label}
             </button>
           ))}
-          <a className="topbar__link" href="/achievements/">Achievements</a>
+          <a className="topbar__link topbar__link--accent" href="/achievements/">Achievement Tracker</a>
         </nav>
 
         <div className="topbar__status">
@@ -669,7 +669,7 @@ export default function App() {
         <BrandMark />
         <div>
           <strong>TL Helper</strong>
-          <p>Unofficial community resource. Not affiliated with NCSoft, Amazon Games, or Throne and Liberty. Public information should be rechecked after patches and hotfixes.</p>
+          <p>Unofficial community resource. Not affiliated with NCSoft, Amazon Games, or Throne and Liberty. Public information should be rechecked after patches and hotfixes. Track completion in the <a href="/achievements/">achievement tracker</a>.</p>
         </div>
       </footer>
 

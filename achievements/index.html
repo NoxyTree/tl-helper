@@ -3,29 +3,56 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#12091f">
+    <meta name="theme-color" content="#070b13">
     <title>Throne & Liberty Achievement Tracker | TL Helper</title>
   </head>
   <body>
-    <div class="magic-field" aria-hidden="true"></div>
-    <div class="app-shell">
-      <header class="hero">
-        <nav class="topbar" aria-label="Tracker navigation">
-          <a class="brand" href="/" aria-label="TL Helper home">
-            <span class="brand-kicker">TL Helper</span>
-            <span class="brand-wordmark">Tracker</span>
-          </a>
-          <div class="profile-preview" aria-label="Profile status">
-            <span class="profile-orb"></span>
-            <span id="profileStatus">Local profile</span>
-          </div>
+    <div class="site-shell">
+      <div class="ambient ambient--frost" aria-hidden="true"></div>
+      <div class="ambient ambient--gold" aria-hidden="true"></div>
+      <div class="ambient ambient--void" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="TL Helper home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img">
+              <defs>
+                <linearGradient id="trackerSigilGlow" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="var(--frost-blue)" />
+                  <stop offset="0.55" stop-color="var(--aurora-teal)" />
+                  <stop offset="1" stop-color="var(--relic-gold)" />
+                </linearGradient>
+              </defs>
+              <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="url(#trackerSigilGlow)" stroke-width="2.4" />
+              <circle cx="32" cy="32" r="11" fill="none" stroke="var(--frost-border-strong)" stroke-width="2" />
+              <path d="M32 18v28M18 32h28" stroke="var(--snow-white)" stroke-width="1.3" opacity=".72" />
+            </svg>
+          </span>
+          <span>
+            <strong>TL HELPER</strong>
+            <em>Achievement tracker</em>
+          </span>
+        </a>
+
+        <nav class="topbar__nav" aria-label="Primary navigation">
+          <a class="topbar__link" href="/">Nix Guide</a>
+          <a class="topbar__link is-active" href="/achievements/" aria-current="page">Achievements</a>
+          <a class="topbar__link" href="#tracker">Tracker</a>
+          <a class="topbar__link" href="#profile">Profile</a>
         </nav>
 
-        <section class="hero-content" id="top">
+        <div class="topbar__status profile-preview" aria-label="Profile status">
+          <span class="status-dot profile-orb"></span>
+          <span id="profileStatus">Local profile</span>
+        </div>
+      </header>
+
+      <main class="app-shell">
+        <section class="hero tracker-hero" id="top">
           <div class="hero-copy">
             <p class="eyebrow">Achievement Chronicle</p>
             <h1>Achievement Tracker</h1>
-            <p class="hero-text">Track what is done, filter what is left, and sync your completion profile.</p>
+            <p class="hero-text">Track what is done, filter what is left, and sync your completion profile across TLHelper.</p>
           </div>
           <div class="hero-stats" aria-label="Progress summary">
             <div class="completion-ring" id="completionRing" style="--progress: 0">
@@ -37,117 +64,131 @@
             </div>
           </div>
         </section>
-      </header>
 
-      <main class="tracker-layout">
-        <aside class="sidebar" aria-label="Achievement filters">
-          <section class="panel profile-panel">
-            <div>
-              <p class="panel-label" id="profileMode">Profile</p>
-              <h2 id="profileName">Wanderer</h2>
-            </div>
-            <p class="panel-copy" id="profileCopy">Progress is stored locally. Connect Supabase to sync profiles.</p>
-
-            <div class="auth-panel" id="authPanel">
-              <input id="authEmail" class="search-input" type="email" autocomplete="email" placeholder="email@example.com">
-              <div class="auth-actions">
-                <button id="magicLinkButton" class="text-action-button" type="button">Email link</button>
-                <button id="googleLoginButton" class="text-action-button" type="button">Google</button>
-                <button id="discordLoginButton" class="text-action-button" type="button">Discord</button>
+        <div class="tracker-layout" id="tracker">
+          <aside class="sidebar" aria-label="Achievement filters">
+            <section class="panel profile-panel" id="profile">
+              <div>
+                <p class="panel-label" id="profileMode">Profile</p>
+                <h2 id="profileName">Wanderer</h2>
               </div>
-            </div>
+              <p class="panel-copy" id="profileCopy">Progress is stored locally. Connect Supabase to sync profiles.</p>
 
-            <div class="profile-actions" id="profileActions" hidden>
-              <label class="search-label" for="usernameInput">Public username</label>
-              <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer">
-              <div class="auth-actions">
-                <button id="saveProfileButton" class="text-action-button" type="button">Save profile</button>
-                <button id="syncProgressButton" class="text-action-button" type="button">Sync now</button>
-                <button id="signOutButton" class="text-action-button danger-text" type="button">Sign out</button>
+              <div class="auth-panel" id="authPanel">
+                <input id="authEmail" class="search-input" type="email" autocomplete="email" placeholder="email@example.com">
+                <div class="auth-actions">
+                  <button id="magicLinkButton" class="text-action-button" type="button">Email link</button>
+                  <button id="googleLoginButton" class="text-action-button" type="button">Google</button>
+                  <button id="discordLoginButton" class="text-action-button" type="button">Discord</button>
+                </div>
               </div>
-            </div>
-          </section>
 
-          <section class="panel controls-panel">
-            <label class="search-label" for="searchInput">Search achievements</label>
-            <input id="searchInput" class="search-input" type="search" placeholder="Raid, cooking, Laslan...">
+              <div class="profile-actions" id="profileActions" hidden>
+                <label class="search-label" for="usernameInput">Public username</label>
+                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer">
+                <div class="auth-actions">
+                  <button id="saveProfileButton" class="text-action-button" type="button">Save profile</button>
+                  <button id="syncProgressButton" class="text-action-button" type="button">Sync now</button>
+                  <button id="signOutButton" class="text-action-button danger-text" type="button">Sign out</button>
+                </div>
+              </div>
+            </section>
 
-            <div class="filter-group" role="group" aria-label="Completion filter">
-              <button class="filter-chip active" type="button" data-status="all">All</button>
-              <button class="filter-chip" type="button" data-status="open">Open</button>
-              <button class="filter-chip" type="button" data-status="done">Done</button>
-            </div>
+            <section class="panel controls-panel">
+              <label class="search-label" for="searchInput">Search achievements</label>
+              <input id="searchInput" class="search-input" type="search" placeholder="Raid, cooking, Laslan...">
 
-            <label class="toggle-row">
-              <input id="hideCompleted" type="checkbox">
-              <span>Hide completed</span>
-            </label>
-          </section>
+              <div class="filter-group" role="group" aria-label="Completion filter">
+                <button class="filter-chip active" type="button" data-status="all">All</button>
+                <button class="filter-chip" type="button" data-status="open">Open</button>
+                <button class="filter-chip" type="button" data-status="done">Done</button>
+              </div>
 
-          <section class="panel categories-panel">
-            <div class="panel-heading">
-              <p class="panel-label">Categories</p>
-              <button id="clearFilters" class="text-button" type="button">Clear</button>
-            </div>
-            <div id="categoryList" class="category-list"></div>
-          </section>
-        </aside>
-
-        <section class="main-panel" aria-live="polite">
-          <div class="toolbar">
-            <div>
-              <p class="panel-label">Visible achievements</p>
-              <h2 id="resultTitle">All achievements</h2>
-            </div>
-            <div class="toolbar-actions">
-              <select id="sortSelect" class="select-input" aria-label="Sort achievements">
-                <option value="category">Category</option>
-                <option value="title">Title</option>
-                <option value="progress">Progress</option>
-              </select>
-              <button id="resetProgress" class="danger-button" type="button">Reset local progress</button>
-            </div>
-          </div>
-
-          <div class="progress-band">
-            <div>
-              <span class="spark"></span>
-              <span id="openCount">0</span> left to claim
-            </div>
-            <div>
-              <span class="spark gold"></span>
-              <span id="categoryCount">0</span> categories
-            </div>
-            <div>
-              <span class="spark violet"></span>
-              <span id="syncStatus">Local only</span>
-            </div>
-          </div>
-
-          <div class="pagination-bar" aria-label="Achievement pagination">
-            <p id="pageSummary">Showing 0 achievements</p>
-            <div class="pagination-controls">
-              <label>
-                Per page
-                <select id="pageSizeSelect" class="select-input compact-select" aria-label="Achievements per page">
-                  <option value="25">25</option>
-                  <option value="50" selected>50</option>
-                  <option value="100">100</option>
-                </select>
+              <label class="toggle-row">
+                <input id="hideCompleted" type="checkbox">
+                <span>Hide completed</span>
               </label>
-              <button id="prevPage" class="page-button" type="button">Previous</button>
-              <span id="pageIndicator">1 / 1</span>
-              <button id="nextPage" class="page-button" type="button">Next</button>
-            </div>
-          </div>
+            </section>
 
-          <div id="achievementGrid" class="achievement-grid"></div>
-          <div id="emptyState" class="empty-state" hidden>
-            <h3>No achievements found</h3>
-            <p>Try another search, category, or completion filter.</p>
-          </div>
-        </section>
+            <section class="panel categories-panel">
+              <div class="panel-heading">
+                <p class="panel-label">Categories</p>
+                <button id="clearFilters" class="text-button" type="button">Clear</button>
+              </div>
+              <div id="categoryList" class="category-list"></div>
+            </section>
+          </aside>
+
+          <section class="main-panel" aria-live="polite">
+            <div class="toolbar">
+              <div>
+                <p class="panel-label">Visible achievements</p>
+                <h2 id="resultTitle">All achievements</h2>
+              </div>
+              <div class="toolbar-actions">
+                <select id="sortSelect" class="select-input" aria-label="Sort achievements">
+                  <option value="category">Category</option>
+                  <option value="title">Title</option>
+                  <option value="progress">Progress</option>
+                </select>
+                <button id="resetProgress" class="danger-button" type="button">Reset local progress</button>
+              </div>
+            </div>
+
+            <div class="progress-band">
+              <div>
+                <span class="spark"></span>
+                <span id="openCount">0</span> left to claim
+              </div>
+              <div>
+                <span class="spark gold"></span>
+                <span id="categoryCount">0</span> categories
+              </div>
+              <div>
+                <span class="spark violet"></span>
+                <span id="syncStatus">Local only</span>
+              </div>
+            </div>
+
+            <div class="pagination-bar" aria-label="Achievement pagination">
+              <p id="pageSummary">Showing 0 achievements</p>
+              <div class="pagination-controls">
+                <label>
+                  Per page
+                  <select id="pageSizeSelect" class="select-input compact-select" aria-label="Achievements per page">
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </label>
+                <button id="prevPage" class="page-button" type="button">Previous</button>
+                <span id="pageIndicator">1 / 1</span>
+                <button id="nextPage" class="page-button" type="button">Next</button>
+              </div>
+            </div>
+
+            <div id="achievementGrid" class="achievement-grid"></div>
+            <div id="emptyState" class="empty-state" hidden>
+              <h3>No achievements found</h3>
+              <p>Try another search, category, or completion filter.</p>
+            </div>
+          </section>
+        </div>
       </main>
+
+      <footer class="footer">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" role="img">
+            <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="var(--relic-gold)" stroke-width="2.4" />
+            <circle cx="32" cy="32" r="11" fill="none" stroke="var(--frost-border-strong)" stroke-width="2" />
+            <path d="M32 18v28M18 32h28" stroke="var(--snow-white)" stroke-width="1.3" opacity=".72" />
+          </svg>
+        </span>
+        <div>
+          <strong>TL Helper</strong>
+          <p>Unofficial community tracker for Throne and Liberty achievements. Progress sync requires a TLHelper profile.</p>
+        </div>
+      </footer>
     </div>
 
     <div id="detailOverlay" class="detail-overlay" hidden>
