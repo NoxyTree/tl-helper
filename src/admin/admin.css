@@ -77,3 +77,36 @@ body {
 .adm-btn--ok { border-color: var(--adm-ok); color: var(--adm-ok); }
 .adm-btn--no { border-color: var(--adm-no); color: var(--adm-no); }
 .adm-btn--save { border-color: var(--adm-gold); color: var(--adm-gold); }
+
+/* Tabs layout additions: Review / Sources / Jobs */
+.adm-block { margin-bottom: 26px; }
+.adm-block h2 { font-size: 15px; margin: 0 0 10px; color: var(--adm-text); }
+
+.adm-jobrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.adm-jobrow select { background: var(--adm-panel); color: var(--adm-text); border: 1px solid var(--adm-line); border-radius: 6px; padding: 5px 8px; }
+
+.adm-pill { border-radius: 999px; padding: 2px 10px; font-size: 12px; white-space: nowrap; }
+.adm-pill--ok { background: rgba(62, 207, 142, 0.14); color: var(--adm-ok); }
+.adm-pill--no { background: rgba(255, 107, 122, 0.14); color: var(--adm-no); }
+.adm-pill--gold { background: rgba(232, 180, 90, 0.14); color: var(--adm-gold); }
+.adm-pill--frost { background: rgba(90, 167, 255, 0.14); color: var(--adm-frost); }
+
+.adm-sources { display: flex; flex-direction: column; gap: 8px; }
+.adm-source {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--adm-panel); border: 1px solid var(--adm-line); border-radius: 8px;
+  padding: 9px 14px; color: var(--adm-text); text-decoration: none;
+}
+.adm-source:hover { border-color: var(--adm-frost); }
+.adm-source em { color: var(--adm-dim); font-style: normal; font-size: 12px; margin-left: auto; }
+
+.adm-runs { display: flex; flex-direction: column; gap: 8px; }
+.adm-run { background: var(--adm-panel); border: 1px solid var(--adm-line); border-radius: 8px; padding: 4px 14px; }
+.adm-run summary { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; cursor: pointer; padding: 6px 0; list-style: none; }
+.adm-run summary em { color: var(--adm-dim); font-style: normal; font-size: 12px; margin-left: auto; }
+.adm-run--failed { border-left: 3px solid var(--adm-no); }
+.adm-log {
+  background: var(--adm-bg); border: 1px solid var(--adm-line); border-radius: 6px;
+  padding: 10px; font: 12px/1.5 ui-monospace, Consolas, monospace; overflow-x: auto;
+  max-height: 300px; overflow-y: auto; white-space: pre-wrap;
+}
