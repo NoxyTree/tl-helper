@@ -78,10 +78,11 @@
               </div>
 
               <div class="profile-actions" id="profileActions" hidden>
-                <label class="search-label" for="usernameInput">Public username</label>
-                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer">
+                <label class="search-label" for="usernameInput">Username</label>
+                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
+                <p class="input-hint">This name is unique to your TLHelper profile.</p>
                 <div class="auth-actions">
-                  <button id="saveProfileButton" class="text-action-button" type="button">Save profile</button>
+                  <button id="saveProfileButton" class="text-action-button" type="button">Change username</button>
                   <button id="syncProgressButton" class="text-action-button" type="button">Sync now</button>
                   <button id="signOutButton" class="text-action-button danger-text" type="button">Sign out</button>
                 </div>
@@ -257,9 +258,9 @@
         </div>
         <h2 id="profileSetupTitle">Choose a profile name</h2>
         <p>This becomes your public TLHelper handle when profile sharing goes live.</p>
-        <label class="search-label" for="profileSetupUsername">Profile name</label>
+        <label class="search-label" for="profileSetupUsername">Username</label>
         <input id="profileSetupUsername" class="search-input profile-name-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
-        <p class="input-hint">Use 3-24 letters, numbers, or underscores.</p>
+        <p class="input-hint">Use 3-24 letters, numbers, or underscores. Nobody else can claim the same name.</p>
         <div class="profile-setup-actions">
           <button id="profileSetupSaveButton" class="primary-auth-button" type="button">Create profile</button>
           <button id="profileSetupSignOutButton" class="text-button" type="button">Sign out instead</button>

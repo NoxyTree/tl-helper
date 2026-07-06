@@ -78,14 +78,20 @@ function getSuggestedUsername() {
 }
 
 function getDisplayName() {
-  return state.profile?.display_name
-    || state.profile?.username
-    || state.session?.user?.email
+  return state.profile?.username
+    || (state.session ? "Choose username" : null)
     || "Wanderer";
 }
 
 function getHandle() {
   return normalizeUsername(state.profile?.username || getSuggestedUsername() || "wanderer");
+}
+
+function getProfileSaveErrorMessage(error) {
+  if (error?.code === "23505" || /duplicate key|profiles_username_key|unique/i.test(error?.message || "")) {
+    return "That username is already taken";
+  }
+  return error?.message || "Could not save username";
 }
 
 function getStageCount(achievement) {
@@ -159,18 +165,18 @@ function renderProfile() {
   els.heroProfileName.textContent = displayName;
   els.heroProfileCopy.textContent = signedIn
     ? state.profile?.username
-      ? "Your TLHelper account is ready to sync achievement progress."
-      : "Choose a profile name to finish the account setup."
+      ? `@${state.profile.username} is yours on TLHelper.`
+      : "Choose a unique username to finish the account setup."
     : "Track completion locally, then sign in to sync and prepare a public profile.";
 
   els.openAuthButton.hidden = signedIn || !supabase;
   els.signOutButton.hidden = !signedIn;
   els.profileActions.hidden = !signedIn;
-  els.accountTitle.textContent = signedIn ? "Synced account" : "Local profile";
+  els.accountTitle.textContent = signedIn ? "Username" : "Local profile";
   els.accountCopy.textContent = !supabase
     ? "Supabase environment variables are not configured for this build."
     : signedIn
-      ? "Profile progress can sync to your TLHelper account."
+      ? "This is the name reserved for your TLHelper profile."
       : "Progress is saved in this browser. Sign in with Google or Discord to sync it.";
   if (signedIn) {
     els.usernameInput.value = state.profile?.username || handle;
@@ -319,19 +325,19 @@ async function saveProfile() {
 
   const { data, error } = await supabase
     .from("profiles")
-    .update({ username })
+    .update({ username, display_name: username })
     .eq("id", state.session.user.id)
     .select("id, username, display_name, avatar_url, is_public, created_at")
     .single();
 
   if (error) {
-    showToast(error.message);
+    showToast(getProfileSaveErrorMessage(error));
     return;
   }
 
   state.profile = data;
   renderProfile();
-  showToast("Profile saved");
+  showToast("Username changed");
 }
 
 async function loadCloudProgress() {
