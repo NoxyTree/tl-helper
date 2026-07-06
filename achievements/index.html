@@ -4,21 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#12091f">
-    <title>Throne & Liberty Tracker</title>
-    <link rel="stylesheet" href="./styles.css">
+    <title>Throne & Liberty Achievement Tracker | TL Helper</title>
   </head>
   <body>
     <div class="magic-field" aria-hidden="true"></div>
     <div class="app-shell">
       <header class="hero">
         <nav class="topbar" aria-label="Tracker navigation">
-          <a class="brand" href="#top" aria-label="Throne and Liberty Tracker home">
-            <span class="brand-kicker">Throne & Liberty</span>
+          <a class="brand" href="/" aria-label="TL Helper home">
+            <span class="brand-kicker">TL Helper</span>
             <span class="brand-wordmark">Tracker</span>
           </a>
           <div class="profile-preview" aria-label="Profile status">
             <span class="profile-orb"></span>
-            <span>Local profile</span>
+            <span id="profileStatus">Local profile</span>
           </div>
         </nav>
 
@@ -26,7 +25,7 @@
           <div class="hero-copy">
             <p class="eyebrow">Achievement Chronicle</p>
             <h1>Achievement Tracker</h1>
-            <p class="hero-text">Track what is done, filter what is left, and keep the completion glow moving.</p>
+            <p class="hero-text">Track what is done, filter what is left, and sync your completion profile.</p>
           </div>
           <div class="hero-stats" aria-label="Progress summary">
             <div class="completion-ring" id="completionRing" style="--progress: 0">
@@ -44,10 +43,29 @@
         <aside class="sidebar" aria-label="Achievement filters">
           <section class="panel profile-panel">
             <div>
-              <p class="panel-label">Future profiles</p>
-              <h2>Wanderer</h2>
+              <p class="panel-label" id="profileMode">Profile</p>
+              <h2 id="profileName">Wanderer</h2>
             </div>
-            <p class="panel-copy">Progress is stored locally now. The data model is ready for synced profiles later.</p>
+            <p class="panel-copy" id="profileCopy">Progress is stored locally. Connect Supabase to sync profiles.</p>
+
+            <div class="auth-panel" id="authPanel">
+              <input id="authEmail" class="search-input" type="email" autocomplete="email" placeholder="email@example.com">
+              <div class="auth-actions">
+                <button id="magicLinkButton" class="text-action-button" type="button">Email link</button>
+                <button id="googleLoginButton" class="text-action-button" type="button">Google</button>
+                <button id="discordLoginButton" class="text-action-button" type="button">Discord</button>
+              </div>
+            </div>
+
+            <div class="profile-actions" id="profileActions" hidden>
+              <label class="search-label" for="usernameInput">Public username</label>
+              <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer">
+              <div class="auth-actions">
+                <button id="saveProfileButton" class="text-action-button" type="button">Save profile</button>
+                <button id="syncProgressButton" class="text-action-button" type="button">Sync now</button>
+                <button id="signOutButton" class="text-action-button danger-text" type="button">Sign out</button>
+              </div>
+            </div>
           </section>
 
           <section class="panel controls-panel">
@@ -102,7 +120,7 @@
             </div>
             <div>
               <span class="spark violet"></span>
-              Static achievement data
+              <span id="syncStatus">Local only</span>
             </div>
           </div>
 
@@ -140,7 +158,6 @@
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script src="./data/achievements.js"></script>
-    <script src="./app.js"></script>
+    <script type="module" src="/src/achievements/app.js"></script>
   </body>
 </html>

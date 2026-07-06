@@ -1,4 +1,4 @@
-window.TL_ACHIEVEMENTS = [
+export const TL_ACHIEVEMENTS = [
   {
     "id": 718,
     "title": "A Demon? Preposterous!",
@@ -26046,7 +26046,7 @@ window.TL_ACHIEVEMENTS = [
   }
 ];
 
-window.TL_ACHIEVEMENT_META = {
+export const TL_ACHIEVEMENT_META = {
   "generatedAt": "2026-07-06T15:09:50.257Z",
   "totalRows": 1277,
   "visibleRows": 968,

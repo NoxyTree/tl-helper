@@ -1,9 +1,22 @@
+import { createClient } from "@supabase/supabase-js";
+import "./styles.css";
+import { TL_ACHIEVEMENTS, TL_ACHIEVEMENT_META } from "./data/achievements.js";
+
 const STORAGE_KEY = "tl-achievement-tracker-progress-v1";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 const state = {
-  achievements: window.TL_ACHIEVEMENTS || [],
-  meta: window.TL_ACHIEVEMENT_META || {},
+  achievements: TL_ACHIEVEMENTS || [],
+  meta: TL_ACHIEVEMENT_META || {},
   progress: loadProgress(),
+  session: null,
+  profile: null,
+  syncTimer: null,
+  syncing: false,
   search: "",
   category: "all",
   status: "all",
@@ -38,6 +51,21 @@ const els = {
   detailOverlay: document.querySelector("#detailOverlay"),
   detailBody: document.querySelector("#detailBody"),
   detailClose: document.querySelector("#detailClose"),
+  profileStatus: document.querySelector("#profileStatus"),
+  profileMode: document.querySelector("#profileMode"),
+  profileName: document.querySelector("#profileName"),
+  profileCopy: document.querySelector("#profileCopy"),
+  authPanel: document.querySelector("#authPanel"),
+  profileActions: document.querySelector("#profileActions"),
+  authEmail: document.querySelector("#authEmail"),
+  magicLinkButton: document.querySelector("#magicLinkButton"),
+  googleLoginButton: document.querySelector("#googleLoginButton"),
+  discordLoginButton: document.querySelector("#discordLoginButton"),
+  usernameInput: document.querySelector("#usernameInput"),
+  saveProfileButton: document.querySelector("#saveProfileButton"),
+  syncProgressButton: document.querySelector("#syncProgressButton"),
+  signOutButton: document.querySelector("#signOutButton"),
+  syncStatus: document.querySelector("#syncStatus"),
   toast: document.querySelector("#toast"),
 };
 
@@ -51,6 +79,279 @@ function loadProgress() {
 
 function saveProgress() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
+  queueProgressSync();
+}
+
+function getRedirectUrl() {
+  return new URL("/achievements/", window.location.origin).toString();
+}
+
+function normalizeUsername(value) {
+  return value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24);
+}
+
+function getDisplayName() {
+  return state.profile?.display_name
+    || state.profile?.username
+    || state.session?.user?.email
+    || "Wanderer";
+}
+
+function renderProfile() {
+  if (!supabase) {
+    els.profileStatus.textContent = "Local profile";
+    els.profileMode.textContent = "Local profile";
+    els.profileName.textContent = "Wanderer";
+    els.profileCopy.textContent = "Add Supabase env vars to enable synced profiles.";
+    els.authPanel.hidden = true;
+    els.profileActions.hidden = true;
+    els.syncStatus.textContent = "Local only";
+    return;
+  }
+
+  if (!state.session) {
+    els.profileStatus.textContent = "Not signed in";
+    els.profileMode.textContent = "Cloud profiles";
+    els.profileName.textContent = "Wanderer";
+    els.profileCopy.textContent = "Sign in to sync local progress and create a public profile later.";
+    els.authPanel.hidden = false;
+    els.profileActions.hidden = true;
+    els.syncStatus.textContent = "Local only";
+    return;
+  }
+
+  els.profileStatus.textContent = "Synced profile";
+  els.profileMode.textContent = "Signed in";
+  els.profileName.textContent = getDisplayName();
+  els.profileCopy.textContent = "Progress syncs to your TLHelper profile.";
+  els.authPanel.hidden = true;
+  els.profileActions.hidden = false;
+  els.usernameInput.value = state.profile?.username || "";
+  els.syncStatus.textContent = state.syncing ? "Syncing..." : "Cloud sync ready";
+}
+
+async function initSupabaseAuth() {
+  if (!supabase) {
+    renderProfile();
+    return;
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    showToast(error.message);
+  }
+
+  state.session = data?.session || null;
+  if (state.session) {
+    await loadCloudProfileAndProgress();
+  }
+  renderProfile();
+
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    state.session = session;
+    state.profile = null;
+    if (session) {
+      await loadCloudProfileAndProgress();
+      showToast("Profile connected");
+    }
+    renderProfile();
+    render();
+  });
+}
+
+async function signInWithEmail() {
+  if (!supabase) return;
+  const email = els.authEmail.value.trim();
+  if (!email) {
+    showToast("Enter an email first");
+    return;
+  }
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: getRedirectUrl(),
+    },
+  });
+
+  showToast(error ? error.message : "Check your email for the sign-in link");
+}
+
+async function signInWithProvider(provider) {
+  if (!supabase) return;
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: getRedirectUrl(),
+    },
+  });
+  if (error) showToast(error.message);
+}
+
+async function signOut() {
+  if (!supabase) return;
+  await supabase.auth.signOut();
+  state.session = null;
+  state.profile = null;
+  renderProfile();
+  showToast("Signed out");
+}
+
+async function loadCloudProfileAndProgress() {
+  if (!supabase || !state.session) return;
+  await loadProfile();
+  await loadCloudProgress();
+}
+
+async function loadProfile() {
+  const user = state.session.user;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url, is_public, created_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    showToast(error.message);
+    return;
+  }
+
+  if (data) {
+    state.profile = data;
+    return;
+  }
+
+  const fallbackName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Wanderer";
+  const { data: created, error: createError } = await supabase
+    .from("profiles")
+    .insert({
+      id: user.id,
+      display_name: fallbackName,
+      username: null,
+      avatar_url: user.user_metadata?.avatar_url || null,
+    })
+    .select("id, username, display_name, avatar_url, is_public, created_at")
+    .single();
+
+  if (createError) {
+    showToast(createError.message);
+    return;
+  }
+
+  state.profile = created;
+}
+
+async function saveProfile() {
+  if (!supabase || !state.session) return;
+  const username = normalizeUsername(els.usernameInput.value);
+  if (username && username.length < 3) {
+    showToast("Username needs at least 3 characters");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ username: username || null })
+    .eq("id", state.session.user.id)
+    .select("id, username, display_name, avatar_url, is_public, created_at")
+    .single();
+
+  if (error) {
+    showToast(error.message);
+    return;
+  }
+
+  state.profile = data;
+  renderProfile();
+  showToast("Profile saved");
+}
+
+async function loadCloudProgress() {
+  const { data, error } = await supabase
+    .from("achievement_progress")
+    .select("achievement_id, completed, completed_stage_indexes, updated_at")
+    .eq("user_id", state.session.user.id);
+
+  if (error) {
+    showToast(error.message);
+    return;
+  }
+
+  const merged = mergeProgress(state.progress, rowsToProgress(data || []));
+  state.progress = merged;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
+  await syncProgressToCloud({ silent: true });
+}
+
+function rowsToProgress(rows) {
+  return rows.reduce((progress, row) => {
+    progress[row.achievement_id] = {
+      completed: Boolean(row.completed),
+      completedStageIndexes: Array.isArray(row.completed_stage_indexes) ? row.completed_stage_indexes : [],
+      updatedAt: row.updated_at,
+    };
+    return progress;
+  }, {});
+}
+
+function mergeProgress(localProgress, cloudProgress) {
+  const merged = { ...localProgress };
+  for (const [id, cloudEntry] of Object.entries(cloudProgress)) {
+    const localEntry = merged[id];
+    const localTime = localEntry?.updatedAt ? Date.parse(localEntry.updatedAt) : 0;
+    const cloudTime = cloudEntry?.updatedAt ? Date.parse(cloudEntry.updatedAt) : 0;
+    if (!localEntry || cloudTime > localTime) {
+      merged[id] = cloudEntry;
+    }
+  }
+  return merged;
+}
+
+function progressToRows() {
+  if (!state.session) return [];
+  return Object.entries(state.progress).map(([achievementId, entry]) => ({
+    user_id: state.session.user.id,
+    achievement_id: Number(achievementId),
+    completed: Boolean(entry.completed),
+    completed_stage_indexes: Array.isArray(entry.completedStageIndexes) ? entry.completedStageIndexes : [],
+    updated_at: entry.updatedAt || new Date().toISOString(),
+  }));
+}
+
+function queueProgressSync() {
+  if (!supabase || !state.session) return;
+  window.clearTimeout(state.syncTimer);
+  state.syncTimer = window.setTimeout(() => {
+    void syncProgressToCloud({ silent: true });
+  }, 600);
+}
+
+async function syncProgressToCloud({ silent = false } = {}) {
+  if (!supabase || !state.session || state.syncing) return;
+  const rows = progressToRows();
+  state.syncing = true;
+  renderProfile();
+
+  try {
+    const { error: deleteError } = await supabase
+      .from("achievement_progress")
+      .delete()
+      .eq("user_id", state.session.user.id);
+    if (deleteError) throw deleteError;
+
+    if (rows.length) {
+      const { error } = await supabase
+        .from("achievement_progress")
+        .upsert(rows, { onConflict: "user_id,achievement_id" });
+      if (error) throw error;
+    }
+    if (!silent) showToast("Progress synced");
+  } catch (error) {
+    showToast(error.message || "Could not sync progress");
+  } finally {
+    state.syncing = false;
+    renderProfile();
+  }
 }
 
 function getStageCount(achievement) {
@@ -591,5 +892,12 @@ els.detailOverlay.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.detailOverlay.hidden) closeDetails();
 });
+els.magicLinkButton.addEventListener("click", signInWithEmail);
+els.googleLoginButton.addEventListener("click", () => signInWithProvider("google"));
+els.discordLoginButton.addEventListener("click", () => signInWithProvider("discord"));
+els.saveProfileButton.addEventListener("click", saveProfile);
+els.syncProgressButton.addEventListener("click", () => syncProgressToCloud());
+els.signOutButton.addEventListener("click", signOut);
 
 render();
+void initSupabaseAuth();

@@ -15,7 +15,9 @@ database; just a fast page on a CDN.
 | `src/content.js` | **All the guide content** — plain data arrays. This is what you edit. |
 | `src/App.jsx`    | The React components that render the content. |
 | `src/styles.css` | The dark-fantasy design system (CSS custom-property tokens). |
-| `public/achievements/` | Static achievement tracker mounted at `/achievements/`. |
+| `achievements/` | Vite entry page for the achievement tracker at `/achievements/`. |
+| `src/achievements/` | Achievement tracker logic, styles, and static seed data. |
+| `supabase/schema.sql` | Profiles/progress tables, RLS policies, and profile trigger. |
 | `public/img/nix/`| Community screenshots (farm-spot maps, UI shots), each credited by handle. |
 | `public/assets/` | Hero / key art. |
 
@@ -56,9 +58,24 @@ no manual step. Pull requests automatically get their own preview URL.
 Cloudflare build settings: build command `npm run build`, output directory
 `dist` (framework preset "None").
 
-The achievement tracker is shipped as static assets under `/achievements/` and
-stores anonymous progress in browser localStorage. It makes no runtime calls to
-third-party achievement databases.
+The achievement tracker is published at `/achievements/`. Anonymous progress is
+stored in browser localStorage. When Supabase is configured, signed-in users can
+sync progress into profile rows protected by row-level security.
+
+## Supabase profiles
+
+1. Create a Supabase project.
+2. Run `supabase/schema.sql` in the Supabase SQL editor.
+3. Enable the Auth providers you want. Google, Discord, and email magic links are wired in the UI.
+4. Add `https://tlhelper.org/achievements/` as an allowed redirect URL in Supabase Auth settings.
+5. Set these environment variables in Vercel:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-or-publishable-key
+```
+
+Without those env vars, the tracker stays fully local and hides the login controls.
 
 Ways to edit, all of which trigger a deploy:
 
