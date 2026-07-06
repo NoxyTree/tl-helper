@@ -15,6 +15,7 @@ database; just a fast page on a CDN.
 | `src/content.js` | **All the guide content** — plain data arrays. This is what you edit. |
 | `src/App.jsx`    | The React components that render the content. |
 | `src/styles.css` | The dark-fantasy design system (CSS custom-property tokens). |
+| `public/achievements/` | Static achievement tracker mounted at `/achievements/`. |
 | `public/img/nix/`| Community screenshots (farm-spot maps, UI shots), each credited by handle. |
 | `public/assets/` | Hero / key art. |
 
@@ -54,6 +55,10 @@ no manual step. Pull requests automatically get their own preview URL.
 
 Cloudflare build settings: build command `npm run build`, output directory
 `dist` (framework preset "None").
+
+The achievement tracker is shipped as static assets under `/achievements/` and
+stores anonymous progress in browser localStorage. It makes no runtime calls to
+third-party achievement databases.
 
 Ways to edit, all of which trigger a deploy:
 

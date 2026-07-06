@@ -161,7 +161,8 @@ main, .topbar, .footer {
   border-radius: 999px;
   background: rgba(18, 29, 48, 0.44);
 }
-.topbar__nav button {
+.topbar__nav button,
+.topbar__link {
   border: 0;
   background: transparent;
   color: var(--steel-mist);
@@ -172,8 +173,14 @@ main, .topbar, .footer {
   letter-spacing: .04em;
   cursor: pointer;
   transition: 180ms ease;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
-.topbar__nav button:hover, .topbar__nav button:focus-visible {
+.topbar__nav button:hover,
+.topbar__nav button:focus-visible,
+.topbar__link:hover,
+.topbar__link:focus-visible {
   color: var(--snow-white);
   background: rgba(126, 182, 216, 0.12);
   outline: none;
@@ -301,7 +308,9 @@ main, .topbar, .footer {
   gap: 12px;
   margin-top: 24px;
 }
-.hero__actions button, .search-results__header button {
+.hero__actions button,
+.hero__action-link,
+.search-results__header button {
   border: 1px solid rgba(214, 167, 86, 0.45);
   background: linear-gradient(180deg, rgba(214, 167, 86, 0.22), rgba(214, 167, 86, 0.08));
   color: var(--snow-white);
@@ -310,8 +319,13 @@ main, .topbar, .footer {
   cursor: pointer;
   box-shadow: 0 12px 30px rgba(214, 167, 86, 0.08);
   transition: 180ms ease;
+  text-decoration: none;
 }
-.hero__actions button:hover, .search-results__header button:hover { transform: translateY(-1px); }
+.hero__actions button:hover,
+.hero__action-link:hover,
+.search-results__header button:hover {
+  transform: translateY(-1px);
+}
 .hero__actions .ghost, .search-results__header button {
   border-color: var(--frost-border-strong);
   background: rgba(18, 29, 48, 0.62);
@@ -954,10 +968,19 @@ main, .topbar, .footer {
 }
 
 @media (max-width: 520px) {
-  .topbar__nav button { min-height: 44px; padding: 9px 12px; font-size: 11px; }
+  .topbar__nav button,
+  .topbar__link {
+    min-height: 44px;
+    padding: 9px 12px;
+    font-size: 11px;
+  }
   .searchbox { height: auto; min-height: 56px; }
   .hero__actions { flex-direction: column; }
-  .hero__actions button { width: 100%; }
+  .hero__actions button,
+  .hero__action-link {
+    width: 100%;
+    justify-content: center;
+  }
   .briefing-panel { padding: 16px; }
   .briefing-panel__timer strong { font-size: 22px; }
   .deadline-card__top, .priority-card__meta, .warning-card__head, .system-card__head, .intel-card__meta, .loop-item__head { flex-direction: column; align-items: start; }

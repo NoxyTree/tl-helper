@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#12091f">
+    <title>Throne & Liberty Tracker</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="magic-field" aria-hidden="true"></div>
+    <div class="app-shell">
+      <header class="hero">
+        <nav class="topbar" aria-label="Tracker navigation">
+          <a class="brand" href="#top" aria-label="Throne and Liberty Tracker home">
+            <span class="brand-kicker">Throne & Liberty</span>
+            <span class="brand-wordmark">Tracker</span>
+          </a>
+          <div class="profile-preview" aria-label="Profile status">
+            <span class="profile-orb"></span>
+            <span>Local profile</span>
+          </div>
+        </nav>
+
+        <section class="hero-content" id="top">
+          <div class="hero-copy">
+            <p class="eyebrow">Achievement Chronicle</p>
+            <h1>Achievement Tracker</h1>
+            <p class="hero-text">Track what is done, filter what is left, and keep the completion glow moving.</p>
+          </div>
+          <div class="hero-stats" aria-label="Progress summary">
+            <div class="completion-ring" id="completionRing" style="--progress: 0">
+              <span id="completionPercent">0%</span>
+            </div>
+            <div>
+              <p class="stat-label">Total completion</p>
+              <p class="stat-value"><span id="completedCount">0</span>/<span id="totalCount">0</span></p>
+            </div>
+          </div>
+        </section>
+      </header>
+
+      <main class="tracker-layout">
+        <aside class="sidebar" aria-label="Achievement filters">
+          <section class="panel profile-panel">
+            <div>
+              <p class="panel-label">Future profiles</p>
+              <h2>Wanderer</h2>
+            </div>
+            <p class="panel-copy">Progress is stored locally now. The data model is ready for synced profiles later.</p>
+          </section>
+
+          <section class="panel controls-panel">
+            <label class="search-label" for="searchInput">Search achievements</label>
+            <input id="searchInput" class="search-input" type="search" placeholder="Raid, cooking, Laslan...">
+
+            <div class="filter-group" role="group" aria-label="Completion filter">
+              <button class="filter-chip active" type="button" data-status="all">All</button>
+              <button class="filter-chip" type="button" data-status="open">Open</button>
+              <button class="filter-chip" type="button" data-status="done">Done</button>
+            </div>
+
+            <label class="toggle-row">
+              <input id="hideCompleted" type="checkbox">
+              <span>Hide completed</span>
+            </label>
+          </section>
+
+          <section class="panel categories-panel">
+            <div class="panel-heading">
+              <p class="panel-label">Categories</p>
+              <button id="clearFilters" class="text-button" type="button">Clear</button>
+            </div>
+            <div id="categoryList" class="category-list"></div>
+          </section>
+        </aside>
+
+        <section class="main-panel" aria-live="polite">
+          <div class="toolbar">
+            <div>
+              <p class="panel-label">Visible achievements</p>
+              <h2 id="resultTitle">All achievements</h2>
+            </div>
+            <div class="toolbar-actions">
+              <select id="sortSelect" class="select-input" aria-label="Sort achievements">
+                <option value="category">Category</option>
+                <option value="title">Title</option>
+                <option value="progress">Progress</option>
+              </select>
+              <button id="resetProgress" class="danger-button" type="button">Reset local progress</button>
+            </div>
+          </div>
+
+          <div class="progress-band">
+            <div>
+              <span class="spark"></span>
+              <span id="openCount">0</span> left to claim
+            </div>
+            <div>
+              <span class="spark gold"></span>
+              <span id="categoryCount">0</span> categories
+            </div>
+            <div>
+              <span class="spark violet"></span>
+              Static achievement data
+            </div>
+          </div>
+
+          <div class="pagination-bar" aria-label="Achievement pagination">
+            <p id="pageSummary">Showing 0 achievements</p>
+            <div class="pagination-controls">
+              <label>
+                Per page
+                <select id="pageSizeSelect" class="select-input compact-select" aria-label="Achievements per page">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <button id="prevPage" class="page-button" type="button">Previous</button>
+              <span id="pageIndicator">1 / 1</span>
+              <button id="nextPage" class="page-button" type="button">Next</button>
+            </div>
+          </div>
+
+          <div id="achievementGrid" class="achievement-grid"></div>
+          <div id="emptyState" class="empty-state" hidden>
+            <h3>No achievements found</h3>
+            <p>Try another search, category, or completion filter.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="detailOverlay" class="detail-overlay" hidden>
+      <aside class="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <button id="detailClose" class="detail-close" type="button" aria-label="Close achievement details">Close</button>
+        <div id="detailBody" class="detail-body"></div>
+      </aside>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./data/achievements.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -390,6 +390,7 @@ export default function App() {
               {item.label}
             </button>
           ))}
+          <a className="topbar__link" href="/achievements/">Achievements</a>
         </nav>
 
         <div className="topbar__status">
@@ -422,6 +423,7 @@ export default function App() {
 
               <div className="hero__actions">
                 <button type="button" onClick={() => jumpTo("briefing")}>Start with the briefing</button>
+                <a className="hero__action-link" href="/achievements/">Open achievement tracker</a>
                 <button type="button" className="ghost" onClick={() => jumpTo("intel")}>View community intel</button>
               </div>
             </div>
