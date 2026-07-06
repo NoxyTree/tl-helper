@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070b13">
+    <title>Profile | TL Helper</title>
+    <meta name="description" content="Manage your TLHelper profile and Throne and Liberty achievement progress.">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/brand/favicon-64.png">
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta property="og:title" content="TL Helper Profile">
+    <meta property="og:description" content="A TLHelper completion profile for Throne and Liberty achievements.">
+    <meta property="og:image" content="/assets/generated/tlhelper-z/og-achievement-tracker.png">
+    <meta property="og:type" content="website">
+  </head>
+  <body>
+    <div class="site-shell profile-route">
+      <div class="ambient ambient--frost" aria-hidden="true"></div>
+      <div class="ambient ambient--gold" aria-hidden="true"></div>
+      <div class="ambient ambient--void" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="TL Helper home">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="/assets/brand/logo.png" alt="">
+          </span>
+          <span>
+            <strong>TL HELPER</strong>
+            <em>Completion profile</em>
+          </span>
+        </a>
+
+        <nav class="topbar__nav" aria-label="Primary navigation">
+          <a class="topbar__link" href="/">Home</a>
+          <a class="topbar__link" href="/achievements/">Achievements</a>
+          <a class="topbar__link is-active" href="/profile/" aria-current="page">Profile</a>
+        </nav>
+
+        <div class="topbar__status profile-preview" aria-label="Profile status">
+          <span class="status-dot profile-orb"></span>
+          <span id="profileStatus">Local profile</span>
+        </div>
+      </header>
+
+      <main class="profile-shell">
+        <section class="profile-hero">
+          <img class="profile-hero__art" src="/assets/generated/tlhelper-z/profile-share-card-bg.png" alt="" aria-hidden="true">
+          <div class="profile-hero__scrim" aria-hidden="true"></div>
+          <div class="profile-identity">
+            <span class="profile-sigil" aria-hidden="true">
+              <img src="/assets/brand/logo.png" alt="">
+            </span>
+            <div>
+              <p class="eyebrow">TLHelper profile</p>
+              <h1 id="heroProfileName">Wanderer</h1>
+              <p id="heroProfileCopy">Track completion locally, then sign in to sync and prepare a public profile.</p>
+            </div>
+          </div>
+          <div class="profile-hero__actions">
+            <button id="openAuthButton" class="primary-auth-button" type="button">Sign up / Sign in</button>
+            <a class="text-action-button profile-link-button" href="/achievements/">Open achievements</a>
+            <button id="signOutButton" class="text-action-button danger-text" type="button" hidden>Sign out</button>
+          </div>
+        </section>
+
+        <section class="profile-grid" aria-label="Profile dashboard">
+          <article class="profile-panel profile-progress-card">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-label">Completion</p>
+                <h2>Achievement progress</h2>
+              </div>
+              <div class="completion-ring profile-ring" id="completionRing" style="--progress: 0">
+                <span id="completionPercent">0%</span>
+              </div>
+            </div>
+            <div class="profile-stat-row">
+              <span><strong id="completedCount">0</strong> completed</span>
+              <span><strong id="openCount">0</strong> open</span>
+              <span><strong id="totalCount">0</strong> total</span>
+            </div>
+            <div class="profile-wide-meter" aria-label="Total completion progress">
+              <i id="totalMeter"></i>
+            </div>
+          </article>
+
+          <article class="profile-panel">
+            <p class="panel-label">Account</p>
+            <h2 id="accountTitle">Local profile</h2>
+            <p class="panel-copy" id="accountCopy">Progress is saved in this browser. Sign in with Google or Discord to sync it.</p>
+            <div class="profile-actions" id="profileActions" hidden>
+              <label class="search-label" for="usernameInput">Profile name</label>
+              <div class="profile-name-row">
+                <input id="usernameInput" class="search-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
+                <button id="saveProfileButton" class="text-action-button" type="button">Save</button>
+              </div>
+              <p class="input-hint">Use 3-24 letters, numbers, or underscores.</p>
+            </div>
+          </article>
+
+          <article class="profile-panel">
+            <p class="panel-label">Public card</p>
+            <h2>Share preview</h2>
+            <div class="share-preview">
+              <img src="/assets/generated/tlhelper-z/profile-share-card-bg.png" alt="" aria-hidden="true">
+              <div>
+                <span id="shareHandle">@wanderer</span>
+                <strong id="sharePercent">0% complete</strong>
+                <small id="shareStatus">Private until profile sharing is enabled.</small>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="profile-grid profile-grid--wide">
+          <article class="profile-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-label">Categories</p>
+                <h2>Completion by discipline</h2>
+              </div>
+              <a class="text-button" href="/achievements/">Tracker</a>
+            </div>
+            <div id="categoryProgress" class="profile-category-list"></div>
+          </article>
+
+          <article class="profile-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-label">Recent wins</p>
+                <h2>Completed achievements</h2>
+              </div>
+              <span id="syncStatus" class="sync-pill">Local only</span>
+            </div>
+            <div id="recentAchievements" class="recent-list"></div>
+          </article>
+        </section>
+
+        <section class="milestone-strip" aria-label="Milestones">
+          <article class="milestone-card">
+            <img src="/assets/generated/tlhelper-z/milestone-10.png" alt="">
+            <span>10%</span>
+          </article>
+          <article class="milestone-card">
+            <img src="/assets/generated/tlhelper-z/milestone-25.png" alt="">
+            <span>25%</span>
+          </article>
+          <article class="milestone-card">
+            <img src="/assets/generated/tlhelper-z/milestone-50.png" alt="">
+            <span>50%</span>
+          </article>
+          <article class="milestone-card">
+            <img src="/assets/generated/tlhelper-z/milestone-75.png" alt="">
+            <span>75%</span>
+          </article>
+          <article class="milestone-card">
+            <img src="/assets/generated/tlhelper-z/milestone-100.png" alt="">
+            <span>100%</span>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div id="authOverlay" class="auth-overlay" hidden>
+      <section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <button id="authClose" class="auth-close-button" type="button" aria-label="Close sign in">Close</button>
+        <div class="auth-header">
+          <span class="auth-mark" aria-hidden="true">
+            <img src="/assets/brand/logo.png" alt="">
+          </span>
+          <div>
+            <p class="panel-label">TLHelper profile</p>
+            <span>Sync and share your completion progress</span>
+          </div>
+        </div>
+        <h2 id="authTitle">Sign up or sign in</h2>
+        <p>Connect with Google or Discord to sync achievement progress across browsers.</p>
+        <div class="auth-provider-list">
+          <button id="googleLoginButton" class="provider-button" type="button">
+            <span class="provider-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.58c2.09-1.93 3.27-4.78 3.27-8.09Z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.58-2.77c-.98.66-2.24 1.06-3.7 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.97 20.53 7.68 23 12 23Z" />
+                <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.16A10.96 10.96 0 0 0 1 12c0 1.77.42 3.44 1.16 4.94l3.68-2.84Z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.68 1 3.97 3.47 2.16 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38Z" />
+              </svg>
+            </span>
+            Continue with Google
+          </button>
+          <button id="discordLoginButton" class="provider-button" type="button">
+            <span class="provider-icon provider-icon--discord" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path fill="currentColor" d="M20.32 4.37A19.8 19.8 0 0 0 15.36 2.8a13.72 13.72 0 0 0-.64 1.32 18.43 18.43 0 0 0-5.44 0 12.74 12.74 0 0 0-.65-1.32 19.74 19.74 0 0 0-4.96 1.57C.54 9.04-.32 13.6.1 18.1a19.95 19.95 0 0 0 6.08 3.08c.49-.66.92-1.36 1.3-2.1a12.8 12.8 0 0 1-2.04-.98c.17-.13.34-.26.5-.4a14.15 14.15 0 0 0 12.12 0c.16.14.33.27.5.4-.65.38-1.33.71-2.05.98.38.74.82 1.44 1.3 2.1a19.9 19.9 0 0 0 6.09-3.08c.5-5.22-.86-9.74-3.58-13.73ZM8.02 15.34c-1.18 0-2.15-1.08-2.15-2.4 0-1.33.95-2.42 2.15-2.42s2.17 1.09 2.15 2.41c0 1.33-.95 2.41-2.15 2.41Zm7.96 0c-1.18 0-2.15-1.08-2.15-2.4 0-1.33.95-2.42 2.15-2.42s2.17 1.09 2.15 2.41c0 1.33-.95 2.41-2.15 2.41Z" />
+              </svg>
+            </span>
+            Continue with Discord
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/profile/app.js"></script>
+  </body>
+</html>

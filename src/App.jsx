@@ -7,7 +7,6 @@ import {
   farmSpots,
   featureCards,
   intel,
-  navItems,
   priorities,
   roadmap,
   sourceLegend,
@@ -299,7 +298,6 @@ function SearchResults({ results, query, onClear }) {
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [activeSection, setActiveSection] = useState("briefing");
   const [zoom, setZoom] = useState(null);  // active screenshot for the lightbox
 
   const nextDeadline = [...deadlines]
@@ -334,20 +332,7 @@ export default function App() {
     return searchIndex.filter((item) => `${item.group} ${item.title} ${item.body}`.toLowerCase().includes(q)).slice(0, 12);
   }, [query, searchIndex]);
 
-  useEffect(() => {
-    const sections = navItems.map((item) => document.getElementById(item.id)).filter(Boolean);
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (visible?.target?.id) setActiveSection(visible.target.id);
-    }, { rootMargin: "-18% 0px -66% 0px", threshold: [0, 0.2, 0.6] });
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
-
   const jumpTo = (id) => {
-    setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -358,7 +343,7 @@ export default function App() {
       <div className="ambient ambient--void" />
 
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="TL Helper home">
+        <a className="brand" href="/" aria-label="TL Helper home">
           <BrandMark />
           <span>
             <strong>TL HELPER</strong>
@@ -367,18 +352,9 @@ export default function App() {
         </a>
 
         <nav className="topbar__nav" aria-label="Primary navigation">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={activeSection === item.id ? "is-active" : ""}
-              aria-current={activeSection === item.id ? "location" : undefined}
-              onClick={() => jumpTo(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-          <a className="topbar__link" href="/achievements/">Achievement Tracker</a>
+          <a className="topbar__link is-active" href="/" aria-current="page">Home</a>
+          <a className="topbar__link" href="/achievements/">Achievements</a>
+          <a className="topbar__link" href="/profile/">Profile</a>
         </nav>
 
         <div className="topbar__status">

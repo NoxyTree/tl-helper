@@ -109,14 +109,6 @@ export const researchSources = [
   },
 ];
 
-export const navItems = [
-  { id: "briefing", label: "Briefing" },
-  { id: "loop", label: "Daily Loop" },
-  { id: "systems", label: "Systems" },
-  { id: "intel", label: "Community Intel" },
-  { id: "roadmap", label: "Roadmap" },
-];
-
 export const featureCards = [
   {
     title: "The Nix Daily Route",
