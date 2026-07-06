@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 
 SOURCE_DIR = Path("public/assets/generated/tlhelper-logo-options")
@@ -54,54 +54,6 @@ def fitted_canvas(image: Image.Image, size: int, padding_ratio: float = 0.13) ->
     return canvas
 
 
-def checker(size: int) -> Image.Image:
-    tile = max(8, size // 12)
-    image = Image.new("RGBA", (size, size), (7, 11, 19, 255))
-    draw = ImageDraw.Draw(image)
-    for y in range(0, size, tile):
-        for x in range(0, size, tile):
-            fill = (31, 36, 48, 255) if (x // tile + y // tile) % 2 else (15, 20, 31, 255)
-            draw.rectangle((x, y, x + tile - 1, y + tile - 1), fill=fill)
-    return image
-
-
-def contact_sheet(records: list[dict]) -> None:
-    width = 1120
-    cell_w = 265
-    cell_h = 300
-    margin = 32
-    image = Image.new("RGBA", (width, cell_h + margin * 2), (7, 11, 19, 255))
-    draw = ImageDraw.Draw(image)
-    try:
-        name_font = ImageFont.truetype("arial.ttf", 18)
-        note_font = ImageFont.truetype("arial.ttf", 12)
-    except OSError:
-        name_font = ImageFont.load_default()
-        note_font = ImageFont.load_default()
-
-    for index, record in enumerate(records):
-        x = margin + index * cell_w
-        preview = checker(150)
-        icon = Image.open(Path("public") / record["path"].lstrip("/")).convert("RGBA")
-        icon.thumbnail((126, 126), Image.Resampling.LANCZOS)
-        preview.alpha_composite(icon, ((150 - icon.width) // 2, (150 - icon.height) // 2))
-        image.alpha_composite(preview, (x, margin))
-        draw.text((x, margin + 164), record["name"], fill=(234, 241, 248, 255), font=name_font)
-        usage = record["usage"]
-        lines = []
-        while len(usage) > 32:
-            split_at = usage.rfind(" ", 0, 32)
-            if split_at == -1:
-                split_at = 32
-            lines.append(usage[:split_at])
-            usage = usage[split_at:].strip()
-        lines.append(usage)
-        for line_index, line in enumerate(lines[:3]):
-            draw.text((x, margin + 190 + line_index * 17), line, fill=(163, 177, 197, 255), font=note_font)
-
-    image.save(OUT_DIR / "brand-kit-contact-sheet.png")
-
-
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     SECONDARY_DIR.mkdir(parents=True, exist_ok=True)
@@ -133,7 +85,6 @@ def main() -> None:
             "path": path,
         })
 
-    contact_sheet(records)
     (OUT_DIR / "brand-kit.json").write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
 
 
