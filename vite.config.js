@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         achievements: resolve(__dirname, "achievements/index.html"),
+        admin: resolve(__dirname, "admin/index.html"),
       },
     },
   },

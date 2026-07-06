@@ -1,21 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ASSETS,
-  builds,
-  dailyLoop,
-  deadlines,
-  farmSpots,
-  featureCards,
-  intel,
-  navItems,
-  priorities,
-  roadmap,
-  sourceLegend,
-  systems,
-  targets,
-  warnings,
-  weeklyLoop,
-} from "./content";
+import { ASSETS, farmSpots, navItems, sourceLegend } from "./content";
+import { useLiveContent } from "./liveContent.js";
 
 function useCountdown(target) {
   const [now, setNow] = useState(() => Date.now());
@@ -314,6 +299,13 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("briefing");
   const [zoom, setZoom] = useState(null);  // active screenshot for the lightbox
 
+  // Approved Supabase entries take over their section; static content.js
+  // arrays are the fallback (and the whole story when Supabase isn't set up).
+  const {
+    deadlines, priorities, targets, warnings, systems, intel,
+    roadmap, builds, dailyLoop, weeklyLoop, featureCards,
+  } = useLiveContent();
+
   const nextDeadline = [...deadlines]
     .filter((item) => item.target > Date.now())
     .sort((a, b) => a.target - b.target)[0];
@@ -338,7 +330,7 @@ export default function App() {
       ...pack(builds, "Build Notes", "gold"),
       ...pack(roadmap, "Roadmap", "frost"),
     ];
-  }, []);
+  }, [priorities, deadlines, dailyLoop, weeklyLoop, warnings, systems, intel, builds, roadmap]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
