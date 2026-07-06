@@ -934,21 +934,6 @@ h1 {
   border-color: var(--success);
 }
 
-.detail-icon {
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(126, 182, 216, 0.24);
-  border-radius: var(--radius-sm);
-  color: var(--relic-gold);
-  background:
-    radial-gradient(circle at 35% 25%, rgba(214, 167, 86, 0.18), transparent 34%),
-    linear-gradient(135deg, rgba(126, 182, 216, 0.16), rgba(7, 11, 19, 0.74));
-  box-shadow: inset 0 0 18px rgba(126, 182, 216, 0.13);
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
 .achievement-content {
   min-width: 0;
   align-self: center;
@@ -1102,16 +1087,7 @@ h1 {
 
 .detail-header,
 .detail-loading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.detail-icon {
-  width: 70px;
-  height: 70px;
-  flex: 0 0 auto;
-  font-size: 1.15rem;
+  display: block;
 }
 
 .detail-header h2,

@@ -743,7 +743,6 @@ function closeDetails() {
 function renderDetailLoading(achievement) {
   els.detailBody.innerHTML = `
     <div class="detail-loading">
-      ${renderAchievementBadge(achievement, "detail-icon")}
       <p class="panel-label">Loading achievement</p>
       <h2 id="detailTitle">${escapeHtml(achievement.title)}</h2>
     </div>
@@ -775,7 +774,6 @@ function renderDetail(achievement, detail) {
     </div>
 
     <div class="detail-header">
-      ${renderAchievementBadge(detailAchievement, "detail-icon")}
       <div>
         <p class="panel-label">${escapeHtml(categoryPath)}</p>
         <h2 id="detailTitle">${escapeHtml(title)}</h2>
@@ -840,7 +838,6 @@ function renderStage(achievement, stage, index) {
 function renderDetailError(achievement, error) {
   els.detailBody.innerHTML = `
     <div class="detail-header">
-      ${renderAchievementBadge(achievement, "detail-icon")}
       <div>
         <p class="panel-label">${escapeHtml(achievement.categoryGroup)} / ${escapeHtml(achievement.category)}</p>
         <h2 id="detailTitle">${escapeHtml(achievement.title)}</h2>
