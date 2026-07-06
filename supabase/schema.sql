@@ -193,3 +193,48 @@ for each row execute function public.touch_updated_at();
 
 -- Grant yourself admin once, in the Supabase SQL editor:
 --   update public.profiles set is_admin = true where id = '<your-auth-user-id>';
+
+-- ---------------------------------------------------------------------------
+-- Pipeline job queue + research source log (admin page: Jobs / Sources tabs).
+-- The admin page inserts a 'requested' run; the worker on the production PC
+-- polls for it, executes the refresh, and records the outcome + every source
+-- it gathered. All admin-only; the pipeline writes via the service role.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.pipeline_runs (
+  id uuid primary key default gen_random_uuid(),
+  status text not null default 'requested' check (status in (
+    'requested', 'running', 'done', 'failed', 'nothing_new'
+  )),
+  engine text not null default 'ollama',
+  requested_at timestamptz not null default now(),
+  started_at timestamptz,
+  finished_at timestamptz,
+  stats jsonb,
+  log text
+);
+
+create table if not exists public.research_sources (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('video', 'patchnote_kr', 'patchnote_global')),
+  title text not null,
+  url text not null unique,
+  channel text,
+  fetched date not null default current_date,
+  words integer,
+  run_id uuid references public.pipeline_runs(id)
+);
+
+alter table public.pipeline_runs enable row level security;
+alter table public.research_sources enable row level security;
+
+create policy "Admins manage runs"
+on public.pipeline_runs
+for all
+using (exists (select 1 from public.profiles where profiles.id = auth.uid() and profiles.is_admin))
+with check (exists (select 1 from public.profiles where profiles.id = auth.uid() and profiles.is_admin));
+
+create policy "Admins read sources"
+on public.research_sources
+for select
+using (exists (select 1 from public.profiles where profiles.id = auth.uid() and profiles.is_admin));
