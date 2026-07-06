@@ -83,6 +83,7 @@ const state = {
   page: 1,
   pageSize: 50,
   activeAchievementId: null,
+  profileSetupOpen: false,
 };
 
 const els = {
@@ -123,6 +124,10 @@ const els = {
   openAuthButton: document.querySelector("#openAuthButton"),
   authOverlay: document.querySelector("#authOverlay"),
   authClose: document.querySelector("#authClose"),
+  profileSetupOverlay: document.querySelector("#profileSetupOverlay"),
+  profileSetupUsername: document.querySelector("#profileSetupUsername"),
+  profileSetupSaveButton: document.querySelector("#profileSetupSaveButton"),
+  profileSetupSignOutButton: document.querySelector("#profileSetupSignOutButton"),
   googleLoginButton: document.querySelector("#googleLoginButton"),
   discordLoginButton: document.querySelector("#discordLoginButton"),
   usernameInput: document.querySelector("#usernameInput"),
@@ -161,6 +166,42 @@ function getDisplayName() {
     || "Wanderer";
 }
 
+function getSuggestedUsername() {
+  const source = state.profile?.username
+    || state.profile?.display_name
+    || state.session?.user?.user_metadata?.full_name
+    || state.session?.user?.email?.split("@")[0]
+    || "wanderer";
+  return normalizeUsername(source.replace(/\s+/g, "_")) || "wanderer";
+}
+
+function needsProfileNameSetup() {
+  return Boolean(state.session && state.profile && !state.profile.username);
+}
+
+function openProfileSetup() {
+  if (!needsProfileNameSetup()) return;
+  state.profileSetupOpen = true;
+  if (!els.profileSetupUsername.value.trim()) {
+    els.profileSetupUsername.value = getSuggestedUsername();
+  }
+  els.profileSetupOverlay.hidden = false;
+  window.setTimeout(() => els.profileSetupUsername.focus(), 0);
+}
+
+function closeProfileSetup() {
+  state.profileSetupOpen = false;
+  els.profileSetupOverlay.hidden = true;
+}
+
+function promptForProfileNameIfNeeded() {
+  if (needsProfileNameSetup()) {
+    openProfileSetup();
+  } else {
+    closeProfileSetup();
+  }
+}
+
 function renderProfile() {
   if (!supabase) {
     els.profileStatus.textContent = "Local profile";
@@ -187,7 +228,9 @@ function renderProfile() {
   els.profileStatus.textContent = "Synced profile";
   els.profileMode.textContent = "Signed in";
   els.profileName.textContent = getDisplayName();
-  els.profileCopy.textContent = "Progress syncs to your TLHelper profile.";
+  els.profileCopy.textContent = state.profile?.username
+    ? "Progress syncs to your TLHelper profile."
+    : "Choose a profile name to finish setting up cloud sync.";
   els.authPanel.hidden = true;
   els.profileActions.hidden = false;
   els.usernameInput.value = state.profile?.username || "";
@@ -210,16 +253,19 @@ async function initSupabaseAuth() {
     await loadCloudProfileAndProgress();
   }
   renderProfile();
+  promptForProfileNameIfNeeded();
 
   supabase.auth.onAuthStateChange(async (_event, session) => {
     state.session = session;
     state.profile = null;
+    closeAuthDialog();
     if (session) {
       await loadCloudProfileAndProgress();
       showToast("Profile connected");
     }
     renderProfile();
     render();
+    promptForProfileNameIfNeeded();
   });
 }
 
@@ -247,6 +293,7 @@ async function signOut() {
   await supabase.auth.signOut();
   state.session = null;
   state.profile = null;
+  closeProfileSetup();
   renderProfile();
   showToast("Signed out");
 }
@@ -295,10 +342,16 @@ async function loadProfile() {
   state.profile = created;
 }
 
-async function saveProfile() {
+async function saveProfile({ fromSetup = false } = {}) {
   if (!supabase || !state.session) return;
-  const username = normalizeUsername(els.usernameInput.value);
-  if (username && username.length < 3) {
+  const input = fromSetup ? els.profileSetupUsername : els.usernameInput;
+  const username = normalizeUsername(input.value);
+  input.value = username;
+  if (!username) {
+    showToast("Choose a profile name");
+    return;
+  }
+  if (username.length < 3) {
     showToast("Username needs at least 3 characters");
     return;
   }
@@ -316,6 +369,7 @@ async function saveProfile() {
   }
 
   state.profile = data;
+  closeProfileSetup();
   renderProfile();
   showToast("Profile saved");
 }
@@ -970,6 +1024,14 @@ els.discordLoginButton.addEventListener("click", () => {
   closeAuthDialog();
   void signInWithProvider("discord");
 });
+els.profileSetupSaveButton.addEventListener("click", () => saveProfile({ fromSetup: true }));
+els.profileSetupUsername.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    void saveProfile({ fromSetup: true });
+  }
+});
+els.profileSetupSignOutButton.addEventListener("click", signOut);
 els.saveProfileButton.addEventListener("click", saveProfile);
 els.syncProgressButton.addEventListener("click", () => syncProgressToCloud());
 els.signOutButton.addEventListener("click", signOut);

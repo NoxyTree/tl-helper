@@ -212,19 +212,69 @@
 
     <div id="authOverlay" class="auth-overlay" hidden>
       <section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-        <button id="authClose" class="detail-close" type="button" aria-label="Close sign in">Close</button>
-        <p class="panel-label">TLHelper profile</p>
+        <button id="authClose" class="auth-close-button" type="button" aria-label="Close sign in">Close</button>
+        <div class="auth-header">
+          <span class="auth-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img">
+              <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="currentColor" stroke-width="2.8" />
+              <circle cx="32" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="2" opacity=".72" />
+              <path d="M32 18v28M18 32h28" stroke="currentColor" stroke-width="1.5" opacity=".72" />
+            </svg>
+          </span>
+          <div>
+            <p class="panel-label">TLHelper profile</p>
+            <span>Sync and share your completion progress</span>
+          </div>
+        </div>
         <h2 id="authTitle">Sign up or sign in</h2>
         <p>Sync achievements and keep your completion profile ready for sharing.</p>
         <div class="auth-provider-list">
           <button id="googleLoginButton" class="provider-button" type="button">
-            <span>G</span>
+            <span class="provider-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.58c2.09-1.93 3.27-4.78 3.27-8.09Z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.58-2.77c-.98.66-2.24 1.06-3.7 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.97 20.53 7.68 23 12 23Z" />
+                <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.16A10.96 10.96 0 0 0 1 12c0 1.77.42 3.44 1.16 4.94l3.68-2.84Z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.68 1 3.97 3.47 2.16 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38Z" />
+              </svg>
+            </span>
             Continue with Google
           </button>
           <button id="discordLoginButton" class="provider-button" type="button">
-            <span>D</span>
+            <span class="provider-icon provider-icon--discord" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path fill="currentColor" d="M20.32 4.37A19.8 19.8 0 0 0 15.36 2.8a13.72 13.72 0 0 0-.64 1.32 18.43 18.43 0 0 0-5.44 0 12.74 12.74 0 0 0-.65-1.32 19.74 19.74 0 0 0-4.96 1.57C.54 9.04-.32 13.6.1 18.1a19.95 19.95 0 0 0 6.08 3.08c.49-.66.92-1.36 1.3-2.1a12.8 12.8 0 0 1-2.04-.98c.17-.13.34-.26.5-.4a14.15 14.15 0 0 0 12.12 0c.16.14.33.27.5.4-.65.38-1.33.71-2.05.98.38.74.82 1.44 1.3 2.1a19.9 19.9 0 0 0 6.09-3.08c.5-5.22-.86-9.74-3.58-13.73ZM8.02 15.34c-1.18 0-2.15-1.08-2.15-2.4 0-1.33.95-2.42 2.15-2.42s2.17 1.09 2.15 2.41c0 1.33-.95 2.41-2.15 2.41Zm7.96 0c-1.18 0-2.15-1.08-2.15-2.4 0-1.33.95-2.42 2.15-2.42s2.17 1.09 2.15 2.41c0 1.33-.95 2.41-2.15 2.41Z" />
+              </svg>
+            </span>
             Continue with Discord
           </button>
+        </div>
+      </section>
+    </div>
+
+    <div id="profileSetupOverlay" class="auth-overlay" hidden>
+      <section class="auth-dialog profile-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="profileSetupTitle">
+        <div class="auth-header">
+          <span class="auth-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img">
+              <path d="M32 5 40 23 59 32 40 41 32 59 24 41 5 32 24 23 32 5Z" fill="none" stroke="currentColor" stroke-width="2.8" />
+              <circle cx="32" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="2" opacity=".72" />
+              <path d="M32 18v28M18 32h28" stroke="currentColor" stroke-width="1.5" opacity=".72" />
+            </svg>
+          </span>
+          <div>
+            <p class="panel-label">Profile setup</p>
+            <span>One name for your TLHelper progress</span>
+          </div>
+        </div>
+        <h2 id="profileSetupTitle">Choose a profile name</h2>
+        <p>This becomes your public TLHelper handle when profile sharing goes live.</p>
+        <label class="search-label" for="profileSetupUsername">Profile name</label>
+        <input id="profileSetupUsername" class="search-input profile-name-input" type="text" autocomplete="nickname" placeholder="wanderer" maxlength="24">
+        <p class="input-hint">Use 3-24 letters, numbers, or underscores.</p>
+        <div class="profile-setup-actions">
+          <button id="profileSetupSaveButton" class="primary-auth-button" type="button">Create profile</button>
+          <button id="profileSetupSignOutButton" class="text-button" type="button">Sign out instead</button>
         </div>
       </section>
     </div>
