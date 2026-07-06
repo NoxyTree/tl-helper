@@ -534,7 +534,6 @@ function renderAchievements() {
     card.setAttribute("role", "button");
     card.setAttribute("aria-label", `Open details for ${achievement.title}`);
     card.innerHTML = `
-      ${renderAchievementBadge(achievement, "achievement-icon")}
       <div class="achievement-content">
         <div class="achievement-meta">
           <span>${escapeHtml(achievement.categoryGroup)}</span>
