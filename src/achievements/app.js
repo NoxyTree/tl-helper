@@ -120,8 +120,9 @@ const els = {
   profileCopy: document.querySelector("#profileCopy"),
   authPanel: document.querySelector("#authPanel"),
   profileActions: document.querySelector("#profileActions"),
-  authEmail: document.querySelector("#authEmail"),
-  magicLinkButton: document.querySelector("#magicLinkButton"),
+  openAuthButton: document.querySelector("#openAuthButton"),
+  authOverlay: document.querySelector("#authOverlay"),
+  authClose: document.querySelector("#authClose"),
   googleLoginButton: document.querySelector("#googleLoginButton"),
   discordLoginButton: document.querySelector("#discordLoginButton"),
   usernameInput: document.querySelector("#usernameInput"),
@@ -222,22 +223,12 @@ async function initSupabaseAuth() {
   });
 }
 
-async function signInWithEmail() {
-  if (!supabase) return;
-  const email = els.authEmail.value.trim();
-  if (!email) {
-    showToast("Enter an email first");
-    return;
-  }
+function openAuthDialog() {
+  els.authOverlay.hidden = false;
+}
 
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: getRedirectUrl(),
-    },
-  });
-
-  showToast(error ? error.message : "Check your email for the sign-in link");
+function closeAuthDialog() {
+  els.authOverlay.hidden = true;
 }
 
 async function signInWithProvider(provider) {
@@ -964,12 +955,24 @@ els.detailClose.addEventListener("click", closeDetails);
 els.detailOverlay.addEventListener("click", (event) => {
   if (event.target === els.detailOverlay) closeDetails();
 });
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !els.detailOverlay.hidden) closeDetails();
+els.authClose.addEventListener("click", closeAuthDialog);
+els.authOverlay.addEventListener("click", (event) => {
+  if (event.target === els.authOverlay) closeAuthDialog();
 });
-els.magicLinkButton.addEventListener("click", signInWithEmail);
-els.googleLoginButton.addEventListener("click", () => signInWithProvider("google"));
-els.discordLoginButton.addEventListener("click", () => signInWithProvider("discord"));
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (!els.detailOverlay.hidden) closeDetails();
+  if (!els.authOverlay.hidden) closeAuthDialog();
+});
+els.openAuthButton.addEventListener("click", openAuthDialog);
+els.googleLoginButton.addEventListener("click", () => {
+  closeAuthDialog();
+  void signInWithProvider("google");
+});
+els.discordLoginButton.addEventListener("click", () => {
+  closeAuthDialog();
+  void signInWithProvider("discord");
+});
 els.saveProfileButton.addEventListener("click", saveProfile);
 els.syncProgressButton.addEventListener("click", () => syncProgressToCloud());
 els.signOutButton.addEventListener("click", signOut);

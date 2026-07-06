@@ -496,6 +496,28 @@ h1 {
   gap: 8px;
 }
 
+.primary-auth-button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(214, 167, 86, 0.44);
+  border-radius: var(--radius-sm);
+  color: var(--snow-white);
+  background:
+    linear-gradient(180deg, rgba(214, 167, 86, 0.28), rgba(126, 182, 216, 0.1)),
+    rgba(18, 29, 48, 0.76);
+  box-shadow: inset 0 0 20px rgba(214, 167, 86, 0.08);
+  font-weight: 800;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.primary-auth-button:hover,
+.primary-auth-button:focus-visible {
+  border-color: var(--relic-gold);
+  box-shadow: inset 0 0 22px rgba(214, 167, 86, 0.14), 0 0 22px rgba(142, 108, 255, 0.14);
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .search-input,
 .select-input {
   width: 100%;
@@ -1238,6 +1260,83 @@ h1 {
 .toast.show {
   opacity: 1;
   transform: translateY(0);
+}
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 6, 12, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.auth-overlay[hidden] {
+  display: none;
+}
+
+.auth-dialog {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 28px;
+  border: 1px solid rgba(214, 167, 86, 0.28);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(142, 108, 255, 0.18), transparent 14rem),
+    linear-gradient(180deg, rgba(18, 29, 48, 0.98), rgba(7, 11, 19, 0.96));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.56), 0 0 40px rgba(142, 108, 255, 0.14);
+}
+
+.auth-dialog h2 {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.45rem);
+}
+
+.auth-dialog > p:not(.panel-label) {
+  margin-bottom: 20px;
+  color: var(--steel-mist);
+  line-height: 1.55;
+}
+
+.auth-provider-list {
+  display: grid;
+  gap: 10px;
+}
+
+.provider-button {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid rgba(126, 182, 216, 0.22);
+  border-radius: var(--radius-sm);
+  color: var(--snow-white);
+  background: rgba(7, 11, 19, 0.58);
+  font-weight: 800;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.provider-button span {
+  width: 28px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--deep-navy);
+  background: var(--snow-white);
+  font-weight: 900;
+}
+
+.provider-button:hover,
+.provider-button:focus-visible {
+  border-color: var(--gold-border);
+  background: rgba(18, 29, 48, 0.78);
+  outline: none;
+  transform: translateY(-1px);
 }
 
 @media (prefers-reduced-motion: reduce) {

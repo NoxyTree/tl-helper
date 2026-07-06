@@ -82,12 +82,7 @@
               <p class="panel-copy" id="profileCopy">Progress is stored locally. Connect Supabase to sync profiles.</p>
 
               <div class="auth-panel" id="authPanel">
-                <input id="authEmail" class="search-input" type="email" autocomplete="email" placeholder="email@example.com">
-                <div class="auth-actions">
-                  <button id="magicLinkButton" class="text-action-button" type="button">Email link</button>
-                  <button id="googleLoginButton" class="text-action-button" type="button">Google</button>
-                  <button id="discordLoginButton" class="text-action-button" type="button">Discord</button>
-                </div>
+                <button id="openAuthButton" class="primary-auth-button" type="button">Sign up / Sign in</button>
               </div>
 
               <div class="profile-actions" id="profileActions" hidden>
@@ -213,6 +208,25 @@
         <button id="detailClose" class="detail-close" type="button" aria-label="Close achievement details">Close</button>
         <div id="detailBody" class="detail-body"></div>
       </aside>
+    </div>
+
+    <div id="authOverlay" class="auth-overlay" hidden>
+      <section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <button id="authClose" class="detail-close" type="button" aria-label="Close sign in">Close</button>
+        <p class="panel-label">TLHelper profile</p>
+        <h2 id="authTitle">Sign up or sign in</h2>
+        <p>Sync achievements and keep your completion profile ready for sharing.</p>
+        <div class="auth-provider-list">
+          <button id="googleLoginButton" class="provider-button" type="button">
+            <span>G</span>
+            Continue with Google
+          </button>
+          <button id="discordLoginButton" class="provider-button" type="button">
+            <span>D</span>
+            Continue with Discord
+          </button>
+        </div>
+      </section>
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
