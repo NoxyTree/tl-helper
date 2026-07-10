@@ -86,6 +86,48 @@ secondary numbers) are stored as `draft` consistency evidence only. Target
 mitigation, the +100% monster bonus applicability, and pipeline order remain
 unknown; per protocol no inference may use these yet.
 
+## Video session addendum (recorded late 2026-07-10, experiment `swift-healing-video-a`)
+
+Two Medal clips (preserved with hashes under
+`D:\TL_Data\calibration\24118850\recordings\`) captured 8 rounds of paired
+Swift Healing charge casts with the HP bar visible throughout. The clips
+overlap by ~40 seconds; duplicated casts were cross-validated and
+deduplicated to 16 recorded observations. Session stats: Base Damage
+382~985, Healing +15%, Max Health 28,018, Stellarite active, Death
+Aftereffect Tier 3 (player-identified as resurrection-cooldown-only).
+
+**Verified via HP-delta arithmetic:**
+
+1. **Heavy heal ×2 semantics proven.** For every ×2-marked heal the HP delta
+   equals exactly twice the displayed value plus regen (e.g. 15,647→19,327
+   with "+1,788 ×2": 3,680 = 2×1,788 + 104 regen). The displayed value is
+   per-application; total healed is double.
+2. **Health Regen stat is HP per 10 seconds.** Observed passive regen ~116
+   per half-second (~2,320/10s) against a displayed stat of 2,318.
+3. **Every non-heavy heal's HP delta reconciles to the displayed value plus
+   regen** — floating text is exact, not rounded display.
+
+**Base Damage selection: the roll model is now in doubt.** Round-opening
+casts made after a long gap healed **exactly 3,160 all three times**; a
+continuous per-cast roll over 382–985 cannot plausibly repeat exactly.
+Every cast made within ~10s of a previous cast healed less, but by *varying*
+ratios (0.46–0.81 of 3,160) — not the tooltip's flat −30%. No candidate
+model fits yet: deterministic 3,160 implies an effective Base Damage of
+609.6 (with Healing +15%) or 751.7 (without), neither a panel endpoint nor
+the midpoint (683.5). Round 7 (1,943 then 1,449) is anomalously low and
+unexplained. The screenshot-session variation earlier in the day is now
+suspected to also reflect consecutive-cast state rather than a roll.
+
+**Decisive next experiment (design for the next session):**
+
+1. Ten isolated single casts, each ≥15s after the last, same gear, HP well
+   below max, recorded. If all ten heal identically, the fresh-cast
+   magnitude is deterministic and the roll hypothesis is rejected for heals.
+2. Then swap one item and repeat five isolated casts — the shift identifies
+   the Base Damage basis and multiplier.
+3. Then map the penalty: pairs of casts with deliberate gaps of 2, 4, 6, 8,
+   10, and 12 seconds between them.
+
 ## What is still open
 
 1. **Multiplier and rounding discrimination** needs protocol groups 6–7:
