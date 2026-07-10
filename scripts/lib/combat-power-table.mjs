@@ -12,23 +12,75 @@ export function combatPowerGroup(item) {
   return null;
 }
 
-export function inferItemCombatPowerRowId(item, availableRows = null) {
+function seasonalCombatPowerGroup(item) {
   const group = combatPowerGroup(item);
-  if (!group) return null;
+  if (group === "weapon") return "weapon";
+  if (ARMOR_TYPES.has(item?.equipmentType)) return "armor";
+  if (ACCESSORY_PREFIX[item?.equipmentType]) return "accessory";
+  return null;
+}
+
+export function inferItemCombatPowerMapping(item, availableRows = null, sourceRecord = null) {
+  const group = combatPowerGroup(item);
+  if (!group) return { rowId: null, evidence: "unsupported-equipment-type" };
   const rowSet = availableRows ? new Set(availableRows) : null;
   const accept = (candidate) => !rowSet || rowSet.has(candidate) ? candidate : null;
   if (group === "talistone" || group === "gemstone") {
     const grade = GRADE_TOKEN[Number(item.grade)];
-    return grade ? accept(`${group}_${grade}_t1`) : null;
+    const rowId = grade ? accept(`${group}_${grade}_t1`) : null;
+    return { rowId, evidence: rowId ? "artifact-grade" : "unresolved" };
+  }
+
+  // Category-level equipment is tied to the long seasonal arrays by its source
+  // level selector and exact level bounds. Item IDs retain older tier tokens and
+  // are not authoritative for these records.
+  const seasonalGroup = seasonalCombatPowerGroup(item);
+  const levelSelector = String(sourceRecord?.level_select_id ?? "");
+  const minLevel = Number(sourceRecord?.limit_level_min);
+  const maxLevel = Number(sourceRecord?.limit_level_max);
+  if (seasonalGroup && sourceRecord?.affects_category_Level === "EBool::T") {
+    const seasonalGrade = levelSelector === "ItemGroup_T3" && minLevel === 21 && maxLevel === 50
+      ? "a"
+      : levelSelector === "ItemGroup_Nix" && minLevel === 51 && maxLevel === 80
+        ? "aa"
+        : null;
+    if (seasonalGrade) {
+      const rowId = accept(`${seasonalGroup}_${seasonalGrade}_S1`);
+      if (rowId) return { rowId, evidence: `source-level-selector:${levelSelector}` };
+    }
   }
   const id = String(item.id ?? "");
   const seasonal = id.match(/_(a|aa)_S1(?:_|$)/i);
   if (seasonal) {
-    const category = group === "weapon" ? "weapon" : (ARMOR_TYPES.has(item.equipmentType) ? "armor" : "accessory");
-    return accept(`${category}_${seasonal[1].toLowerCase()}_S1`);
+    const rowId = accept(`${seasonalGroup}_${seasonal[1].toLowerCase()}_S1`);
+    return { rowId, evidence: rowId ? "item-id-seasonal" : "unresolved" };
   }
   const tier = id.match(/_(aaa|aa3|aa2|aa|a|b|c)_(t[12])(?:_|$)/i);
-  return tier ? accept(`${group}_${tier[1].toLowerCase()}_${tier[2].toLowerCase()}`) : null;
+  if (tier) {
+    const rowId = accept(`${group}_${tier[1].toLowerCase()}_${tier[2].toLowerCase()}`);
+    if (rowId) return { rowId, evidence: "item-id-tier" };
+  }
+
+  // These grades each have exactly one non-seasonal row per equipment group in
+  // TLItemCombatPower. Grades A and AA remain unresolved because multiple rows
+  // are possible and no foreign key selects between them.
+  const unambiguousGrade = {
+    "EItemGrade::kC": "c",
+    "EItemGrade::kB": "b",
+    "EItemGrade::kAAA": "aaa",
+  }[sourceRecord?.item_grade];
+  if (unambiguousGrade) {
+    const prefix = `${group}_${unambiguousGrade}_`;
+    const candidates = rowSet
+      ? [...rowSet].filter((rowId) => rowId.startsWith(prefix) && /_t\d+$/i.test(rowId))
+      : [`${prefix}t1`];
+    if (candidates.length === 1) return { rowId: candidates[0], evidence: "source-unambiguous-grade" };
+  }
+  return { rowId: null, evidence: "unresolved" };
+}
+
+export function inferItemCombatPowerRowId(item, availableRows = null, sourceRecord = null) {
+  return inferItemCombatPowerMapping(item, availableRows, sourceRecord).rowId;
 }
 
 export function listPower(row, field, index) {

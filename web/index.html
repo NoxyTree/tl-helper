@@ -1587,10 +1587,11 @@ class Component extends DCLogic {
   PRESET_KEY = "tlhelper-builder-presets-v1";
 
   componentDidMount() {
-    Promise.all([import("./tl-core.js"), import("./tl-build-snapshot.js")])
-      .then(async ([core, buildSnapshots]) => {
+    Promise.all([import("./tl-core.js"), import("./tl-build-snapshot.js"), import("./tl-persistence.js")])
+      .then(async ([core, buildSnapshots, persistence]) => {
         this.core = core;
         this.buildSnapshots = buildSnapshots;
+        this.persistence = persistence;
         await core.initCore("./data/app-data.json");
         const referenceResponse = await fetch("./data/reference-build.json");
         if (!referenceResponse.ok) throw new Error(`Reference preset failed to load (${referenceResponse.status}).`);
@@ -1619,12 +1620,14 @@ class Component extends DCLogic {
   }
 
   loadSaved() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || "null");
-      return this.normalizeStoredState(raw);
-    } catch {
-      return null;
-    }
+    const result = this.persistence.loadArmoryState(localStorage, {
+      key: this.STORAGE_KEY,
+      currentGameBuild: this.core.data?.gameBuild ?? "unversioned",
+    });
+    if (result.warnings.length) console.warn("TL-Helper saved build:", ...result.warnings);
+    this.persistenceWarnings = [...(this.persistenceWarnings ?? []), ...result.warnings];
+    if (result.status === "unsupported") this.persistenceBlocked = true;
+    return result.ok ? this.normalizeStoredState(result.data) : null;
   }
 
   normalizeStoredState(raw) {
@@ -1653,21 +1656,33 @@ class Component extends DCLogic {
   }
 
   loadPresets(referencePreset) {
-    try {
-      const stored = localStorage.getItem(this.PRESET_KEY);
-      if (stored !== null) {
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed.filter((preset) => this.normalizeStoredState(preset)) : [];
-      }
-    } catch {}
+    const result = this.persistence.loadArmoryPresets(localStorage, {
+      key: this.PRESET_KEY,
+      currentGameBuild: this.core.data?.gameBuild ?? "unversioned",
+    });
+    if (result.warnings.length) console.warn("TL-Helper saved presets:", ...result.warnings);
+    this.persistenceWarnings = [...(this.persistenceWarnings ?? []), ...result.warnings];
+    if (result.ok) {
+      const presets = result.data.filter((preset) => this.normalizeStoredState(preset));
+      if (result.migrated) this.savePresets(presets);
+      return presets;
+    }
+    if (result.status === "unsupported") {
+      this.presetsBlocked = true;
+      return [referencePreset];
+    }
     const presets = [referencePreset];
     this.savePresets(presets);
     return presets;
   }
 
   savePresets(presets) {
+    if (this.presetsBlocked) return false;
     try {
-      localStorage.setItem(this.PRESET_KEY, JSON.stringify(presets));
+      this.persistence.saveArmoryPresets(localStorage, presets, {
+        key: this.PRESET_KEY,
+        gameBuild: this.core.data?.gameBuild ?? "unversioned",
+      });
       return true;
     } catch {
       return false;
@@ -1746,13 +1761,17 @@ class Component extends DCLogic {
   }
 
   save() {
+    if (this.persistenceBlocked) return;
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+      this.persistence.saveArmoryState(localStorage, {
         profile: this.state.profile,
         attributes: this.state.attributes,
         favoriteStatIds: this.state.favoriteStatIds,
         build: this.state.build,
-      }));
+      }, {
+        key: this.STORAGE_KEY,
+        gameBuild: this.core.data?.gameBuild ?? "unversioned",
+      });
     } catch {}
   }
 
@@ -2372,7 +2391,9 @@ class Component extends DCLogic {
       };
     });
 
-    const issues = calc.validation?.issues ?? [];
+    const persistenceIssues = [...new Set(this.persistenceWarnings ?? [])]
+      .map((message) => ({ severity: "warning", message }));
+    const issues = [...(calc.validation?.issues ?? []), ...persistenceIssues];
     const issueRows = issues.slice(0, 6).map((issue) => ({
       severity: issue.severity || "warning",
       color: issue.severity === "error" ? "#e56a6a" : issue.severity === "info" ? "#8fb7e0" : "#e5a06a",

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  decodedItemPower, decodedRunePower, inferItemCombatPowerRowId, inferRuneCombatPowerRowId, listPower,
+  decodedItemPower, decodedRunePower, inferItemCombatPowerMapping, inferItemCombatPowerRowId, inferRuneCombatPowerRowId, listPower,
 } from "../lib/combat-power-table.mjs";
 
 test("maps normal, seasonal, accessory, and artifact item IDs", () => {
@@ -14,6 +14,31 @@ test("maps normal, seasonal, accessory, and artifact item IDs", () => {
 
 test("rejects inferred keys not present in the supplied table", () => {
   assert.equal(inferItemCombatPowerRowId({ id: "head_aa_t2_001", equipmentType: "head" }, ["head_aa_t1"]), null);
+});
+
+test("source level selectors override stale item-ID tiers for category-level gear", () => {
+  const t3 = { affects_category_Level: "EBool::T", level_select_id: "ItemGroup_T3", limit_level_min: 21, limit_level_max: 50 };
+  const nix = { affects_category_Level: "EBool::T", level_select_id: "ItemGroup_Nix", limit_level_min: 51, limit_level_max: 80 };
+  assert.deepEqual(
+    inferItemCombatPowerMapping({ id: "bow_aa_t5_boss_002", equipmentType: "bow" }, ["weapon_a_S1"], t3),
+    { rowId: "weapon_a_S1", evidence: "source-level-selector:ItemGroup_T3" },
+  );
+  assert.equal(
+    inferItemCombatPowerRowId({ id: "ring_aa_t3_normal_005", equipmentType: "ring" }, ["accessory_aa_S1"], nix),
+    "accessory_aa_S1",
+  );
+});
+
+test("uses source grade only where the table has one unambiguous family", () => {
+  assert.equal(inferItemCombatPowerRowId(
+    { id: "head_unique_aa_t2_set_001", equipmentType: "head" }, ["head_aaa_t1"], { item_grade: "EItemGrade::kAAA" },
+  ), "head_aaa_t1");
+  assert.equal(inferItemCombatPowerRowId(
+    { id: "head_unknown", equipmentType: "head" }, ["head_aa_t1", "head_aa2_t1"], { item_grade: "EItemGrade::kAA" },
+  ), null);
+  assert.equal(inferItemCombatPowerRowId(
+    { id: "head_unknown", equipmentType: "head" }, ["head_aaa_t1", "head_aaa_t2"], { item_grade: "EItemGrade::kAAA" },
+  ), null);
 });
 
 test("reads indexed component values without inventing out-of-range values", () => {

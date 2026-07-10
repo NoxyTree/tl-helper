@@ -6,10 +6,11 @@ game version `1.431.22.7761`, Steam build `24118850`, decoder `0.1.0`.
 TL-Helper now has a verified, one-command path from installed game archives to
 decoded, normalized, searchable, browser-ready data. Combat Simulator Milestone
 0 data discovery and Milestone 1 BuildSnapshot integration are complete. The
-browser projection split and combat-power comparison are also complete. The
-next priorities are complete manual healer and ranged Questlog panels,
-patch-safe saved builds, remaining formula and combat-power mappings, and
-Combat Simulator Milestone 2.
+browser projection split, patch-safe Armory persistence, complete player-skill
+formula-map pass, and source-aware combat-power comparison are also complete.
+The next priorities are complete manual healer and ranged Questlog panels,
+native combat-power aggregation, remaining formula mappings, and Combat
+Simulator Milestone 2.
 
 ## Current source-of-truth hierarchy
 
@@ -36,10 +37,12 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Asset casing | App-only 2,692 references: 2,269 exact and 423 case-insensitive; no missing references | `node --test scripts/tests/asset-case-index.test.mjs` |
 | Discovery evidence | Ascended Ramux and WP_CL evidence packets | `D:\TL_Data\reports\24118850\evidence\` |
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
-| Combat-power parity | Decoded item components analyzed; full aggregation and some item families remain unresolved | `plans/combat-simulator/combat-power-parity.md` |
+| Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
+| Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
+| Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
 | Storage separation | Code in `D:\TL_Helper`; bulk data in `D:\TL_Data` | `docs/storage-and-retention.md` |
 | Browser projections | 1,144-byte manifest plus 5 hashed projections; Armory and Tracker verified live | `web/data/app-data.json` |
-| Update orchestrator | Complete guarded refresh including `combat-power-analysis`, stage gates, and JSON run reports | `node scripts/update-tl-helper.mjs` |
+| Update orchestrator | Complete guarded refresh including `skill-formula-map`, `combat-power-analysis`, stage gates, and JSON run reports | `node scripts/update-tl-helper.mjs` |
 
 ## Verified data snapshot
 
@@ -50,6 +53,9 @@ coverage summary on 2026-07-10:
 - Inventory: 1,387 tables, 680 families, 676,769,295 raw bytes indexed.
 - Formula system: `TLFormulaParameterNew` has 10,656 rows and 26 formula types.
 - Tooltip resolution: 3,602 of 3,777 distinct bases resolve, or 95.4%.
+- Skill formula map: all 210 player skill sets assessed, with 130 exact, 51
+  derived, and 29 unresolved mappings. Its 1,854 edges reference 1,814 unique
+  formula rows; 11 skill-linked placeholder bases remain unresolved.
 - Assets: 15,020 extracted PNGs; 2,455 equipment-subtree PNGs.
 - App references: 2,692 unique paths, all resolved. Of these, 423 require a case-insensitive match.
 - Combined audit set: 2,695 references, all resolved. The extra three are set bonus icons outside `app-data.json`.
@@ -64,7 +70,7 @@ coverage summary on 2026-07-10:
   `questlog-static-v1`, with immutable resolved output and canonical JSON
   round-trip verification.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 25/25, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 39/39, collector tests
   92/92.
 
 ## Combat milestones
@@ -89,6 +95,16 @@ Combat Simulator Milestone 1 is also complete. The Armory and tracker both use
 resolved stats and sources, combat power, rune synergies, validation, ruleset,
 calculator version, and game-data build. Snapshots are deeply immutable,
 versioned, validated, and canonically serializable.
+
+Patch-safe Armory persistence is complete. State and presets use versioned
+documents with game-build provenance, legacy values migrate automatically,
+corrupt values are backed up before recovery, and cross-build saves produce a
+warning. Live browser migration and recovery verification passed.
+
+The complete first-pass player skill-to-formula map is materialized and runs as
+the orchestrator's `skill-formula-map` stage. Coverage and classification rules
+are documented in `docs/skill-formula-mapping.md`. The remaining 29 skill sets
+and 11 skill-linked placeholder bases are retained as explicit unresolved work.
 
 ## Data locations
 
@@ -120,32 +136,33 @@ exit codes, output tails, and safety state beneath
 `D:\TL_Data\reports\<build>\update-runs\`. It resolves the verified SDK at
 `D:\TL_Data\cache\tools\dotnet-sdk\dotnet.exe` automatically. Detailed usage,
 targeted recovery, and safety rules are in `docs/update-orchestrator.md`.
-The guarded sequence includes `combat-power-analysis`, which refreshes the
-decoded-versus-live parity evidence before the application verification stages.
+The guarded sequence includes `skill-formula-map` and `combat-power-analysis`,
+which refresh formula provenance and decoded-versus-live parity evidence before
+the application verification stages.
 
 ## Open technical work
 
-- Materialize the full skill-to-formula mapping for all 210 skill sets.
 - Decode or map `TLAbnormalContentsGroup` for buff exclusivity references.
 - Curate the field-to-table map needed for complete `TLDataHandle` resolution.
 - Parse package-local `ObjectProperty` imports where future non-cosmetic links require them.
-- Resolve the 175 NPC-kit tooltip bases not covered by player formula rows.
+- Resolve the remaining 29 player skill sets and 11 skill-linked placeholder
+  bases in the materialized map.
 - Capture a second game build before claiming patch-history behavior.
 - Complete full manual Questlog expected panels for the healer and ranged
   fixtures. Their current focused smoke panels are passing.
-- Add saved-build schema versions, migrations, and data-build identifiers.
-- Resolve the remaining combat-power aggregation rules and unsupported legacy
-  item families before replacing the fitted live calculation.
+- Implement a native `TLItemCombatPower` consumer and resolve its aggregation
+  rules. Source-aware mapping now covers 1,280 items with 161 unresolved, but
+  the decoded reference subtotal of 7,221 already exceeds the observed 7,128
+  total by 93, so it cannot replace the live calculation yet.
 - Arrange off-machine backup only with explicit user authorization.
 
 ## Recommended refinement order
 
 1. Complete full manual Questlog panels for healer and ranged builds.
-2. Add patch-safe saved-build migration and recovery.
-3. Materialize the complete skill-to-formula mapping.
-4. Resolve the combat-power aggregation pipeline and unsupported item families.
-5. Begin Combat Simulator Milestone 2, the deterministic engine skeleton.
-6. Build the seven-case single-ability Combat Lab after the engine boundary and
+2. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
+3. Resolve the remaining 29 skill mappings and 11 placeholder bases.
+4. Begin Combat Simulator Milestone 2, the deterministic engine skeleton.
+5. Build the seven-case single-ability Combat Lab after the engine boundary and
    calibration labels are ready.
 
 ## Read first next session
@@ -155,8 +172,10 @@ decoded-versus-live parity evidence before the application verification stages.
 3. `docs/data-contract.md`
 4. `docs/storage-and-retention.md`
 5. `docs/update-orchestrator.md`
-6. `web/tl-build-snapshot.js`
-7. `plans/combat-simulator/combat-data-audit.md`
-8. `plans/combat-simulator/unknown-formulas.md`
-9. `plans/combat-simulator/06-implementation-roadmap.md`
-10. `D:\TL_Data\reports\24118850\update-runs\latest.json`
+6. `docs/skill-formula-mapping.md`
+7. `web/tl-build-snapshot.js`
+8. `web/tl-persistence.js`
+9. `plans/combat-simulator/combat-data-audit.md`
+10. `plans/combat-simulator/unknown-formulas.md`
+11. `plans/combat-simulator/06-implementation-roadmap.md`
+12. `D:\TL_Data\reports\24118850\update-runs\latest.json`

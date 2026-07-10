@@ -461,9 +461,10 @@ class Component extends DCLogic {
 
   async loadCharacter() {
     try {
-      const [core, buildSnapshots] = await Promise.all([
+      const [core, buildSnapshots, persistence] = await Promise.all([
         import("./tl-core.js"),
         import("./tl-build-snapshot.js"),
+        import("./tl-persistence.js"),
       ]);
       this.core = core;
       this.buildSnapshots = buildSnapshots;
@@ -472,8 +473,13 @@ class Component extends DCLogic {
       let attributes = this.state.attributes;
       let build = null;
       try {
-        const raw = JSON.parse(localStorage.getItem(this.BUILD_KEY) || "null");
-        if (raw && raw.build && raw.build.equipment) {
+        const saved = persistence.loadArmoryState(localStorage, {
+          key: this.BUILD_KEY,
+          currentGameBuild: core.data?.gameBuild ?? "unversioned",
+        });
+        if (saved.warnings.length) console.warn("TL-Helper tracker build:", ...saved.warnings);
+        const raw = saved.ok ? saved.data : null;
+        if (raw?.build?.equipment) {
           build = raw.build;
           for (const slot of core.EQUIPMENT_SLOTS) build.equipment[slot.id] = { ...core.emptyEquipmentSelection(), ...(build.equipment[slot.id] ?? {}) };
           build.artifacts = build.artifacts ?? {};

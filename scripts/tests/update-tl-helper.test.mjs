@@ -64,6 +64,21 @@ test("combat-power evidence is regenerated before calculator verification", () =
   assert.equal(definition.command.args[1], "--write");
 });
 
+test("skill formula mapping is build scoped and runs after decoded inputs", () => {
+  const stages = selectedStages(parseArgs([]));
+  assert.ok(stages.indexOf("skill-formula-map") > stages.indexOf("decode"));
+  assert.ok(stages.indexOf("skill-formula-map") < stages.indexOf("snapshot-verify"));
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definition = stageDefinitions(context)["skill-formula-map"];
+  assert.match(definition.command.args[0], /build-skill-formula-map\.mjs$/);
+  assert.equal(
+    definition.output,
+    path.join(context.dataRoot, "reports", "999", "skill-formula-map.json"),
+  );
+  assert.equal(definition.validateResult({ stdout: '{"skillSets": 210}' }), null);
+  assert.match(definition.validateResult({ stdout: '{"skillSets": 209}' }), /all 210/);
+});
+
 test("decoder requires a complete semantic success summary", () => {
   const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
   const validate = stageDefinitions(context).decode.validateResult;

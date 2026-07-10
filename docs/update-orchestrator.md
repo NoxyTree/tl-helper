@@ -49,7 +49,7 @@ node scripts\update-tl-helper.mjs --build 24118850 --data-root D:\TL_Data
 Available stages are:
 
 ```text
-collector, decode, warehouse, inventory, web-data, coverage, evidence,
+collector, decode, warehouse, inventory, skill-formula-map, web-data, coverage, evidence,
 combat-power-analysis, snapshot-verify, reference-verify, edge-verify, js-tests,
 collector-tests
 ```

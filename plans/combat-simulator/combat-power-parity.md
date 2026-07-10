@@ -12,6 +12,8 @@ Do not replace the live combat-power calculator yet.
 
 `TLItemCombatPower` is authoritative for item component weights, but it is not the complete combat-power formula. Its 132 rows contain item base power and indexed enchant, trait, unique-trait, resonance, potential, rune, artifact, and perk values. It contains no skill-power rows, mastery-power rows, global starting value, or final aggregation rule.
 
+The source `TLItemEquip` table provides high-confidence structural evidence for most of the earlier row-family gap. Its `affects_category_Level`, `level_select_id`, and exact level bounds select the category-level equipment families whose ranges align with the 101-entry seasonal arrays. This evidence redirects 132 older name-based mappings that pointed at fixed-level rows despite being category-level items. These mappings are still derived, not exact foreign-key links.
+
 The safe next change is to expose the decoded calculation alongside the fitted result for diagnostics. A production replacement needs the missing aggregation pipeline and a validated item-to-row mapping.
 
 ## Reproducible analysis
@@ -31,7 +33,7 @@ node --test scripts/tests/combat-power-table.test.mjs
 node scripts/analyze-combat-power.mjs --write
 ```
 
-The second command writes the detailed evidence to:
+The second command writes schema version 2 of the detailed evidence to:
 
 `D:\TL_Data\reports\24118850\combat-power-parity.json`
 
@@ -63,14 +65,26 @@ It does not capture the complete table:
 
 ## Dataset comparison
 
-Of 1,441 non-support items currently sent to the browser, 1,005 map to a decoded row using conservative ID and category rules. The remaining 436 include older `t3`, `t4`, and `t5` naming families for which the table has no same-name key. They are deliberately unresolved rather than guessed.
+Of 1,441 non-support items currently sent to the browser, 1,280 map conservatively. The evidence split is:
 
-For the 1,005 conservatively mapped items at their maximum available level, comparing bare item power gives:
+| Mapping evidence | Items |
+| --- | ---: |
+| Item-ID tier with an existing row | 630 |
+| `TLItemEquip` `ItemGroup_T3`, levels 21-50 | 365 |
+| `TLItemEquip` `ItemGroup_Nix`, levels 51-80 | 167 |
+| Artifact grade | 84 |
+| Unambiguous source grade C, B, or AAA | 34 |
+
+The two source level selectors line up with the only category-level combat-power rows: the 21-50 region of `*_a_S1` follows the `ItemGroup_T3` bounds, while the non-zero progression of `*_aa_S1` begins at the `ItemGroup_Nix` lower bound of 51. Item-name suffixes are stale on many of these records, so this stronger source metadata now takes precedence.
+
+The remaining 161 items are deliberately unresolved. Eighteen have source grade A and 143 have source grade AA. Those grades have multiple possible fixed-level combat-power rows, and no decoded foreign key selects one. The unresolved set still includes `t3`, `t4`, `t5`, Codex, siege, and Nudge naming families.
+
+For the 1,280 conservatively mapped items at their maximum available level, comparing bare item power gives:
 
 | Measure | Result |
 | --- | ---: |
-| Exact matches | 121 (12.0%) |
-| Mean absolute difference | 111.94 power |
+| Exact matches | 48 (3.8%) |
+| Mean absolute difference | 119.49 power |
 | Maximum absolute difference | 414 power |
 
 This is not a claim that the decoded table is wrong. It shows that the fitted heuristic is not the same model and that several item generations use different progression rules.
@@ -102,23 +116,39 @@ For the same build, the decoded table produces:
 
 | Decoded component | Value |
 | --- | ---: |
-| Items, including traits, resonance, and artifacts | 4,573 |
-| Runes | 1,075 |
-| Decoded item and rune subtotal | 5,648 |
+| Items, including traits, resonance, and artifacts | 5,810 |
+| Runes on mapped slots | 1,411 |
+| Decoded item and rune subtotal | 7,221 |
 
-If that subtotal is naively combined with the existing skill and mastery heuristics, the result is 7,706, which is 578 above the observed total. This deliberately excludes any guessed starting value or perk adjustment. The mismatch proves that a direct table swap is unsafe, not that the decoded component weights are inaccurate.
+The decoded item and rune subtotal alone is 93 above the observed total. If it is naively combined with the existing skill and mastery heuristics, the result is 9,279, which is 2,151 above the observed total. This deliberately excludes any guessed starting value or perk adjustment. The mismatch proves that the component rows are not all combined by simple addition, and that a direct table swap is unsafe.
 
 ## Mapping and units
 
-Decoded values appear to be direct integer combat-power units. No scale factor is indicated in the table. Item row keys are inferred conservatively from item IDs and equipment categories:
+Decoded values appear to be direct integer combat-power units. No scale factor is indicated in the table. Item row keys are inferred conservatively from source metadata, item IDs, and equipment categories:
 
+- `TLItemEquip` category-level selectors and bounds map `ItemGroup_T3` 21-50 gear to `*_a_S1` and `ItemGroup_Nix` 51-80 gear to `*_aa_S1`.
 - Weapons use the `weapon_*` rows.
 - Armor uses slot rows for normal generations and `armor_*_S1` for seasonal gear.
 - Accessories use slot rows for normal generations and `accessory_*_S1` for seasonal gear.
 - Artifacts use grade-specific talistone and gemstone rows.
+- Source grades C, B, and AAA are used only when exactly one non-seasonal row exists for that grade and equipment group.
 - Normal runes use `rune_<grade>_t1`; chaos runes use `rune_all_<grade>_t1`.
 
-No explicit foreign-key field linking `TLItemEquip` or `TLItemStats` to `TLItemCombatPower` has been found. Therefore the mapping is `derived_high_confidence` for the 1,005 matched IDs, not `verified_exact`.
+No explicit foreign-key field linking `TLItemEquip` or `TLItemStats` to `TLItemCombatPower` has been found. Therefore the 1,280 mappings remain `derived_high_confidence`, not `verified_exact`.
+
+## Additional aggregation investigation
+
+Three adjacent tables were decoded cleanly in a focused investigation:
+
+| Table | Rows | Result |
+| --- | ---: | --- |
+| `TLItemLevelSelect` | 5 | Confirms `ItemGroup_T3` covers levels 21-50 and `ItemGroup_Nix` covers 51-80, but contains selection probabilities rather than combat-power weights. |
+| `TLPerkSocket` | 21 | Links equipment socket families to content-cost rows. It contains no combat-power component or aggregation rule. |
+| `TLPerkOption` | 295 | Links perk IDs to unique skill sets and compatible item categories. It contains no combat-power component or aggregation rule. |
+
+Their decoded copies were kept in `D:\TL_Data\cache\combat-power-investigation`; they were not added to the production warehouse. A focused scan of the existing FModel exports found no other asset named for combat power beyond `TLItemCombatPower`. Blueprint exports inspected for character stat display contained stat names but no aggregation constants.
+
+The `perk_a_t1`, `perk_aa_t1`, and `perk_aa_t1_armor` rows therefore remain weights without a proven rule describing when they are included. The perk tables establish linkage, not aggregation.
 
 ## Skill and mastery limits
 
@@ -143,16 +173,17 @@ Not safe now:
 - Replacing `calculateCombatPower()`.
 - Removing the 250 starting value.
 - Replacing skill or mastery power.
-- Assigning the 436 unresolved item families to similar-looking rows.
+- Assigning the 161 unresolved fixed-level item families to similar-looking rows.
 - Treating the reference-build difference as a correction constant.
 
 ## Remaining evidence needed
 
 1. Locate the client aggregation function or another table that supplies skill, mastery, global, and perk components.
-2. Resolve legacy `t3`, `t4`, and `t5` item families through client code or controlled in-game comparisons.
+2. Resolve the 161 source-grade A and AA fixed-level items through client code or controlled in-game comparisons. `TLItemEquip` and `TLItemLevelSelect` now exhaust the explicit table metadata available for these families.
 3. Verify whether perk rows are added for innate passives, slotted skill cores, or both.
 4. Capture several in-game combat-power totals while changing exactly one component at a time.
 5. Validate the row adapter across at least one item from every supported row family before production use.
+6. Extract or inspect the native client module that consumes `TLItemCombatPower`; table and Blueprint exports do not expose the final aggregator. This is the highest-value next extraction target.
 
 Precision labels used here:
 

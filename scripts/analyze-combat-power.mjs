@@ -6,13 +6,14 @@ import * as core from "../web/tl-core.js";
 import { assembleWebDataManifest, WEB_DATA_MANIFEST_SCHEMA } from "../web/tl-data-loader.js";
 import { COMBAT_POWER, COMBAT_POWER_BONUS_20_ITEMS, COMBAT_POWER_BONUS_60_ITEMS } from "../web/tl-questlog-rules.js";
 import {
-  decodedItemPower, decodedRunePower, inferItemCombatPowerRowId, inferRuneCombatPowerRowId,
+  decodedItemPower, decodedRunePower, inferItemCombatPowerMapping, inferRuneCombatPowerRowId,
 } from "./lib/combat-power-table.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataRoot = path.resolve(process.env.TL_DATA_ROOT ?? "D:\\TL_Data");
 const buildId = process.env.TL_GAME_BUILD ?? "24118850";
 const tablePath = path.join(dataRoot, "decoded", buildId, "tables", "TLItemCombatPower.json");
+const itemEquipPath = path.join(dataRoot, "decoded", buildId, "tables", "TLItemEquip.json");
 const outputPath = process.argv.includes("--write")
   ? path.join(dataRoot, "reports", buildId, "combat-power-parity.json") : null;
 
@@ -22,14 +23,16 @@ const appData = appDataSource.schema === WEB_DATA_MANIFEST_SCHEMA
   ? await assembleWebDataManifest(appDataSource, async (descriptor) => JSON.parse(await readFile(path.join(path.dirname(appDataPath), descriptor.file), "utf8")))
   : appDataSource;
 const table = JSON.parse(await readFile(tablePath, "utf8"));
+const itemEquip = JSON.parse(await readFile(itemEquipPath, "utf8"));
 const preset = JSON.parse(await readFile(path.join(repoRoot, "web", "data", "reference-build.json"), "utf8"));
 await core.initCore(appData);
 preset.build.masteries = core.normalizeMasterySelections(preset.build.masteries);
 
 const rowIds = Object.keys(table.rows);
 const relevantItems = appData.items.filter((item) => core.BUILD_SLOTS.some((slot) => slot.types.includes(item.equipmentType)) && !core.SUPPORT_SLOTS.some((slot) => slot.types.includes(item.equipmentType)));
-const mappedItems = relevantItems.map((item) => ({ item, rowId: inferItemCombatPowerRowId(item, rowIds) })).filter((entry) => entry.rowId);
-const unmappedItems = relevantItems.filter((item) => !inferItemCombatPowerRowId(item, rowIds));
+const itemMappings = relevantItems.map((item) => ({ item, ...inferItemCombatPowerMapping(item, rowIds, itemEquip.rows[item.id]) }));
+const mappedItems = itemMappings.filter((entry) => entry.rowId);
+const unmappedItems = itemMappings.filter((entry) => !entry.rowId).map((entry) => entry.item);
 
 function oldBareItemPower(item) {
   if (String(item.equipmentType).startsWith("talistone")) return 60;
@@ -44,11 +47,11 @@ function oldBareItemPower(item) {
   return power;
 }
 
-const itemComparisons = mappedItems.map(({ item, rowId }) => {
+const itemComparisons = mappedItems.map(({ item, rowId, evidence }) => {
   const level = core.getItemLevels(item).at(-1) ?? 0;
   const decoded = decodedItemPower(table.rows[rowId], { level }).total;
   const heuristic = oldBareItemPower(item);
-  return { itemId: item.id, rowId, level, heuristic, decoded, difference: decoded - heuristic };
+  return { itemId: item.id, rowId, mappingEvidence: evidence, level, heuristic, decoded, difference: decoded - heuristic };
 });
 
 function summarizeDifferences(rows) {
@@ -103,7 +106,8 @@ const runeById = new Map(appData.runes.map((rune) => [rune.id, rune]));
 const referenceRows = [];
 for (const [slotId, selection] of [...Object.entries(preset.build.equipment ?? {}), ...Object.entries(preset.build.artifacts ?? {})]) {
   const item = byId.get(selection.itemId);
-  const rowId = inferItemCombatPowerRowId(item, rowIds);
+  const mapping = inferItemCombatPowerMapping(item, rowIds, itemEquip.rows[item?.id]);
+  const rowId = mapping.rowId;
   const row = table.rows[rowId];
   if (!item || !row) continue;
   const itemResult = decodedItemPower(row, selection);
@@ -112,22 +116,31 @@ for (const [slotId, selection] of [...Object.entries(preset.build.equipment ?? {
     const runeRowId = inferRuneCombatPowerRowId(rune);
     return { runeId: selected.runeId, rowId: runeRowId, level: selected.level, power: decodedRunePower(table.rows[runeRowId], selected.level) };
   });
-  referenceRows.push({ slotId, itemId: item.id, rowId, itemPower: itemResult.total, itemComponents: itemResult, runePower: runes.reduce((sum, rune) => sum + Number(rune.power ?? 0), 0), runes });
+  referenceRows.push({ slotId, itemId: item.id, rowId, mappingEvidence: mapping.evidence, itemPower: itemResult.total, itemComponents: itemResult, runePower: runes.reduce((sum, rune) => sum + Number(rune.power ?? 0), 0), runes });
 }
 const decodedReferenceItemSubtotal = referenceRows.reduce((sum, row) => sum + row.itemPower + row.runePower, 0);
+const decodedReferenceItems = referenceRows.reduce((sum, row) => sum + row.itemPower, 0);
+const decodedReferenceRunes = referenceRows.reduce((sum, row) => sum + row.runePower, 0);
 const oldReferenceItemSubtotal = oldReference.items.reduce((sum, row) => sum + row.power, 0);
 
 const result = {
   schema: "tl-helper.combat-power-parity",
-  schemaVersion: 1,
+  schemaVersion: 2,
   gameBuild: buildId,
-  provenance: { tablePath, tableSha256: table.sha256, decoderVersion: table.decoderVersion, appDataGameBuild: appData.gameBuild },
+  provenance: { tablePath, tableSha256: table.sha256, itemEquipPath, itemEquipSha256: itemEquip.sha256, decoderVersion: table.decoderVersion, appDataGameBuild: appData.gameBuild },
   table: {
     rows: rowIds.length,
     categories: Object.fromEntries(Object.entries(Object.groupBy(Object.values(table.rows), (row) => row.Category)).map(([key, values]) => [key, values.length])),
     meaning: "Component lookup weights only; no skill, mastery, global base, or final aggregation fields are present.",
   },
-  itemMapping: { relevantItems: relevantItems.length, mapped: mappedItems.length, unmapped: unmappedItems.length, unmappedExamples: unmappedItems.slice(0, 20).map((item) => item.id) },
+  itemMapping: {
+    relevantItems: relevantItems.length,
+    mapped: mappedItems.length,
+    unmapped: unmappedItems.length,
+    evidence: Object.fromEntries(Object.entries(Object.groupBy(mappedItems, (entry) => entry.evidence)).map(([key, values]) => [key, values.length])),
+    unresolvedSourceGrades: Object.fromEntries(Object.entries(Object.groupBy(unmappedItems, (item) => itemEquip.rows[item.id]?.item_grade ?? "missing-source-record")).map(([key, values]) => [key, values.length])),
+    unmappedExamples: unmappedItems.slice(0, 20).map((item) => item.id),
+  },
   components: tableComponentChecks,
   bareItemComparison: { ...summarizeDifferences(itemComparisons), largestDifferences: itemComparisons.toSorted((a, b) => Math.abs(b.difference) - Math.abs(a.difference)).slice(0, 20) },
   runeComparison: summarizeDifferences(runeComparisons),
@@ -135,6 +148,8 @@ const result = {
     name: preset.name,
     observedTotal: oldReference.total,
     heuristic: { equipmentBase: COMBAT_POWER.equipmentBase, itemSubtotal: oldReferenceItemSubtotal, equipmentPower: oldReference.equipmentPower, skillPower: oldReference.skillPower, masteryPower: oldReference.masteryPower },
+    decodedItemSubtotal: decodedReferenceItems,
+    decodedRuneSubtotal: decodedReferenceRunes,
     decodedItemAndRuneSubtotal: decodedReferenceItemSubtotal,
     decodedMappedSlots: referenceRows.length,
     rows: referenceRows,

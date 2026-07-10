@@ -15,7 +15,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 const DEFAULT_CONFIG = path.join(REPO_ROOT, "src", "TlCollector", "config.local.json");
 
 export const STAGE_ORDER = [
-  "collector", "decode", "warehouse", "inventory", "web-data", "coverage",
+  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "coverage",
   "evidence", "combat-power-analysis", "snapshot-verify", "reference-verify", "edge-verify", "js-tests",
   "collector-tests",
 ];
@@ -24,6 +24,7 @@ const STAGE_ALIASES = new Map([
   ["collect", "collector"], ["test-js", "js-tests"], ["test-collector", "collector-tests"],
   ["web", "web-data"], ["verify-snapshot", "snapshot-verify"],
   ["power", "combat-power-analysis"],
+  ["formulas", "skill-formula-map"],
   ["verify-reference", "reference-verify"], ["verify-edges", "edge-verify"],
 ]);
 
@@ -129,6 +130,19 @@ export function stageDefinitions(context) {
       command: command(node, [script("build-table-inventory.mjs")]),
       required: [path.join(context.dataRoot, "decoded", context.build, "tables")],
       output: path.join(context.dataRoot, "reports", context.build, "table-inventory.json"),
+    },
+    "skill-formula-map": {
+      command: command(node, [script("build-skill-formula-map.mjs")]),
+      required: [
+        path.join(context.dataRoot, "decoded", context.build, "tables", "TLFormulaParameterNew.json"),
+        path.join(context.extractRoot, "localization", "csv", "en.csv"),
+        path.join(REPO_ROOT, "out", "questlog-public", "skillBuilder.getSkillSets.json"),
+      ],
+      output: path.join(context.dataRoot, "reports", context.build, "skill-formula-map.json"),
+      validateResult: (result) => {
+        const match = result.stdout?.match(/"skillSets":\s*(\d+)/);
+        return match?.[1] === "210" ? null : "Skill-formula mapper did not report all 210 player skill sets";
+      },
     },
     coverage: {
       command: command(node, [script("audit-questlog-coverage.mjs")]),

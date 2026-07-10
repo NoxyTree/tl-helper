@@ -83,8 +83,9 @@ http://127.0.0.1:8790/index.html?preset=questlog-the-death-prophet-and-void
 ## Refresh and validate the current build
 
 The update orchestrator runs collection, decoding, warehouse and report builds,
-web-data generation, and every verification gate in dependency order. It stops
-at the first failure and writes a machine-readable run report.
+the build-scoped skill-to-formula map, web-data generation, and every
+verification gate in dependency order. It stops at the first failure and writes
+a machine-readable run report.
 
 ```powershell
 cd D:\TL_Helper
@@ -117,6 +118,15 @@ locations, preflight checks, and safety boundaries.
   serialization.
 - Both the Armory and tracker now calculate through the same BuildSnapshot
   adapter used by automated verification.
+- Armory state and presets now use versioned, patch-safe persistence. Existing
+  unversioned saves migrate automatically, corrupt records recover safely, and
+  saves from a different game build produce a visible warning. Live browser
+  migration and recovery have been verified.
+- The build-scoped skill-to-formula map covers all 210 player skill sets: 130
+  map through exact tooltip evidence, 51 through the verified naming transform,
+  and 29 remain unresolved. Its 1,854 edges reference 1,814 unique formula rows,
+  with 11 skill-linked placeholder bases still unresolved. See
+  `docs/skill-formula-mapping.md`.
 - `web/data/app-data.json` is now a 1,144-byte manifest for five hashed
   projections: equipment, runes, progression, skills, and labels. Each
   projection retains the web-data schema and game-build provenance. The split
@@ -126,12 +136,13 @@ locations, preflight checks, and safety boundaries.
 - Live browser verification passed for both the Armory and Tracker against the
   projected data.
 - The latest verification gate passed BuildSnapshot checks, 69/69 assertions
-  across three fixtures, all 12 edge checks, 25 JavaScript tests, and 92
+  across three fixtures, all 12 edge checks, 39 JavaScript tests, and 92
   collector tests.
-- Combat-power parity analysis confirms that `TLItemCombatPower` contains exact
-  item component weights but not the full aggregation pipeline. The live
-  calculator remains unchanged until unresolved item families and aggregation
-  rules are proven. See
+- Combat-power parity analysis now maps 1,280 items using source-aware evidence,
+  with 161 unresolved. The decoded reference subtotal is 7,221, already 93
+  points above the observed 7,128 total, proving that the remaining aggregation
+  pipeline cannot be replaced by a simple sum. The live calculator remains
+  unchanged until those rules are proven. See
   `plans/combat-simulator/combat-power-parity.md`.
 
 See `STATUS.md` for the current snapshot, open issues, verified commands, and
@@ -143,7 +154,9 @@ recommended next work.
 - Armory presets: `localStorage["tlhelper-builder-presets-v1"]`
 - Tracker: `localStorage["tl-tracker-state-v1"]`
 
-Saved-build versioning and patch-safe migration are planned refinements.
+Armory state and presets are wrapped in versioned documents that preserve the
+game-build identifier. Legacy values migrate in place, corrupt values are
+backed up before recovery, and build mismatches are surfaced to the user.
 
 ## Key references
 
@@ -151,6 +164,7 @@ Saved-build versioning and patch-safe migration are planned refinements.
 - `docs/data-contract.md`: warehouse contract
 - `docs/storage-and-retention.md`: data-root and retention rules
 - `docs/update-orchestrator.md`: one-command refresh, validation, and reports
+- `docs/skill-formula-mapping.md`: complete player skill-to-formula coverage and unresolved evidence
 - `FIX-PLAN.md`: completed application audit plus remaining fixture work
 - `plans/combat-simulator/combat-data-audit.md`: decoded combat-data findings
 - `plans/combat-simulator/combat-power-parity.md`: decoded component parity and replacement limits
