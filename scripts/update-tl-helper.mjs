@@ -15,7 +15,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 const DEFAULT_CONFIG = path.join(REPO_ROOT, "src", "TlCollector", "config.local.json");
 
 export const STAGE_ORDER = [
-  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "coverage",
+  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "stat-sources", "coverage",
   "evidence", "combat-power-analysis", "snapshot-verify", "reference-verify", "edge-verify", "js-tests",
   "collector-tests",
 ];
@@ -25,6 +25,7 @@ const STAGE_ALIASES = new Map([
   ["web", "web-data"], ["verify-snapshot", "snapshot-verify"],
   ["power", "combat-power-analysis"],
   ["formulas", "skill-formula-map"],
+  ["stats", "stat-sources"],
   ["verify-reference", "reference-verify"], ["verify-edges", "edge-verify"],
 ]);
 
@@ -143,6 +144,15 @@ export function stageDefinitions(context) {
         const match = result.stdout?.match(/"skillSets":\s*(\d+)/);
         return match?.[1] === "210" ? null : "Skill-formula mapper did not report all 210 player skill sets";
       },
+    },
+    "stat-sources": {
+      command: command(node, [script("build-stat-sources.mjs")]),
+      required: [
+        path.join(context.dataRoot, "warehouse", `tl-${context.build}.sqlite`),
+        path.join(REPO_ROOT, "web", "data", "projections", "equipment.json"),
+        path.join(REPO_ROOT, "web", "data", "projections", "progression.json"),
+      ],
+      output: path.join(context.dataRoot, "reports", context.build, "stat-sources", "heavy-attack.json"),
     },
     coverage: {
       command: command(node, [script("audit-questlog-coverage.mjs")]),

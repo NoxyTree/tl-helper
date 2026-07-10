@@ -82,6 +82,23 @@ One record per (source table, row). Entity-level merging (e.g. one "item" unitin
 
 Full-text over `record_id, row_id, name_loc` for discovery queries.
 
+### `stat_sources` (derived index)
+
+`scripts/build-stat-sources.mjs` materializes one row per named stat value and
+level or rank after the warehouse and browser projections are rebuilt. It is a
+derived, build-scoped query index rather than a replacement for `records`.
+
+Each row preserves the canonical and raw stat IDs, player-facing label,
+source type/ID/name/component, raw and display values, unit, level/rank, attack
+scope, structured context and conditions, source table/path, game build,
+confidence, and evidence. Fixed item curves, selectable traits, randomized
+resonance, unique traits, and mastery ranks remain distinguishable.
+
+All currently indexed Heavy Attack Chance sources can be queried with
+`scripts/queries/heavy-attack-sources.sql`. Current coverage is intentionally
+conservative. See `docs/stat-source-coverage-audit.md` for source categories
+that are not yet materialized.
+
 ## Rules
 
 1. Never present raw absence from Questlog as "upcoming content" — `questlog_present=0` is a coverage fact only.

@@ -31,6 +31,7 @@ remain explicitly marked instead of being guessed.
 | Collector | Read-only, build-scoped collection from installed game archives | `src/TlCollector/` |
 | Decoder | Converts `TLJsonDataTable` packages into structured rows | `scripts/decode-tljson-table.mjs` |
 | Warehouse | Normalized records, provenance, references, assets, and FTS5 search | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
+| Stat-source index | Player-facing stat taxonomy and named equipment/mastery sources | `stat_sources` in the warehouse |
 | Validation | Reference builds, browser checks, edge cases, asset casing, coverage, and inventories | `scripts/`, `out/coverage-audit/` |
 | Content intelligence | Evidence-based discovery and future patch comparison | `plans/upcoming-content-radar/` |
 | Combat data | Decoded formulas, coverage audit, unknowns, and validation cases | `plans/combat-simulator/` |
@@ -83,7 +84,7 @@ http://127.0.0.1:8790/index.html?preset=questlog-the-death-prophet-and-void
 ## Refresh and validate the current build
 
 The update orchestrator runs collection, decoding, warehouse and report builds,
-the build-scoped skill-to-formula map, web-data generation, and every
+the build-scoped skill-to-formula map, web-data generation, stat-source indexing, and every
 verification gate in dependency order. It stops at the first failure and writes
 a machine-readable run report.
 
@@ -135,6 +136,13 @@ locations, preflight checks, and safety boundaries.
   five projections.
 - Live browser verification passed for both the Armory and Tracker against the
   projected data.
+- The build-scoped `stat_sources` index contains 183,676 level/rank rows across
+  2,070 named equipment and mastery sources. It normalizes 169 raw stat IDs to
+  106 canonical metrics while retaining values, units, scope, conditions,
+  provenance, and confidence. Heavy Attack Chance currently resolves to 5,061
+  rows across 430 named sources. Optional traits and resonance are explicitly
+  separated from inherent stats. See `docs/stat-taxonomy.md` and
+  `docs/stat-source-coverage-audit.md`.
 - The latest verification gate passed BuildSnapshot checks, 69/69 assertions
   across three fixtures, all 12 edge checks, 39 JavaScript tests, and 92
   collector tests.
@@ -165,6 +173,8 @@ backed up before recovery, and build mismatches are surfaced to the user.
 - `docs/storage-and-retention.md`: data-root and retention rules
 - `docs/update-orchestrator.md`: one-command refresh, validation, and reports
 - `docs/skill-formula-mapping.md`: complete player skill-to-formula coverage and unresolved evidence
+- `docs/stat-taxonomy.md`: internal IDs to player-facing stat semantics
+- `docs/stat-source-coverage-audit.md`: current source coverage, exclusions, and missing joins
 - `FIX-PLAN.md`: completed application audit plus remaining fixture work
 - `plans/combat-simulator/combat-data-audit.md`: decoded combat-data findings
 - `plans/combat-simulator/combat-power-parity.md`: decoded component parity and replacement limits

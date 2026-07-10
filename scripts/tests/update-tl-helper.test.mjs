@@ -79,6 +79,27 @@ test("skill formula mapping is build scoped and runs after decoded inputs", () =
   assert.match(definition.validateResult({ stdout: '{"skillSets": 209}' }), /all 210/);
 });
 
+test("stat sources are rebuilt from projections before evidence and verification", () => {
+  const stages = selectedStages(parseArgs([]));
+  assert.ok(stages.indexOf("stat-sources") > stages.indexOf("web-data"));
+  assert.ok(stages.indexOf("stat-sources") < stages.indexOf("evidence"));
+  assert.ok(stages.indexOf("stat-sources") < stages.indexOf("snapshot-verify"));
+
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definition = stageDefinitions(context)["stat-sources"];
+  assert.match(definition.command.args[0], /build-stat-sources\.mjs$/);
+  assert.deepEqual(definition.required, [
+    path.join(context.dataRoot, "warehouse", "tl-999.sqlite"),
+    path.join(path.resolve("."), "web", "data", "projections", "equipment.json"),
+    path.join(path.resolve("."), "web", "data", "projections", "progression.json"),
+  ]);
+  assert.equal(
+    definition.output,
+    path.join(context.dataRoot, "reports", "999", "stat-sources", "heavy-attack.json"),
+  );
+  assert.deepEqual(parseArgs(["--only", "stats"]).only, ["stat-sources"]);
+});
+
 test("decoder requires a complete semantic success summary", () => {
   const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
   const validate = stageDefinitions(context).decode.validateResult;
