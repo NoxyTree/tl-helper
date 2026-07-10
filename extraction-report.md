@@ -153,4 +153,4 @@ Avoid anything involving archive key extraction, process inspection, packet capt
 
 Current rule and scoring assumptions are documented in `tracker-rules.md`.
 
-The web tracker now separates the local `Estimated Stat Score` from official combat power. Combat power remains marked as unavailable until the relevant item, enchant, rune, trait, resonance, skill, and weapon specialization power tables are added to the data pipeline.
+The web tracker separates the local `Estimated Stat Score` from official combat power. The Armory shows a fitted combat-power heuristic (hardcoded tables + item bonus allowlists in `web/tl-questlog-rules.js`, tuned to match the reference build) labeled "Combat Power (est.)" — it is an estimate, not extracted game power tables.

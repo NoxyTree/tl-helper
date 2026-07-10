@@ -1327,6 +1327,32 @@ export function reconcileMasterySelections(weapon, build) {
   return removed;
 }
 
+// ---------- unified mastery ----------
+// WM_Common_SKILL_* nodes are shared across weapons. The cap of 4 active
+// nodes is assumed from imported reference builds (not extracted data).
+
+export const UNIFIED_MASTERY_CAP = 4;
+
+export function unifiedMasteryNodes() {
+  return (data?.masteries ?? []).filter((mastery) => mastery.specializationType === "unified");
+}
+
+export function selectedUnifiedMasteries(build) {
+  const ids = Array.isArray(build.unifiedMasteries) ? build.unifiedMasteries : Object.values(build.unifiedMasteries ?? {});
+  return ids.filter(Boolean);
+}
+
+export function toggleUnifiedMastery(build, masteryId) {
+  const ids = selectedUnifiedMasteries(build);
+  build.unifiedMasteries = ids.includes(masteryId) ? ids.filter((id) => id !== masteryId) : [...ids, masteryId];
+}
+
+// Whether a unified node has a stat rule (only "Potential" does; the rest are
+// conditional combat passives that Questlog's calculation also excludes).
+export function unifiedMasteryCounted(masteryId) {
+  return Boolean(UNIFIED_MASTERY_RULES[masteryId]);
+}
+
 export function masteryCostSummary(build) {
   const totals = new Map();
   for (const id of Object.keys(build.masteries ?? {})) {
@@ -1584,7 +1610,10 @@ function applyQuestlogPhase(phase, build, selections, totalsObject, add) {
     if (itemRule?.phase === phase) for (const row of itemRule.effect(totalsObject())) add(row.statId, row.value, item.passives.name, slotId, item.grade, item.passives.imageUrl);
     const perk = values(item?.availablePerks).find((entry) => entry.id === (selection?.perkId ?? selection?.perk));
     const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
-    if (perkRule?.phase === phase) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
+    // Guard: a rule id present in both tables (SkillSet_Unique_Accessory_Skill_01)
+    // must not fire twice for the same item via innate passive AND slotted perk.
+    const alreadyAppliedAsItemPassive = itemRule && perk?.passive?.id === item?.passives?.id;
+    if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
   }
   for (const { set, count } of activeSetCounts(selections)) {
     for (const [required, rule] of Object.entries(SET_PASSIVE_RULES[set.id] ?? {})) {
@@ -1627,6 +1656,10 @@ function addDerivedTotal(id, total, totals, sourceMap) {
   sourceMap.set(id, [{ sourceLabel: "Calculated total", name: "Calculated total", value: total, type: "derived" }]);
 }
 
+// Combat power is a fitted heuristic (hardcoded tables + per-item bonus
+// allowlists in tl-questlog-rules.js), matched against the reference builds —
+// it is NOT extracted from real game power tables. Always present it as an
+// estimate in the UI.
 export function calculateCombatPower(build) {
   const breakdown = combatPowerBreakdown(build);
   return breakdown.total;
@@ -1645,7 +1678,9 @@ export function combatPowerBreakdown(build) {
   const masteryLevels = Object.values(build.masteries ?? {}).reduce((total, row) => total + Number(row.level || 0), 0);
   const masteryThresholdPower = COMBAT_POWER.masteryThresholds.filter((threshold) => masteryLevels >= threshold).length * COMBAT_POWER.masteryThresholdBonus;
   const masteryPower = masteryLevels * COMBAT_POWER.masteryPerLevel + masteryThresholdPower;
-  return { total: Math.round(equipmentPower + skillPower + masteryPower), equipmentPower, skillPower, masteryPower, masteryLevels, items };
+  // All components are integer-valued (itemCombatPower floors its fractional
+  // terms), so flooring here is a no-op kept for consistency with that path.
+  return { total: Math.floor(equipmentPower + skillPower + masteryPower), equipmentPower, skillPower, masteryPower, masteryLevels, items };
 }
 
 function itemCombatPower(item, selection, slotId) {
@@ -1826,7 +1861,82 @@ export function validateBuild(runeSynergies, build) {
     dataBacked.push({ severity: "warning", message: `Skill specialization budget is over the assumed budget: ${specSpent}/${SPEC_BUDGET}.` });
   }
 
-  return { dataBacked, assumed, issues: [...dataBacked, ...assumed] };
+  const unmapped = unmappedRuleIssues(build);
+  const issues = [...dataBacked, ...assumed, ...unmapped];
+  const severityRank = { error: 0, warning: 1, info: 2 };
+  issues.sort((a, b) => (severityRank[a.severity] ?? 3) - (severityRank[b.severity] ?? 3));
+  return { dataBacked, assumed, unmapped, issues };
+}
+
+// Rule tables are allowlists: any selected passive/set/perk/mastery effect
+// without an entry silently contributes nothing to the totals. These were
+// transcribed from Questlog's client, which applies the same allowlists, so
+// an unmapped effect usually matches Questlog — but it must be visible, not
+// silent. Grouped into one message per category to keep the panel compact.
+function unmappedRuleIssues(build) {
+  const info = (message) => ({ severity: "info", message });
+  const issues = [];
+  const grouped = (label, names) => {
+    if (names.length) issues.push(info(`${names.length === 1 ? names[0] : `${names.length} ${label}`} selected but ${names.length === 1 ? "has" : "have"} no calculation rule — totals exclude ${names.length === 1 ? "it" : `them: ${names.join(", ")}`}. (Questlog's client applies no rule for these either.)`));
+  };
+
+  const selections = [
+    ...Object.entries(build.equipment ?? {}),
+    ...Object.entries(build.artifacts ?? {}),
+    ...Object.entries(build.supportSlots ?? {}),
+  ].map(([slotId, selection]) => ({ slotId, selection, item: indexes.itemById[selection?.itemId] }));
+
+  const itemPassives = [];
+  const perkPassives = [];
+  for (const { selection, item } of selections) {
+    if (!item) continue;
+    if (item.passives?.id && !ITEM_PASSIVE_RULES[item.passives.id]) {
+      itemPassives.push(`${item.passives.name ?? item.passives.id} (${item.name})`);
+    }
+    const perk = values(item.availablePerks).find((entry) => entry.id === selection?.perkId);
+    if (perk && !PERK_PASSIVE_RULES[perk.passive?.id]) {
+      perkPassives.push(`${perk.passive?.name ?? perk.name ?? perk.id} (${item.name})`);
+    }
+  }
+  grouped("item passives", [...new Set(itemPassives)]);
+  grouped("skill cores", [...new Set(perkPassives)]);
+
+  const setPassives = [];
+  const counts = new Map();
+  for (const { item } of selections) if (item?.setId) counts.set(item.setId, (counts.get(item.setId) ?? 0) + 1);
+  for (const [setId, count] of counts) {
+    const set = indexes.itemSetById[setId];
+    for (const bonus of values(set?.itemSetBonus)) {
+      const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
+      if (!required || count < required) continue;
+      const hasPassive = values(bonus.bonus_passive ?? bonus.bonusPassive).length > 0;
+      if (hasPassive && !SET_PASSIVE_RULES[set.id]?.[required]) setPassives.push(`${set.name} (${required} pc)`);
+    }
+  }
+  grouped("set passives", setPassives);
+
+  const passiveSkills = [];
+  for (const { skill, loadoutType } of selectedSkillRows(build)) {
+    if (loadoutType === "passive" && !PASSIVE_SKILL_RULES[skill.id]) passiveSkills.push(skill.name);
+  }
+  grouped("passive skills", passiveSkills);
+
+  const synergyNodes = [];
+  for (const [masteryId, selected] of Object.entries(build.masteries ?? {})) {
+    const mastery = data.masteries.find((entry) => entry.id === masteryId);
+    if (!mastery || MASTERY_SYNERGY_RULES[masteryId]) continue;
+    const stats = values(mastery.stats?.[Math.max(0, Number(selected.level || 1) - 1)]);
+    if (!stats.length) synergyNodes.push(mastery.name);
+  }
+  grouped("mastery nodes", synergyNodes);
+
+  const unifiedIds = Array.isArray(build.unifiedMasteries) ? build.unifiedMasteries : Object.values(build.unifiedMasteries ?? {});
+  const unifiedNodes = unifiedIds
+    .filter((id) => id && !UNIFIED_MASTERY_RULES[id])
+    .map((id) => data.masteries.find((entry) => entry.id === id)?.name ?? id);
+  grouped("unified mastery nodes", unifiedNodes);
+
+  return issues;
 }
 
 // ---------- stat pages ----------

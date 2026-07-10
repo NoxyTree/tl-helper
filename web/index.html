@@ -858,6 +858,31 @@
                 </sc-if>
               </aside>
             </div>
+
+            <div style="margin-top: 20px; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 10px; background: rgba(14, 11, 7, 0.5); padding: 16px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                <div>
+                  <h3 style="margin: 0; font-family: Marcellus, serif; font-size: 16px; font-weight: 400; color: #f3e9d4;">Unified Mastery</h3>
+                  <div style="font-size: 11px; color: #8a795f; margin-top: 2px;">Shared across weapons. Only Potential affects totals — the rest are conditional combat passives Questlog also excludes.</div>
+                </div>
+                <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">{{ unifiedSelectedLabel }}</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 8px;">
+                <sc-for list="{{ unifiedMasteryRows }}" as="node" hint-placeholder-count="8">
+                  <button type="button" onClick="{{ node.onToggle }}" title="{{ node.desc }}"
+                    style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 9px 11px; border-radius: 9px; cursor: {{ node.cursor }}; border: 1px solid {{ node.border }}; background: {{ node.bg }}; opacity: {{ node.opacity }};"
+                    style-hover="border-color: rgba(232, 184, 106, 0.6);">
+                    <sc-if value="{{ node.hasIcon }}" hint-placeholder-val="{{ false }}">
+                      <span style="flex: none; width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(212, 166, 94, 0.3); background: url({{ node.icon }}) center/cover #171209;"></span>
+                    </sc-if>
+                    <span style="min-width: 0;">
+                      <b style="display: block; font-style: normal; font-size: 12px; color: {{ node.nameColor }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ node.name }}</b>
+                      <span style="display: block; margin-top: 2px; font-size: 10px; color: #8a795f;">{{ node.meta }}</span>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
           </div></sc-if>
         <sc-if value="{{ tabRunes }}" hint-placeholder-val="{{ false }}"><div style="animation: tlFadeUp 0.3s ease;">
             <div style="position:relative;overflow:hidden;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:16px;padding:15px 17px;border:1px solid rgba(114,169,255,.3);border-radius:12px;background:linear-gradient(120deg,rgba(114,169,255,.11),rgba(207,157,255,.05),rgba(14,11,7,.58));">
@@ -1537,6 +1562,7 @@ class Component extends DCLogic {
       }
       build.skills = this.core.normalizeSkillSelections(build.skills);
       build.masteries = this.core.normalizeMasterySelections(build.masteries);
+      build.unifiedMasteries = this.core.selectedUnifiedMasteries(build);
       return normalized;
     } catch {
       return null;
@@ -2109,7 +2135,7 @@ class Component extends DCLogic {
 
     // hero chips
     const heroChips = [
-      { label: "Combat Power", value: core.formatNumber(core.calculateCombatPower(build)), color: "#f6d391" },
+      { label: "Combat Power (est.)", value: core.formatNumber(core.calculateCombatPower(build)), color: "#f6d391" },
       { label: "Max Health", value: fmt("hp_max"), color: "#f6d391" },
       { label: "Base Damage", value: `${fmt("attack_power_main_hand_min")} ~ ${fmt("attack_power_main_hand_max")}`, color: "#f3e9d4" },
       { label: "Melee Defense", value: fmt("melee_armor"), color: "#f3e9d4" },
@@ -2259,9 +2285,9 @@ class Component extends DCLogic {
     });
 
     const issues = calc.validation?.issues ?? [];
-    const issueRows = issues.slice(0, 5).map((issue) => ({
+    const issueRows = issues.slice(0, 6).map((issue) => ({
       severity: issue.severity || "warning",
-      color: issue.severity === "error" ? "#e56a6a" : "#e5a06a",
+      color: issue.severity === "error" ? "#e56a6a" : issue.severity === "info" ? "#8fb7e0" : "#e5a06a",
       message: issue.message,
     }));
 
@@ -2932,6 +2958,38 @@ class Component extends DCLogic {
       masteryBudgetPct: budgetPct,
       masteryError: this.state.masteryError || "",
       hasMasteryError: Boolean(this.state.masteryError),
+      ...this.unifiedMasteryVals(build),
+    };
+  }
+
+  unifiedMasteryVals(build) {
+    const core = this.core;
+    const selectedIds = core.selectedUnifiedMasteries(build);
+    const rows = core.unifiedMasteryNodes().map((node) => {
+      const selected = selectedIds.includes(node.id);
+      const capped = !selected && selectedIds.length >= core.UNIFIED_MASTERY_CAP;
+      const counted = core.unifiedMasteryCounted(node.id);
+      return {
+        id: node.id,
+        name: node.name,
+        nameColor: selected ? "#f6d391" : "#c4ae89",
+        icon: node.imageUrl ?? "",
+        hasIcon: Boolean(node.imageUrl),
+        desc: core.plainInline(core.values(node.passives)[0] ?? node.description ?? ""),
+        meta: counted ? "Counted in totals" : "No stat effect (Questlog parity)",
+        border: selected ? "rgba(232, 184, 106, 0.65)" : "rgba(212, 166, 94, 0.16)",
+        bg: selected ? "rgba(212, 166, 94, 0.12)" : "rgba(10, 8, 5, 0.45)",
+        opacity: capped ? "0.45" : "1",
+        cursor: capped ? "not-allowed" : "pointer",
+        onToggle: () => {
+          if (capped) return;
+          this.mutate((next) => core.toggleUnifiedMastery(next, node.id));
+        },
+      };
+    });
+    return {
+      unifiedMasteryRows: rows,
+      unifiedSelectedLabel: `${selectedIds.length}/${core.UNIFIED_MASTERY_CAP} active (assumed cap)`,
     };
   }
 
