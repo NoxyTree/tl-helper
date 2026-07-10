@@ -1,54 +1,25 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+// Regression test for calculator/Questlog parity.
+//
+// Hermetic by default: loads every fixture in scripts/reference-builds/,
+// reads its committed preset file (build + attributes), runs calculateBuild
+// offline, and asserts the fixture's hand-transcribed expected totals (the
+// numbers come from Questlog's rendered stats panel — they are not available
+// from the API, so they must be transcribed when a fixture is added).
+//
+// TL_VERIFY_LIVE=1 refetches each fixture's build from questlog.gg tRPC and
+// rewrites the preset file before verifying, so drifted gear/skill data is
+// refreshed. Expected tables are never touched by live mode.
+//
+// TL_VERIFY_DETAILS=stat_a,stat_b prints per-source rows for those stats.
+
+import { readFile, readdir, writeFile } from "node:fs/promises";
+import { resolve, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import process from "node:process";
 import * as core from "../web/tl-core.js";
 
-const CHARACTER_SLUG = "TheDeathProphetAndVoid";
-const OWNER_SLUG = "crUTrs8OEZrE";
-const EXPECTED = {
-  str: 80,
-  dex: 14,
-  int: 71,
-  per: 108,
-  con: 103,
-  hp_max: 37673.108,
-  hp_regen: 367000,
-  cost_max: 10699,
-  cost_regen: 757000,
-  bonus_attack_power_main_hand: 399,
-  attack_power_main_hand: 640,
-  attack_range_main_hand: 401.1,
-  attack_speed_main_hand: 468.6289697908598,
-  shield_block_chance: 5280,
-  shield_block_chance_penetration: 2100,
-  attack_speed_modifier: 2910,
-  melee_accuracy: 33390,
-  range_accuracy: 27130,
-  magic_accuracy: 27130,
-  melee_armor: 4159,
-  range_armor: 4174,
-  magic_armor: 3850,
-  melee_evasion: 680,
-  range_evasion: 680,
-  magic_evasion: 680,
-  melee_critical_defense: 30530,
-  range_critical_defense: 26730,
-  magic_critical_defense: 27810,
-  melee_double_defense: 18170,
-  range_double_defense: 18170,
-  magic_double_defense: 25790,
-  critical_damage_taken_modifier: 3750,
-  double_damage_taken_modifier: 920,
-  skill_power_amplification: 1190,
-  skill_power_resistance: 8610,
-  skill_cooldown_modifier: 8720,
-  move_speed_modifier: 2090,
-  buff_given_duration_modifier: 10990,
-  debuff_taken_duration_modifier: -1310,
-  weaken_accuracy: 85640,
-  collide_amplification: 70840,
-  collide_resistance: 85310,
-};
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const fixturesDir = join(repoRoot, "scripts", "reference-builds");
 
 async function trpc(path, input) {
   const query = input === undefined ? "" : `?input=${encodeURIComponent(JSON.stringify(input))}`;
@@ -59,51 +30,70 @@ async function trpc(path, input) {
   return (await response.json()).result.data;
 }
 
-const appData = JSON.parse(await readFile(new URL("../web/data/app-data.json", import.meta.url), "utf8"));
-await core.initCore(appData);
-const characterData = await trpc("characterBuilder.getCharacter", { slug: CHARACTER_SLUG });
-const sourceBuild = characterData.builds[0];
-const [skillData, masteryData] = await Promise.all([
-  trpc("skillBuilder.getSkillBuildsBySlug", { slug: OWNER_SLUG }),
-  trpc("weaponSpecialization.getWeaponSpecializationBySlug", { slug: OWNER_SLUG }),
-]);
-const imported = core.importQuestlogBuild({
-  characterData,
-  build: sourceBuild,
-  skillBuild: skillData.builds.find((row) => row.id === sourceBuild.skillBuildId),
-  masteryBuild: masteryData.builds.find((row) => row.id === sourceBuild.weaponSpecializationBuildId),
-});
-const calculation = core.calculateBuild(imported.build, imported.attributes);
-if (process.env.TL_REFERENCE_OUTPUT) {
-  const output = resolve(process.env.TL_REFERENCE_OUTPUT);
-  await writeFile(output, `${JSON.stringify({
-    id: "questlog-the-death-prophet-and-void",
-    name: "The Death Prophet and Void",
-    source: `https://questlog.gg/throne-and-liberty/en/character-builder/${CHARACTER_SLUG}`,
+async function refreshFixtureFromLive(fixture) {
+  const characterData = await trpc("characterBuilder.getCharacter", { slug: fixture.characterSlug });
+  const sourceBuild = characterData.builds[Number(fixture.buildIndex ?? 0)];
+  const [skillData, masteryData] = await Promise.all([
+    trpc("skillBuilder.getSkillBuildsBySlug", { slug: fixture.ownerSlug }),
+    trpc("weaponSpecialization.getWeaponSpecializationBySlug", { slug: fixture.ownerSlug }),
+  ]);
+  const imported = core.importQuestlogBuild({
+    characterData,
+    build: sourceBuild,
+    skillBuild: skillData.builds.find((row) => row.id === sourceBuild.skillBuildId),
+    masteryBuild: masteryData.builds.find((row) => row.id === sourceBuild.weaponSpecializationBuildId),
+  });
+  const presetPath = join(repoRoot, fixture.presetPath);
+  await writeFile(presetPath, `${JSON.stringify({
+    id: fixture.id,
+    name: fixture.presetName ?? characterData.character.name,
+    source: `https://questlog.gg/throne-and-liberty/en/character-builder/${fixture.characterSlug}`,
     profile: imported.profile,
     attributes: imported.attributes,
     build: imported.build,
   }, null, 2)}\n`, "utf8");
-  console.log(`Wrote reference preset: ${output}`);
+  console.log(`Refreshed preset from live: ${fixture.presetPath}`);
 }
-const actual = Object.fromEntries(calculation.stats.map((row) => [row.id, row.total]));
-actual.combat_power = core.calculateCombatPower(imported.build);
-EXPECTED.combat_power = 7128;
-const rows = Object.entries(EXPECTED).map(([statId, expected]) => {
-  const value = Number(actual[statId] ?? 0);
-  const difference = value - expected;
-  return { statId, expected, actual: value, difference, pass: Math.abs(difference) < 0.0001 };
-});
-console.table(rows);
-const failed = rows.filter((row) => !row.pass);
-console.log(`Reference: ${characterData.character.name} / ${sourceBuild.name}`);
-console.log(`Matched ${rows.length - failed.length}/${rows.length} asserted raw totals.`);
-if (process.env.TL_VERIFY_DETAILS) {
-  for (const statId of process.env.TL_VERIFY_DETAILS.split(",")) {
-    const row = calculation.stats.find((entry) => entry.id === statId);
-    console.log(`\n${statId}: ${row?.total ?? 0}`);
-    console.table(row?.sources ?? []);
+
+const appData = JSON.parse(await readFile(join(repoRoot, "web", "data", "app-data.json"), "utf8"));
+await core.initCore(appData);
+
+const fixtureFiles = (await readdir(fixturesDir)).filter((name) => name.endsWith(".json")).sort();
+if (!fixtureFiles.length) {
+  console.error(`No fixtures found in ${fixturesDir}`);
+  process.exit(1);
+}
+
+let totalRows = 0;
+let totalFailed = 0;
+for (const fileName of fixtureFiles) {
+  const fixture = JSON.parse(await readFile(join(fixturesDir, fileName), "utf8"));
+  if (process.env.TL_VERIFY_LIVE) await refreshFixtureFromLive(fixture);
+  const preset = JSON.parse(await readFile(join(repoRoot, fixture.presetPath), "utf8"));
+  const build = preset.build;
+  build.masteries = core.normalizeMasterySelections(build.masteries);
+  const calculation = core.calculateBuild(build, preset.attributes);
+  const actual = Object.fromEntries(calculation.stats.map((row) => [row.id, row.total]));
+  actual.combat_power = core.calculateCombatPower(build);
+  const rows = Object.entries(fixture.expected).map(([statId, expected]) => {
+    const value = Number(actual[statId] ?? 0);
+    const difference = value - expected;
+    return { statId, expected, actual: value, difference, pass: Math.abs(difference) < 0.0001 };
+  });
+  const failed = rows.filter((row) => !row.pass);
+  if (failed.length || process.env.TL_VERIFY_TABLE) console.table(failed.length ? failed : rows);
+  console.log(`${fixture.name}: matched ${rows.length - failed.length}/${rows.length} asserted raw totals.`);
+  totalRows += rows.length;
+  totalFailed += failed.length;
+  if (process.env.TL_VERIFY_DETAILS) {
+    for (const statId of process.env.TL_VERIFY_DETAILS.split(",")) {
+      const row = calculation.stats.find((entry) => entry.id === statId);
+      console.log(`\n${statId}: ${row?.total ?? 0}`);
+      console.table(row?.sources ?? []);
+    }
+    if (process.env.TL_VERIFY_DETAILS.includes("combat_power")) console.dir(core.combatPowerBreakdown(build), { depth: null });
   }
-  if (process.env.TL_VERIFY_DETAILS.includes("combat_power")) console.dir(core.combatPowerBreakdown(imported.build), { depth: null });
 }
-if (failed.length) process.exitCode = 1;
+
+console.log(`\nTotal: ${totalRows - totalFailed}/${totalRows} across ${fixtureFiles.length} reference build(s).`);
+if (totalFailed) process.exitCode = 1;
