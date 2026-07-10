@@ -8,9 +8,9 @@ Rule: nothing below may be silently invented in the engine. Every entry ships as
 | --- | --- | --- | --- | --- |
 | 1 | Damage pipeline order (stages 1–15 in 02-damage-healing-tanking.md) | **currently unknown** | Formula rows give per-stage magnitudes but no ordering; no order table found in decoded set | Calibrate with single-variable experiments; check `TLEffectProperty` + ActionTree packages (extractable candidates) |
 | 2 | Armor/defense → % mitigation curve | **calibration-required** | Raw armor stats exist; no conversion constants located in 38 decoded tables | Controlled hits vs known armor deltas; integer-boundary probing |
-| 3 | Hit vs evasion contest curve | **calibration-required** | `all_accuracy`/`all_evasion` totals only | Curve fitting per 04 plan |
-| 4 | Crit chance vs endurance (critical_defense) curve | **calibration-required** | Stat totals only; `BO_PowerShot_Hero_CriticalChance_Up` gives flat +2000/4000 (points, not %) | Same |
-| 5 | Heavy/double-attack contest curve | **calibration-required** | Stat totals only | Same |
+| 3 | Hit vs evasion contest curve | **calibration-required** | `all_accuracy`/`all_evasion` totals only; Questlog community model `Δ/(Δ+1000)` captured in `questlog-contest-curve-evidence.md` | Curve fitting per 04 plan; community model usable as `modeled` only |
+| 4 | Crit chance vs endurance (critical_defense) curve | **calibration-required** | Stat totals only; `BO_PowerShot_Hero_CriticalChance_Up` gives flat +2000/4000 (points, not %); same Questlog `Δ/(Δ+1000)` reference | Same |
+| 5 | Heavy/double-attack contest curve | **calibration-required** | Stat totals only; same Questlog `Δ/(Δ+1000)` reference (heavy attack and skill damage boost/resistance probed directly) | Same |
 | 6 | Block chance/efficiency vs penetration | **calibration-required** | `kAmountFromShieldBlockChance` formula type exists (22 rows) — partial client visibility | Decode-inspect those rows first, then calibrate |
 | 7 | Basis units (10000 = 100%) and tooltip scaling (tooltip1 = mul/100) | **calibration-required** (one confirmation) | Consistent across all sampled rows; PowerShot tooltip matches | One in-game tooltip vs decoded row check |
 | 8 | Rounding order and integer stages | **calibration-required** | Web static math uses floor at specific points (Questlog-derived); combat rounding unobserved | Integer-boundary tests per 04 plan |
