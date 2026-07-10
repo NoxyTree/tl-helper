@@ -42,7 +42,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
 | Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
 | Real ability ingestion | 3 abilities, 5 reviewed components, 12 explicit unresolved stages | `D:\TL_Data\reports\24118850\combat-abilities.json` |
-| Calibration harness | Canonical SHA-256 observations, atomic build-scoped store, and first manual protocol | `scripts/record-combat-observation.mjs` |
+| Calibration harness | 21 real observations recorded 2026-07-10: tooltip basis verified for all 3 abilities, per-cast Base Damage roll strongly supported | `plans/combat-simulator/calibration-findings-2026-07-10.md` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
