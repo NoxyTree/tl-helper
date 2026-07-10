@@ -152,7 +152,11 @@
         <sc-for list="{{ data.setInfo.bonuses }}" as="bonus" hint-placeholder-count="2">
           <div style="display: flex; gap: 8px; font-size: 11px; line-height: 1.45;">
             <span style="flex: none; font-weight: 700; color: {{ bonus.color }}; font-variant-numeric: tabular-nums;">{{ bonus.required }}</span>
-            <span style="color: #a4906d;">{{ bonus.text }}</span>
+            <span style="color: #a4906d;">{{ bonus.text }}
+              <sc-if value="{{ bonus.hasComputed }}" hint-placeholder-val="{{ false }}">
+                <i style="display: block; font-style: normal; color: {{ bonus.color }}; font-variant-numeric: tabular-nums;">{{ bonus.computedText }}</i>
+              </sc-if>
+            </span>
           </div>
         </sc-for>
       </div>

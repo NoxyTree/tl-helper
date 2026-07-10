@@ -51,7 +51,7 @@ Rune mode is entered from the Runes tab. Eligible equipped items are then select
 
 The Armory Import action accepts a JSON package containing Questlog character, build, skill-build, and mastery-build responses. It maps gear, artifacts, support effects, traits, resonance, heroic effects, potentials, skill cores, runes, skills, mastery, unified mastery, and allocated attributes into the local model.
 
-`node scripts/verify-reference-build.mjs` fetches the public `TheDeathProphetAndVoid` reference build and asserts its combat power plus a broad set of raw totals. This is the regression test for calculator compatibility.
+`node scripts/verify-reference-build.mjs` verifies every fixture in `scripts/reference-builds/` against its committed preset offline (hermetic); `TL_VERIFY_LIVE=1` refreshes the preset files from questlog.gg. This is the regression test for calculator compatibility.
 
 The reference currently resolves to 7,128 combat power with 399 to 640 base damage, 37,673.1 health, 4,159 melee defense, 3,850 magic defense, and 3,339 melee hit chance.
 
@@ -61,3 +61,7 @@ The reference currently resolves to 7,128 combat power with 399 to 640 base dama
 - The compatibility rule tables are derived from the public Questlog client calculator.
 - Local game files remain available for static metadata checks, but this work does not inspect process memory, capture packets, bypass encryption, or interact with anti-cheat.
 - Conditional effects that depend on moment-to-moment combat state are represented only where the builder itself applies them as static build totals.
+
+## Out of scope
+
+- **Blessings** are intentionally out of scope for the builder. Questlog's public build payloads and the cached read procedures used here carry no blessing data, so a blessing editor would require a new extraction + engine + UI feature with no ground truth to verify against. Revisit only if Questlog exposes blessings in its character builder.

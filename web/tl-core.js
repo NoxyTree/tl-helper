@@ -655,12 +655,30 @@ export function buildItemHoverModel(slotId, build, calc) {
       ]);
       const members = values(set.itemSetMadeOfItems);
       const count = members.filter((m) => equippedIds.has(m.id)).length;
+      // Computed SET_PASSIVE_RULES effects are evaluated against the live calc
+      // totals so the card shows the actual values the engine applies (the
+      // static bonus_passive text only describes them).
+      const calcTotals = calc ? Object.fromEntries(calc.stats.map((row) => [row.id, { total: row.total }])) : null;
       const bonuses = values(set.itemSetBonus).map((b) => {
         const req = Number(b.set_count || 0);
         const active = count >= req;
         const stats = values(b.bonus_stat).map((s) => `${statName(s.type)} ${formatStat(s.type, s.value)}`);
         const pass = values(b.bonus_passive).map((p) => p?.name ? (p.text ? `${plainInline(p.name)} — ${plainInline(p.text)}` : plainInline(p.name)) : plainInline(p?.text));
-        return { required: `${req} pc`, active, color: active ? "#7ee0a6" : "#8a795f", text: [...stats, ...pass].filter(Boolean).join(", ") || "Set bonus" };
+        let computed = [];
+        const rule = SET_PASSIVE_RULES[set.id]?.[req];
+        if (rule && calcTotals) {
+          try {
+            computed = rule.effect(calcTotals).map((row) => `${statName(row.statId)} ${formatSigned(row.value, row.statId)}`);
+          } catch { computed = []; }
+        }
+        return {
+          required: `${req} pc`,
+          active,
+          color: active ? "#7ee0a6" : "#8a795f",
+          text: [...stats, ...pass].filter(Boolean).join(", ") || "Set bonus",
+          computedText: computed.length ? `Applied: ${computed.join(", ")}` : "",
+          hasComputed: computed.length > 0,
+        };
       });
       setInfo = { name: set.name, countLabel: `${count}/${members.length}`, bonuses };
     }
@@ -674,10 +692,43 @@ export function buildItemHoverModel(slotId, build, calc) {
       .map((s) => ({ name: s.name, icon: s.imageUrl || "", hasIcon: Boolean(s.imageUrl) }));
   }
 
-  // Only the item's actually-slotted skill core (its innate passive / core) is
-  // shown via `effects`. The large availablePerks pool is intentionally omitted.
-  const cores = [];
-  const coreMore = 0;
+  // Skill Cores · Potentials: the slotted perk (skill core), the selected
+  // potential stat, and the item's enchant proc effects. The large
+  // availablePerks pool is intentionally omitted — only what is actually on
+  // this piece is shown. Known Questlog-parity gaps that stay blocked on
+  // missing bundle data: active/inactive trait flags and fixed set/enchant
+  // effects — do not fake them.
+  const allCores = [];
+  const slottedPerk = values(item.availablePerks).find((p) => p.id === selection.perkId);
+  if (slottedPerk) {
+    allCores.push({
+      name: slottedPerk.passive?.name ?? slottedPerk.name,
+      text: plainInline(slottedPerk.passive?.text ?? ""),
+      icon: slottedPerk.passive?.imageUrl ?? slottedPerk.imageUrl ?? "",
+      hasIcon: Boolean(slottedPerk.passive?.imageUrl ?? slottedPerk.imageUrl),
+    });
+  }
+  if (selection.potentialId && item.itemPotential) {
+    const potential = values(item.itemPotential.stats).find((row) => (row.statId ?? row.stat_id) === selection.potentialId);
+    if (potential) {
+      allCores.push({
+        name: "Item Potential",
+        text: `${statName(selection.potentialId)} ${formatSigned(potential.value, selection.potentialId)}`,
+        icon: "",
+        hasIcon: false,
+      });
+    }
+  }
+  for (const proc of item.itemPotential?.skills ?? []) {
+    allCores.push({
+      name: proc.probability ? `${proc.name} (${trim(proc.probability)}%)` : proc.name,
+      text: plainInline(proc.description ?? ""),
+      icon: proc.imageUrl ?? "",
+      hasIcon: Boolean(proc.imageUrl),
+    });
+  }
+  const cores = allCores.slice(0, 4);
+  const coreMore = Math.max(0, allCores.length - cores.length);
 
   return {
     name: item.name, nameColor: color, icon: item.imageUrl ?? "", hasIcon: Boolean(item.imageUrl),

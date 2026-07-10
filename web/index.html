@@ -446,6 +446,10 @@
                 <div style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">Passive</div>
                 <div style="font-family: Marcellus, serif; font-size: 18px; color: #f3e9d4;">{{ passiveCount }}<span style="font-size: 12px; color: #8a795f;"> / {{ passiveCap }}</span></div>
               </div>
+              <div style="text-align: center; padding: 0 14px; border-left: 1px solid rgba(212, 166, 94, 0.14);">
+                <div style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">Defensive</div>
+                <div style="font-family: Marcellus, serif; font-size: 18px; color: #f3e9d4;">{{ defensiveCount }}<span style="font-size: 12px; color: #8a795f;"> / {{ defensiveCap }}</span></div>
+              </div>
             </div>
 
             <div style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start;">
@@ -484,6 +488,27 @@
                   </sc-for>
                   <sc-for list="{{ passiveEmpty }}" as="cell" hint-placeholder-count="4">
                     <span style="width: 58px; height: 58px; border-radius: 999px; border: 1.5px dashed rgba(212, 166, 94, 0.16); background: rgba(12, 9, 6, 0.35);"></span>
+                  </sc-for>
+                </div>
+
+                <!-- defensive loadout -->
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 16px 0 8px;"><span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">Defensive Skill</span><span style="font-size: 9.5px; color: #6e5f49;">Right-click to remove · bound to Space</span></div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <sc-for list="{{ defensiveCards }}" as="card" hint-placeholder-count="0">
+                    <button type="button" onClick="{{ card.onClick }}" onContextMenu="{{ card.onContextMenu }}" onMouseEnter="{{ card.onHover }}" onMouseMove="{{ card.onMove }}" onMouseLeave="{{ card.onLeave }}" title="{{ card.name }} · right-click to remove"
+                      style="position: relative; width: 58px; height: 58px; border-radius: 16px; border: {{ card.ring }}; box-shadow: {{ card.shadow }}; background: radial-gradient(circle at 35% 30%, #241c12, #120e08); cursor: pointer; padding: 0; display: grid; place-items: center; transition: transform 0.13s ease;"
+                      style-hover="transform: translateY(-2px);">
+                      <sc-if value="{{ card.icon }}" hint-placeholder-val="{{ false }}">
+                        <span style="width: 50px; height: 50px; border-radius: 13px; background: url({{ card.icon }}) center/cover; display: block;"></span>
+                      </sc-if>
+                      <sc-if value="{{ card.hasKeybind }}" hint-placeholder-val="{{ false }}">
+                        <span style="position: absolute; top: -4px; right: -4px; min-width: 15px; height: 15px; padding: 0 3px; display: grid; place-items: center; font-size: 8px; font-weight: 800; color: #f0e2c0; background: rgba(10, 8, 5, 0.95); border: 1px solid rgba(212, 166, 94, 0.5); border-radius: 4px;">{{ card.keybind }}</span>
+                      </sc-if>
+                      <b style="position: absolute; right: -4px; bottom: -4px; min-width: 17px; height: 17px; padding: 0 3px; display: grid; place-items: center; font-size: 10px; font-weight: 800; font-style: normal; color: #0c0a07; background: {{ card.tierColor }}; border: 1px solid rgba(10, 8, 5, 0.6); border-radius: 5px;">{{ card.level }}</b>
+                    </button>
+                  </sc-for>
+                  <sc-for list="{{ defensiveEmpty }}" as="cell" hint-placeholder-count="1">
+                    <span style="width: 58px; height: 58px; border-radius: 16px; border: 1.5px dashed rgba(212, 166, 94, 0.16); background: rgba(12, 9, 6, 0.35);"></span>
                   </sc-for>
                 </div>
 
@@ -535,6 +560,27 @@
                               style-hover="transform: translateY(-3px);">
                               <sc-if value="{{ tile.icon }}" hint-placeholder-val="{{ false }}">
                                 <span style="width: 42px; height: 42px; border-radius: 999px; background: url({{ tile.icon }}) center/cover; opacity: {{ tile.iconFade }}; display: block;"></span>
+                              </sc-if>
+                              <sc-if value="{{ tile.selected }}" hint-placeholder-val="{{ false }}">
+                                <b style="position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 999px; font-size: 10px; font-weight: 700; font-style: normal; color: #0c0a07; background: {{ tile.checkColor }}; display: grid; place-items: center; border: 1px solid rgba(10,8,5,0.6);">✓</b>
+                              </sc-if>
+                            </button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ group.hasDefensive }}" hint-placeholder-val="{{ false }}">
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 14px 0 8px;">
+                          <span style="font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185;">Defensive</span>
+                          <span style="font-size: 9.5px; color: #6e5f49; font-variant-numeric: tabular-nums;">{{ group.defensiveCount }}</span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                          <sc-for list="{{ group.defensiveTiles }}" as="tile" hint-placeholder-count="2">
+                            <button type="button" onClick="{{ tile.onClick }}" onMouseEnter="{{ tile.onHover }}" onMouseMove="{{ tile.onMove }}" onMouseLeave="{{ tile.onLeave }}" title="{{ tile.name }}" aria-label="{{ tile.name }}"
+                              style="position: relative; width: 50px; height: 50px; border-radius: 14px; border: {{ tile.ring }}; box-shadow: {{ tile.shadow }}; background: radial-gradient(circle at 35% 30%, #241c12, #120e08); cursor: pointer; padding: 0; display: grid; place-items: center; transition: transform 0.12s ease;"
+                              style-hover="transform: translateY(-3px);">
+                              <sc-if value="{{ tile.icon }}" hint-placeholder-val="{{ false }}">
+                                <span style="width: 42px; height: 42px; border-radius: 11px; background: url({{ tile.icon }}) center/cover; opacity: {{ tile.iconFade }}; display: block;"></span>
                               </sc-if>
                               <sc-if value="{{ tile.selected }}" hint-placeholder-val="{{ false }}">
                                 <b style="position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 999px; font-size: 10px; font-weight: 700; font-style: normal; color: #0c0a07; background: {{ tile.checkColor }}; display: grid; place-items: center; border: 1px solid rgba(10,8,5,0.6);">✓</b>
@@ -606,6 +652,27 @@
                       </button>
                     </sc-for>
                   </div>
+
+                  <sc-if value="{{ focus.hasVariants }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 16px 0 8px;">
+                      <span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">Mastery Variants</span>
+                      <span style="font-size: 10px; color: #6e5f49;">Unlocked via the mastery wheel</span>
+                    </div>
+                    <div style="display: grid; gap: 6px; max-height: 260px; overflow: auto;">
+                      <sc-for list="{{ focus.variants }}" as="variant" hint-placeholder-count="2">
+                        <div style="display: flex; gap: 10px; align-items: flex-start; padding: 9px 10px; border-radius: 8px; border: 1px solid rgba(212, 166, 94, 0.14); background: rgba(12, 9, 6, 0.4);">
+                          <sc-if value="{{ variant.hasIcon }}" hint-placeholder-val="{{ false }}">
+                            <span style="flex: none; width: 30px; height: 30px; border-radius: 7px; overflow: hidden; border: 1px solid rgba(212, 166, 94, 0.3); background: url({{ variant.icon }}) center/cover #171209;"></span>
+                          </sc-if>
+                          <span style="min-width: 0;">
+                            <span style="display: block; font-size: 12px; font-weight: 600; color: #e6d6b4;">{{ variant.name }}</span>
+                            <span style="display: block; font-size: 9.5px; color: #8a795f; margin-top: 1px;">{{ variant.meta }}</span>
+                            <span style="display: block; font-size: 10.5px; line-height: 1.45; color: #a4906d; margin-top: 3px;">{{ variant.desc }}</span>
+                          </span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
 
                   <div style="display: flex; gap: 8px; margin-top: 14px;">
                     <sc-if value="{{ focusNotSelected }}" hint-placeholder-val="{{ false }}">
@@ -1262,6 +1329,23 @@
                           <sc-for list="{{ preview.potentialStatOptions }}" as="option" hint-placeholder-count="4"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
                         </select>
                       </label>
+                      <sc-if value="{{ preview.hasPotentialSkills }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9fc3ff;">Enchant Effects (proc)</div>
+                        <div style="display: grid; gap: 6px; margin-top: 6px;">
+                          <sc-for list="{{ preview.potentialSkills }}" as="proc" hint-placeholder-count="2">
+                            <div style="display: flex; gap: 9px; align-items: flex-start; padding: 7px 9px; border-radius: 7px; border: 1px solid rgba(114,169,255,0.18); background: rgba(10,8,5,0.45);">
+                              <sc-if value="{{ proc.hasIcon }}" hint-placeholder-val="{{ false }}">
+                                <span style="flex: none; width: 26px; height: 26px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(114,169,255,0.3); background: url({{ proc.icon }}) center/cover #171209;"></span>
+                              </sc-if>
+                              <span style="min-width: 0;">
+                                <span style="display: block; font-size: 11px; font-weight: 600; color: #dce9ff;">{{ proc.name }} <i style="font-style: normal; font-weight: 400; color: #8fa5c2;">{{ proc.chance }}</i></span>
+                                <span style="display: block; font-size: 10px; line-height: 1.45; color: #a8b8d0; margin-top: 2px;">{{ proc.desc }}</span>
+                              </span>
+                            </div>
+                          </sc-for>
+                        </div>
+                        <div style="margin-top: 6px; font-size: 9px; color: #6e7f99;">Proc effects are informational — they are not part of stat totals.</div>
+                      </sc-if>
                     </div>
                   </sc-if>
 
@@ -2408,6 +2492,7 @@ class Component extends DCLogic {
     const selectedRows = core.selectedSkillRows(build);
     const activeRows = selectedRows.filter((row) => row.loadoutType === "active");
     const passiveRows = selectedRows.filter((row) => row.loadoutType === "passive");
+    const defensiveRows = selectedRows.filter((row) => row.loadoutType === "defensive");
     const available = core.availableSkillsForWeapons(weapons);
     const spent = core.skillSpecSpent(build);
 
@@ -2497,6 +2582,7 @@ class Component extends DCLogic {
       const skills = available.filter((skill) => skill.mainCategory === weapon);
       const actives = skills.filter((skill) => core.skillLoadoutType(skill) === "active").map(skillTile);
       const passives = skills.filter((skill) => core.skillLoadoutType(skill) === "passive").map(skillTile);
+      const defensives = skills.filter((skill) => core.skillLoadoutType(skill) === "defensive").map(skillTile);
       const firstIcon = skills.find((skill) => skill.imageUrl)?.imageUrl ?? "";
       return {
         id: weapon,
@@ -2504,12 +2590,15 @@ class Component extends DCLogic {
         icon: firstIcon,
         activeTiles: actives,
         passiveTiles: passives,
+        defensiveTiles: defensives,
         hasActive: actives.length > 0,
         hasPassive: passives.length > 0,
+        hasDefensive: defensives.length > 0,
         activeCount: `${actives.filter((t) => t.selected).length}/${actives.length}`,
         passiveCount: `${passives.filter((t) => t.selected).length}/${passives.length}`,
+        defensiveCount: `${defensives.filter((t) => t.selected).length}/${defensives.length}`,
       };
-    }).filter((group) => group.activeTiles.length || group.passiveTiles.length);
+    }).filter((group) => group.activeTiles.length || group.passiveTiles.length || group.defensiveTiles.length);
 
     let skillHover = null;
     const hoverSkill = core.indexes.skillById[this.state.skillHoverId];
@@ -2594,6 +2683,15 @@ class Component extends DCLogic {
             onToggle: () => !locked && focusSelection && this.toggleSpec(focusSkill.id, trait.id),
           };
         }),
+        variants: (focusSkill.specializations ?? []).map((spec) => ({
+          id: spec.id,
+          name: spec.name,
+          icon: spec.imageUrl ?? "",
+          hasIcon: Boolean(spec.imageUrl),
+          meta: core.label(spec.skillType || "active"),
+          desc: core.plainInline(spec.levels?.[0]?.description || spec.levels?.[0]?.effect || ""),
+        })),
+        hasVariants: (focusSkill.specializations ?? []).length > 0,
         add: () => this.addOrFocusSkill(focusSkill.id),
         remove: () => this.removeSkill(focusSkill.id),
       };
@@ -2613,6 +2711,10 @@ class Component extends DCLogic {
       activeEmpty: emptyCells(activeRows.length, core.ACTIVE_SKILL_CAP),
       passiveCards: passiveRows.map(skillCard),
       passiveEmpty: emptyCells(passiveRows.length, core.PASSIVE_SKILL_CAP),
+      defensiveCount: defensiveRows.length,
+      defensiveCap: core.skillCapForType("defensive"),
+      defensiveCards: defensiveRows.map(skillCard),
+      defensiveEmpty: emptyCells(defensiveRows.length, core.skillCapForType("defensive")),
       poolGroups,
       skillHover,
       hasSkillHover: Boolean(skillHover),
@@ -3292,6 +3394,14 @@ class Component extends DCLogic {
         label: `${core.statName(row.statId ?? row.stat_id)} ${core.formatSigned(row.value, row.statId ?? row.stat_id)}${row.probability == null ? "" : ` · ${row.probability}%`}`,
       }));
       const perkOptions = (previewItem.availablePerks ?? []).map((perk) => ({ id: perk.id, label: perk.name }));
+      const potentialSkills = (previewItem.itemPotential?.skills ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        desc: core.plainInline(row.description || ""),
+        chance: row.probability ? `· ${Math.round(Number(row.probability) * 100) / 100}%` : "",
+        icon: row.imageUrl ?? "",
+        hasIcon: Boolean(row.imageUrl),
+      }));
 
       const effects = core.itemTooltipEffects(previewItem).map((effect) => ({
         label: effect.label,
@@ -3365,8 +3475,10 @@ class Component extends DCLogic {
         artifactStatValue: isEquippedPreview ? selection.artifactStatId ?? "" : "",
         artifactStatDisabled: !isEquippedPreview,
         onArtifactStat: (event) => isEquippedPreview && this.setArtifactStat(slot.id, event.target.value),
-        hasPotentialStats: potentialStatOptions.length > 0,
+        hasPotentialStats: potentialStatOptions.length > 0 || potentialSkills.length > 0,
         potentialStatOptions,
+        potentialSkills,
+        hasPotentialSkills: potentialSkills.length > 0,
         potentialStatValue: isEquippedPreview ? selection.potentialId ?? "" : "",
         potentialStatDisabled: !isEquippedPreview,
         onPotentialStat: (event) => isEquippedPreview && this.setPotentialStat(slot.id, event.target.value),

@@ -17,15 +17,49 @@ function imageUrl(icon) {
   return `https://cdn.questlog.gg/throne-and-liberty${assetPath}.webp`;
 }
 
+// The snapshots contain double-decoded UTF-8 (UTF-8 bytes re-read as
+// Windows-1252): \u25B2 (E2 96 B2) surfaces as "\u00E2\u2013\u00B2" etc. Reverse the cp1252
+// mapping per string, decode as UTF-8, and keep the repair only when it
+// round-trips cleanly (no replacement chars), so healthy strings pass through.
+const CP1252_REVERSE = {
+  "\u20AC": 0x80, "\u201A": 0x82, "\u0192": 0x83, "\u201E": 0x84, "\u2026": 0x85,
+  "\u2020": 0x86, "\u2021": 0x87, "\u02C6": 0x88, "\u2030": 0x89, "\u0160": 0x8A,
+  "\u2039": 0x8B, "\u0152": 0x8C, "\u017D": 0x8E, "\u2018": 0x91, "\u2019": 0x92,
+  "\u201C": 0x93, "\u201D": 0x94, "\u2022": 0x95, "\u2013": 0x96, "\u2014": 0x97,
+  "\u02DC": 0x98, "\u2122": 0x99, "\u0161": 0x9A, "\u203A": 0x9B, "\u0153": 0x9C,
+  "\u017E": 0x9E, "\u0178": 0x9F,
+};
+
+function repairMojibake(text) {
+  if (typeof text !== "string" || !/[\u00C0-\u00FF]/.test(text)) return text;
+  const bytes = [];
+  for (const char of text) {
+    const code = CP1252_REVERSE[char] ?? char.codePointAt(0);
+    if (code > 0xFF) return text;
+    bytes.push(code);
+  }
+  const decoded = Buffer.from(bytes).toString("utf8");
+  return decoded.includes("\uFFFD") ? text : decoded;
+}
+
+function repairStringsDeep(value) {
+  if (typeof value === "string") return repairMojibake(value);
+  if (Array.isArray(value)) return value.map(repairStringsDeep);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, nested]) => [key, repairStringsDeep(nested)]));
+  }
+  return value;
+}
+
 async function readTrpc(name) {
   const raw = (await readFile(path.join(publicDir, name), "utf8")).replace(/^\uFEFF/, "");
-  const parsed = JSON.parse(raw);
+  const parsed = repairStringsDeep(JSON.parse(raw));
   return parsed[0]?.result?.data?.json ?? parsed[0]?.result?.data ?? parsed[0];
 }
 
 async function readTrpcRecords(name) {
   const raw = (await readFile(path.join(publicDir, name), "utf8")).replace(/^\uFEFF/, "");
-  return flattenTrpcBatch(JSON.parse(raw));
+  return flattenTrpcBatch(repairStringsDeep(JSON.parse(raw)));
 }
 
 function flattenTrpcBatch(batch) {
@@ -221,7 +255,9 @@ const [
 const items = values(equipmentItemsRaw).map((item) => ({
   id: item.id,
   name: item.name,
-  grade: item.grade,
+  // 50 boonstones ship without a grade; default to 0 ("Misc" in the shared
+  // grade tables) so grade-keyed UI never sees undefined.
+  grade: item.grade ?? 0,
   equipmentType: item.equipmentType,
   armorCategory: item.armorCategory ?? "",
   subCategory: item.subCategory ?? "",
@@ -254,6 +290,13 @@ const items = values(equipmentItemsRaw).map((item) => ({
       value: row.value,
       probability: row.probability,
     })),
+    skills: values(item.itemPotential.skills).map((row) => ({
+      id: row.id,
+      name: row.name,
+      description: plainText(row.description),
+      probability: row.probability ?? 0,
+      imageUrl: imageUrl(row.icon),
+    })),
   } : null,
   itemStats: item.itemStats ?? {},
 }));
@@ -266,9 +309,17 @@ const itemSets = values(itemSetsRaw).map((set) => ({
   itemSetBonus: set.itemSetBonus ?? [],
 }));
 
+function titleCaseIfShouty(name) {
+  const text = String(name ?? "").trim();
+  if (text && text === text.toUpperCase() && /[A-Z]/.test(text)) {
+    return text.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+  return text;
+}
+
 const runes = values(runesRaw).map((rune) => ({
   id: rune.id,
-  name: rune.name,
+  name: String(rune.name ?? "").trim(),
   grade: rune.grade,
   equipmentCategory: rune.equipmentCategory,
   runeType: rune.runeType,
@@ -278,7 +329,7 @@ const runes = values(runesRaw).map((rune) => ({
 
 const runeSynergies = values(runeSynergiesRaw).map((synergy) => ({
   id: synergy.id,
-  name: synergy.name,
+  name: titleCaseIfShouty(synergy.name),
   grade: synergy.grade,
   equipmentCategory: synergy.equipmentCategory,
   combination: synergy.combination ?? [],
@@ -297,6 +348,14 @@ const skills = values(skillSetsRaw).map((skill) => {
     imageUrl: imageUrl(skill.icon),
     maxLevel: Math.max(0, ...levels.map((level) => Number(level.level || 0))),
     levels,
+    specializations: values(skill.specializations).map((specialization) => ({
+      id: specialization.id,
+      name: specialization.name,
+      grade: specialization.grade,
+      skillType: specialization.skillType,
+      imageUrl: imageUrl(specialization.icon),
+      levels: normalizeSkillLevels(specialization.skillSetLevels),
+    })).filter((specialization) => specialization.id),
     specializationIds: values(skill.specializations).map((specialization) => specialization.id).filter(Boolean),
   };
 });
@@ -338,6 +397,11 @@ const masteries = values(masteriesRaw).map((mastery) => ({
   subCategory: mastery.subCategory,
   specializationType: mastery.specializationType,
   nodeNumber: mastery.nodeNumber ?? null,
+  // Raw flags kept so the wheel can gate rendering; all-false in the current
+  // snapshot but present in the source records.
+  weaponActivatedOnly: Boolean(mastery.weaponActivatedOnly),
+  isDisabled: Boolean(mastery.isDisabled),
+  requiredLevel: Number(mastery.requiredLevel ?? 0),
   imageUrl: imageUrl(mastery.icon),
   openCost: normalizeOpenCost(mastery.openCost),
   description: plainText(mastery.description),
@@ -431,15 +495,21 @@ assert(masteries.length >= 540, `Expected at least 540 masteries, got ${masterie
 assert(artifactSets.length >= 1, `Expected at least 1 artifact set, got ${artifactSets.length}`);
 assertImageUrls(skills, "skills");
 assertImageUrls(skillTraits, "skillTraits");
+assert(items.every((item) => item.grade !== undefined && item.grade !== null), "Every item must have an explicit grade");
+{
+  const danglingSpecIds = skills.flatMap((skill) => skill.specializationIds.filter((id) => !skill.specializations.some((spec) => spec.id === id)));
+  assert(!danglingSpecIds.length, `Dangling specializationIds: ${danglingSpecIds.slice(0, 3).join(", ")}`);
+}
 
 await mkdir(webDataDir, { recursive: true });
 const serialized = JSON.stringify(appData);
+assert(!serialized.includes("â"), "Serialized payload still contains double-decoded UTF-8 (mojibake)");
 await writeFile(path.join(webDataDir, "app-data.json"), serialized, "utf8");
-await writeFile(
-  path.join(webDataDir, "app-data.js"),
-  `window.TL_TRACKER_DATA=${serialized};window.TL_TRACKER_DATA_READY=true;\n`,
-  "utf8",
-);
+// app-data.js (a window-global file:// fallback of the same payload) was
+// emitted historically but no page ever loaded it — both index.html and
+// tracker.html initCore("./data/app-data.json"). Dropped from the pipeline.
+const roundTrip = JSON.parse(await readFile(path.join(webDataDir, "app-data.json"), "utf8"));
+assert(roundTrip.items.length === items.length && roundTrip.skills.length === skills.length, "Post-write integrity check failed: app-data.json does not round-trip");
 
 console.log({
   items: items.length,

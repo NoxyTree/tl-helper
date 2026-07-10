@@ -116,7 +116,6 @@ Local extraction outputs:
 Questlog raw public snapshots:
 
 - `out/questlog-public/characterBuilder.getEquipmentItems.json`
-- `out/questlog-public/characterBuilder.getPreviewEquipmentItems.json`
 - `out/questlog-public/characterBuilder.getEquipmentItemSets.json`
 - `out/questlog-public/characterBuilder.getEquipmentRunes.json`
 - `out/questlog-public/characterBuilder.getRuneSynergies.json`
@@ -124,6 +123,8 @@ Questlog raw public snapshots:
 - `out/questlog-public/skillBuilder.getSkillSets.json`
 - `out/questlog-public/skillBuilder.getSkillTraits.json`
 - `out/questlog-public/weaponSpecialization.getWeaponSpecializations.json`
+
+Dropped inputs (2026-07-10): `characterBuilder.getPreviewEquipmentItems.json` (1,357 records) and the local `.bk2` visual-candidate manifest were never consumed by the web app or `build-web-data.mjs`; they are no longer part of the pipeline. Re-fetch from the tRPC route if preview icons are ever wanted.
 
 Tracker-friendly indexes:
 
