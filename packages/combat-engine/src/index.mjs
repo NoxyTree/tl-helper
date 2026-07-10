@@ -22,4 +22,16 @@ export {
   loadCombatAbilityData,
 } from "./ability-data.mjs";
 export { inspectAbilityMagnitude, projectAbilityMagnitude } from "./ability-magnitude.mjs";
+export {
+  CALIBRATION_OBSERVATION_SCHEMA,
+  CALIBRATION_OBSERVATION_SCHEMA_VERSION,
+  CALIBRATION_SCENARIO_MODE,
+  CALIBRATION_EVIDENCE_TYPE,
+  CALIBRATION_STATUS,
+  calibrationObservationContentId,
+  createCalibrationObservation,
+  normalizeCalibrationObservation,
+  serializeCalibrationObservation,
+  validateCalibrationObservation,
+} from "./calibration-observation.mjs";
 export { runSimulation, serializeSimulation } from "./simulation.mjs";

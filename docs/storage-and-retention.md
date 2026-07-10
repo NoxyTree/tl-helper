@@ -18,6 +18,7 @@ D:\TL_Data\
 ├── indexes\                  FTS/semantic indexes (FTS5 currently lives inside the sqlite)
 ├── manifests\<build>\        collector manifest.json + verification.json
 ├── reports\<build>\          table-inventory.json, evidence packets, audits
+├── calibration\<build>\      immutable manual observations + rebuildable index
 ├── fixtures\                 larger verified samples (repo holds only the <1 MB set)
 └── cache\                    reproducible/disposable (robocopy logs, tool downloads)
 ```
@@ -52,6 +53,8 @@ No tool may hardcode `D:\TL_Helper\Output` (nothing does; verified by grep) or w
 | `manifests\<build>` | keep forever, every processed build |
 | `warehouse` per meaningful build | keep (meaningful = content patch, not hotfix reruns) |
 | `raw\<build>` | keep while the build is needed for historical comparison; older builds may be irreplaceable after game updates — do not prune without an off-machine backup |
+| `calibration\<build>\observations` | keep forever; human evidence may be impossible to reproduce |
+| `calibration\<build>\index.json` | regenerable from immutable observations |
 | `decoded`, `indexes`, `reports` | regenerable from raw + pinned decoder version; prune freely |
 | `cache`, thumbnails, embeddings | disposable |
 

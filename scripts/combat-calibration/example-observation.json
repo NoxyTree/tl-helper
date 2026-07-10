@@ -1,0 +1,63 @@
+{
+  "schema": "tl-helper.combat-calibration-observation",
+  "schemaVersion": 1,
+  "experimentId": "swift-healing-baseline-a",
+  "attemptNumber": 1,
+  "recordedAt": "2026-07-10T20:00:00+01:00",
+  "gameBuild": "24118850",
+  "gameVersion": "1.431.22.7761",
+  "scenario": {
+    "mode": "healing",
+    "abilityId": "WP_WA_S_Heal",
+    "skillLevel": 1,
+    "component": "WA_Heal_Heal"
+  },
+  "participants": {
+    "source": {
+      "buildSnapshotId": "replace-with-source-build-snapshot"
+    },
+    "target": {
+      "buildSnapshotId": "replace-with-source-build-snapshot"
+    }
+  },
+  "inputs": {
+    "sourceStats": {
+      "baseDamageMinimum": "100",
+      "baseDamageMaximum": "120",
+      "healEffect": "0"
+    },
+    "targetStats": {
+      "healthMaximum": "10000"
+    },
+    "baseDamage": {
+      "minimum": "100",
+      "maximum": "120"
+    },
+    "controlledVariables": {
+      "group": "swift-baseline-a",
+      "location": "replace-with-location",
+      "sourceHpBefore": "5000",
+      "sourceHpAfter": "5365",
+      "overheal": false,
+      "changedVariable": "none",
+      "visibleEffectsChecked": true,
+      "valuesArePlaceholders": true
+    },
+    "activeEffects": []
+  },
+  "observedOutcome": {
+    "magnitude": "365",
+    "flags": {
+      "normal": true,
+      "critical": false,
+      "heavy": false,
+      "blocked": false,
+      "missed": false
+    }
+  },
+  "evidence": {
+    "type": "manual"
+  },
+  "notes": "Draft manual observation with placeholder values. Replace every visible value before recording real evidence.",
+  "status": "draft"
+}

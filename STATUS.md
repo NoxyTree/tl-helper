@@ -42,6 +42,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
 | Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
 | Real ability ingestion | 3 abilities, 5 reviewed components, 12 explicit unresolved stages | `D:\TL_Data\reports\24118850\combat-abilities.json` |
+| Calibration harness | Canonical SHA-256 observations, atomic build-scoped store, and first manual protocol | `scripts/record-combat-observation.mjs` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
@@ -80,7 +81,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 115/115, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 132/132, collector tests
   92/92.
 
 ## Combat milestones
@@ -129,6 +130,12 @@ artifact immutably, exposes expression-only inspection by default, and requires
 an explicit opt-in for a caller-supplied Base Damage projection. The result is
 always marked pre-resolution with final combat precision unsupported.
 
+The first safe calibration harness is complete. It records immutable manual
+observations under `D:\TL_Data\calibration\<build>`, rejects placeholder data,
+uses collision-resistant canonical content IDs, and maintains an atomic index.
+The initial protocol isolates tooltip basis, Base Damage selection, and
+rounding; it explicitly forbids using Gaia Crash to infer mitigation.
+
 Patch-safe Armory persistence is complete. State and presets use versioned
 documents with game-build provenance, legacy values migrate automatically,
 corrupt values are backed up before recovery, and cross-build saves produce a
@@ -148,6 +155,7 @@ D:\TL_Data\decoded\24118850\       decoded table rows
 D:\TL_Data\warehouse\              normalized SQLite warehouse
 D:\TL_Data\manifests\24118850\     collection manifest and verification
 D:\TL_Data\reports\24118850\       inventories and evidence reports
+D:\TL_Data\calibration\24118850\   immutable manual calibration observations
 ```
 
 Set `$env:TL_DATA_ROOT = 'D:\TL_Data'` for all data tooling. The legacy
@@ -197,8 +205,8 @@ index, and decoded-versus-live parity evidence before application verification.
 1. Complete full manual Questlog panels for healer and ranged builds.
 2. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 3. Resolve the remaining 29 skill mappings and 11 placeholder bases.
-4. Build the manual calibration harness for basis units, Base Damage selection,
-   rounding boundaries, and observed outcomes.
+4. Collect the first reviewed Swift Healing and tooltip observations using the
+   manual calibration protocol.
 5. Build the seven-case single-ability Combat Lab on the verified engine
    boundary with precision labels for every unresolved mechanic.
 

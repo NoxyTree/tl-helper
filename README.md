@@ -49,6 +49,7 @@ D:\TL_Data\decoded\<build>\   decoded table rows
 D:\TL_Data\warehouse\         normalized SQLite databases
 D:\TL_Data\manifests\<build>\ collection manifests and checksums
 D:\TL_Data\reports\<build>\   inventories and evidence reports
+D:\TL_Data\calibration\<build>\ immutable manual combat observations and index
 D:\TL_Data\cache\              disposable intermediates and tools
 ```
 
@@ -135,6 +136,11 @@ locations, preflight checks, and safety boundaries.
   executable yet. The engine can inspect these expressions or produce an
   explicitly opted-in tooltip-style projection from caller-supplied Base Damage,
   but it cannot label that projection as final damage, healing, or shield health.
+- The manual calibration harness now validates canonical, SHA-256-addressed
+  observations and stores them atomically by game build. It accepts manual,
+  screenshot, user-created recording, or reviewed OCR evidence only. The first
+  protocol targets coefficient basis, Base Damage selection, and rounding
+  without using Gaia Crash to guess mitigation.
 - Both the Armory and tracker now calculate through the same BuildSnapshot
   adapter used by automated verification.
 - Armory state and presets now use versioned, patch-safe persistence. Existing
@@ -164,7 +170,7 @@ locations, preflight checks, and safety boundaries.
   inherent stats. See `docs/stat-taxonomy.md` and
   `docs/stat-source-coverage-audit.md`.
 - The latest verification gate passed BuildSnapshot checks, 69/69 assertions
-  across three fixtures, all 12 edge checks, 115 JavaScript tests, and 92
+  across three fixtures, all 12 edge checks, 132 JavaScript tests, and 92
   collector tests.
 - Combat-power parity analysis now maps 1,280 items using source-aware evidence,
   with 161 unresolved. The decoded reference subtotal is 7,221, already 93
@@ -194,6 +200,7 @@ backed up before recovery, and build mismatches are surfaced to the user.
 - `docs/update-orchestrator.md`: one-command refresh, validation, and reports
 - `docs/skill-formula-mapping.md`: complete player skill-to-formula coverage and unresolved evidence
 - `scripts/combat-abilities/reviewed-abilities.json`: manually reviewed real ability rows
+- `docs/combat-calibration-first-protocol.md`: first safe manual calibration experiment
 - `docs/stat-taxonomy.md`: internal IDs to player-facing stat semantics
 - `docs/stat-source-coverage-audit.md`: current source coverage, exclusions, and missing joins
 - `docs/skill-stat-source-join.md`: evidence and implementation boundary for dynamic skill/passive grants

@@ -61,3 +61,17 @@ executing it. `projectAbilityMagnitude()` requires explicit
 Its numeric result is always labeled `tooltip_coefficient_projection`,
 `pre_resolution`, and `overall: unsupported`; it is never final damage, healing,
 or shield capacity.
+
+## Manual calibration evidence
+
+`calibration-observation.mjs` defines the immutable observation contract.
+Records use canonical SHA-256 content IDs and cannot contain executable formula
+claims. The separate CLI stores one immutable file per observation and rebuilds
+a build-scoped index:
+
+```powershell
+node scripts\record-combat-observation.mjs --input <edited-observation.json> --data-root D:\TL_Data --build 24118850
+```
+
+See `docs/combat-calibration-first-protocol.md`. Only manual, screenshot,
+user-created recording, and human-reviewed OCR evidence are accepted.
