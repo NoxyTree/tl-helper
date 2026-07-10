@@ -1,0 +1,10 @@
+{
+  "name": "@tl-helper/combat-engine",
+  "version": "0.0.0-milestone.2",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.mjs",
+  "scripts": {
+    "test": "node --test ../../scripts/tests/combat-engine.test.mjs ../../scripts/tests/combat-engine-formulas.test.mjs ../../scripts/tests/combat-engine-synthetic-branches.test.mjs"
+  }
+}

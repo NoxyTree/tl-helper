@@ -35,6 +35,7 @@ remain explicitly marked instead of being guessed.
 | Validation | Reference builds, browser checks, edge cases, asset casing, coverage, and inventories | `scripts/`, `out/coverage-audit/` |
 | Content intelligence | Evidence-based discovery and future patch comparison | `plans/upcoming-content-radar/` |
 | Combat data | Decoded formulas, coverage audit, unknowns, and validation cases | `plans/combat-simulator/` |
+| Combat engine | Deterministic fixed-point event simulation with provenance traces | `packages/combat-engine/` |
 | Update orchestrator | One guarded command for refresh, reports, web data, and verification | `scripts/update-tl-helper.mjs` |
 
 ## Data locations
@@ -117,6 +118,13 @@ locations, preflight checks, and safety boundaries.
   verified static calculator with immutable loadout, resolved stats, combat
   power, validation, ruleset, game-build provenance, and canonical JSON
   serialization.
+- Combat Simulator Milestone 2 is complete. The DOM-free combat engine provides
+  BigInt fixed-point arithmetic, seeded RNG, stable event ordering, immutable
+  BuildSnapshot references, unit state, cooldowns, resources, shields, buffs,
+  DoT/HoT events, canonical replay output, and provenance-enforced formulas.
+  Synthetic mitigation and normal/critical branches validate the architecture
+  but are explicitly not real game formulas. Unknown TL combat mechanics remain
+  non-executable. See `packages/combat-engine/README.md`.
 - Both the Armory and tracker now calculate through the same BuildSnapshot
   adapter used by automated verification.
 - Armory state and presets now use versioned, patch-safe persistence. Existing
@@ -146,7 +154,7 @@ locations, preflight checks, and safety boundaries.
   inherent stats. See `docs/stat-taxonomy.md` and
   `docs/stat-source-coverage-audit.md`.
 - The latest verification gate passed BuildSnapshot checks, 69/69 assertions
-  across three fixtures, all 12 edge checks, 64 JavaScript tests, and 92
+  across three fixtures, all 12 edge checks, 86 JavaScript tests, and 92
   collector tests.
 - Combat-power parity analysis now maps 1,280 items using source-aware evidence,
   with 161 unresolved. The decoded reference subtotal is 7,221, already 93
@@ -182,6 +190,7 @@ backed up before recovery, and build mismatches are surfaced to the user.
 - `plans/combat-simulator/combat-data-audit.md`: decoded combat-data findings
 - `plans/combat-simulator/combat-power-parity.md`: decoded component parity and replacement limits
 - `plans/combat-simulator/unknown-formulas.md`: mechanics that remain uncertain
+- `packages/combat-engine/README.md`: deterministic engine boundary and test command
 - `plans/upcoming-content-radar/`: content-intelligence architecture
 - `design-handoff/`: original application design references
 

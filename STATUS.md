@@ -1,17 +1,18 @@
 # Project status: TL data platform
 
-Updated 2026-07-10 after Combat Simulator Milestones 0 and 1. Current snapshot:
+Updated 2026-07-10 after Combat Simulator Milestones 0, 1, and 2. Current snapshot:
 game version `1.431.22.7761`, Steam build `24118850`, decoder `0.1.0`.
 
 TL-Helper now has a verified, one-command path from installed game archives to
 decoded, normalized, searchable, browser-ready data. Combat Simulator Milestone
-0 data discovery and Milestone 1 BuildSnapshot integration are complete. The
+0 data discovery, Milestone 1 BuildSnapshot integration, and Milestone 2
+deterministic engine are complete. The
 browser projection split, patch-safe Armory persistence, complete player-skill
 formula-map pass, source-aware combat-power comparison, and the first
 normalized stat-source index are also complete.
 The next priorities are complete manual healer and ranged Questlog panels,
 native combat-power aggregation, remaining formula mappings, and Combat
-Simulator Milestone 2.
+Simulator Milestone 3 formula ingestion and calibration.
 
 ## Current source-of-truth hierarchy
 
@@ -39,6 +40,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Asset casing | App-only 2,692 references: 2,269 exact and 423 case-insensitive; no missing references | `node --test scripts/tests/asset-case-index.test.mjs` |
 | Discovery evidence | Ascended Ramux and WP_CL evidence packets | `D:\TL_Data\reports\24118850\evidence\` |
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
+| Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
@@ -77,7 +79,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 64/64, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 86/86, collector tests
   92/92.
 
 ## Combat milestones
@@ -102,6 +104,16 @@ Combat Simulator Milestone 1 is also complete. The Armory and tracker both use
 resolved stats and sources, combat power, rune synergies, validation, ruleset,
 calculator version, and game-data build. Snapshots are deeply immutable,
 versioned, validated, and canonically serializable.
+
+Combat Simulator Milestone 2 is complete in `packages/combat-engine`. The
+engine is independent of the DOM and existing calculator, uses BigInt
+fixed-point arithmetic, seeded RNG, stable timestamp/phase/sequence ordering,
+explicit unit state, provenance-enforced formula registration, arithmetic
+traces, and canonical replay serialization. Admission for simultaneous actions
+is atomic, magnitudes are bounded, timed shields expire deterministically, and
+event expansion is capped. The synthetic mitigation and forced normal/critical
+fixture is architecture evidence only. Real mitigation, hit, critical, Heavy
+Attack, PvP, rounding order, and server timing remain unsupported until proven.
 
 Patch-safe Armory persistence is complete. State and presets use versioned
 documents with game-build provenance, legacy values migrate automatically,
@@ -171,9 +183,10 @@ index, and decoded-versus-live parity evidence before application verification.
 1. Complete full manual Questlog panels for healer and ranged builds.
 2. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 3. Resolve the remaining 29 skill mappings and 11 placeholder bases.
-4. Begin Combat Simulator Milestone 2, the deterministic engine skeleton.
-5. Build the seven-case single-ability Combat Lab after the engine boundary and
-   calibration labels are ready.
+4. Begin Combat Simulator Milestone 3 with reviewed coefficient ingestion and
+   explicit calibration evidence.
+5. Build the seven-case single-ability Combat Lab on the verified engine
+   boundary with precision labels for every unresolved mechanic.
 
 ## Read first next session
 
@@ -188,4 +201,5 @@ index, and decoded-versus-live parity evidence before application verification.
 9. `plans/combat-simulator/combat-data-audit.md`
 10. `plans/combat-simulator/unknown-formulas.md`
 11. `plans/combat-simulator/06-implementation-roadmap.md`
-12. `D:\TL_Data\reports\24118850\update-runs\latest.json`
+12. `packages/combat-engine/README.md`
+13. `D:\TL_Data\reports\24118850\update-runs\latest.json`
