@@ -132,7 +132,9 @@ locations, preflight checks, and safety boundaries.
   twelve explicit unresolved stages. Gaia and Swift Healing remain
   derived-high-confidence owner mappings; Distortion Veil is exact. No real
   mitigation, Base Damage selection, dynamic modifier, or rounding stage is
-  executable yet.
+  executable yet. The engine can inspect these expressions or produce an
+  explicitly opted-in tooltip-style projection from caller-supplied Base Damage,
+  but it cannot label that projection as final damage, healing, or shield health.
 - Both the Armory and tracker now calculate through the same BuildSnapshot
   adapter used by automated verification.
 - Armory state and presets now use versioned, patch-safe persistence. Existing
@@ -162,7 +164,7 @@ locations, preflight checks, and safety boundaries.
   inherent stats. See `docs/stat-taxonomy.md` and
   `docs/stat-source-coverage-audit.md`.
 - The latest verification gate passed BuildSnapshot checks, 69/69 assertions
-  across three fixtures, all 12 edge checks, 104 JavaScript tests, and 92
+  across three fixtures, all 12 edge checks, 115 JavaScript tests, and 92
   collector tests.
 - Combat-power parity analysis now maps 1,280 items using source-aware evidence,
   with 161 unresolved. The decoded reference subtotal is 7,221, already 93

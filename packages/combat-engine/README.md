@@ -53,3 +53,11 @@ stat IDs, owner-mapping evidence, source hash, decoder version, precision, and
 unresolved stages. It is evidence for the future single-action calculator, not
 an executable claim about mitigation, Base Damage selection, dynamic modifiers,
 or rounding.
+
+`loadCombatAbilityData()` validates and freezes a parsed artifact for stable
+lookups. `inspectAbilityMagnitude()` returns the reviewed expression without
+executing it. `projectAbilityMagnitude()` requires explicit
+`allowUncalibratedProjection: true` and a caller-supplied Base Damage value.
+Its numeric result is always labeled `tooltip_coefficient_projection`,
+`pre_resolution`, and `overall: unsupported`; it is never final damage, healing,
+or shield capacity.

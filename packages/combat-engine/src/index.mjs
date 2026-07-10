@@ -16,4 +16,10 @@ export {
   normalizeAbilityDefinition,
   validateAbilityDefinition,
 } from "./ability-definition.mjs";
+export {
+  COMBAT_ABILITY_DATA_SCHEMA,
+  COMBAT_ABILITY_DATA_SCHEMA_VERSION,
+  loadCombatAbilityData,
+} from "./ability-data.mjs";
+export { inspectAbilityMagnitude, projectAbilityMagnitude } from "./ability-magnitude.mjs";
 export { runSimulation, serializeSimulation } from "./simulation.mjs";

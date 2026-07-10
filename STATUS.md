@@ -80,7 +80,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 104/104, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 115/115, collector tests
   92/92.
 
 ## Combat milestones
@@ -123,6 +123,11 @@ and Swift Healing use reviewed derived owner mappings because the table has no
 owner foreign key. Distortion Veil has exact localization-linked evidence.
 Stalwart Bastion was corrected in the validation plan: it is a damage-reduction
 buff, not a shield.
+
+The first Milestone 3 API boundary is also complete. It loads the reviewed
+artifact immutably, exposes expression-only inspection by default, and requires
+an explicit opt-in for a caller-supplied Base Damage projection. The result is
+always marked pre-resolution with final combat precision unsupported.
 
 Patch-safe Armory persistence is complete. State and presets use versioned
 documents with game-build provenance, legacy values migrate automatically,
@@ -192,8 +197,8 @@ index, and decoded-versus-live parity evidence before application verification.
 1. Complete full manual Questlog panels for healer and ranged builds.
 2. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 3. Resolve the remaining 29 skill mappings and 11 placeholder bases.
-4. Implement the Milestone 3 coefficient evaluator on the reviewed ability
-   artifact, returning pre-mitigation values with unsupported stages visible.
+4. Build the manual calibration harness for basis units, Base Damage selection,
+   rounding boundaries, and observed outcomes.
 5. Build the seven-case single-ability Combat Lab on the verified engine
    boundary with precision labels for every unresolved mechanic.
 

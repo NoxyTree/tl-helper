@@ -60,7 +60,9 @@ The current Claude assignment should finish uninterrupted. Its findings determin
 Status: in progress. The versioned ingestion boundary is complete for Gaia
 Crash, Swift Healing, and Distortion Veil. Five reviewed formula components are
 materialized with per-level coefficients and twelve explicit unresolved stages.
-No unresolved stage is executable yet.
+No unresolved stage is executable yet. A pure coefficient inspector and
+explicitly opted-in pre-resolution projection API are also complete; both keep
+the live outcome precision `unsupported`.
 
 ### Work
 
