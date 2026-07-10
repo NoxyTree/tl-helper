@@ -93,6 +93,7 @@ test("inspection is expression-only by default and makes final-outcome incomplet
   assert.deepEqual(result.expression.coefficients, { mul: "25500", add: "37" });
   assert.equal(result.semantic, "tooltip_coefficient_projection");
   assert.equal(result.precision.coefficient, "verified_exact");
+  assert.equal(result.precision.coefficientBasis, "verified_exact");
   assert.equal(result.precision.arithmeticProjection, "not_executed");
   assert.equal(result.precision.overall, "unsupported");
   assert.equal(result.completeness.isFinalCombatOutcome, false);
@@ -119,6 +120,8 @@ test("damage coefficient projection uses BigInt fixed point and records every ar
   assert.equal(result.completeness.mitigationApplied, false);
   assert.equal(result.precision.arithmeticProjection, "modeled");
   assert.equal(result.precision.liveOutcome, "unsupported");
+  assert.equal(result.sourceProvenance.coefficientBasisPrecision, "verified_exact");
+  assert.ok(!result.unresolvedStages.some(({ id }) => id === "projection.coefficient-basis"));
 });
 
 test("healing and shielding remain typed coefficient projections without outcome claims", () => {

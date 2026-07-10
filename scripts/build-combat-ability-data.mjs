@@ -32,6 +32,7 @@ export function defaultPaths({ build = DEFAULT_BUILD, dataRoot = DEFAULT_DATA_RO
     formulaTableFile: path.join(resolvedDataRoot, "decoded", String(build), "tables", "TLFormulaParameterNew.json"),
     reviewFile: path.join(REPO_ROOT, "scripts", "combat-abilities", "reviewed-abilities.json"),
     outputFile: path.join(resolvedDataRoot, "reports", String(build), "combat-abilities.json"),
+    browserOutputFile: path.join(REPO_ROOT, "web", "data", "combat-abilities.json"),
   };
 }
 
@@ -60,14 +61,16 @@ export function buildCombatAbilityDataFiles(options = {}) {
     abilities: result.abilities.map((ability) => normalizeAbilityDefinition(ability)),
   };
   atomicJson(files.outputFile, normalized);
-  return { outputFile: files.outputFile, result: normalized };
+  atomicJson(files.browserOutputFile, normalized);
+  return { outputFile: files.outputFile, browserOutputFile: files.browserOutputFile, result: normalized };
 }
 
 export function main() {
-  const { outputFile, result } = buildCombatAbilityDataFiles();
+  const { outputFile, browserOutputFile, result } = buildCombatAbilityDataFiles();
   const formulaComponents = result.abilities.reduce((total, ability) => total + ability.formulaComponents.length, 0);
   console.log(JSON.stringify({
     outputFile,
+    browserOutputFile,
     gameBuild: result.gameBuild,
     abilities: result.abilities.length,
     formulaComponents,

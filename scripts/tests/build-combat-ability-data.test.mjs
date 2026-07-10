@@ -19,6 +19,7 @@ function fixture(directory) {
   const formulaTableFile = path.join(directory, "formula.json");
   const reviewFile = path.join(directory, "review.json");
   const outputFile = path.join(directory, "nested", "combat-abilities.json");
+  const browserOutputFile = path.join(directory, "web", "combat-abilities.json");
   const row = {
     skill_level: 1,
     formula_type: "EFormulaType::kAmountFromAttackPower",
@@ -89,17 +90,18 @@ function fixture(directory) {
       }],
     }],
   });
-  return { build: BUILD, skillsFile, skillFormulaMapFile, formulaTableFile, reviewFile, outputFile };
+  return { build: BUILD, skillsFile, skillFormulaMapFile, formulaTableFile, reviewFile, outputFile, browserOutputFile };
 }
 
 test("writes a validated build-scoped ability bundle atomically", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "tl-combat-abilities-"));
   try {
     const files = fixture(directory);
-    const { result } = buildCombatAbilityDataFiles(files);
+    const { result, browserOutputFile } = buildCombatAbilityDataFiles(files);
     assert.equal(result.gameBuild, BUILD);
     assert.deepEqual(result.abilities.map((ability) => ability.id), ["test-ability"]);
     assert.deepEqual(JSON.parse(readFileSync(files.outputFile, "utf8")), result);
+    assert.deepEqual(JSON.parse(readFileSync(browserOutputFile, "utf8")), result);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

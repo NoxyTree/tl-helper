@@ -1,0 +1,5488 @@
+{
+  "schema": "tl-helper.combat-ability-data",
+  "schemaVersion": 1,
+  "gameBuild": "24118850",
+  "abilities": [
+    {
+      "schema": "tl-helper.combat-ability-definition",
+      "schemaVersion": 1,
+      "gameBuild": "24118850",
+      "id": "distortion-veil",
+      "abilityId": "distortion-veil",
+      "skillSetId": "SkillSet_WP_ORB_Active_Shield",
+      "name": "Distortion Veil",
+      "weapon": "orb",
+      "skillType": "active",
+      "kind": "shielding",
+      "skillLevelRange": {
+        "minimum": 1,
+        "maximum": 21
+      },
+      "formulaComponents": [
+        {
+          "id": "shield-duration",
+          "gameBuild": "24118850",
+          "skillLevelRange": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "sourceTable": "TLFormulaParameterNew",
+          "sourceRow": "ORB_Active_Shield_Duration",
+          "formulaType": "EFormulaType::kAmountFromMinMax",
+          "rawCoefficients": {
+            "min": [
+              "3000"
+            ],
+            "max": [
+              "3000"
+            ],
+            "add": [
+              "0"
+            ],
+            "mul": [
+              "0"
+            ],
+            "mul2": [
+              "0"
+            ],
+            "mul3": [
+              "0"
+            ],
+            "tooltip1": [
+              "3"
+            ],
+            "tooltip2": [
+              "0"
+            ]
+          },
+          "units": {
+            "min": "milliseconds",
+            "max": "milliseconds",
+            "add": "milliseconds",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "seconds",
+            "tooltip2": "display_points"
+          },
+          "precision": "verified_exact",
+          "provenance": "extracted",
+          "evidence": [
+            {
+              "kind": "localization",
+              "reference": "TLStringSkillDesc:TEXT_SKILL_DESC_WP_ORB_Active_Shield.tooltip1",
+              "gameBuild": "24118850"
+            }
+          ],
+          "role": "duration",
+          "effectKind": "shielding",
+          "mappingClass": "exact",
+          "mappingEvidence": [
+            {
+              "field": "tooltip1",
+              "key": "TEXT_SKILL_DESC_WP_ORB_Active_Shield",
+              "namespace": "TLStringSkillDesc"
+            }
+          ],
+          "rawLevels": [
+            {
+              "skillLevel": 1,
+              "formulaType": "EFormulaType::kAmountFromMinMax",
+              "min": "3000",
+              "max": "3000",
+              "add": "0",
+              "mul": "0",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "3",
+              "tooltip2": "0",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_Duration",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 0,
+                "dynamic_stat_id1": "ORB_Active_Shield_Duration",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromMinMax",
+                "max": 3000,
+                "min": 3000,
+                "mul": 0,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 1,
+                "tooltip1": 3,
+                "tooltip2": 0
+              }
+            }
+          ],
+          "dynamicStatIdsByLevel": [
+            {
+              "skillLevel": 1,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_Duration",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            }
+          ],
+          "source": {
+            "table": "TLFormulaParameterNew",
+            "rowId": "ORB_Active_Shield_Duration",
+            "gameBuild": "24118850",
+            "sourcePath": "D:/TL_Extracted/data/TL/Content/Game/Client/Table/TLFormulaParameterNew.uasset",
+            "sourceSha256": "be0b30086faf1a5e63e89cf42944beed3287e824930cecfac1c57cd380e3fb92",
+            "decoderVersion": "0.1.0"
+          }
+        },
+        {
+          "id": "shield-health",
+          "gameBuild": "24118850",
+          "skillLevelRange": {
+            "minimum": 1,
+            "maximum": 21
+          },
+          "sourceTable": "TLFormulaParameterNew",
+          "sourceRow": "ORB_Active_Shield_ShieldHp",
+          "formulaType": "EFormulaType::kAmountFromAttackPower",
+          "rawCoefficients": {
+            "min": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "max": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "add": [
+              "600",
+              "665",
+              "730",
+              "795",
+              "860",
+              "925",
+              "990",
+              "1055",
+              "1120",
+              "1185",
+              "1250",
+              "1315",
+              "1380",
+              "1445",
+              "1510",
+              "1575",
+              "1640",
+              "1705",
+              "1770",
+              "1835",
+              "1900"
+            ],
+            "mul": [
+              "30000",
+              "30000",
+              "31500",
+              "31500",
+              "33500",
+              "35000",
+              "35000",
+              "37000",
+              "37000",
+              "38500",
+              "40000",
+              "40000",
+              "42000",
+              "42000",
+              "44000",
+              "44800",
+              "45600",
+              "46400",
+              "47200",
+              "48000",
+              "48800"
+            ],
+            "mul2": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "mul3": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "tooltip1": [
+              "300",
+              "300",
+              "315",
+              "315",
+              "335",
+              "350",
+              "350",
+              "370",
+              "370",
+              "385",
+              "400",
+              "400",
+              "420",
+              "420",
+              "440",
+              "448",
+              "456",
+              "464",
+              "472",
+              "480",
+              "488"
+            ],
+            "tooltip2": [
+              "600",
+              "665",
+              "730",
+              "795",
+              "860",
+              "925",
+              "990",
+              "1055",
+              "1120",
+              "1185",
+              "1250",
+              "1315",
+              "1380",
+              "1445",
+              "1510",
+              "1575",
+              "1640",
+              "1705",
+              "1770",
+              "1835",
+              "1900"
+            ]
+          },
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "verified_exact",
+          "provenance": "extracted",
+          "evidence": [
+            {
+              "kind": "localization",
+              "reference": "TLStringSkillDesc:TEXT_SKILL_DESC_WP_ORB_Active_Shield.tooltip1",
+              "gameBuild": "24118850"
+            },
+            {
+              "kind": "localization",
+              "reference": "TLStringSkillDesc:TEXT_SKILL_DESC_WP_ORB_Active_Shield.tooltip2",
+              "gameBuild": "24118850"
+            }
+          ],
+          "role": "shield-capacity",
+          "effectKind": "shielding",
+          "mappingClass": "exact",
+          "mappingEvidence": [
+            {
+              "field": "tooltip1",
+              "key": "TEXT_SKILL_DESC_WP_ORB_Active_Shield",
+              "namespace": "TLStringSkillDesc"
+            },
+            {
+              "field": "tooltip2",
+              "key": "TEXT_SKILL_DESC_WP_ORB_Active_Shield",
+              "namespace": "TLStringSkillDesc"
+            }
+          ],
+          "rawLevels": [
+            {
+              "skillLevel": 1,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "600",
+              "mul": "30000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "300",
+              "tooltip2": "600",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 600,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 30000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 1,
+                "tooltip1": 300,
+                "tooltip2": 600
+              }
+            },
+            {
+              "skillLevel": 2,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "665",
+              "mul": "30000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "300",
+              "tooltip2": "665",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 665,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 30000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 2,
+                "tooltip1": 300,
+                "tooltip2": 665
+              }
+            },
+            {
+              "skillLevel": 3,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "730",
+              "mul": "31500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "315",
+              "tooltip2": "730",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 730,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 31500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 3,
+                "tooltip1": 315,
+                "tooltip2": 730
+              }
+            },
+            {
+              "skillLevel": 4,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "795",
+              "mul": "31500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "315",
+              "tooltip2": "795",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 795,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 31500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 4,
+                "tooltip1": 315,
+                "tooltip2": 795
+              }
+            },
+            {
+              "skillLevel": 5,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "860",
+              "mul": "33500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "335",
+              "tooltip2": "860",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 860,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 33500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 5,
+                "tooltip1": 335,
+                "tooltip2": 860
+              }
+            },
+            {
+              "skillLevel": 6,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "925",
+              "mul": "35000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "350",
+              "tooltip2": "925",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 925,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 35000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 6,
+                "tooltip1": 350,
+                "tooltip2": 925
+              }
+            },
+            {
+              "skillLevel": 7,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "990",
+              "mul": "35000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "350",
+              "tooltip2": "990",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 990,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 35000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 7,
+                "tooltip1": 350,
+                "tooltip2": 990
+              }
+            },
+            {
+              "skillLevel": 8,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1055",
+              "mul": "37000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "370",
+              "tooltip2": "1055",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1055,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 37000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 8,
+                "tooltip1": 370,
+                "tooltip2": 1055
+              }
+            },
+            {
+              "skillLevel": 9,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1120",
+              "mul": "37000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "370",
+              "tooltip2": "1120",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1120,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 37000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 9,
+                "tooltip1": 370,
+                "tooltip2": 1120
+              }
+            },
+            {
+              "skillLevel": 10,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1185",
+              "mul": "38500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "385",
+              "tooltip2": "1185",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1185,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 38500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 10,
+                "tooltip1": 385,
+                "tooltip2": 1185
+              }
+            },
+            {
+              "skillLevel": 11,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1250",
+              "mul": "40000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "400",
+              "tooltip2": "1250",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1250,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 40000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 11,
+                "tooltip1": 400,
+                "tooltip2": 1250
+              }
+            },
+            {
+              "skillLevel": 12,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1315",
+              "mul": "40000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "400",
+              "tooltip2": "1315",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1315,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 40000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 12,
+                "tooltip1": 400,
+                "tooltip2": 1315
+              }
+            },
+            {
+              "skillLevel": 13,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1380",
+              "mul": "42000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "420",
+              "tooltip2": "1380",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1380,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 42000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 13,
+                "tooltip1": 420,
+                "tooltip2": 1380
+              }
+            },
+            {
+              "skillLevel": 14,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1445",
+              "mul": "42000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "420",
+              "tooltip2": "1445",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1445,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 42000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 14,
+                "tooltip1": 420,
+                "tooltip2": 1445
+              }
+            },
+            {
+              "skillLevel": 15,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1510",
+              "mul": "44000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "440",
+              "tooltip2": "1510",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1510,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 44000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 15,
+                "tooltip1": 440,
+                "tooltip2": 1510
+              }
+            },
+            {
+              "skillLevel": 16,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1575",
+              "mul": "44800",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "448",
+              "tooltip2": "1575",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1575,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 44800,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 16,
+                "tooltip1": 448,
+                "tooltip2": 1575
+              }
+            },
+            {
+              "skillLevel": 17,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1640",
+              "mul": "45600",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "456",
+              "tooltip2": "1640",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1640,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 45600,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 17,
+                "tooltip1": 456,
+                "tooltip2": 1640
+              }
+            },
+            {
+              "skillLevel": 18,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1705",
+              "mul": "46400",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "464",
+              "tooltip2": "1705",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1705,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 46400,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 18,
+                "tooltip1": 464,
+                "tooltip2": 1705
+              }
+            },
+            {
+              "skillLevel": 19,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1770",
+              "mul": "47200",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "472",
+              "tooltip2": "1770",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1770,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 47200,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 19,
+                "tooltip1": 472,
+                "tooltip2": 1770
+              }
+            },
+            {
+              "skillLevel": 20,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1835",
+              "mul": "48000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "480",
+              "tooltip2": "1835",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1835,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 48000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 20,
+                "tooltip1": 480,
+                "tooltip2": 1835
+              }
+            },
+            {
+              "skillLevel": 21,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1900",
+              "mul": "48800",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "488",
+              "tooltip2": "1900",
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1900,
+                "dynamic_stat_id1": "ORB_Active_Shield_ShieldHp",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 48800,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 21,
+                "tooltip1": 488,
+                "tooltip2": 1900
+              }
+            }
+          ],
+          "dynamicStatIdsByLevel": [
+            {
+              "skillLevel": 1,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 2,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 3,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 4,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 5,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 6,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 7,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 8,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 9,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 10,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 11,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 12,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 13,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 14,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 15,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 16,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 17,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 18,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 19,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 20,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 21,
+              "dynamicStatIds": [
+                "ORB_Active_Shield_ShieldHp",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            }
+          ],
+          "source": {
+            "table": "TLFormulaParameterNew",
+            "rowId": "ORB_Active_Shield_ShieldHp",
+            "gameBuild": "24118850",
+            "sourcePath": "D:/TL_Extracted/data/TL/Content/Game/Client/Table/TLFormulaParameterNew.uasset",
+            "sourceSha256": "be0b30086faf1a5e63e89cf42944beed3287e824930cecfac1c57cd380e3fb92",
+            "decoderVersion": "0.1.0"
+          }
+        }
+      ],
+      "unresolvedStages": [
+        {
+          "id": "base-damage-selection",
+          "gameBuild": "24118850",
+          "stage": "base-damage-selection",
+          "reason": "The formula coefficient is exact, but the live Base Damage source used for shield health is not confirmed.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#basis-units",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "dynamic-modifiers",
+          "gameBuild": "24118850",
+          "stage": "dynamic-modifiers",
+          "reason": "The self-referential shield-health and duration dynamic identifiers have not been assigned executable modifier semantics.",
+          "classification": "extractable",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "formula-row",
+              "reference": "TLFormulaParameterNew:ORB_Active_Shield_ShieldHp.dynamic_stat_id1",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "rounding-order",
+          "gameBuild": "24118850",
+          "stage": "rounding-order",
+          "reason": "The live shield-health rounding boundary is not confirmed.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "shield-modifier-expiry-interaction",
+          "gameBuild": "24118850",
+          "stage": "shield-expiry-interaction",
+          "reason": "The ordering of shield modifiers, incoming mitigation, depletion, expiry, and the Mana refund is not established.",
+          "classification": "currently_unknown",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "skill-description",
+              "reference": "SkillSet_WP_ORB_Active_Shield:depletion-and-expiry-refund",
+              "gameBuild": "24118850"
+            }
+          ]
+        }
+      ],
+      "source": {
+        "gameBuild": "24118850",
+        "skillProjection": "skills",
+        "skillFormulaMapSchema": "tl-helper.skill-formula-map"
+      }
+    },
+    {
+      "schema": "tl-helper.combat-ability-definition",
+      "schemaVersion": 1,
+      "gameBuild": "24118850",
+      "id": "gaia-crash",
+      "abilityId": "gaia-crash",
+      "skillSetId": "SkillSet_WP_SW2_S_GaiaCrash",
+      "name": "Gaia Crash",
+      "weapon": "sword2h",
+      "skillType": "active",
+      "kind": "damage",
+      "skillLevelRange": {
+        "minimum": 1,
+        "maximum": 21
+      },
+      "formulaComponents": [
+        {
+          "id": "primary-damage",
+          "gameBuild": "24118850",
+          "skillLevelRange": {
+            "minimum": 1,
+            "maximum": 21
+          },
+          "sourceTable": "TLFormulaParameterNew",
+          "sourceRow": "SW2_GaiaCrash_DD",
+          "formulaType": "EFormulaType::kAmountFromAttackPower",
+          "rawCoefficients": {
+            "min": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "max": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "add": [
+              "37",
+              "40",
+              "43",
+              "46",
+              "49",
+              "52",
+              "55",
+              "58",
+              "61",
+              "64",
+              "67",
+              "70",
+              "73",
+              "76",
+              "79",
+              "82",
+              "85",
+              "88",
+              "91",
+              "94",
+              "97"
+            ],
+            "mul": [
+              "25500",
+              "25500",
+              "26000",
+              "26000",
+              "26500",
+              "27000",
+              "27000",
+              "27500",
+              "27500",
+              "28000",
+              "28500",
+              "28500",
+              "29000",
+              "29000",
+              "29500",
+              "30100",
+              "30700",
+              "31300",
+              "31900",
+              "32500",
+              "33100"
+            ],
+            "mul2": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "mul3": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "tooltip1": [
+              "255",
+              "255",
+              "260",
+              "260",
+              "265",
+              "270",
+              "270",
+              "275",
+              "275",
+              "280",
+              "285",
+              "285",
+              "290",
+              "290",
+              "295",
+              "301",
+              "307",
+              "313",
+              "319",
+              "325",
+              "331"
+            ],
+            "tooltip2": [
+              "37",
+              "40",
+              "43",
+              "46",
+              "49",
+              "52",
+              "55",
+              "58",
+              "61",
+              "64",
+              "67",
+              "70",
+              "73",
+              "76",
+              "79",
+              "82",
+              "85",
+              "88",
+              "91",
+              "94",
+              "97"
+            ]
+          },
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "derived_high_confidence",
+          "provenance": "derived",
+          "evidence": [
+            {
+              "kind": "mapping",
+              "reference": "skill-formula-map:SkillSet_WP_SW2_S_GaiaCrash->SW2_GaiaCrash_DD",
+              "gameBuild": "24118850"
+            },
+            {
+              "kind": "review",
+              "reference": "plans/combat-simulator/initial-validation-cases.md#gaia-crash",
+              "gameBuild": "24118850"
+            }
+          ],
+          "role": "magnitude",
+          "effectKind": "damage",
+          "mappingClass": "derived",
+          "mappingEvidence": [
+            {
+              "convention": "WP_SW2_S_GaiaCrash -> SW2_GaiaCrash"
+            }
+          ],
+          "rawLevels": [
+            {
+              "skillLevel": 1,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "37",
+              "mul": "25500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "255",
+              "tooltip2": "37",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 37,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 25500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 1,
+                "tooltip1": 255,
+                "tooltip2": 37
+              }
+            },
+            {
+              "skillLevel": 2,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "40",
+              "mul": "25500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "255",
+              "tooltip2": "40",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 40,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 25500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 2,
+                "tooltip1": 255,
+                "tooltip2": 40
+              }
+            },
+            {
+              "skillLevel": 3,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "43",
+              "mul": "26000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "260",
+              "tooltip2": "43",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 43,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 26000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 3,
+                "tooltip1": 260,
+                "tooltip2": 43
+              }
+            },
+            {
+              "skillLevel": 4,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "46",
+              "mul": "26000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "260",
+              "tooltip2": "46",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 46,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 26000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 4,
+                "tooltip1": 260,
+                "tooltip2": 46
+              }
+            },
+            {
+              "skillLevel": 5,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "49",
+              "mul": "26500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "265",
+              "tooltip2": "49",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 49,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 26500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 5,
+                "tooltip1": 265,
+                "tooltip2": 49
+              }
+            },
+            {
+              "skillLevel": 6,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "52",
+              "mul": "27000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "270",
+              "tooltip2": "52",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 52,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 27000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 6,
+                "tooltip1": 270,
+                "tooltip2": 52
+              }
+            },
+            {
+              "skillLevel": 7,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "55",
+              "mul": "27000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "270",
+              "tooltip2": "55",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 55,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 27000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 7,
+                "tooltip1": 270,
+                "tooltip2": 55
+              }
+            },
+            {
+              "skillLevel": 8,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "58",
+              "mul": "27500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "275",
+              "tooltip2": "58",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 58,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 27500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 8,
+                "tooltip1": 275,
+                "tooltip2": 58
+              }
+            },
+            {
+              "skillLevel": 9,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "61",
+              "mul": "27500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "275",
+              "tooltip2": "61",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 61,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 27500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 9,
+                "tooltip1": 275,
+                "tooltip2": 61
+              }
+            },
+            {
+              "skillLevel": 10,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "64",
+              "mul": "28000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "280",
+              "tooltip2": "64",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 64,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 28000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 10,
+                "tooltip1": 280,
+                "tooltip2": 64
+              }
+            },
+            {
+              "skillLevel": 11,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "67",
+              "mul": "28500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "285",
+              "tooltip2": "67",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 67,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 28500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 11,
+                "tooltip1": 285,
+                "tooltip2": 67
+              }
+            },
+            {
+              "skillLevel": 12,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "70",
+              "mul": "28500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "285",
+              "tooltip2": "70",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 70,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 28500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 12,
+                "tooltip1": 285,
+                "tooltip2": 70
+              }
+            },
+            {
+              "skillLevel": 13,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "73",
+              "mul": "29000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "290",
+              "tooltip2": "73",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 73,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 29000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 13,
+                "tooltip1": 290,
+                "tooltip2": 73
+              }
+            },
+            {
+              "skillLevel": 14,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "76",
+              "mul": "29000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "290",
+              "tooltip2": "76",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 76,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 29000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 14,
+                "tooltip1": 290,
+                "tooltip2": 76
+              }
+            },
+            {
+              "skillLevel": 15,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "79",
+              "mul": "29500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "295",
+              "tooltip2": "79",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 79,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 29500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 15,
+                "tooltip1": 295,
+                "tooltip2": 79
+              }
+            },
+            {
+              "skillLevel": 16,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "82",
+              "mul": "30100",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "301",
+              "tooltip2": "82",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 82,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 30100,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 16,
+                "tooltip1": 301,
+                "tooltip2": 82
+              }
+            },
+            {
+              "skillLevel": 17,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "85",
+              "mul": "30700",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "307",
+              "tooltip2": "85",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 85,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 30700,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 17,
+                "tooltip1": 307,
+                "tooltip2": 85
+              }
+            },
+            {
+              "skillLevel": 18,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "88",
+              "mul": "31300",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "313",
+              "tooltip2": "88",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 88,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 31300,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 18,
+                "tooltip1": 313,
+                "tooltip2": 88
+              }
+            },
+            {
+              "skillLevel": 19,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "91",
+              "mul": "31900",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "319",
+              "tooltip2": "91",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 91,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 31900,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 19,
+                "tooltip1": 319,
+                "tooltip2": 91
+              }
+            },
+            {
+              "skillLevel": 20,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "94",
+              "mul": "32500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "325",
+              "tooltip2": "94",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 94,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 32500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 20,
+                "tooltip1": 325,
+                "tooltip2": 94
+              }
+            },
+            {
+              "skillLevel": 21,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "97",
+              "mul": "33100",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "331",
+              "tooltip2": "97",
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 97,
+                "dynamic_stat_id1": "None",
+                "dynamic_stat_id2": "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 33100,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 21,
+                "tooltip1": 331,
+                "tooltip2": 97
+              }
+            }
+          ],
+          "dynamicStatIdsByLevel": [
+            {
+              "skillLevel": 1,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 2,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 3,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 4,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 5,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 6,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 7,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 8,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 9,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 10,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 11,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 12,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 13,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 14,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 15,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 16,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 17,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 18,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 19,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 20,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 21,
+              "dynamicStatIds": [
+                "None",
+                "WP_Item_Gear_SW2_02_PC_DamageDown",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            }
+          ],
+          "source": {
+            "table": "TLFormulaParameterNew",
+            "rowId": "SW2_GaiaCrash_DD",
+            "gameBuild": "24118850",
+            "sourcePath": "D:/TL_Extracted/data/TL/Content/Game/Client/Table/TLFormulaParameterNew.uasset",
+            "sourceSha256": "be0b30086faf1a5e63e89cf42944beed3287e824930cecfac1c57cd380e3fb92",
+            "decoderVersion": "0.1.0"
+          }
+        }
+      ],
+      "unresolvedStages": [
+        {
+          "id": "base-damage-selection",
+          "gameBuild": "24118850",
+          "stage": "base-damage-selection",
+          "reason": "The client row supplies the attack-power coefficient, but the live base-damage or attack-power roll selected by the server is not confirmed.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#basis-units",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "dynamic-modifiers",
+          "gameBuild": "24118850",
+          "stage": "dynamic-modifiers",
+          "reason": "The decoded dynamic modifier WP_Item_Gear_SW2_02_PC_DamageDown has not been assigned an executable operation.",
+          "classification": "extractable",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "formula-row",
+              "reference": "TLFormulaParameterNew:SW2_GaiaCrash_DD.dynamic_stat_id2",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "rounding-order",
+          "gameBuild": "24118850",
+          "stage": "rounding-order",
+          "reason": "The live rounding boundaries and damage pipeline order are not confirmed.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "target-mitigation",
+          "gameBuild": "24118850",
+          "stage": "target-mitigation",
+          "reason": "The target defense to mitigation curve and its place in the damage pipeline are not calibrated.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#armor-mitigation",
+              "gameBuild": "24118850"
+            }
+          ]
+        }
+      ],
+      "source": {
+        "gameBuild": "24118850",
+        "skillProjection": "skills",
+        "skillFormulaMapSchema": "tl-helper.skill-formula-map"
+      }
+    },
+    {
+      "schema": "tl-helper.combat-ability-definition",
+      "schemaVersion": 1,
+      "gameBuild": "24118850",
+      "id": "swift-healing",
+      "abilityId": "swift-healing",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "name": "Swift Healing",
+      "weapon": "wand",
+      "skillType": "active",
+      "kind": "healing",
+      "skillLevelRange": {
+        "minimum": 1,
+        "maximum": 21
+      },
+      "formulaComponents": [
+        {
+          "id": "first-heal",
+          "gameBuild": "24118850",
+          "skillLevelRange": {
+            "minimum": 1,
+            "maximum": 21
+          },
+          "sourceTable": "TLFormulaParameterNew",
+          "sourceRow": "WA_Heal_Heal",
+          "formulaType": "EFormulaType::kAmountFromAttackPower",
+          "rawCoefficients": {
+            "min": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "max": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "add": [
+              "200",
+              "260",
+              "320",
+              "380",
+              "440",
+              "500",
+              "560",
+              "620",
+              "680",
+              "740",
+              "800",
+              "860",
+              "920",
+              "980",
+              "1040",
+              "1100",
+              "1160",
+              "1220",
+              "1280",
+              "1340",
+              "1400"
+            ],
+            "mul": [
+              "16500",
+              "16500",
+              "18000",
+              "18000",
+              "20000",
+              "21500",
+              "21500",
+              "23000",
+              "23000",
+              "25000",
+              "27000",
+              "27000",
+              "29000",
+              "29000",
+              "31000",
+              "31500",
+              "32000",
+              "32500",
+              "33000",
+              "33500",
+              "34000"
+            ],
+            "mul2": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "mul3": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "tooltip1": [
+              "165",
+              "165",
+              "180",
+              "180",
+              "200",
+              "215",
+              "215",
+              "230",
+              "230",
+              "250",
+              "270",
+              "270",
+              "290",
+              "290",
+              "310",
+              "315",
+              "320",
+              "325",
+              "330",
+              "335",
+              "340"
+            ],
+            "tooltip2": [
+              "200",
+              "260",
+              "320",
+              "380",
+              "440",
+              "500",
+              "560",
+              "620",
+              "680",
+              "740",
+              "800",
+              "860",
+              "920",
+              "980",
+              "1040",
+              "1100",
+              "1160",
+              "1220",
+              "1280",
+              "1340",
+              "1400"
+            ]
+          },
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "derived_high_confidence",
+          "provenance": "derived",
+          "evidence": [
+            {
+              "kind": "mapping",
+              "reference": "skill-formula-map:SkillSet_WP_WA_GR_S_Heal->WA_Heal_Heal",
+              "gameBuild": "24118850"
+            },
+            {
+              "kind": "review",
+              "reference": "plans/combat-simulator/initial-validation-cases.md#swift-healing",
+              "gameBuild": "24118850"
+            }
+          ],
+          "role": "first-cast-magnitude",
+          "effectKind": "healing",
+          "mappingClass": "derived",
+          "mappingEvidence": [
+            {
+              "convention": "WP_WA_GR_S_Heal -> WA_Heal"
+            }
+          ],
+          "rawLevels": [
+            {
+              "skillLevel": 1,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "200",
+              "mul": "16500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "165",
+              "tooltip2": "200",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 200,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 16500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 1,
+                "tooltip1": 165,
+                "tooltip2": 200
+              }
+            },
+            {
+              "skillLevel": 2,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "260",
+              "mul": "16500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "165",
+              "tooltip2": "260",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 260,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 16500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 2,
+                "tooltip1": 165,
+                "tooltip2": 260
+              }
+            },
+            {
+              "skillLevel": 3,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "320",
+              "mul": "18000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "180",
+              "tooltip2": "320",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 320,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 18000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 3,
+                "tooltip1": 180,
+                "tooltip2": 320
+              }
+            },
+            {
+              "skillLevel": 4,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "380",
+              "mul": "18000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "180",
+              "tooltip2": "380",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 380,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 18000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 4,
+                "tooltip1": 180,
+                "tooltip2": 380
+              }
+            },
+            {
+              "skillLevel": 5,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "440",
+              "mul": "20000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "200",
+              "tooltip2": "440",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 440,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 20000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 5,
+                "tooltip1": 200,
+                "tooltip2": 440
+              }
+            },
+            {
+              "skillLevel": 6,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "500",
+              "mul": "21500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "215",
+              "tooltip2": "500",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 500,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 21500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 6,
+                "tooltip1": 215,
+                "tooltip2": 500
+              }
+            },
+            {
+              "skillLevel": 7,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "560",
+              "mul": "21500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "215",
+              "tooltip2": "560",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 560,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 21500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 7,
+                "tooltip1": 215,
+                "tooltip2": 560
+              }
+            },
+            {
+              "skillLevel": 8,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "620",
+              "mul": "23000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "230",
+              "tooltip2": "620",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 620,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 23000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 8,
+                "tooltip1": 230,
+                "tooltip2": 620
+              }
+            },
+            {
+              "skillLevel": 9,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "680",
+              "mul": "23000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "230",
+              "tooltip2": "680",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 680,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 23000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 9,
+                "tooltip1": 230,
+                "tooltip2": 680
+              }
+            },
+            {
+              "skillLevel": 10,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "740",
+              "mul": "25000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "250",
+              "tooltip2": "740",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 740,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 25000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 10,
+                "tooltip1": 250,
+                "tooltip2": 740
+              }
+            },
+            {
+              "skillLevel": 11,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "800",
+              "mul": "27000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "270",
+              "tooltip2": "800",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 800,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 27000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 11,
+                "tooltip1": 270,
+                "tooltip2": 800
+              }
+            },
+            {
+              "skillLevel": 12,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "860",
+              "mul": "27000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "270",
+              "tooltip2": "860",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 860,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 27000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 12,
+                "tooltip1": 270,
+                "tooltip2": 860
+              }
+            },
+            {
+              "skillLevel": 13,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "920",
+              "mul": "29000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "290",
+              "tooltip2": "920",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 920,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 29000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 13,
+                "tooltip1": 290,
+                "tooltip2": 920
+              }
+            },
+            {
+              "skillLevel": 14,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "980",
+              "mul": "29000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "290",
+              "tooltip2": "980",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 980,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 29000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 14,
+                "tooltip1": 290,
+                "tooltip2": 980
+              }
+            },
+            {
+              "skillLevel": 15,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1040",
+              "mul": "31000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "310",
+              "tooltip2": "1040",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1040,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 31000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 15,
+                "tooltip1": 310,
+                "tooltip2": 1040
+              }
+            },
+            {
+              "skillLevel": 16,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1100",
+              "mul": "31500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "315",
+              "tooltip2": "1100",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1100,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 31500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 16,
+                "tooltip1": 315,
+                "tooltip2": 1100
+              }
+            },
+            {
+              "skillLevel": 17,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1160",
+              "mul": "32000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "320",
+              "tooltip2": "1160",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1160,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 32000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 17,
+                "tooltip1": 320,
+                "tooltip2": 1160
+              }
+            },
+            {
+              "skillLevel": 18,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1220",
+              "mul": "32500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "325",
+              "tooltip2": "1220",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1220,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 32500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 18,
+                "tooltip1": 325,
+                "tooltip2": 1220
+              }
+            },
+            {
+              "skillLevel": 19,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1280",
+              "mul": "33000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "330",
+              "tooltip2": "1280",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1280,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 33000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 19,
+                "tooltip1": 330,
+                "tooltip2": 1280
+              }
+            },
+            {
+              "skillLevel": 20,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1340",
+              "mul": "33500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "335",
+              "tooltip2": "1340",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1340,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 33500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 20,
+                "tooltip1": 335,
+                "tooltip2": 1340
+              }
+            },
+            {
+              "skillLevel": 21,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "1400",
+              "mul": "34000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "340",
+              "tooltip2": "1400",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 1400,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 34000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 21,
+                "tooltip1": 340,
+                "tooltip2": 1400
+              }
+            }
+          ],
+          "dynamicStatIdsByLevel": [
+            {
+              "skillLevel": 1,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 2,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 3,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 4,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 5,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 6,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 7,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 8,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 9,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 10,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 11,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 12,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 13,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 14,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 15,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 16,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 17,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 18,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 19,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 20,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 21,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            }
+          ],
+          "source": {
+            "table": "TLFormulaParameterNew",
+            "rowId": "WA_Heal_Heal",
+            "gameBuild": "24118850",
+            "sourcePath": "D:/TL_Extracted/data/TL/Content/Game/Client/Table/TLFormulaParameterNew.uasset",
+            "sourceSha256": "be0b30086faf1a5e63e89cf42944beed3287e824930cecfac1c57cd380e3fb92",
+            "decoderVersion": "0.1.0"
+          }
+        },
+        {
+          "id": "second-heal",
+          "gameBuild": "24118850",
+          "skillLevelRange": {
+            "minimum": 1,
+            "maximum": 21
+          },
+          "sourceTable": "TLFormulaParameterNew",
+          "sourceRow": "WA_Heal_Heal_Double",
+          "formulaType": "EFormulaType::kAmountFromAttackPower",
+          "rawCoefficients": {
+            "min": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "max": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "add": [
+              "140",
+              "182",
+              "224",
+              "266",
+              "308",
+              "350",
+              "392",
+              "434",
+              "476",
+              "518",
+              "560",
+              "602",
+              "644",
+              "686",
+              "728",
+              "770",
+              "812",
+              "854",
+              "896",
+              "938",
+              "980"
+            ],
+            "mul": [
+              "11550",
+              "11550",
+              "12600",
+              "12600",
+              "14000",
+              "15050",
+              "15050",
+              "16100",
+              "16100",
+              "17500",
+              "18900",
+              "18900",
+              "20300",
+              "20300",
+              "21700",
+              "22050",
+              "22400",
+              "22750",
+              "23100",
+              "23450",
+              "23800"
+            ],
+            "mul2": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "mul3": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "tooltip1": [
+              "115.5",
+              "115.5",
+              "126",
+              "126",
+              "140",
+              "150.5",
+              "150.5",
+              "161",
+              "161",
+              "175",
+              "189",
+              "189",
+              "203",
+              "203",
+              "217",
+              "220.5",
+              "224",
+              "227.5",
+              "231",
+              "234.5",
+              "238"
+            ],
+            "tooltip2": [
+              "140",
+              "182",
+              "224",
+              "266",
+              "308",
+              "350",
+              "392",
+              "434",
+              "476",
+              "518",
+              "560",
+              "602",
+              "644",
+              "686",
+              "728",
+              "770",
+              "812",
+              "854",
+              "896",
+              "938",
+              "980"
+            ]
+          },
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "derived_high_confidence",
+          "provenance": "derived",
+          "evidence": [
+            {
+              "kind": "mapping",
+              "reference": "skill-formula-map:SkillSet_WP_WA_GR_S_Heal->WA_Heal_Heal_Double",
+              "gameBuild": "24118850"
+            },
+            {
+              "kind": "review",
+              "reference": "plans/combat-simulator/initial-validation-cases.md#swift-healing",
+              "gameBuild": "24118850"
+            }
+          ],
+          "role": "second-cast-magnitude",
+          "effectKind": "healing",
+          "mappingClass": "derived",
+          "mappingEvidence": [
+            {
+              "convention": "WP_WA_GR_S_Heal -> WA_Heal"
+            }
+          ],
+          "rawLevels": [
+            {
+              "skillLevel": 1,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "140",
+              "mul": "11550",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "115.5",
+              "tooltip2": "140",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 140,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 11550,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 1,
+                "tooltip1": 115.5,
+                "tooltip2": 140
+              }
+            },
+            {
+              "skillLevel": 2,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "182",
+              "mul": "11550",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "115.5",
+              "tooltip2": "182",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 182,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 11550,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 2,
+                "tooltip1": 115.5,
+                "tooltip2": 182
+              }
+            },
+            {
+              "skillLevel": 3,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "224",
+              "mul": "12600",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "126",
+              "tooltip2": "224",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 224,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 12600,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 3,
+                "tooltip1": 126,
+                "tooltip2": 224
+              }
+            },
+            {
+              "skillLevel": 4,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "266",
+              "mul": "12600",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "126",
+              "tooltip2": "266",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 266,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 12600,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 4,
+                "tooltip1": 126,
+                "tooltip2": 266
+              }
+            },
+            {
+              "skillLevel": 5,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "308",
+              "mul": "14000",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "140",
+              "tooltip2": "308",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 308,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 14000,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 5,
+                "tooltip1": 140,
+                "tooltip2": 308
+              }
+            },
+            {
+              "skillLevel": 6,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "350",
+              "mul": "15050",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "150.5",
+              "tooltip2": "350",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 350,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 15050,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 6,
+                "tooltip1": 150.5,
+                "tooltip2": 350
+              }
+            },
+            {
+              "skillLevel": 7,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "392",
+              "mul": "15050",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "150.5",
+              "tooltip2": "392",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 392,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 15050,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 7,
+                "tooltip1": 150.5,
+                "tooltip2": 392
+              }
+            },
+            {
+              "skillLevel": 8,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "434",
+              "mul": "16100",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "161",
+              "tooltip2": "434",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 434,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 16100,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 8,
+                "tooltip1": 161,
+                "tooltip2": 434
+              }
+            },
+            {
+              "skillLevel": 9,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "476",
+              "mul": "16100",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "161",
+              "tooltip2": "476",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 476,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 16100,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 9,
+                "tooltip1": 161,
+                "tooltip2": 476
+              }
+            },
+            {
+              "skillLevel": 10,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "518",
+              "mul": "17500",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "175",
+              "tooltip2": "518",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 518,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 17500,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 10,
+                "tooltip1": 175,
+                "tooltip2": 518
+              }
+            },
+            {
+              "skillLevel": 11,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "560",
+              "mul": "18900",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "189",
+              "tooltip2": "560",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 560,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 18900,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 11,
+                "tooltip1": 189,
+                "tooltip2": 560
+              }
+            },
+            {
+              "skillLevel": 12,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "602",
+              "mul": "18900",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "189",
+              "tooltip2": "602",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 602,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 18900,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 12,
+                "tooltip1": 189,
+                "tooltip2": 602
+              }
+            },
+            {
+              "skillLevel": 13,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "644",
+              "mul": "20300",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "203",
+              "tooltip2": "644",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 644,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 20300,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 13,
+                "tooltip1": 203,
+                "tooltip2": 644
+              }
+            },
+            {
+              "skillLevel": 14,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "686",
+              "mul": "20300",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "203",
+              "tooltip2": "686",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 686,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 20300,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 14,
+                "tooltip1": 203,
+                "tooltip2": 686
+              }
+            },
+            {
+              "skillLevel": 15,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "728",
+              "mul": "21700",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "217",
+              "tooltip2": "728",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 728,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 21700,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 15,
+                "tooltip1": 217,
+                "tooltip2": 728
+              }
+            },
+            {
+              "skillLevel": 16,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "770",
+              "mul": "22050",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "220.5",
+              "tooltip2": "770",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 770,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 22050,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 16,
+                "tooltip1": 220.5,
+                "tooltip2": 770
+              }
+            },
+            {
+              "skillLevel": 17,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "812",
+              "mul": "22400",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "224",
+              "tooltip2": "812",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 812,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 22400,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 17,
+                "tooltip1": 224,
+                "tooltip2": 812
+              }
+            },
+            {
+              "skillLevel": 18,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "854",
+              "mul": "22750",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "227.5",
+              "tooltip2": "854",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 854,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 22750,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 18,
+                "tooltip1": 227.5,
+                "tooltip2": 854
+              }
+            },
+            {
+              "skillLevel": 19,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "896",
+              "mul": "23100",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "231",
+              "tooltip2": "896",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 896,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 23100,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 19,
+                "tooltip1": 231,
+                "tooltip2": 896
+              }
+            },
+            {
+              "skillLevel": 20,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "938",
+              "mul": "23450",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "234.5",
+              "tooltip2": "938",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 938,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 23450,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 20,
+                "tooltip1": 234.5,
+                "tooltip2": 938
+              }
+            },
+            {
+              "skillLevel": 21,
+              "formulaType": "EFormulaType::kAmountFromAttackPower",
+              "min": "0",
+              "max": "0",
+              "add": "980",
+              "mul": "23800",
+              "mul2": "0",
+              "mul3": "0",
+              "tooltip1": "238",
+              "tooltip2": "980",
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "raw": {
+                "add": 980,
+                "dynamic_stat_id1": "HealEffect",
+                "dynamic_stat_id2": "None",
+                "dynamic_stat_id3": "None",
+                "dynamic_stat_id4": "None",
+                "dynamic_stat_id5": "None",
+                "dynamic_stat_id6": "None",
+                "formula_type": "EFormulaType::kAmountFromAttackPower",
+                "max": 0,
+                "min": 0,
+                "mul": 23800,
+                "mul2": 0,
+                "mul3": 0,
+                "skill_level": 21,
+                "tooltip1": 238,
+                "tooltip2": 980
+              }
+            }
+          ],
+          "dynamicStatIdsByLevel": [
+            {
+              "skillLevel": 1,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 2,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 3,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 4,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 5,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 6,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 7,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 8,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 9,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 10,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 11,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 12,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 13,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 14,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 15,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 16,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 17,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 18,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 19,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 20,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            },
+            {
+              "skillLevel": 21,
+              "dynamicStatIds": [
+                "HealEffect",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ]
+            }
+          ],
+          "source": {
+            "table": "TLFormulaParameterNew",
+            "rowId": "WA_Heal_Heal_Double",
+            "gameBuild": "24118850",
+            "sourcePath": "D:/TL_Extracted/data/TL/Content/Game/Client/Table/TLFormulaParameterNew.uasset",
+            "sourceSha256": "be0b30086faf1a5e63e89cf42944beed3287e824930cecfac1c57cd380e3fb92",
+            "decoderVersion": "0.1.0"
+          }
+        }
+      ],
+      "unresolvedStages": [
+        {
+          "id": "base-damage-selection",
+          "gameBuild": "24118850",
+          "stage": "base-damage-selection",
+          "reason": "The attack-power source used for healing and its live roll selection are not confirmed.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#basis-units",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "dynamic-modifiers",
+          "gameBuild": "24118850",
+          "stage": "dynamic-modifiers",
+          "reason": "HealEffect is present in the formula rows, but its exact operation and ordering are not yet materialized.",
+          "classification": "extractable",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "formula-row",
+              "reference": "TLFormulaParameterNew:WA_Heal_Heal.dynamic_stat_id1",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "rounding-order",
+          "gameBuild": "24118850",
+          "stage": "rounding-order",
+          "reason": "The live healing rounding boundaries and modifier order are not confirmed.",
+          "classification": "calibration_required",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "audit",
+              "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order",
+              "gameBuild": "24118850"
+            }
+          ]
+        },
+        {
+          "id": "third-heal-accessibility",
+          "gameBuild": "24118850",
+          "stage": "cast-accessibility",
+          "reason": "The conditions that expose a third Swift Healing cast are not established by the two reviewed magnitude rows.",
+          "classification": "currently_unknown",
+          "precision": "unsupported",
+          "provenance": "unresolved",
+          "evidence": [
+            {
+              "kind": "review",
+              "reference": "plans/combat-simulator/initial-validation-cases.md#swift-healing",
+              "gameBuild": "24118850"
+            }
+          ]
+        }
+      ],
+      "source": {
+        "gameBuild": "24118850",
+        "skillProjection": "skills",
+        "skillFormulaMapSchema": "tl-helper.skill-formula-map"
+      }
+    }
+  ]
+}

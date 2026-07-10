@@ -7,6 +7,17 @@ Evidence: 21 immutable observations in `D:\TL_Data\calibration\24118850\`
 under `screenshots\`. Character: Varkesh, level 60. Live client version string
 was not captured; every checked value matches build `24118850` decoded data.
 
+### Session condition added after review
+
+The player subsequently confirmed that Stellarite was equipped during these
+observations. The recorded stat-panel Base Damage ranges already include its
+static attack-power modifier, so this does not change the tooltip-coefficient
+verification or the evidence for a varying per-cast Base Damage roll. It does
+prevent treating the Gaia Crash hits as a clean consumable-free pipeline test,
+and Stellarite applicability must be controlled explicitly before using future
+heal or shield samples to discriminate multipliers. This note adds context to
+the immutable observations; it does not alter them.
+
 ## Finding 1 — tooltip coefficient basis: VERIFIED (protocol groups 1–3 complete)
 
 All three skill tooltips match their decoded formula rows exactly, at every

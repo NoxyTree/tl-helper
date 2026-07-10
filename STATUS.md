@@ -28,7 +28,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 
 | Layer | Current state | Entry point or evidence |
 | --- | --- | --- |
-| Web application | Armory, tracker, achievements, static build calculator | `web/` |
+| Web application | Armory, tracker, achievements, static build calculator, and first Combat Lab | `web/` |
 | BuildSnapshot v1 | Immutable, versioned static-build contract used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
 | Static calculation regression | 69/69 assertions across 3 fixtures; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
 | Coverage audit | All four stated counts validate from the new data root | `node scripts/audit-questlog-coverage.mjs` |
@@ -43,6 +43,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
 | Real ability ingestion | 3 abilities, 5 reviewed components, 12 explicit unresolved stages | `D:\TL_Data\reports\24118850\combat-abilities.json` |
 | Calibration harness | 21 real observations recorded 2026-07-10: tooltip basis verified for all 3 abilities, per-cast Base Damage roll strongly supported | `plans/combat-simulator/calibration-findings-2026-07-10.md` |
+| Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, complete fixed-point traces, and explicit unsupported outcome/mitigation boundaries | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
@@ -81,7 +82,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 132/132, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 138/138, collector tests
   92/92.
 
 ## Combat milestones
@@ -96,9 +97,11 @@ combat-pipeline order, rounding, server tick behavior, threat coefficients, or
 all PvP modifiers. These are catalogued in
 `plans/combat-simulator/unknown-formulas.md` and must not be invented.
 
-The smallest trustworthy future Combat Lab is a single-ability calculator using
-the seven cases in `plans/combat-simulator/initial-validation-cases.md`, with a
-formula trace and precision label for every stage.
+The first trustworthy Combat Lab is now available at `web/combat-lab.html`.
+It uses saved BuildSnapshots, reviewed real ability rows, verified Epic and
+Heroic level mappings, Base Damage range endpoints, complete calculation
+traces, and stage-level precision. It does not apply target mitigation or any
+forced live outcome.
 
 Combat Simulator Milestone 1 is also complete. The Armory and tracker both use
 `resolveBuildSnapshot()` as the stable browser boundary around
@@ -129,6 +132,13 @@ The first Milestone 3 API boundary is also complete. It loads the reviewed
 artifact immutably, exposes expression-only inspection by default, and requires
 an explicit opt-in for a caller-supplied Base Damage projection. The result is
 always marked pre-resolution with final combat precision unsupported.
+
+The first Milestone 3 user-facing slice is complete. The Combat Lab projects
+both ends of a selected source build's Base Damage range, maps only the
+live-verified Epic and Heroic level windows, preserves both fixed-point traces,
+and exposes forced outcomes as descriptive but non-executable. The browser
+runtime is a byte-exact generated mirror of the authored engine modules, and
+the reviewed ability artifact is refreshed by the normal combat-ability build.
 
 The first safe calibration harness is complete. It records immutable manual
 observations under `D:\TL_Data\calibration\<build>`, rejects placeholder data,
@@ -202,13 +212,13 @@ index, and decoded-versus-live parity evidence before application verification.
 
 ## Recommended refinement order
 
-1. Complete full manual Questlog panels for healer and ranged builds.
-2. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
-3. Resolve the remaining 29 skill mappings and 11 placeholder bases.
-4. Collect the first reviewed Swift Healing and tooltip observations using the
-   manual calibration protocol.
-5. Build the seven-case single-ability Combat Lab on the verified engine
-   boundary with precision labels for every unresolved mechanic.
+1. Materialize the nine reviewed Heavy Attack skill/passive sources.
+2. Build the calibration hypothesis enumerator for multiplier, roll, and
+   rounding candidates.
+3. Wire additional reviewed real abilities into the Combat Lab one case at a
+   time.
+4. Complete full manual Questlog panels for healer and ranged builds.
+5. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 
 ## Read first next session
 

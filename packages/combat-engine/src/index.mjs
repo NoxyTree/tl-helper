@@ -23,6 +23,13 @@ export {
 } from "./ability-data.mjs";
 export { inspectAbilityMagnitude, projectAbilityMagnitude } from "./ability-magnitude.mjs";
 export {
+  ABILITY_RARITY_TIER,
+  FORCED_ABILITY_OUTCOME,
+  resolveAbilitySkillLevel,
+  projectAbilityMagnitudeRange,
+  describeForcedAbilityOutcome,
+} from "./ability-range-projection.mjs";
+export {
   CALIBRATION_OBSERVATION_SCHEMA,
   CALIBRATION_OBSERVATION_SCHEMA_VERSION,
   CALIBRATION_SCENARIO_MODE,
