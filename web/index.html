@@ -767,9 +767,6 @@
                 <div style="position: relative; width: {{ wheelSurfaceSize }}px; height: {{ wheelSurfaceSize }}px;">
                 <div style="position: absolute; left: {{ wheelStageOffset }}px; top: {{ wheelStageOffset }}px; width: 1260px; height: 1260px; transform: scale({{ wheelCombinedScale }}); transform-origin: top left;">
                   <svg viewBox="0 0 1260 1260" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;">
-                    <sc-for list="{{ wheelWashes }}" as="wash" hint-placeholder-count="4">
-                      <circle cx="{{ wash.cx }}" cy="{{ wash.cy }}" r="{{ wash.r }}" style="fill: {{ wash.color }}; opacity: {{ wash.opacity }};"></circle>
-                    </sc-for>
                     <sc-for list="{{ wheelRings }}" as="ring" hint-placeholder-count="4">
                       <circle cx="630" cy="630" r="{{ ring.r }}" style="fill: none; stroke: {{ ring.color }}; stroke-width: 2;"></circle>
                     </sc-for>
@@ -2160,7 +2157,6 @@ class Component extends DCLogic {
     return {
       id: slotId,
       label: slot.label,
-      title: item ? `${item.name} — ${core.gradeName(item.grade)} · click to edit` : `Empty ${slot.label} — click to choose`,
       icon: item?.imageUrl ?? "",
       empty: !item,
       level: item ? core.selectedItemLevel(item, selection.level) : "",
@@ -2170,7 +2166,6 @@ class Component extends DCLogic {
       runeDots,
       runeSummary: `${runeDots.filter((dot) => dot.filled).length}/3`,
       cursor: runeMode && item && !runeEligible ? "not-allowed" : "pointer",
-      runeModeTitle: runeMode ? (runeEligible ? `${item?.name ?? slot.label}: edit rune sockets` : `${slot.label} has no rune sockets`) : "",
       title: runeMode ? (runeEligible ? `${item?.name ?? slot.label}: edit rune sockets` : `${slot.label} has no rune sockets`) : item ? `${item.name}, click to edit` : `Empty ${slot.label}, click to choose`,
       flash: this.state.equipFlash === slotId ? "tlEquipPulse 0.9s ease-out" : "none",
       open: () => {
@@ -2268,25 +2263,28 @@ class Component extends DCLogic {
     const gearCount = core.EQUIPMENT_SLOTS.filter((slot) => build.equipment[slot.id]?.itemId).length;
     const artifactCount = core.ARTIFACT_SLOTS.filter((slot) => build.artifacts[slot.id]?.itemId).length;
     const runeCount = Object.values(build.equipment).reduce((total, sel) => total + (sel.runes ?? []).filter((row) => row.runeId).length, 0);
+    const gearTotal = core.EQUIPMENT_SLOTS.length;
+    const artifactTotal = core.ARTIFACT_SLOTS.length;
+    const runeCapacity = core.EQUIPMENT_SLOTS.filter((slot) => core.runeChoicesForCategory(core.runeCategoryForSlot(slot.id)).length > 0).length * 3;
     const activeSkillCount = skillRowsAll.filter((row) => row.loadoutType === "active").length;
     const passiveSkillCount = skillRowsAll.filter((row) => row.loadoutType === "passive").length;
     const masteryCount = Object.keys(build.masteries ?? {}).length;
     const supportCount = core.SUPPORT_SLOTS.filter((slot) => build.supportSlots?.[slot.id]?.itemId).length;
     const overviewRows = [
-      { label: "Gear", value: `${gearCount}/15`, color: gearCount === 15 ? "#7ee0a6" : "#f3e9d4" },
-      { label: "Artifacts", value: `${artifactCount}/6`, color: artifactCount === 6 ? "#7ee0a6" : "#f3e9d4" },
-      { label: "Runes", value: `${runeCount}/42`, color: runeCount === 42 ? "#7ee0a6" : "#f3e9d4" },
+      { label: "Gear", value: `${gearCount}/${gearTotal}`, color: gearCount === gearTotal ? "#7ee0a6" : "#f3e9d4" },
+      { label: "Artifacts", value: `${artifactCount}/${artifactTotal}`, color: artifactCount === artifactTotal ? "#7ee0a6" : "#f3e9d4" },
+      { label: "Runes", value: `${runeCount}/${runeCapacity}`, color: runeCount === runeCapacity ? "#7ee0a6" : "#f3e9d4" },
       { label: "Active", value: `${activeSkillCount}/${core.ACTIVE_SKILL_CAP}`, color: activeSkillCount === core.ACTIVE_SKILL_CAP ? "#7ee0a6" : "#f3e9d4" },
       { label: "Passive", value: `${passiveSkillCount}/${core.PASSIVE_SKILL_CAP}`, color: passiveSkillCount === core.PASSIVE_SKILL_CAP ? "#7ee0a6" : "#f3e9d4" },
       { label: "Mastery", value: core.formatNumber(masteryCount), color: "#f3e9d4" },
     ];
-    const overviewReady = `${Math.round(((gearCount + artifactCount + runeCount) / 63) * 100)}%`;
+    const overviewReady = `${Math.round(((gearCount + artifactCount + runeCount) / (gearTotal + artifactTotal + runeCapacity)) * 100)}%`;
     const tabDefs = [
-      ["stats", "Effects", `${gearCount}/15`],
+      ["stats", "Effects", `${gearCount}/${gearTotal}`],
       ["skills", "Skills", `${skillRowsAll.length}`],
       ["mastery", "Mastery", `${Object.keys(build.masteries ?? {}).length}`],
       ["runes", "Runes", `${runeCount}`],
-      ["artifacts", "Artifacts", `${artifactCount}/6`],
+      ["artifacts", "Artifacts", `${artifactCount}/${artifactTotal}`],
       ["support", "Support", `${supportCount}/${core.SUPPORT_SLOTS.length}`],
     ];
     const tabs = tabDefs.map(([id, labelText, count]) => {
@@ -2433,7 +2431,7 @@ class Component extends DCLogic {
       applyImport: () => this.applyImport(),
       onAutoFill: () => {
         const seeded = core.seedShowcaseBuild(`${this.state.profile.name}'s Build`);
-        this.setState({ build: seeded, masteryWeapon: core.currentWeaponTypes(seeded)[0] }, () => this.save());
+        this.setState({ build: seeded, masteryWeapon: core.currentWeaponTypes(seeded)[0], skillFocusId: "", masteryFocusId: "" }, () => this.save());
       },
       onClearBuild: () => {
         const cleared = core.createInitialBuild();
@@ -2918,7 +2916,6 @@ class Component extends DCLogic {
       { r: 452, color: "#65b0fc50" },
       { r: 630, color: "#A979CB50" },
     ];
-    const wheelWashes = [];
     const wheelCategoryMarkers = [
       { lane: "util", x: 550, y: 550, glyph: "UT" },
       { lane: "attack", x: 710, y: 550, glyph: "AT" },
@@ -3026,7 +3023,6 @@ class Component extends DCLogic {
       wheelNodes,
       wheelSegs: segs,
       wheelRings,
-      wheelWashes,
       wheelCategoryMarkers,
       centerIcon: centerItem?.imageUrl ?? "",
       centerIconEmpty: !centerItem?.imageUrl,
@@ -3493,7 +3489,9 @@ class Component extends DCLogic {
         hasEffects: effects.length > 0,
         setInfo,
         hasSet: Boolean(setInfo),
-        canConfigureRunes: isEquippedPreview && core.EQUIPMENT_SLOTS.some((entry) => entry.id === slot.id),
+        canConfigureRunes: isEquippedPreview
+          && core.EQUIPMENT_SLOTS.some((entry) => entry.id === slot.id)
+          && core.runeChoicesForCategory(core.runeCategoryForSlot(slot.id)).length > 0,
         openRunes: () => this.setState({ tab: "runes", runeSlot: slot.id, picker: null, pickerHoverId: "" }),
         dbUrl: core.itemDatabaseUrl(previewItem),
         traitHint: isEquippedPreview ? "Click a tier to select — up to 3 traits" : "Traits are editable once equipped",

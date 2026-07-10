@@ -281,6 +281,10 @@ export function emptyHeroicEffect() {
   return { statId: "" };
 }
 
+// Every rune-eligible piece has exactly 3 sockets — this matches the live
+// game and Questlog's builder (their rune editors expose sockets 1-3 only).
+// If a future patch changes socket counts, normalizeRuneRows and the
+// [0, 1, 2] literals must become slot-driven.
 export function emptyRune() {
   return { runeId: "", statId: "", level: 1 };
 }

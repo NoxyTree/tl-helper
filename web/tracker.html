@@ -509,7 +509,7 @@ class Component extends DCLogic {
     const stat = (id) => core.statTotal(calc, id);
     const weaponPairLabel = core.equippedWeaponTypes(build).map(core.label).join(" / ") || "No weapons";
     const leftIds = ["head", "chest", "hands", "legs", "feet", "cloak"];
-    const rightIds = ["necklace", "bracelet", "belt", "ring_1", "ring_2", "earring"];
+    const rightIds = ["necklace", "bracelet", "belt", "ring_1", "ring_2", "brooch", "earring"];
     const weaponCards = ["main_hand", "off_hand"].map((slotId) => {
       const view = this.slotMini(slotId);
       const item = core.slotItem(slotId, build);
