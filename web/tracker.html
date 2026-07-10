@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; min-height: 100vh; }
+    body {
+      background:
+        radial-gradient(1100px 500px at 50% -120px, rgba(214, 138, 58, 0.13), transparent 70%),
+        radial-gradient(900px 700px at 88% 108%, rgba(126, 84, 38, 0.08), transparent 65%),
+        linear-gradient(180deg, #0c0a07 0%, #0a0806 52%, #080604 100%);
+      color: #f3e9d4;
+      font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.5; z-index: 0;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.35), transparent 18%, transparent 82%, rgba(0,0,0,0.35)),
+        repeating-linear-gradient(0deg, rgba(255, 235, 190, 0.012) 0 1px, transparent 1px 7px);
+    }
+    a { color: #e8b86a; text-decoration: none; }
+    a:hover { color: #f6d391; text-decoration: underline; }
+    * { box-sizing: border-box; }
+    input, select, button, textarea { font-family: inherit; }
+    input:focus, textarea:focus, button:focus-visible { outline: 1px solid rgba(232, 184, 106, 0.5); outline-offset: 1px; }
+    ::selection { background: rgba(214, 138, 58, 0.35); }
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 166, 94, 0.22); border-radius: 8px; border: 2px solid rgba(10, 8, 6, 0.9); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 166, 94, 0.4); }
+    @keyframes tlFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes tlEmber { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+  </style>
+</helmet>
+
+<div style="position: relative; z-index: 1; min-height: 100vh; min-width: 1320px; display: flex; flex-direction: column;">
+
+  <!-- top bar -->
+  <header style="display: flex; align-items: center; gap: 22px; padding: 14px 30px 13px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: linear-gradient(180deg, rgba(20, 15, 9, 0.65), rgba(12, 9, 6, 0.2)); flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(212, 166, 94, 0.45); transform: rotate(45deg); background: linear-gradient(135deg, rgba(60, 42, 20, 0.8), rgba(24, 17, 9, 0.9)); box-shadow: 0 0 14px rgba(214, 138, 58, 0.25);">
+        <span style="transform: rotate(-45deg); font-family: Marcellus, serif; font-size: 15px; color: #f6d391;">T</span>
+      </div>
+      <div>
+        <div style="font-family: Marcellus, serif; font-size: 15px; letter-spacing: 0.18em; color: #f6d391;">TL HELPER</div>
+        <div style="font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #8a795f;">Progress Tracker</div>
+      </div>
+    </div>
+
+    <nav style="display: flex; gap: 4px; align-items: center;">
+      <a href="./index.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Armory</a>
+      <span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f6d391; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(212, 166, 94, 0.12);">Tracker</span>
+    </nav>
+
+    <input value="{{ title }}" onChange="{{ onTitleChange }}" aria-label="Board title" spellcheck="false"
+      style="font-family: Marcellus, serif; font-size: 22px; color: #f3e9d4; background: transparent; border: none; border-bottom: 1px solid transparent; padding: 0 2px 2px; min-width: 60px; width: clamp(150px, 20vw, 300px);"
+      style-hover="border-bottom: 1px dashed rgba(212, 166, 94, 0.4);"
+      style-focus="border-bottom: 1px solid rgba(232, 184, 106, 0.7); outline: none;">
+
+    <span style="flex: 1;"></span>
+
+    <div style="display: flex; gap: 10px; align-items: stretch;">
+      <div style="text-align: right; padding: 4px 14px; border-left: 1px solid rgba(212, 166, 94, 0.16);">
+        <div style="font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Daily reset</div>
+        <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 18px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ dailyReset }}</div>
+      </div>
+      <div style="text-align: right; padding: 4px 0 4px 14px; border-left: 1px solid rgba(212, 166, 94, 0.16);">
+        <div style="font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Weekly reset</div>
+        <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 18px; color: #cbb185; font-variant-numeric: tabular-nums;">{{ weeklyReset }}</div>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex: 1; width: 100%; padding: 24px 28px 40px; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; align-items: start; animation: tlFadeUp 0.35s ease;">
+
+    <!-- character panel — a constant, personal mirror of the Armory build -->
+    <aside style="position: sticky; top: 20px; align-self: start;">
+      <sc-if value="{{ charReady }}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 20, 12, 0.55), rgba(14, 11, 7, 0.75)); padding: 18px 16px 16px; box-shadow: inset 0 1px 0 rgba(246, 211, 145, 0.06), 0 18px 40px rgba(0, 0, 0, 0.35);">
+          <div style="position: absolute; top: -1px; left: 24px; right: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(246, 211, 145, 0.5), transparent); animation: tlEmber 4s ease-in-out infinite;"></div>
+
+          <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 84px; gap: 10px; align-items: stretch;">
+            <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 6px; padding: 4px 0;">
+              <sc-for list="{{ leftSlots }}" as="slot" hint-placeholder-count="6">
+                <span onMouseEnter="{{ slot.onHover }}" onMouseMove="{{ slot.onMove }}" onMouseLeave="{{ slot.onLeave }}" style="display: grid; justify-items: center; gap: 4px;">
+                  <span style="position: relative; width: 54px; height: 54px; border-radius: 999px; display: grid; place-items: center; border: {{ slot.ringBorder }}; background: radial-gradient(circle at 35% 30%, #251c11, #120e08 75%); box-shadow: {{ slot.ringShadow }};">
+                    <sc-if value="{{ slot.icon }}" hint-placeholder-val="{{ false }}">
+                      <span style="width: 42px; height: 42px; border-radius: 999px; background: url({{ slot.icon }}) center/cover; display: block;"></span>
+                      <b style="position: absolute; right: -4px; bottom: -3px; font-size: 9px; font-weight: 700; color: #f3e9d4; background: rgba(10, 8, 5, 0.92); border: 1px solid rgba(212, 166, 94, 0.4); border-radius: 6px; padding: 1px 4px; font-style: normal;">{{ slot.level }}</b>
+                    </sc-if>
+                    <sc-if value="{{ slot.empty }}" hint-placeholder-val="{{ true }}">
+                      <span style="color: rgba(212, 166, 94, 0.5); font-size: 18px; font-weight: 300;">+</span>
+                    </sc-if>
+                  </span>
+                  <span style="font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f;">{{ slot.label }}</span>
+                </span>
+              </sc-for>
+            </div>
+
+            <div style="position: relative; border-radius: 8px; border: 1px solid rgba(212, 166, 94, 0.26); padding: 5px; background: linear-gradient(180deg, rgba(212, 166, 94, 0.1), rgba(212, 166, 94, 0.02)); min-height: 410px;">
+              <div style="position: absolute; inset: 5px; border-radius: 5px; overflow: hidden;">
+                <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="armory-portrait" shape="rect" fit="cover" placeholder="Drop your character screenshot" hint-size="100%,410px" style="position: absolute; inset: 0;"></x-import>
+              </div>
+              <div style="position: absolute; left: 0; right: 0; bottom: 5px; padding: 30px 14px 10px; background: linear-gradient(180deg, transparent, rgba(8, 6, 4, 0.88)); pointer-events: none; border-radius: 0 0 5px 5px;">
+                <div style="font-family: Marcellus, serif; font-size: 19px; color: #f6d391; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);">{{ charName }}</div>
+                <div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #cbb185;">{{ portraitSubtitle }}</div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 6px; padding: 4px 0;">
+              <sc-for list="{{ rightSlots }}" as="slot" hint-placeholder-count="6">
+                <span onMouseEnter="{{ slot.onHover }}" onMouseMove="{{ slot.onMove }}" onMouseLeave="{{ slot.onLeave }}" style="display: grid; justify-items: center; gap: 4px;">
+                  <span style="position: relative; width: 54px; height: 54px; border-radius: 999px; display: grid; place-items: center; border: {{ slot.ringBorder }}; background: radial-gradient(circle at 35% 30%, #251c11, #120e08 75%); box-shadow: {{ slot.ringShadow }};">
+                    <sc-if value="{{ slot.icon }}" hint-placeholder-val="{{ false }}">
+                      <span style="width: 42px; height: 42px; border-radius: 999px; background: url({{ slot.icon }}) center/cover; display: block;"></span>
+                      <b style="position: absolute; right: -4px; bottom: -3px; font-size: 9px; font-weight: 700; color: #f3e9d4; background: rgba(10, 8, 5, 0.92); border: 1px solid rgba(212, 166, 94, 0.4); border-radius: 6px; padding: 1px 4px; font-style: normal;">{{ slot.level }}</b>
+                    </sc-if>
+                    <sc-if value="{{ slot.empty }}" hint-placeholder-val="{{ true }}">
+                      <span style="color: rgba(212, 166, 94, 0.5); font-size: 18px; font-weight: 300;">+</span>
+                    </sc-if>
+                  </span>
+                  <span style="font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f;">{{ slot.label }}</span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
+            <sc-for list="{{ weaponCards }}" as="weapon" hint-placeholder-count="2">
+              <div onMouseEnter="{{ weapon.onHover }}" onMouseMove="{{ weapon.onMove }}" onMouseLeave="{{ weapon.onLeave }}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; padding: 9px 10px; border-radius: 8px; border: 1px solid rgba(212, 166, 94, 0.18); background: rgba(18, 14, 9, 0.6);">
+                <span style="position: relative; flex: none; width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center; border: {{ weapon.ringBorder }}; background: radial-gradient(circle at 35% 30%, #251c11, #120e08 75%); box-shadow: {{ weapon.ringShadow }};">
+                  <sc-if value="{{ weapon.icon }}" hint-placeholder-val="{{ false }}">
+                    <span style="width: 33px; height: 33px; border-radius: 999px; background: url({{ weapon.icon }}) center/cover; display: block;"></span>
+                  </sc-if>
+                  <sc-if value="{{ weapon.empty }}" hint-placeholder-val="{{ true }}">
+                    <span style="color: rgba(212, 166, 94, 0.5); font-size: 16px;">+</span>
+                  </sc-if>
+                </span>
+                <span style="min-width: 0; flex: 1;">
+                  <span style="display: block; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">{{ weapon.slotLabel }}</span>
+                  <span style="display: block; font-size: 13px; font-weight: 600; color: {{ weapon.nameColor }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ weapon.name }}</span>
+                  <span style="display: block; font-size: 10px; color: #9d8a68; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ weapon.meta }}</span>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;">
+            <sc-for list="{{ charStats }}" as="fx" hint-placeholder-count="3">
+              <div style="text-align: center; padding: 8px 4px; border-radius: 6px; background: rgba(10, 8, 5, 0.5); border: 1px solid rgba(212, 166, 94, 0.1);">
+                <div style="font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f;">{{ fx.label }}</div>
+                <div style="margin-top: 2px; font-size: 13px; font-weight: 600; color: #e6d6b4; font-variant-numeric: tabular-nums;">{{ fx.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(212, 166, 94, 0.12);">
+            <span style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f; margin-right: 2px;">Artifacts</span>
+            <sc-for list="{{ artifactOrbs }}" as="orb" hint-placeholder-count="6">
+              <span onMouseEnter="{{ orb.onHover }}" onMouseMove="{{ orb.onMove }}" onMouseLeave="{{ orb.onLeave }}" style="position: relative; width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; border: {{ orb.ringBorder }}; background: radial-gradient(circle at 35% 30%, #251c11, #120e08 75%); box-shadow: {{ orb.ringShadow }};">
+                <sc-if value="{{ orb.icon }}" hint-placeholder-val="{{ false }}">
+                  <span style="width: 27px; height: 27px; border-radius: 999px; background: url({{ orb.icon }}) center/cover; display: block;"></span>
+                </sc-if>
+                <sc-if value="{{ orb.empty }}" hint-placeholder-val="{{ true }}">
+                  <span style="color: rgba(212, 166, 94, 0.4); font-size: 12px;">+</span>
+                </sc-if>
+              </span>
+            </sc-for>
+            <span style="flex: 1;"></span>
+            <a href="./index.html" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #cbb185;" style-hover="color: #f6d391;">{{ artifactSetSummary }} →</a>
+          </div>
+
+          <a href="./index.html" style="display: block; text-align: center; margin-top: 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f;" style-hover="color: #f6d391;">Edit build in the Armory →</a>
+        </div>
+      </sc-if>
+      <sc-if value="{{ charLoading }}" hint-placeholder-val="{{ true }}">
+        <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 40px 20px; text-align: center; color: #8a795f; font-size: 12px; line-height: 1.6;">
+          Loading your character…<br>
+          <a href="./index.html">Open the Armory</a> to set up a build.
+        </div>
+      </sc-if>
+    </aside>
+
+    <sc-if value="{{ hasCharHover }}" hint-placeholder-val="{{ false }}">
+      <div style="position: fixed; left: {{ charHover.x }}px; top: {{ charHover.y }}px; z-index: 60; pointer-events: none; transform: {{ charHover.transform }};">
+        <dc-import name="ItemHoverCard" data="{{ charHover }}" hint-size="300px,360px"></dc-import>
+      </div>
+    </sc-if>
+
+    <div style="min-width: 0;">
+    <!-- summary strip -->
+    <div data-layout="loop-summaries" style="display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; margin-bottom: 22px;">
+      <div data-layout="daily-summary" style="position: relative; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 20, 12, 0.55), rgba(14, 11, 7, 0.75)); padding: 16px 18px; overflow: hidden;">
+        <div style="position: absolute; top: -1px; left: 24px; right: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(246, 211, 145, 0.5), transparent); animation: tlEmber 4s ease-in-out infinite;"></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #cbb185;">Daily Loop</span>
+          <span style="font-family: Marcellus, serif; font-size: 20px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ dailyDone }}<span style="font-size: 13px; color: #8a795f;"> / {{ dailyTotal }}</span></span>
+        </div>
+        <div style="margin-top: 12px; height: 8px; border-radius: 5px; background: rgba(212, 166, 94, 0.12); overflow: hidden;">
+          <div style="height: 100%; width: {{ dailyPct }}; background: linear-gradient(90deg, #c08a3e, #f6d391); border-radius: 5px; transition: width 0.4s cubic-bezier(0.2,0.8,0.2,1); box-shadow: 0 0 10px rgba(246, 211, 145, 0.4);"></div>
+        </div>
+      </div>
+      <div data-layout="weekly-summary" style="border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 20, 12, 0.55), rgba(14, 11, 7, 0.75)); padding: 16px 18px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #cbb185;">Weekly Loop</span>
+          <span style="font-family: Marcellus, serif; font-size: 20px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ weeklyDone }}<span style="font-size: 13px; color: #8a795f;"> / {{ weeklyTotal }}</span></span>
+        </div>
+        <div style="margin-top: 12px; height: 8px; border-radius: 5px; background: rgba(212, 166, 94, 0.12); overflow: hidden;">
+          <div style="height: 100%; width: {{ weeklyPct }}; background: linear-gradient(90deg, #7e5426, #cbb185); border-radius: 5px; transition: width 0.4s cubic-bezier(0.2,0.8,0.2,1); box-shadow: 0 0 10px rgba(203, 177, 133, 0.35);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- two loops -->
+    <div style="display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; align-items: start;">
+
+      <!-- DAILY -->
+      <div data-layout="daily-column" style="display: grid; gap: 22px; align-content: start; min-width: 0;">
+      <section data-layout="daily-loop" style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 12px; background: rgba(18, 14, 9, 0.55); padding: 18px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <h2 style="margin: 0; font-family: Marcellus, serif; font-size: 17px; font-weight: 400; color: #f6d391; letter-spacing: 0.04em;">Daily Loop</h2>
+          <span style="flex: 1;"></span>
+          <button type="button" onClick="{{ onResetDaily }}" title="Clear all daily checks"
+            style="font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f; background: transparent; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 4px 11px; cursor: pointer;"
+            style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.5);">Reset</button>
+        </div>
+        <div style="display: grid; gap: 7px;">
+          <sc-for list="{{ dailyRows }}" as="row" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px; border: 1px solid {{ row.border }}; background: {{ row.bg }}; transition: border-color 0.12s ease, background 0.12s ease;">
+              <button type="button" onClick="{{ row.onToggle }}" aria-label="Toggle" title="Toggle complete"
+                style="flex: none; width: 26px; height: 26px; border-radius: 7px; border: 1.5px solid {{ row.boxBorder }}; background: {{ row.boxBg }}; color: #0c0a07; cursor: pointer; display: grid; place-items: center; font-size: 14px; font-weight: 800; transition: all 0.12s ease;">{{ row.mark }}</button>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                  <sc-if value="{{ row.priority }}" hint-placeholder-val="{{ false }}">
+                    <span style="flex: none; width: 5px; height: 5px; border-radius: 999px; background: #ff982d; box-shadow: 0 0 7px #ff982d;"></span>
+                  </sc-if>
+                  <span style="font-size: 13px; font-weight: 600; color: {{ row.labelColor }};">{{ row.label }}</span>
+                </div>
+                <div style="font-size: 10px; color: #8a795f; margin-top: 1px;">{{ row.reward }}</div>
+              </div>
+              <sc-if value="{{ row.isCounter }}" hint-placeholder-val="{{ false }}">
+                <div style="flex: none; display: flex; align-items: center; gap: 6px;">
+                  <button type="button" onClick="{{ row.onDec }}" aria-label="Decrease" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">−</button>
+                  <span style="min-width: 34px; text-align: center; font-size: 12.5px; font-weight: 700; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.progress }}</span>
+                  <button type="button" onClick="{{ row.onInc }}" aria-label="Increase" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">+</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ row.custom }}" hint-placeholder-val="{{ false }}">
+                <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove" style="flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">✕</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <input value="{{ newDaily }}" onInput="{{ onNewDailyInput }}" onKeyDown="{{ onNewDailyKey }}" placeholder="Add a daily task…" spellcheck="false"
+            style="flex: 1; font-size: 12px; color: #f3e9d4; background: rgba(8, 6, 4, 0.6); border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 8px; padding: 8px 12px;"
+            style-focus="border-color: rgba(232, 184, 106, 0.6); outline: none;">
+          <button type="button" onClick="{{ onAddDaily }}" style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #f6d391; background: rgba(232, 184, 106, 0.14); border: 1px solid rgba(232, 184, 106, 0.5); border-radius: 8px; padding: 8px 16px; cursor: pointer;" style-hover="background: rgba(232, 184, 106, 0.24);">Add</button>
+        </div>
+      </section>
+
+      <section data-layout="weekly-caps" style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 12px; background: rgba(18, 14, 9, 0.55); padding: 18px;">
+        <h2 style="margin: 0 0 4px; font-family: Marcellus, serif; font-size: 17px; font-weight: 400; color: #f6d391; letter-spacing: 0.04em;">Weekly Caps</h2>
+        <p style="margin: 0 0 14px; font-size: 11px; color: #8a795f;">Track the currency and reward ceilings that reset each week.</p>
+        <div style="display: grid; gap: 14px;">
+          <sc-for list="{{ capRows }}" as="cap" hint-placeholder-count="3">
+            <div>
+              <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #e6d6b4;">{{ cap.label }}</span>
+                <span style="flex: 1;"></span>
+                <span style="font-size: 12.5px; font-weight: 700; color: {{ cap.valueColor }}; font-variant-numeric: tabular-nums;">{{ cap.valueLabel }}</span>
+                <button type="button" onClick="{{ cap.onDec }}" aria-label="Decrease" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 13px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">−</button>
+                <button type="button" onClick="{{ cap.onInc }}" aria-label="Increase" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 13px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">+</button>
+              </div>
+              <div style="height: 6px; border-radius: 4px; background: rgba(212, 166, 94, 0.12); overflow: hidden;"><div style="height: 100%; width: {{ cap.pct }}; background: linear-gradient(90deg, #c08a3e, #f6d391); border-radius: 4px; transition: width 0.3s ease;"></div></div>
+              <div style="font-size: 10px; color: #8a795f; margin-top: 4px;">{{ cap.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </div>
+
+      <!-- WEEKLY -->
+      <section data-layout="weekly-loop" style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 12px; background: rgba(18, 14, 9, 0.55); padding: 18px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <h2 style="margin: 0; font-family: Marcellus, serif; font-size: 17px; font-weight: 400; color: #f6d391; letter-spacing: 0.04em;">Weekly Loop</h2>
+          <span style="flex: 1;"></span>
+          <button type="button" onClick="{{ onResetWeekly }}" title="Clear all weekly progress"
+            style="font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f; background: transparent; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 4px 11px; cursor: pointer;"
+            style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.5);">Reset</button>
+        </div>
+
+        <div style="margin-bottom: 16px; padding: 14px; border: 1px solid rgba(232, 184, 106, 0.28); border-radius: 10px; background: linear-gradient(135deg, rgba(212, 166, 94, 0.1), rgba(10, 8, 5, 0.5));">
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;">
+            <div>
+              <div style="font-family: Marcellus, serif; font-size: 15px; color: #f6d391;">Weekly Raid</div>
+              <div style="margin-top: 2px; font-size: 10px; color: #8a795f;">Normal is always shown. Add higher difficulties only when you want them.</div>
+            </div>
+            <span style="flex: 1;"></span>
+            <span style="font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">3 stages each</span>
+          </div>
+
+          <div style="display: grid; gap: 8px;">
+            <sc-for list="{{ raidRows }}" as="raid" hint-placeholder-count="1">
+              <div style="display: grid; grid-template-columns: minmax(92px, 1fr) auto 22px; align-items: center; gap: 12px; padding: 10px 11px; border: 1px solid {{ raid.border }}; border-radius: 9px; background: {{ raid.bg }};">
+                <div style="min-width: 92px;">
+                  <div style="font-size: 12.5px; font-weight: 650; color: {{ raid.labelColor }};">{{ raid.label }}</div>
+                  <div style="margin-top: 1px; font-size: 9.5px; color: #8a795f;">{{ raid.progress }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; justify-self: end;">
+                  <sc-for list="{{ raid.stages }}" as="stage" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ stage.onToggle }}" aria-label="{{ stage.ariaLabel }}" title="{{ stage.ariaLabel }}"
+                      style="min-width: 58px; height: 32px; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 7px; border: 1px solid {{ stage.border }}; background: {{ stage.bg }}; color: {{ stage.color }}; cursor: pointer; font-size: 10px; font-weight: 650; transition: border-color 0.12s ease, background 0.12s ease;">
+                      <span style="width: 14px; height: 14px; display: grid; place-items: center; border-radius: 4px; border: 1px solid {{ stage.boxBorder }}; background: {{ stage.boxBg }}; color: #0c0a07; font-size: 9px; font-weight: 800;">{{ stage.mark }}</span>
+                      <span>Stage {{ stage.number }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ raid.optional }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" onClick="{{ raid.onRemove }}" aria-label="Hide {{ raid.label }} raid" title="Hide this optional difficulty"
+                    style="flex: none; width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">&#215;</button>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ canAddRaidDifficulty }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+              <span style="font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #6e5f49;">Add difficulty</span>
+              <sc-if value="{{ canAddHard }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ onAddHard }}" style="font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #cbb185; background: rgba(10, 8, 5, 0.55); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 999px; padding: 5px 10px; cursor: pointer;" style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.55);">+ Hard</button>
+              </sc-if>
+              <sc-if value="{{ canAddNightmare }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ onAddNightmare }}" style="font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #cbb185; background: rgba(10, 8, 5, 0.55); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 999px; padding: 5px 10px; cursor: pointer;" style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.55);">+ Nightmare</button>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="display: grid; gap: 7px;">
+          <sc-for list="{{ weeklyRows }}" as="row" hint-placeholder-count="8">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px; border: 1px solid {{ row.border }}; background: {{ row.bg }};">
+              <button type="button" onClick="{{ row.onToggle }}" aria-label="Toggle" title="Toggle complete"
+                style="flex: none; width: 26px; height: 26px; border-radius: 7px; border: 1.5px solid {{ row.boxBorder }}; background: {{ row.boxBg }}; color: #0c0a07; cursor: pointer; display: grid; place-items: center; font-size: 14px; font-weight: 800;">{{ row.mark }}</button>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                  <sc-if value="{{ row.priority }}" hint-placeholder-val="{{ false }}">
+                    <span style="flex: none; width: 5px; height: 5px; border-radius: 999px; background: #ff982d; box-shadow: 0 0 7px #ff982d;"></span>
+                  </sc-if>
+                  <span style="font-size: 13px; font-weight: 600; color: {{ row.labelColor }};">{{ row.label }}</span>
+                </div>
+                <div style="font-size: 10px; color: #8a795f; margin-top: 1px;">{{ row.reward }}</div>
+              </div>
+              <sc-if value="{{ row.isCounter }}" hint-placeholder-val="{{ false }}">
+                <div style="flex: none; display: flex; align-items: center; gap: 6px;">
+                  <button type="button" onClick="{{ row.onDec }}" aria-label="Decrease" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">−</button>
+                  <span style="min-width: 34px; text-align: center; font-size: 12.5px; font-weight: 700; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.progress }}</span>
+                  <button type="button" onClick="{{ row.onInc }}" aria-label="Increase" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">+</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ row.custom }}" hint-placeholder-val="{{ false }}">
+                <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove" style="flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">✕</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <input value="{{ newWeekly }}" onInput="{{ onNewWeeklyInput }}" onKeyDown="{{ onNewWeeklyKey }}" placeholder="Add a weekly task…" spellcheck="false"
+            style="flex: 1; font-size: 12px; color: #f3e9d4; background: rgba(8, 6, 4, 0.6); border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 8px; padding: 8px 12px;"
+            style-focus="border-color: rgba(232, 184, 106, 0.6); outline: none;">
+          <button type="button" onClick="{{ onAddWeekly }}" style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #f6d391; background: rgba(232, 184, 106, 0.14); border: 1px solid rgba(232, 184, 106, 0.5); border-radius: 8px; padding: 8px 16px; cursor: pointer;" style-hover="background: rgba(232, 184, 106, 0.24);">Add</button>
+        </div>
+      </section>
+    </div>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  KEY = "tl-tracker-state-v1";
+
+  DAILY = [
+    { id: "d_merchant", label: "Sundries Merchant", reward: "Contract Scrolls · Phantom Stones", target: 1, priority: true },
+    { id: "d_contracts", label: "Daily Contract Rights (Nix)", reward: "Honor Coins", target: 10, priority: true },
+    { id: "d_scrolls", label: "PvE Contract Scrolls", reward: "Resistance rewards", target: 2 },
+    { id: "d_amitoi", label: "Amitoi Expeditions", reward: "Abyssal Contract Tokens", target: 1 },
+    { id: "d_epic", label: "Co-Op: Random Epic", reward: "Gear · Currency", target: 1 },
+    { id: "d_elite", label: "Co-Op: Random Elite", reward: "Gear · Currency", target: 1 },
+    { id: "d_solo", label: "Solo Dungeons", reward: "Gate of Infinity · Tower · Secret", target: 1 },
+    { id: "d_checkin", label: "Daily Check-In Event", reward: "Attendance rewards", target: 1 },
+  ];
+
+  WEEKLY = [
+    { id: "w_contract_shop", label: "Contract Coin Merchant", reward: "5× Mystic Keys · Seal Key · Unlock Stones", target: 1, priority: true },
+    { id: "w_ornate_shop", label: "Ornate Coin Shop", reward: "15× Mystic Keys (750 coins)", target: 1 },
+    { id: "w_raid_shop", label: "Raid Merchant", reward: "Chaos Prisms · Growth Books", target: 1 },
+    { id: "w_guild_shop", label: "Guild Merchant", reward: "Conversion Stones", target: 1 },
+    { id: "w_keys", label: "Spend Mystic Keys / Globes", reward: "Parchment · Abyssal Tokens", target: 1, priority: true },
+    { id: "w_guild_bosses", label: "Guild Raids & Ascended Bosses", reward: "Ascended weapons", target: 4 },
+    { id: "w_ow_bosses", label: "Arch & Field Bosses", reward: "Skill Cores · Resistance Medals", target: 1, priority: true },
+    { id: "w_trials", label: "Dimensional Trials", reward: "Armor runes", target: 2, priority: true },
+    { id: "w_hoi", label: "Hall of Illusion (Hard)", reward: "Weapon watermark", target: 3 },
+    { id: "w_token_burn", label: "Abyssal Token Burn", reward: "Weapon Mastery", target: 1, priority: true },
+  ];
+
+  RAIDS = [
+    { id: "normal", label: "Normal", optional: false },
+    { id: "hard", label: "Hard", optional: true },
+    { id: "nightmare", label: "Nightmare", optional: true },
+  ];
+
+  CAPS = [
+    { id: "c_keys", label: "Mystic Keys", max: 20, step: 1, note: "5 from Contract Coin merchant + 15 from the Ornate Coin shop." },
+    { id: "c_trials", label: "Dimensional Trials", max: 14, step: 1, note: "2 for armor runes; push up to 14 for extra rewards." },
+    { id: "c_contracts", label: "Daily Contract Rights", max: 70, step: 5, note: "10/day (5/day with Da Vinci's Favor)." },
+  ];
+
+  state = {
+    now: Date.now(),
+    title: "Nix Progression",
+    counts: {},           // taskId -> number
+    caps: {},             // capId -> number
+    enabledRaids: { hard: false, nightmare: false },
+    customDaily: [],      // [{id,label}]
+    customWeekly: [],
+    newDaily: "",
+    newWeekly: "",
+    lastDaily: "",
+    lastWeekly: "",
+    charReady: false,
+    build: null,
+    profile: { name: "Varkesh", role: "Guardian", server: "Solisium" },
+    attributes: { str: 50, dex: 16, int: 40, per: 30, con: 60 },
+    charHoverSlot: "",
+    charHoverX: 0,
+    charHoverY: 0,
+  };
+
+  BUILD_KEY = "tlhelper-builder-state-v2";
+
+  componentDidMount() {
+    this.load();
+    this.checkRollover(true);
+    this._timer = setInterval(() => {
+      this.setState({ now: Date.now() });
+      this.checkRollover(false);
+    }, 1000);
+    this.loadCharacter();
+  }
+
+  async loadCharacter() {
+    try {
+      const core = await import("./tl-core.js");
+      this.core = core;
+      await core.initCore("./data/app-data.json");
+      let profile = this.state.profile;
+      let attributes = this.state.attributes;
+      let build = null;
+      try {
+        const raw = JSON.parse(localStorage.getItem(this.BUILD_KEY) || "null");
+        if (raw && raw.build && raw.build.equipment) {
+          build = raw.build;
+          for (const slot of core.EQUIPMENT_SLOTS) build.equipment[slot.id] = { ...core.emptyEquipmentSelection(), ...(build.equipment[slot.id] ?? {}) };
+          build.artifacts = build.artifacts ?? {};
+          for (const slot of core.ARTIFACT_SLOTS) build.artifacts[slot.id] = { ...core.emptyEquipmentSelection(), ...(build.artifacts[slot.id] ?? {}) };
+          if (raw.profile) profile = raw.profile;
+          if (raw.attributes) attributes = raw.attributes;
+        }
+      } catch {}
+      if (!build) build = core.seedShowcaseBuild(`${profile.name}'s Build`);
+      this.setState({ charReady: true, build, profile, attributes });
+    } catch (e) { /* character panel is optional flourish */ }
+  }
+
+  slotMini(slotId) {
+    const core = this.core, build = this.state.build;
+    const item = core.slotItem(slotId, build);
+    const sel = core.slotSelection(slotId, build);
+    const slot = core.slotById(slotId);
+    const color = item ? core.gradeColor(item.grade) : null;
+    return {
+      id: slotId,
+      label: slot.label,
+      icon: item?.imageUrl ?? "",
+      empty: !item,
+      level: item ? core.selectedItemLevel(item, sel.level) : "",
+      ringBorder: item ? `1.5px solid ${color}` : "1.5px dashed rgba(212, 166, 94, 0.35)",
+      ringShadow: item ? `0 0 14px ${color}40, inset 0 0 10px rgba(0,0,0,0.7)` : "inset 0 0 10px rgba(0,0,0,0.7)",
+      onHover: (e) => { if (item) this.setState({ charHoverSlot: slotId, charHoverX: e.clientX, charHoverY: e.clientY }); },
+      onMove: (e) => { if (this.state.charHoverSlot === slotId) this.setState({ charHoverX: e.clientX, charHoverY: e.clientY }); },
+      onLeave: () => { if (this.state.charHoverSlot === slotId) this.setState({ charHoverSlot: "" }); },
+    };
+  }
+
+  characterVals() {
+    if (!this.state.charReady || !this.core) return { charReady: false, charLoading: true };
+    const core = this.core, build = this.state.build;
+    const calc = core.calculateBuild(build, this.state.attributes);
+    const stat = (id) => core.statTotal(calc, id);
+    const weaponPairLabel = core.equippedWeaponTypes(build).map(core.label).join(" / ") || "No weapons";
+    const leftIds = ["head", "chest", "hands", "legs", "feet", "cloak"];
+    const rightIds = ["necklace", "bracelet", "belt", "ring_1", "ring_2", "earring"];
+    const weaponCards = ["main_hand", "off_hand"].map((slotId) => {
+      const view = this.slotMini(slotId);
+      const item = core.slotItem(slotId, build);
+      const sel = core.slotSelection(slotId, build);
+      return {
+        ...view,
+        slotLabel: slotId === "main_hand" ? "Main Weapon" : "Off Weapon",
+        name: item ? item.name : `Empty ${core.slotById(slotId).label}`,
+        nameColor: item ? core.gradeColor(item.grade) : "#8a795f",
+        meta: item ? `${core.gradeName(item.grade)} ${core.label(item.equipmentType)} · Lv ${core.selectedItemLevel(item, sel.level)}` : "—",
+      };
+    });
+    return {
+      charReady: true,
+      charLoading: false,
+      charName: this.state.profile.name,
+      portraitSubtitle: `${this.state.profile.role} · ${weaponPairLabel}`,
+      leftSlots: leftIds.map((id) => this.slotMini(id)),
+      rightSlots: rightIds.map((id) => this.slotMini(id)),
+      weaponCards,
+      charStats: [
+        { label: "Base Damage", value: `${core.formatStat("attack_power_main_hand_min", stat("attack_power_main_hand_min"))} ~ ${core.formatStat("attack_power_main_hand_max", stat("attack_power_main_hand_max"))}` },
+        { label: "Attack Speed", value: core.formatStat("attack_speed", stat("attack_speed") || stat("attack_speed_main_hand")) },
+        { label: "Range", value: core.formatStat("attack_range", stat("attack_range") || stat("attack_range_main_hand")) },
+      ],
+      artifactOrbs: core.ARTIFACT_SLOTS.map((slot) => this.slotMini(slot.id)),
+      artifactSetSummary: core.activeArtifactSetSummary(build),
+      ...this.charHoverVals(calc),
+    };
+  }
+
+  charHoverVals(calc) {
+    const slotId = this.state.charHoverSlot;
+    if (!slotId || !this.core) return { hasCharHover: false };
+    const model = this.core.buildItemHoverModel(slotId, this.state.build, calc);
+    if (!model) return { hasCharHover: false };
+    const y = this.state.charHoverY || 0;
+    const flip = typeof window !== "undefined" && y > window.innerHeight * 0.5;
+    return {
+      hasCharHover: true,
+      charHover: { ...model, x: this.state.charHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
+    };
+  }
+
+  componentWillUnmount() {
+    if (this._timer) clearInterval(this._timer);
+  }
+
+  load() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(this.KEY) || "null");
+      if (raw && typeof raw === "object") {
+        const counts = { ...(raw.counts ?? {}) };
+        let migratedRaid = false;
+        if (Object.prototype.hasOwnProperty.call(counts, "w_raids")) {
+          const hasNewRaidProgress = this.RAIDS.some((raid) => [1, 2, 3].some((stage) => counts[this.raidStageKey(raid.id, stage)]));
+          if (!hasNewRaidProgress) {
+            const legacyProgress = Math.max(0, Math.min(3, Number(counts.w_raids) || 0));
+            for (let stage = 1; stage <= legacyProgress; stage += 1) counts[this.raidStageKey("normal", stage)] = 1;
+          }
+          delete counts.w_raids;
+          migratedRaid = true;
+        }
+        this.setState({
+          title: raw.title ?? this.state.title,
+          counts,
+          caps: raw.caps ?? {},
+          enabledRaids: {
+            hard: Boolean(raw.enabledRaids?.hard),
+            nightmare: Boolean(raw.enabledRaids?.nightmare),
+          },
+          customDaily: Array.isArray(raw.customDaily) ? raw.customDaily : [],
+          customWeekly: Array.isArray(raw.customWeekly) ? raw.customWeekly : [],
+          lastDaily: raw.lastDaily ?? "",
+          lastWeekly: raw.lastWeekly ?? "",
+        }, () => { if (migratedRaid) this.save(); });
+      }
+    } catch {}
+  }
+
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({
+        title: this.state.title,
+        counts: this.state.counts,
+        caps: this.state.caps,
+        enabledRaids: this.state.enabledRaids,
+        customDaily: this.state.customDaily,
+        customWeekly: this.state.customWeekly,
+        lastDaily: this.state.lastDaily,
+        lastWeekly: this.state.lastWeekly,
+      }));
+    } catch {}
+  }
+
+  // ---------- date keys ----------
+  dayKey(t) { const d = new Date(t ?? Date.now()); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+  weekKey(t) {
+    const d = new Date(t ?? Date.now()); d.setHours(0, 0, 0, 0);
+    const diff = (d.getDay() - 4 + 7) % 7; // days since last Thursday
+    d.setDate(d.getDate() - diff);
+    return this.dayKey(d.getTime());
+  }
+  nextDailyReset() { const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); }
+  nextWeeklyReset() {
+    const d = new Date(); d.setHours(0, 0, 0, 0);
+    let add = (4 - d.getDay() + 7) % 7; if (add === 0) add = 7;
+    d.setDate(d.getDate() + add); return d.getTime();
+  }
+  fmtCountdown(ms) {
+    if (ms < 0) ms = 0;
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    const p = (n) => String(n).padStart(2, "0");
+    if (d > 0) return `${d}d ${p(h)}h`;
+    if (h > 0) return `${h}h ${p(m)}m`;
+    return `${m}m ${p(sec)}s`;
+  }
+
+  allDaily() { return [...this.DAILY, ...this.state.customDaily]; }
+  allWeekly() { return [...this.WEEKLY, ...this.state.customWeekly]; }
+  raidStageKey(raidId, stage) { return `w_raid_${raidId}_s${stage}`; }
+  clearRaidProgress(counts) {
+    for (const raid of this.RAIDS) {
+      for (let stage = 1; stage <= 3; stage += 1) delete counts[this.raidStageKey(raid.id, stage)];
+    }
+  }
+
+  checkRollover(initial) {
+    const dk = this.dayKey(), wk = this.weekKey();
+    let changed = false;
+    const counts = { ...this.state.counts };
+    const caps = { ...this.state.caps };
+    let lastDaily = this.state.lastDaily, lastWeekly = this.state.lastWeekly;
+    if (lastDaily && lastDaily !== dk) { for (const t of this.allDaily()) delete counts[t.id]; changed = true; }
+    if (!lastDaily) { lastDaily = dk; if (initial) changed = true; }
+    else if (lastDaily !== dk) lastDaily = dk;
+    if (lastWeekly && lastWeekly !== wk) {
+      for (const t of this.allWeekly()) delete counts[t.id];
+      this.clearRaidProgress(counts);
+      for (const c of this.CAPS) delete caps[c.id];
+      changed = true;
+    }
+    if (!lastWeekly) { lastWeekly = wk; if (initial) changed = true; }
+    else if (lastWeekly !== wk) lastWeekly = wk;
+    if (changed || lastDaily !== this.state.lastDaily || lastWeekly !== this.state.lastWeekly) {
+      this.setState({ counts, caps, lastDaily, lastWeekly }, () => this.save());
+    }
+  }
+
+  // ---------- mutations ----------
+  countOf(id) { return Number(this.state.counts[id] || 0); }
+  setCount(id, val) {
+    const counts = { ...this.state.counts, [id]: Math.max(0, val) };
+    this.setState({ counts }, () => this.save());
+  }
+  toggleRaidStage(raidId, stage) {
+    const key = this.raidStageKey(raidId, stage);
+    const counts = { ...this.state.counts, [key]: this.countOf(key) > 0 ? 0 : 1 };
+    this.setState({ counts }, () => this.save());
+  }
+  setRaidEnabled(raidId, enabled) {
+    if (raidId === "normal") return;
+    const enabledRaids = { ...this.state.enabledRaids, [raidId]: Boolean(enabled) };
+    this.setState({ enabledRaids }, () => this.save());
+  }
+  raidRows() {
+    return this.RAIDS
+      .filter((raid) => !raid.optional || this.state.enabledRaids?.[raid.id])
+      .map((raid) => {
+        const stages = [1, 2, 3].map((number) => {
+          const done = this.countOf(this.raidStageKey(raid.id, number)) > 0;
+          return {
+            number,
+            done,
+            ariaLabel: `${done ? "Clear" : "Complete"} ${raid.label} raid Stage ${number}`,
+            mark: done ? "✓" : "",
+            bg: done ? "rgba(232, 184, 106, 0.14)" : "rgba(10, 8, 5, 0.58)",
+            border: done ? "rgba(246, 211, 145, 0.65)" : "rgba(212, 166, 94, 0.22)",
+            boxBg: done ? "#e8b86a" : "transparent",
+            boxBorder: done ? "#f6d391" : "rgba(212, 166, 94, 0.42)",
+            color: done ? "#f6d391" : "#9d8a68",
+            onToggle: () => this.toggleRaidStage(raid.id, number),
+          };
+        });
+        const completed = stages.filter((stage) => stage.done).length;
+        const done = completed === 3;
+        return {
+          id: `w_raid_${raid.id}`,
+          label: raid.label,
+          optional: raid.optional,
+          stages,
+          completed,
+          done,
+          progress: `${completed} of 3 stages`,
+          border: done ? "rgba(232, 184, 106, 0.45)" : "rgba(212, 166, 94, 0.16)",
+          bg: done ? "rgba(212, 166, 94, 0.09)" : "rgba(8, 6, 4, 0.38)",
+          labelColor: done ? "#f6d391" : "#e6d6b4",
+          onRemove: () => this.setRaidEnabled(raid.id, false),
+        };
+      });
+  }
+  toggleTask(task) {
+    const done = this.countOf(task.id) >= task.target;
+    this.setCount(task.id, done ? 0 : task.target);
+  }
+  incTask(task) { this.setCount(task.id, Math.min(task.target, this.countOf(task.id) + 1)); }
+  decTask(task) { this.setCount(task.id, Math.max(0, this.countOf(task.id) - 1)); }
+
+  setCap(id, val, max) {
+    const caps = { ...this.state.caps, [id]: Math.max(0, Math.min(max, val)) };
+    this.setState({ caps }, () => this.save());
+  }
+
+  addCustom(scope) {
+    const key = scope === "daily" ? "newDaily" : "newWeekly";
+    const label = String(this.state[key] || "").trim();
+    if (!label) return;
+    const entry = { id: `${scope[0]}_c_${Date.now().toString(36)}`, label, reward: "Custom", target: 1, custom: true };
+    if (scope === "daily") this.setState({ customDaily: [...this.state.customDaily, entry], newDaily: "" }, () => this.save());
+    else this.setState({ customWeekly: [...this.state.customWeekly, entry], newWeekly: "" }, () => this.save());
+  }
+  removeCustom(scope, id) {
+    const counts = { ...this.state.counts }; delete counts[id];
+    if (scope === "daily") this.setState({ customDaily: this.state.customDaily.filter((t) => t.id !== id), counts }, () => this.save());
+    else this.setState({ customWeekly: this.state.customWeekly.filter((t) => t.id !== id), counts }, () => this.save());
+  }
+  resetScope(scope) {
+    const counts = { ...this.state.counts };
+    for (const t of (scope === "daily" ? this.allDaily() : this.allWeekly())) delete counts[t.id];
+    if (scope === "weekly") this.clearRaidProgress(counts);
+    this.setState({ counts }, () => this.save());
+  }
+
+  taskRow(task, scope) {
+    const count = this.countOf(task.id);
+    const done = count >= task.target;
+    const isCounter = task.target > 1;
+    return {
+      id: task.id,
+      label: task.label,
+      reward: task.reward || "",
+      priority: Boolean(task.priority),
+      custom: Boolean(task.custom),
+      isCounter,
+      done,
+      progress: `${count} / ${task.target}`,
+      mark: done ? "✓" : "",
+      boxBg: done ? "#e8b86a" : "transparent",
+      boxBorder: done ? "#f6d391" : "rgba(212, 166, 94, 0.4)",
+      border: done ? "rgba(232, 184, 106, 0.4)" : "rgba(212, 166, 94, 0.12)",
+      bg: done ? "rgba(212, 166, 94, 0.09)" : "rgba(10, 8, 5, 0.4)",
+      labelColor: done ? "#f6d391" : "#e6d6b4",
+      onToggle: () => this.toggleTask(task),
+      onInc: () => this.incTask(task),
+      onDec: () => this.decTask(task),
+      onRemove: () => this.removeCustom(scope, task.id),
+    };
+  }
+
+  renderVals() {
+    const now = this.state.now;
+    const dailyRows = this.allDaily().map((t) => this.taskRow(t, "daily"));
+    const weeklyRows = this.allWeekly().map((t) => this.taskRow(t, "weekly"));
+    const raidRows = this.raidRows();
+    const dailyDone = dailyRows.filter((r) => r.done).length;
+    const weeklyDone = weeklyRows.filter((r) => r.done).length + raidRows.filter((r) => r.done).length;
+    const weeklyTotal = weeklyRows.length + raidRows.length;
+    const canAddHard = !this.state.enabledRaids?.hard;
+    const canAddNightmare = !this.state.enabledRaids?.nightmare;
+
+    const capRows = this.CAPS.map((c) => {
+      const val = Math.max(0, Math.min(c.max, Number(this.state.caps[c.id] || 0)));
+      const pct = c.max > 0 ? (val / c.max) * 100 : 0;
+      return {
+        id: c.id,
+        label: c.label,
+        note: c.note,
+        valueLabel: `${val.toLocaleString()} / ${c.max.toLocaleString()}`,
+        valueColor: val >= c.max ? "#7ee0a6" : "#f3e9d4",
+        pct: `${pct}%`,
+        onInc: () => this.setCap(c.id, val + c.step, c.max),
+        onDec: () => this.setCap(c.id, val - c.step, c.max),
+      };
+    });
+
+    return {
+      ...this.characterVals(),
+      title: this.state.title,
+      onTitleChange: (e) => this.setState({ title: e.target.value }, () => this.save()),
+
+      dailyReset: this.fmtCountdown(this.nextDailyReset() - now),
+      weeklyReset: this.fmtCountdown(this.nextWeeklyReset() - now),
+
+      dailyRows,
+      weeklyRows,
+      raidRows,
+      canAddHard,
+      canAddNightmare,
+      canAddRaidDifficulty: canAddHard || canAddNightmare,
+      onAddHard: () => this.setRaidEnabled("hard", true),
+      onAddNightmare: () => this.setRaidEnabled("nightmare", true),
+      dailyDone,
+      dailyTotal: dailyRows.length,
+      dailyPct: `${dailyRows.length ? (dailyDone / dailyRows.length) * 100 : 0}%`,
+      weeklyDone,
+      weeklyTotal,
+      weeklyPct: `${weeklyTotal ? (weeklyDone / weeklyTotal) * 100 : 0}%`,
+
+      capRows,
+
+      newDaily: this.state.newDaily,
+      onNewDailyInput: (e) => this.setState({ newDaily: e.target.value }),
+      onNewDailyKey: (e) => { if (e.key === "Enter") this.addCustom("daily"); },
+      onAddDaily: () => this.addCustom("daily"),
+      onResetDaily: () => this.resetScope("daily"),
+
+      newWeekly: this.state.newWeekly,
+      onNewWeeklyInput: (e) => this.setState({ newWeekly: e.target.value }),
+      onNewWeeklyKey: (e) => { if (e.key === "Enter") this.addCustom("weekly"); },
+      onAddWeekly: () => this.addCustom("weekly"),
+      onResetWeekly: () => this.resetScope("weekly"),
+    };
+  }
+}
+</script>
+</body>
+</html>

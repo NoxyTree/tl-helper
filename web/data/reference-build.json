@@ -1,0 +1,1323 @@
+{
+  "id": "questlog-the-death-prophet-and-void",
+  "name": "The Death Prophet and Void",
+  "source": "https://questlog.gg/throne-and-liberty/en/character-builder/TheDeathProphetAndVoid",
+  "profile": {
+    "name": "GS Tank Madness",
+    "role": "Imported Build",
+    "server": "AGS"
+  },
+  "attributes": {
+    "str": 4,
+    "dex": 0,
+    "int": 15,
+    "per": 20,
+    "con": 20
+  },
+  "build": {
+    "id": "8184624",
+    "name": "Tank T4 Update",
+    "equipment": {
+      "main_hand": {
+        "itemId": "sword_aa_t2_raid_001",
+        "level": 75,
+        "traits": [
+          {
+            "statId": "all_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "collide_amplification",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": {
+          "statId": "int",
+          "tier": 4
+        },
+        "resonance": [],
+        "heroicEffects": [
+          {
+            "statId": "all_accuracy"
+          },
+          {
+            "statId": "melee_accuracy"
+          }
+        ],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "Perk_sword_a_t4_nomal_002",
+        "runes": [
+          {
+            "runeId": "Weapon_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          },
+          {
+            "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 1
+          },
+          {
+            "runeId": "Weapon_Ast_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 120
+          }
+        ]
+      },
+      "off_hand": {
+        "itemId": "sword2h_aa_S1_002",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "all_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "skill_cooldown_modifier",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "skill_cooldown_modifier",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Weapon_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          },
+          {
+            "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 1
+          },
+          {
+            "runeId": "Weapon_Ast_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 120
+          }
+        ]
+      },
+      "head": {
+        "itemId": "head_aa_S1_fabric_001",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "melee_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "skill_cooldown_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Head_Atk_Rune_Usable_kA_001",
+            "statId": "pvp_melee_accuracy",
+            "level": 60
+          },
+          {
+            "runeId": "Head_All_Rune_Usable_kA_001",
+            "statId": "pvp_melee_accuracy",
+            "level": 1
+          },
+          {
+            "runeId": "Head_Ast_Rune_Usable_kA_001",
+            "statId": "all_state_accuracy",
+            "level": 60
+          }
+        ]
+      },
+      "chest": {
+        "itemId": "chest_aa_S1_plate_rift_001",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "melee_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "range_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Armor_Atk_Rune_Usable_kA_001",
+            "statId": "pvp_melee_accuracy",
+            "level": 60
+          },
+          {
+            "runeId": "Armor_Def_Rune_Usable_kA_001",
+            "statId": "pvp_all_critical_defense",
+            "level": 60
+          },
+          {
+            "runeId": "Armor_All_Rune_Usable_kA_001",
+            "statId": "pvp_melee_accuracy",
+            "level": 1
+          }
+        ]
+      },
+      "hands": {
+        "itemId": "hands_aa_S1_plate_001",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "melee_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "range_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Hands_All_Rune_Usable_kA_001",
+            "statId": "pvp_all_double_defense",
+            "level": 1
+          },
+          {
+            "runeId": "Hands_Def_Rune_Usable_kA_001",
+            "statId": "pvp_all_double_defense",
+            "level": 60
+          },
+          {
+            "runeId": "Hands_Ast_Rune_Usable_kA_001",
+            "statId": "all_state_tolerance",
+            "level": 60
+          }
+        ]
+      },
+      "legs": {
+        "itemId": "legs_aa_S1_plate_rift_001",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "melee_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "range_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Legs_All_Rune_Usable_kA_001",
+            "statId": "pvp_all_critical_defense",
+            "level": 1
+          },
+          {
+            "runeId": "Legs_Def_Rune_Usable_kA_001",
+            "statId": "pvp_all_critical_defense",
+            "level": 60
+          },
+          {
+            "runeId": "Legs_Ast_Rune_Usable_kA_001",
+            "statId": "all_state_accuracy",
+            "level": 60
+          }
+        ]
+      },
+      "feet": {
+        "itemId": "feet_aa_S1_fabric_001",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "move_speed_modifier",
+            "tier": 4
+          },
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          },
+          {
+            "statId": "melee_critical_defense",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "magic_critical_defense",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Feet_All_Rune_Usable_kA_001",
+            "statId": "pvp_all_double_defense",
+            "level": 1
+          },
+          {
+            "runeId": "Feet_Def_Rune_Usable_kA_001",
+            "statId": "pvp_all_double_defense",
+            "level": 60
+          },
+          {
+            "runeId": "Feet_Ast_Rune_Usable_kA_001",
+            "statId": "all_state_accuracy",
+            "level": 60
+          }
+        ]
+      },
+      "cloak": {
+        "itemId": "cloak_unique_aa_t2_set_001",
+        "level": 75,
+        "traits": [
+          {
+            "statId": "weaken_tolerance",
+            "tier": 4
+          },
+          {
+            "statId": "collide_resistance",
+            "tier": 4
+          },
+          {
+            "statId": "skill_power_resistance",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": {
+          "statId": "all_double_defense",
+          "tier": 4
+        },
+        "resonance": [],
+        "heroicEffects": [
+          {
+            "statId": "all_accuracy"
+          },
+          {
+            "statId": "all_critical_defense"
+          },
+          {
+            "statId": "damage_reduction"
+          }
+        ],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "SkillSet_WP_Item_Gear_SW2_01_3",
+        "runes": [
+          {
+            "runeId": "Cloak_Atk_Rune_Usable_kA_001",
+            "statId": "pvp_melee_double_attack",
+            "level": 60
+          },
+          {
+            "runeId": "Cloak_Ast_Rune_Usable_kA_001",
+            "statId": "all_state_tolerance",
+            "level": 60
+          },
+          {
+            "runeId": "Cloak_All_Rune_Usable_kA_001",
+            "statId": "all_state_tolerance",
+            "level": 1
+          }
+        ]
+      },
+      "necklace": {
+        "itemId": "necklace_aa_S1_004",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "collide_amplification",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Necklace_Atk_Rune_Usable_kAA2_001",
+            "statId": "melee_accuracy",
+            "level": 120
+          },
+          {
+            "runeId": "Necklace_Ast_Rune_Usable_kAA2_001",
+            "statId": "collide_resistance",
+            "level": 120
+          },
+          {
+            "runeId": "Necklace_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_critical_defense",
+            "level": 120
+          }
+        ]
+      },
+      "bracelet": {
+        "itemId": "bracelet_aa_t2_raid_001",
+        "level": 75,
+        "traits": [
+          {
+            "statId": "weaken_tolerance",
+            "tier": 4
+          },
+          {
+            "statId": "collide_resistance",
+            "tier": 4
+          },
+          {
+            "statId": "skill_power_resistance",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": {
+          "statId": "all_double_defense",
+          "tier": 4
+        },
+        "resonance": [],
+        "heroicEffects": [
+          {
+            "statId": "per"
+          },
+          {
+            "statId": "all_accuracy"
+          },
+          {
+            "statId": "con"
+          }
+        ],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "SkillSet_WP_Item_Gear_SW2_01_1",
+        "runes": [
+          {
+            "runeId": "Bracelet_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          },
+          {
+            "runeId": "Bracelet_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          },
+          {
+            "runeId": "Bracelet_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          }
+        ]
+      },
+      "belt": {
+        "itemId": "belt_aa_t3_normal_004",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "weaken_tolerance",
+            "tier": 4
+          },
+          {
+            "statId": "collide_resistance",
+            "tier": 4
+          },
+          {
+            "statId": "skill_power_resistance",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "collide_resistance",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Belt_Def_Rune_Usable_kAA2_001",
+            "statId": "melee_critical_defense",
+            "level": 120
+          },
+          {
+            "runeId": "Belt_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          },
+          {
+            "runeId": "Belt_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_double_defense",
+            "level": 120
+          }
+        ]
+      },
+      "ring_1": {
+        "itemId": "ring_aa_S1_002",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "collide_amplification",
+            "tier": 4
+          },
+          {
+            "statId": "skill_cooldown_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 120
+          },
+          {
+            "runeId": "Ring_All_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 1
+          },
+          {
+            "runeId": "Ring_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_critical_defense",
+            "level": 120
+          }
+        ]
+      },
+      "ring_2": {
+        "itemId": "ring_aa_S1_rift_002",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "collide_amplification",
+            "tier": 4
+          },
+          {
+            "statId": "skill_cooldown_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 120
+          },
+          {
+            "runeId": "Ring_All_Rune_Usable_kAA2_001",
+            "statId": "weaken_accuracy",
+            "level": 1
+          },
+          {
+            "runeId": "Ring_Def_Rune_Usable_kAA2_001",
+            "statId": "magic_critical_defense",
+            "level": 120
+          }
+        ]
+      },
+      "brooch": {
+        "itemId": "brooch_aa_t3_normal_006",
+        "level": 50,
+        "traits": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "skill_power_resistance",
+            "tier": 4
+          },
+          {
+            "statId": "buff_given_duration_modifier",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "attack_range_modifier",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "earring": {
+        "itemId": "earring_aa_S1_rift_001",
+        "level": 80,
+        "traits": [
+          {
+            "statId": "cost_regen",
+            "tier": 4
+          },
+          {
+            "statId": "side_damage_reduction",
+            "tier": 4
+          },
+          {
+            "statId": "front_damage_reduction",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 4
+          }
+        ],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "Earring_Atk_Rune_Usable_kAA2_001",
+            "statId": "melee_accuracy",
+            "level": 120
+          },
+          {
+            "runeId": "Earring_All_Rune_Usable_kAA2_001",
+            "statId": "collide_resistance",
+            "level": 1
+          },
+          {
+            "runeId": "Earring_Ast_Rune_Usable_kAA2_001",
+            "statId": "collide_resistance",
+            "level": 120
+          }
+        ]
+      }
+    },
+    "artifacts": {
+      "talistone1": {
+        "itemId": "talistone_a_set_03_001",
+        "level": 0,
+        "traits": [
+          {
+            "statId": "all_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "melee_accuracy",
+            "tier": 4
+          },
+          {
+            "statId": "melee_double_attack",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "bonus_attack_power_main_hand",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "talistone2": {
+        "itemId": "talistone_a_set_03_002",
+        "level": 0,
+        "traits": [
+          {
+            "statId": "all_double_defense",
+            "tier": 3
+          },
+          {
+            "statId": "all_critical_defense",
+            "tier": 3
+          },
+          {
+            "statId": "magic_double_defense",
+            "tier": 3
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "all_armor",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "talistone3": {
+        "itemId": "talistone_a_set_05_003",
+        "level": 0,
+        "traits": [
+          {
+            "statId": "stamina_max",
+            "tier": 4
+          },
+          {
+            "statId": "collide_resistance",
+            "tier": 4
+          },
+          {
+            "statId": "all_state_tolerance",
+            "tier": 4
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "hp_max",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "talistone4": {
+        "itemId": "talistone_a_set_05_004",
+        "level": 0,
+        "traits": [
+          {
+            "statId": "all_accuracy",
+            "tier": 3
+          },
+          {
+            "statId": "melee_accuracy",
+            "tier": 3
+          },
+          {
+            "statId": "all_double_defense",
+            "tier": 3
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "hp_max",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "gemstone1": {
+        "itemId": "gemstone_a_set_06_001",
+        "level": 0,
+        "traits": [
+          {
+            "statId": "weaken_accuracy",
+            "tier": 8
+          },
+          {
+            "statId": "all_state_accuracy",
+            "tier": 8
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "gemstone2": {
+        "itemId": "gemstone_a_set_06_002",
+        "level": 0,
+        "traits": [
+          {
+            "statId": "collide_resistance",
+            "tier": 8
+          },
+          {
+            "statId": "all_state_tolerance",
+            "tier": 8
+          }
+        ],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      }
+    },
+    "supportSlots": {
+      "attack": {
+        "itemId": "Usable_Food_Result_057_kB",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "defense": {
+        "itemId": "Usable_Food_Result_014_kB",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "utility": {
+        "itemId": "Usable_Food_Result_026_kB",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "hp-recovery": {
+        "itemId": "Usable_Food_Result_021_kB",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "mana-recovery": {
+        "itemId": "Usable_Food_Result_022_kB",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "riftstone": {
+        "itemId": "",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": [
+          {
+            "runeId": "",
+            "statId": "",
+            "level": 1
+          },
+          {
+            "runeId": "",
+            "statId": "",
+            "level": 1
+          },
+          {
+            "runeId": "",
+            "statId": "",
+            "level": 1
+          }
+        ]
+      },
+      "boonstone": {
+        "itemId": "Origin_L04_A05_01",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "castle": {
+        "itemId": "TID_CASTLE_Windawood",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      },
+      "stellarite": {
+        "itemId": "Ammo_kB_001",
+        "level": 0,
+        "traits": [],
+        "uniqueTrait": null,
+        "resonance": [],
+        "heroicEffects": [],
+        "artifactStatId": "",
+        "potentialId": "",
+        "perkId": "",
+        "runes": []
+      }
+    },
+    "skills": [
+      {
+        "skillId": "SkillSet_WP_SW2_S_LeapAttack",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW2_S_LeapAttack_trait_1",
+          "SkillSet_WP_SW2_S_LeapAttack_trait_2"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_GaiaCrash",
+        "level": 21,
+        "specializationIds": [
+          "SkillSet_WP_SW2_S_GaiaCrash_trait_1"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_DashAttack",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW2_S_DashAttack_trait_1",
+          "SkillSet_WP_SW2_S_DashAttack_trait_2"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_BuffAttack",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_ShieldBuff",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW_SH_S_ShieldBuff_trait_4",
+          "SkillSet_WP_SW_SH_S_ShieldBuff_trait_1"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_ShieldBuff",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW2_S_ShieldBuff_trait_4",
+          "SkillSet_WP_SW2_S_ShieldBuff_trait_3",
+          "SkillSet_WP_SW2_S_ShieldBuff_trait_2"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_MainAttack",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW2_S_MainAttack_trait_4"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_PullSkill",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW_SH_S_PullSkill_trait_4",
+          "SkillSet_WP_SW_SH_S_PullSkill_trait_2"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_DashAttack",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW_SH_S_DashAttack_trait_2",
+          "SkillSet_WP_SW_SH_S_DashAttack_trait_1"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_TauntBuff",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW_SH_S_TauntBuff_trait_3",
+          "SkillSet_WP_SW_SH_S_TauntBuff_trait_2"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_DefenseDebuffAttack",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_DamageReceive",
+        "level": 15,
+        "specializationIds": [
+          "SkillSet_WP_SW2_S_DamageReceive_trait_1",
+          "SkillSet_WP_SW2_S_DamageReceive_trait_2",
+          "SkillSet_WP_SW2_S_DamageReceive_trait_3",
+          "SkillSet_WP_SW2_S_DamageReceive_trait_5"
+        ],
+        "loadoutType": "active"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_MaxHPUp",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_CurrentHpBuff",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW2_S_HittedBuff",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_BlockSucceedRewardMana",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_CrashSucceedBuff",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_AroundCountBuff",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_ArmorUp",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_TauntBuff_Attack",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "passive"
+      },
+      {
+        "skillId": "SkillSet_WP_SW_SH_S_CounterMove",
+        "level": 15,
+        "specializationIds": [],
+        "loadoutType": "defensive"
+      }
+    ],
+    "masteries": {
+      "Sword_Normal_Attack_01": {
+        "level": 10
+      },
+      "Sword_Normal_DefenseTactic_09": {
+        "level": 10
+      },
+      "Sword_Normal_Tactic_10": {
+        "level": 10
+      },
+      "Sword_High_Attack_02": {
+        "level": 10
+      },
+      "Sword_High_Tactic_10": {
+        "level": 10
+      },
+      "Sword_Normal_Defense_08": {
+        "level": 10
+      },
+      "Sword_High_Defense_08": {
+        "level": 10
+      },
+      "Sword_Rare_DefenseTactic_09": {
+        "level": 10
+      },
+      "Sword_Hero_Defense_03": {
+        "level": 10
+      },
+      "Sword_Rare_Util_05": {
+        "level": 10
+      },
+      "Sword_Rare_Util_04": {
+        "level": 10
+      },
+      "Sword_Rare_UtilDefense_06": {
+        "level": 10
+      },
+      "Sword_Hero_Util_02": {
+        "level": 10
+      },
+      "Sword_Rare_Defense_08": {
+        "level": 10
+      },
+      "Sword_Rare_Defense_07": {
+        "level": 10
+      },
+      "Sword_Rare_Tactic_11": {
+        "level": 10
+      },
+      "Sword_High_DefenseTactic_09": {
+        "level": 10
+      },
+      "Sword_Normal_Util_05": {
+        "level": 10
+      },
+      "Sword_Rare_TacticAttack_12": {
+        "level": 10
+      },
+      "Sword_Rare_Def_Skill": {
+        "level": 1
+      },
+      "Sword_Rare_Util_Skill": {
+        "level": 1
+      },
+      "Sword_Normal_Tactic_11": {
+        "level": 10
+      },
+      "Sword_Normal_Tac_Skill": {
+        "level": 1
+      },
+      "Sword_Normal_Def_Skill": {
+        "level": 1
+      },
+      "Sword2h_Normal_TacticAttack_12": {
+        "level": 10
+      },
+      "Sword2h_Normal_AttackUtil_03": {
+        "level": 10
+      },
+      "Sword2h_Normal_Tactic_11": {
+        "level": 10
+      },
+      "Sword2h_Normal_DefenseTactic_09": {
+        "level": 10
+      },
+      "Sword2h_Normal_Defense_08": {
+        "level": 10
+      },
+      "Sword2h_Normal_UtilDefense_06": {
+        "level": 10
+      },
+      "Sword2h_High_UtilDefense_06": {
+        "level": 10
+      },
+      "Sword2h_Normal_Util_05": {
+        "level": 10
+      },
+      "Sword2h_High_AttackUtil_03": {
+        "level": 10
+      },
+      "Sword2h_High_Tactic_11": {
+        "level": 10
+      },
+      "Sword2h_High_Tactic_10": {
+        "level": 10
+      },
+      "Sword2h_Hero_Tactic_04": {
+        "level": 10
+      },
+      "Sword2h_Rare_Attack_02": {
+        "level": 10
+      },
+      "Sword2h_Rare_Attack_01": {
+        "level": 10
+      },
+      "Sword2h_Hero_Attack_01": {
+        "level": 10
+      },
+      "Sword2h_Rare_TacticAttack_12": {
+        "level": 10
+      },
+      "Sword2h_Rare_UtilDefense_06": {
+        "level": 10
+      },
+      "Sword2h_Rare_Defense_08": {
+        "level": 10
+      },
+      "Sword2h_Rare_DefenseTactic_09": {
+        "level": 10
+      },
+      "Sword2h_Rare_Util_05": {
+        "level": 10
+      },
+      "Sword2h_Rare_Attack_Skill": {
+        "level": 1
+      },
+      "Sword2h_Rare_Def_Skill": {
+        "level": 1
+      },
+      "Sword_High_Util_04": {
+        "level": 10
+      },
+      "Sword_High_UtilDefense_06": {
+        "level": 10
+      },
+      "Sword_High_Def_Skill": {
+        "level": 1
+      },
+      "Sword_High_Tac_Skill": {
+        "level": 1
+      },
+      "Sword2h_High_Defense_07": {
+        "level": 10
+      },
+      "Sword2h_High_Tac_Skill": {
+        "level": 1
+      },
+      "Sword2h_High_Util_Skill": {
+        "level": 1
+      },
+      "Sword2h_Normal_Util_04": {
+        "level": 10
+      },
+      "Sword2h_Normal_Util_Skill": {
+        "level": 1
+      },
+      "Sword2h_Normal_Def_Skill": {
+        "level": 1
+      }
+    },
+    "unifiedMasteries": [
+      "WM_Common_SKILL_001",
+      "WM_Common_SKILL_010",
+      "WM_Common_SKILL_012",
+      "WM_Common_SKILL_007"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+out/
+tools/dotnet-sdk/
+tools/FModel/
+tools/FModel.zip
+bin/
+obj/
+src/**/bin/
+src/**/obj/
+*.pid

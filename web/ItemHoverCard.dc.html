@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="width: 300px; max-height: 86vh; overflow-y: auto; border: 1px solid rgba(212, 166, 94, 0.4); border-radius: 10px; background: linear-gradient(180deg, rgba(24, 18, 11, 0.99), rgba(11, 8, 5, 0.99)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.7); font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;">
+  <div style="display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-top: {{ data.headBorder }}; background: {{ data.headBg }};">
+    <sc-if value="{{ data.hasIcon }}" hint-placeholder-val="{{ false }}">
+      <span style="flex: none; width: 46px; height: 46px; border-radius: 9px; overflow: hidden; border: 1px solid {{ data.nameColor }}; background: url({{ data.icon }}) center/cover, #171209; display: block;"></span>
+    </sc-if>
+    <div style="min-width: 0;">
+      <div style="font-size: 15px; font-weight: 700; color: {{ data.nameColor }}; line-height: 1.2;">{{ data.name }}</div>
+      <div style="font-size: 10.5px; color: #9d8a68; margin-top: 3px;">{{ data.meta }}</div>
+    </div>
+  </div>
+
+  <sc-if value="{{ data.hasTraits }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px;">Traits</div>
+      <sc-for list="{{ data.traits }}" as="row" hint-placeholder-count="2">
+        <div style="font-size: 11.5px; color: #d9c8a5; line-height: 1.5;">{{ row.text }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasUnique }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #ffb765; margin-bottom: 5px;">Heroic Trait</div>
+      <sc-for list="{{ data.unique }}" as="row" hint-placeholder-count="1">
+        <div style="font-size: 11.5px; color: #d9c8a5; line-height: 1.5;">{{ row.text }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasHeroicEffects }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(255, 152, 45, 0.18); background: rgba(255, 152, 45, 0.035);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #ffb765; margin-bottom: 5px;">Heroic Effects</div>
+      <sc-for list="{{ data.heroicEffects }}" as="row" hint-placeholder-count="2">
+        <div style="display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; line-height: 1.5;"><span style="color: #8a795f;">{{ row.groupNumber }}</span><span style="color: #d9c8a5;">{{ row.name }}</span><span style="flex: 1; border-bottom: 1px dotted rgba(255, 152, 45, 0.18); transform: translateY(-3px);"></span><span style="color: #ffb765; font-weight: 650;">{{ row.value }}</span></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasResonance }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cf9dff; margin-bottom: 5px;">Trait Resonance</div>
+      <sc-for list="{{ data.resonance }}" as="row" hint-placeholder-count="1">
+        <div style="font-size: 11.5px; color: #d9c8a5; line-height: 1.5;">{{ row.text }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasEffects }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <sc-for list="{{ data.effects }}" as="fx" hint-placeholder-count="1">
+        <div style="display: flex; gap: 9px; align-items: flex-start;">
+          <sc-if value="{{ fx.hasIcon }}" hint-placeholder-val="{{ false }}">
+            <span style="flex: none; width: 30px; height: 30px; border-radius: 999px; border: 1px solid rgba(212, 166, 94, 0.35); background: url({{ fx.icon }}) center/cover, #171209; display: block;"></span>
+          </sc-if>
+          <div style="min-width: 0;">
+            <div style="font-size: 11.5px; font-weight: 650; color: #e6d6b4;"><span style="color: #8a795f; font-weight: 400;">{{ fx.label }}</span> {{ fx.name }}</div>
+            <div style="font-size: 10.5px; line-height: 1.5; color: #a4906d; margin-top: 2px;">{{ fx.text }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasCores }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8fd0ff; margin-bottom: 6px;">Skill Cores · Potentials</div>
+      <div style="display: grid; gap: 7px;">
+        <sc-for list="{{ data.cores }}" as="core" hint-placeholder-count="2">
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <sc-if value="{{ core.hasIcon }}" hint-placeholder-val="{{ false }}">
+              <span style="flex: none; width: 26px; height: 26px; border-radius: 7px; border: 1px solid rgba(143, 208, 255, 0.35); background: url({{ core.icon }}) center/cover, #171209; display: block;"></span>
+            </sc-if>
+            <div style="min-width: 0;">
+              <div style="font-size: 11px; font-weight: 650; color: #cfe6ff;">{{ core.name }}</div>
+              <div style="font-size: 10px; line-height: 1.45; color: #8ba0b5; margin-top: 1px;">{{ core.text }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ data.hasCoreMore }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size: 9.5px; color: #6e5f49; margin-top: 6px;">{{ data.coreMoreLabel }}</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasAbilities }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 7px;">Weapon Abilities</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <sc-for list="{{ data.abilities }}" as="ab" hint-placeholder-count="6">
+          <span title="{{ ab.name }}" style="width: 30px; height: 30px; border-radius: 7px; border: 1px solid rgba(212, 166, 94, 0.25); background: url({{ ab.icon }}) center/cover, radial-gradient(circle at 35% 30%, #241c12, #100c07); display: block;"></span>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasRunes }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 7px;">Runes</div>
+      <div style="display: grid; gap: 8px;">
+        <sc-for list="{{ data.runes }}" as="rune" hint-placeholder-count="3">
+          <sc-if value="{{ rune.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 9px; opacity: 0.5;">
+              <span style="flex: none; width: 34px; height: 34px; border-radius: 999px; border: 1.5px dashed rgba(212, 166, 94, 0.3); display: block;"></span>
+              <span style="font-size: 10.5px; color: #6e5f49;">Empty socket</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ rune.hasIcon }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="flex: none; position: relative; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid {{ rune.typeColor }}; background: url({{ rune.icon }}) center/cover, radial-gradient(circle at 35% 30%, #201810, #100c07); box-shadow: 0 0 8px {{ rune.typeColor }}44; display: block;">
+                <b style="position: absolute; right: -4px; bottom: -4px; font-style: normal; font-size: 9px; font-weight: 700; color: #f3e9d4; background: rgba(10, 8, 5, 0.95); border: 1px solid {{ rune.typeColor }}; border-radius: 999px; padding: 0 4px;">{{ rune.level }}</b>
+              </span>
+              <div style="min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: {{ rune.typeColor }};">{{ rune.typeLabel }}</span>
+                  <span style="font-size: 9.5px; color: #8a795f;">{{ rune.gradeName }}</span>
+                </div>
+                <div style="font-size: 11px; color: #d9c8a5; margin-top: 1px; font-variant-numeric: tabular-nums;">{{ rune.contribution }}</div>
+              </div>
+            </div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasSynergy }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(126, 224, 166, 0.22); background: rgba(85, 213, 138, 0.06);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #7ee0a6; margin-bottom: 5px;">◆ Rune Synergy · {{ data.synergyName }}</div>
+      <sc-for list="{{ data.synergyStats }}" as="text" hint-placeholder-count="2">
+        <div style="font-size: 11.5px; color: #b9e7cb; line-height: 1.5;">{{ text }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.hasSet }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">
+        <span style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185;">{{ data.setInfo.name }}</span>
+        <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ data.setInfo.countLabel }}</span>
+      </div>
+      <div style="display: grid; gap: 3px;">
+        <sc-for list="{{ data.setInfo.bonuses }}" as="bonus" hint-placeholder-count="2">
+          <div style="display: flex; gap: 8px; font-size: 11px; line-height: 1.45;">
+            <span style="flex: none; font-weight: 700; color: {{ bonus.color }}; font-variant-numeric: tabular-nums;">{{ bonus.required }}</span>
+            <span style="color: #a4906d;">{{ bonus.text }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 300, &quot;height&quot;: 360}, &quot;data&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;any&quot;}}"></script>
+</body>
+</html>
