@@ -1,5 +1,14 @@
 # TL Helper — Comprehensive Fix Plan
 
+> **Status (implemented 2026-07-10):** all phases landed except 0.3 — the
+> healer/ranged reference fixtures still need their expected tables
+> hand-transcribed from Questlog's rendered stats panel (framework + procedure
+> in `scripts/reference-builds/README.md`). Verification: `node
+> scripts/verify-reference-build.mjs` (43/43, hermetic) and `node
+> scripts/verify-edge-cases.mjs` (12/12, includes the 5.3 card-vs-total lock).
+> Items 1.2/1.4/1.5 resolved as verified-parity-with-Questlog rather than code
+> changes — see comments in `web/tl-questlog-rules.js`.
+
 Written 2026-07-10, from a full build-side audit of the codebase (builder UI, stat
 engine, and data pipeline). This file is self-contained: each item says what is
 wrong, where, and what "done" looks like. Work through phases in order — Phase 1
