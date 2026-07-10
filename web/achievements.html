@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TL Helper Achievements</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; min-height: 100vh; }
+    body {
+      background:
+        radial-gradient(1100px 500px at 50% -120px, rgba(214, 138, 58, 0.13), transparent 70%),
+        radial-gradient(900px 700px at 88% 108%, rgba(126, 84, 38, 0.08), transparent 65%),
+        linear-gradient(180deg, #0c0a07 0%, #0a0806 52%, #080604 100%);
+      color: #f3e9d4;
+      font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.5; z-index: 0;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.35), transparent 18%, transparent 82%, rgba(0,0,0,0.35)),
+        repeating-linear-gradient(0deg, rgba(255, 235, 190, 0.012) 0 1px, transparent 1px 7px);
+    }
+    a { color: #e8b86a; text-decoration: none; }
+    a:hover { color: #f6d391; text-decoration: underline; }
+    * { box-sizing: border-box; }
+    input, select, button, textarea { font-family: inherit; }
+    input:focus, textarea:focus, button:focus-visible { outline: 1px solid rgba(232, 184, 106, 0.5); outline-offset: 1px; }
+    ::selection { background: rgba(214, 138, 58, 0.35); }
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 166, 94, 0.22); border-radius: 8px; border: 2px solid rgba(10, 8, 6, 0.9); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 166, 94, 0.4); }
+    @keyframes tlFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes tlEmber { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+  </style>
+</helmet>
+
+<div style="position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- top bar -->
+  <header style="display: flex; align-items: center; gap: 22px; padding: 14px 30px 13px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: linear-gradient(180deg, rgba(20, 15, 9, 0.65), rgba(12, 9, 6, 0.2)); flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(212, 166, 94, 0.45); transform: rotate(45deg); background: linear-gradient(135deg, rgba(60, 42, 20, 0.8), rgba(24, 17, 9, 0.9)); box-shadow: 0 0 14px rgba(214, 138, 58, 0.25);">
+        <span style="transform: rotate(-45deg); font-family: Marcellus, serif; font-size: 15px; color: #f6d391;">T</span>
+      </div>
+      <div>
+        <div style="font-family: Marcellus, serif; font-size: 15px; letter-spacing: 0.18em; color: #f6d391;">TL HELPER</div>
+        <div style="font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #8a795f;">Achievement Chronicle</div>
+      </div>
+    </div>
+
+    <nav style="display: flex; gap: 4px; align-items: center;">
+      <a href="./index.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Armory</a>
+      <a href="./tracker.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Tracker</a>
+      <span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f6d391; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(212, 166, 94, 0.12);">Achievements</span>
+    </nav>
+
+    <span style="flex: 1;"></span>
+
+    <div style="text-align: right; padding: 4px 0 4px 14px; border-left: 1px solid rgba(212, 166, 94, 0.16);">
+      <div style="font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Total completion</div>
+      <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 18px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ headerCompletion }}</div>
+    </div>
+  </header>
+
+  <main data-screen-label="Achievements" style="flex: 1; max-width: 1460px; width: 100%; margin: 0 auto; padding: 22px 30px 48px; animation: tlFadeUp 0.35s ease;">
+
+    <sc-if value="{{ achLoaded }}" hint-placeholder-val="{{ false }}">
+
+    <!-- summary strip -->
+    <div style="position: relative; display: flex; align-items: center; gap: 26px; flex-wrap: wrap; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 20, 12, 0.55), rgba(14, 11, 7, 0.75)); padding: 18px 24px; margin-bottom: 22px;">
+      <div style="position: absolute; top: -1px; left: 24px; right: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(246, 211, 145, 0.5), transparent); animation: tlEmber 4s ease-in-out infinite;"></div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 74px; height: 74px; border-radius: 999px; background: conic-gradient(#e8b86a {{ achRingDeg }}, rgba(212, 166, 94, 0.14) 0); display: grid; place-items: center; box-shadow: 0 0 18px rgba(214, 138, 58, 0.2);">
+          <div style="width: 58px; height: 58px; border-radius: 999px; background: radial-gradient(circle at 35% 30%, #251c11, #120e08 75%); display: grid; place-items: center; font-family: Marcellus, serif; font-size: 16px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ achPctLabel }}</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Total completion</div>
+          <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 24px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ achDoneCount }}<span style="font-size: 15px; color: #8a795f;"> / {{ achTotalCount }}</span></div>
+        </div>
+      </div>
+      <div style="width: 1px; align-self: stretch; background: rgba(212, 166, 94, 0.14);"></div>
+      <div>
+        <div style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Left to claim</div>
+        <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 24px; color: #cbb185; font-variant-numeric: tabular-nums;">{{ achOpenCount }}</div>
+      </div>
+      <div style="width: 1px; align-self: stretch; background: rgba(212, 166, 94, 0.14);"></div>
+      <div>
+        <div style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Categories</div>
+        <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 24px; color: #cbb185; font-variant-numeric: tabular-nums;">{{ achCategoryCount }}</div>
+      </div>
+      <span style="flex: 1;"></span>
+      <button type="button" onClick="{{ onAchReset }}" title="Clear all local achievement progress"
+        style="font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f; background: transparent; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 5px 12px; cursor: pointer;"
+        style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.5);">Reset progress</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 26px; align-items: start;">
+      <!-- filters sidebar -->
+      <aside style="position: sticky; top: 22px; display: grid; gap: 16px;">
+        <section style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 12px; background: rgba(18, 14, 9, 0.55); padding: 16px;">
+          <label style="display: block; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f; margin-bottom: 7px;">Search achievements</label>
+          <input value="{{ achSearch }}" onInput="{{ onAchSearch }}" type="search" placeholder="Raid, cooking, Laslan…" spellcheck="false"
+            style="width: 100%; font-size: 12px; color: #f3e9d4; background: rgba(8, 6, 4, 0.6); border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 8px; padding: 8px 12px;"
+            style-focus="border-color: rgba(232, 184, 106, 0.6); outline: none;">
+          <div style="display: flex; gap: 6px; margin-top: 12px;">
+            <sc-for list="{{ achStatusChips }}" as="chip" hint-placeholder-count="3">
+              <button type="button" onClick="{{ chip.onClick }}" style="flex: 1; cursor: pointer; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 0; border-radius: 999px; color: {{ chip.color }}; border: 1px solid {{ chip.border }}; background: {{ chip.bg }};">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+          <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11.5px; color: #cbb185; cursor: pointer;">
+            <input type="checkbox" checked="{{ achHideCompleted }}" onChange="{{ onAchHideCompleted }}" style="accent-color: #e8b86a;">
+            <span>Hide completed</span>
+          </label>
+        </section>
+
+        <section style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 12px; background: rgba(18, 14, 9, 0.55); padding: 16px; max-height: 58vh; overflow-y: auto;">
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">Categories</span>
+            <span style="flex: 1;"></span>
+            <button type="button" onClick="{{ onAchClearFilters }}" style="font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #cbb185; background: transparent; border: none; cursor: pointer; padding: 0;" style-hover="color: #f6d391;">Clear</button>
+          </div>
+          <div style="display: grid; gap: 4px;">
+            <sc-for list="{{ achCategoryRows }}" as="cat" hint-placeholder-count="8">
+              <button type="button" onClick="{{ cat.onClick }}" style="cursor: pointer; text-align: left; display: grid; gap: 5px; padding: 8px 10px; border-radius: 8px; border: 1px solid {{ cat.border }}; background: {{ cat.bg }};" style-hover="border-color: rgba(232, 184, 106, 0.45);">
+                <span style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="font-size: 12px; font-weight: 600; color: {{ cat.color }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ cat.name }}</span>
+                  <span style="flex: 1;"></span>
+                  <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ cat.countLabel }}</span>
+                </span>
+                <span style="display: block; height: 4px; border-radius: 3px; background: rgba(212, 166, 94, 0.12); overflow: hidden;">
+                  <span style="display: block; height: 100%; width: {{ cat.pct }}; background: linear-gradient(90deg, #c08a3e, #f6d391); border-radius: 3px;"></span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+      </aside>
+
+      <!-- results -->
+      <div style="min-width: 0;">
+        <div style="display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 14px;">
+          <div>
+            <div style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Visible achievements</div>
+            <h2 style="margin: 2px 0 0; font-family: Marcellus, serif; font-size: 20px; font-weight: 400; color: #f6d391;">{{ achResultTitle }}</h2>
+          </div>
+          <span style="flex: 1;"></span>
+          <label style="display: flex; align-items: center; gap: 7px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #8a795f;">
+            Sort
+            <select value="{{ achSort }}" onChange="{{ onAchSort }}" style="font-size: 12px; color: #e6d6b4; background: rgba(8, 6, 4, 0.7); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 6px 10px;">
+              <option value="category">Category</option>
+              <option value="title">Title</option>
+              <option value="progress">Progress</option>
+            </select>
+          </label>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 9px 14px; margin-bottom: 14px; border: 1px solid rgba(212, 166, 94, 0.14); border-radius: 10px; background: rgba(10, 8, 5, 0.4);">
+          <span style="font-size: 11px; color: #8a795f;">{{ achPageSummary }}</span>
+          <span style="flex: 1;"></span>
+          <label style="display: flex; align-items: center; gap: 7px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #8a795f;">
+            Per page
+            <select value="{{ achPageSize }}" onChange="{{ onAchPageSize }}" style="font-size: 12px; color: #e6d6b4; background: rgba(8, 6, 4, 0.7); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 5px 8px;">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+          <button type="button" onClick="{{ onAchPrevPage }}" disabled="{{ achPrevDisabled }}" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: {{ achPrevColor }}; background: rgba(10, 8, 5, 0.6); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 6px 12px; cursor: pointer;">Previous</button>
+          <span style="font-size: 11px; color: #cbb185; font-variant-numeric: tabular-nums;">{{ achPageIndicator }}</span>
+          <button type="button" onClick="{{ onAchNextPage }}" disabled="{{ achNextDisabled }}" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: {{ achNextColor }}; background: rgba(10, 8, 5, 0.6); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 6px 12px; cursor: pointer;">Next</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px;">
+          <sc-for list="{{ achCards }}" as="card" hint-placeholder-count="9">
+            <div onClick="{{ card.onOpen }}" role="button" tabIndex="0" style="cursor: pointer; display: flex; gap: 12px; align-items: flex-start; padding: 14px 14px 12px; border-radius: 10px; border: 1px solid {{ card.border }}; background: {{ card.bg }}; transition: border-color 0.12s ease;" style-hover="border-color: rgba(232, 184, 106, 0.55);">
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; gap: 7px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f;">
+                  <span style="flex: none;">{{ card.group }}</span>
+                  <span style="color: rgba(212, 166, 94, 0.4);">·</span>
+                  <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ card.category }}</span>
+                </div>
+                <div style="margin-top: 5px; font-size: 13.5px; font-weight: 600; color: {{ card.titleColor }};">{{ card.title }}</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px;">
+                  <span style="flex: 1; height: 4px; border-radius: 3px; background: rgba(212, 166, 94, 0.12); overflow: hidden;">
+                    <span style="display: block; height: 100%; width: {{ card.pct }}; background: linear-gradient(90deg, #c08a3e, #f6d391); border-radius: 3px;"></span>
+                  </span>
+                  <span style="flex: none; font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ card.stagesLabel }}</span>
+                </div>
+              </div>
+              <button type="button" onClick="{{ card.onToggle }}" aria-label="Toggle complete" title="Toggle complete"
+                style="flex: none; width: 26px; height: 26px; border-radius: 7px; border: 1.5px solid {{ card.boxBorder }}; background: {{ card.boxBg }}; color: #0c0a07; cursor: pointer; display: grid; place-items: center; font-size: 14px; font-weight: 800; transition: all 0.12s ease;">{{ card.mark }}</button>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ achEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align: center; padding: 60px 20px; border: 1px dashed rgba(212, 166, 94, 0.25); border-radius: 12px; color: #8a795f;">
+            <div style="font-family: Marcellus, serif; font-size: 18px; color: #cbb185;">No achievements found</div>
+            <div style="font-size: 12px; margin-top: 6px;">Try another search, category, or completion filter.</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ achLoading }}" hint-placeholder-val="{{ true }}">
+      <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 60px 20px; text-align: center; color: #8a795f; font-size: 12px;">Loading the achievement chronicle…</div>
+    </sc-if>
+  </main>
+</div>
+
+<!-- achievement detail drawer -->
+<sc-if value="{{ achDetailOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ onAchDetailBackdrop }}" style="position: fixed; inset: 0; z-index: 80; background: rgba(5, 4, 3, 0.7); backdrop-filter: blur(4px); display: flex; justify-content: flex-end;">
+    <aside data-screen-label="Achievement Detail" role="dialog" aria-modal="true" style="width: min(470px, 92vw); height: 100%; overflow-y: auto; background: linear-gradient(180deg, #17110a, #0d0a06); border-left: 1px solid rgba(212, 166, 94, 0.3); padding: 22px 24px 32px; box-shadow: -30px 0 60px rgba(0, 0, 0, 0.5); animation: tlFadeUp 0.2s ease;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" onClick="{{ onAchDetailPrev }}" disabled="{{ achDetailPrevDisabled }}" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: {{ achDetailPrevColor }}; background: rgba(10, 8, 5, 0.6); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 6px 12px; cursor: pointer;">Previous</button>
+        <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ achDetailPosition }}</span>
+        <button type="button" onClick="{{ onAchDetailNext }}" disabled="{{ achDetailNextDisabled }}" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: {{ achDetailNextColor }}; background: rgba(10, 8, 5, 0.6); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 6px 12px; cursor: pointer;">Next</button>
+        <span style="flex: 1;"></span>
+        <button type="button" onClick="{{ onAchDetailClose }}" aria-label="Close achievement details" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #cbb185; background: transparent; border: 1px solid rgba(212, 166, 94, 0.3); border-radius: 999px; padding: 6px 14px; cursor: pointer;" style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.6);">Close</button>
+      </div>
+
+      <div style="margin-top: 20px; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">{{ achDetailPath }}</div>
+      <h2 style="margin: 6px 0 2px; font-family: Marcellus, serif; font-size: 24px; font-weight: 400; color: #f6d391; letter-spacing: 0.02em;">{{ achDetailTitle }}</h2>
+      <div style="font-size: 10.5px; color: #8a795f;">Achievement #{{ achDetailId }}</div>
+
+      <sc-if value="{{ achDetailHasDesc }}" hint-placeholder-val="{{ false }}">
+        <p style="margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: #e6d6b4;">{{ achDetailDesc }}</p>
+      </sc-if>
+
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 18px;">
+        <span style="flex: 1; height: 6px; border-radius: 4px; background: rgba(212, 166, 94, 0.12); overflow: hidden;">
+          <span style="display: block; height: 100%; width: {{ achDetailPct }}; background: linear-gradient(90deg, #c08a3e, #f6d391); border-radius: 4px; transition: width 0.3s ease;"></span>
+        </span>
+        <span style="flex: none; font-size: 10.5px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ achDetailStagesLabel }}</span>
+      </div>
+
+      <button type="button" onClick="{{ onAchDetailToggle }}" style="margin-top: 14px; width: 100%; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #f6d391; background: rgba(232, 184, 106, 0.14); border: 1px solid rgba(232, 184, 106, 0.5); border-radius: 8px; padding: 10px 16px; cursor: pointer;" style-hover="background: rgba(232, 184, 106, 0.24);">{{ achDetailToggleLabel }}</button>
+
+      <div style="margin-top: 22px; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">Objectives</div>
+      <div style="display: grid; gap: 7px; margin-top: 9px;">
+        <sc-for list="{{ achDetailStages }}" as="stage" hint-placeholder-count="3">
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 11px 12px; border-radius: 9px; border: 1px solid {{ stage.border }}; background: {{ stage.bg }};">
+            <button type="button" onClick="{{ stage.onToggle }}" aria-label="Toggle stage" title="Toggle stage"
+              style="flex: none; width: 24px; height: 24px; border-radius: 7px; border: 1.5px solid {{ stage.boxBorder }}; background: {{ stage.boxBg }}; color: #0c0a07; cursor: pointer; display: grid; place-items: center; font-size: 13px; font-weight: 800;">{{ stage.mark }}</button>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 12.5px; font-weight: 600; line-height: 1.45; color: {{ stage.textColor }};">{{ stage.objective }}</div>
+              <sc-if value="{{ stage.hasRewards }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size: 10.5px; color: #8a795f; margin-top: 3px;">{{ stage.rewardsLabel }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+  </div>
+</sc-if>
+
+<!-- toast -->
+<sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+  <div style="position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 90; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(20, 15, 9, 0.95); color: #f6d391; font-size: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); animation: tlFadeUp 0.2s ease;">{{ toastMsg }}</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  // Achievement tracker page — wiring ported from the tl-helper repo (src/achievements/app.js), local-only.
+  ACH_KEY = "tl-achievement-tracker-progress-v1";
+
+  state = {
+    achList: [],
+    achLoaded: false,
+    achProgress: {},
+    achSearch: "",
+    achCategory: "all",
+    achStatus: "all",
+    achHideCompleted: false,
+    achSort: "category",
+    achPage: 1,
+    achPageSize: 50,
+    achDetailId: null,
+    toastMsg: "",
+  };
+
+  componentDidMount() {
+    this.loadAchievements();
+    this._onKeyDown = (e) => { if (e.key === "Escape" && this.state.achDetailId != null) this.closeAchDetail(); };
+    document.addEventListener("keydown", this._onKeyDown);
+  }
+
+  componentWillUnmount() {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    if (this._onKeyDown) document.removeEventListener("keydown", this._onKeyDown);
+  }
+
+  async loadAchievements() {
+    try {
+      const mod = await import("./data/achievements.js");
+      let progress = {};
+      try { progress = JSON.parse(localStorage.getItem(this.ACH_KEY) || "null") || {}; } catch {}
+      this.setState({ achList: mod.TL_ACHIEVEMENTS || [], achLoaded: true, achProgress: progress });
+    } catch (e) { /* stays on loading state */ }
+  }
+
+  saveAchProgress() {
+    try { localStorage.setItem(this.ACH_KEY, JSON.stringify(this.state.achProgress)); } catch {}
+  }
+
+  achStageCount(a) { return Math.max(Array.isArray(a.stages) ? a.stages.length : 0, 1); }
+
+  achStageIndexes(a) {
+    const entry = this.state.achProgress[a.id];
+    const n = this.achStageCount(a);
+    if (!entry) return [];
+    if (Array.isArray(entry.completedStageIndexes)) {
+      return [...new Set(entry.completedStageIndexes)].filter((i) => Number.isInteger(i) && i >= 0 && i < n).sort((x, y) => x - y);
+    }
+    if (entry.completed) return Array.from({ length: n }, (_, i) => i);
+    return [];
+  }
+
+  achDone(a) { return this.achStageIndexes(a).length >= this.achStageCount(a); }
+  achPctOf(a) { return Math.round((this.achStageIndexes(a).length / this.achStageCount(a)) * 100); }
+
+  setAchStages(a, indexes) {
+    const n = this.achStageCount(a);
+    const normalized = [...new Set(indexes)].filter((i) => Number.isInteger(i) && i >= 0 && i < n).sort((x, y) => x - y);
+    const achProgress = { ...this.state.achProgress };
+    if (!normalized.length) delete achProgress[a.id];
+    else achProgress[a.id] = { completed: normalized.length >= n, completedStageIndexes: normalized, updatedAt: new Date().toISOString() };
+    this.setState({ achProgress }, () => this.saveAchProgress());
+  }
+
+  toggleAch(a) {
+    const next = !this.achDone(a);
+    this.setAchStages(a, next ? Array.from({ length: this.achStageCount(a) }, (_, i) => i) : []);
+    if (next) this.showToast(`Claimed: ${a.title}`);
+  }
+
+  toggleAchStage(a, idx) {
+    const set = new Set(this.achStageIndexes(a));
+    if (set.has(idx)) set.delete(idx); else set.add(idx);
+    const willBeDone = set.size >= this.achStageCount(a);
+    this.setAchStages(a, [...set]);
+    if (willBeDone) this.showToast(`Claimed: ${a.title}`);
+  }
+
+  showToast(msg) {
+    clearTimeout(this._toastTimer);
+    this.setState({ toastMsg: msg });
+    this._toastTimer = setTimeout(() => this.setState({ toastMsg: "" }), 1800);
+  }
+
+  achFiltered() {
+    const s = this.state;
+    const q = s.achSearch.toLowerCase().trim();
+    const rows = s.achList.filter((a) => {
+      const done = this.achDone(a);
+      const matchesSearch = !q || `${a.title} ${a.category} ${a.categoryGroup}`.toLowerCase().includes(q);
+      const matchesCategory = s.achCategory === "all" || a.category === s.achCategory;
+      const matchesStatus = s.achStatus === "all" || (s.achStatus === "done" && done) || (s.achStatus === "open" && !done);
+      const matchesHidden = !s.achHideCompleted || !done;
+      return matchesSearch && matchesCategory && matchesStatus && matchesHidden;
+    });
+    rows.sort((a, b) => {
+      if (s.achSort === "title") return a.title.localeCompare(b.title);
+      if (s.achSort === "progress") return this.achPctOf(a) - this.achPctOf(b) || a.title.localeCompare(b.title);
+      return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
+    });
+    return rows;
+  }
+
+  achCategories() {
+    const map = new Map();
+    for (const a of this.state.achList) {
+      const e = map.get(a.category) || { name: a.category, group: a.categoryGroup, total: 0, done: 0 };
+      e.total += 1;
+      if (this.achDone(a)) e.done += 1;
+      map.set(a.category, e);
+    }
+    return [...map.values()].sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name));
+  }
+
+  openAchDetail(a) { this.setState({ achDetailId: a.id }); }
+  closeAchDetail() { this.setState({ achDetailId: null }); }
+
+  renderVals() {
+    const s = this.state;
+    const base = { toastVisible: Boolean(s.toastMsg), toastMsg: s.toastMsg, achDetailOpen: false };
+    if (!s.achLoaded) return { ...base, achLoading: true, achLoaded: false, headerCompletion: "—" };
+
+    const all = s.achList;
+    const doneCount = all.filter((a) => this.achDone(a)).length;
+    const pct = all.length ? Math.round((doneCount / all.length) * 100) : 0;
+
+    const rows = this.achFiltered();
+    const totalPages = Math.max(Math.ceil(rows.length / s.achPageSize), 1);
+    const page = Math.min(Math.max(s.achPage, 1), totalPages);
+    const start = (page - 1) * s.achPageSize;
+    const pageRows = rows.slice(start, start + s.achPageSize);
+
+    const cats = this.achCategories();
+    const catRow = (c, value) => {
+      const activeCat = s.achCategory === value;
+      const p = c.total ? Math.round((c.done / c.total) * 100) : 0;
+      return {
+        name: c.name,
+        countLabel: `${c.done}/${c.total}`,
+        pct: `${p}%`,
+        color: activeCat ? "#f6d391" : "#cbb185",
+        border: activeCat ? "rgba(232, 184, 106, 0.5)" : "rgba(212, 166, 94, 0.12)",
+        bg: activeCat ? "rgba(212, 166, 94, 0.1)" : "transparent",
+        onClick: () => this.setState({ achCategory: value, achPage: 1 }),
+      };
+    };
+
+    const chip = (label, value) => {
+      const activeChip = s.achStatus === value;
+      return {
+        label,
+        color: activeChip ? "#f6d391" : "#9d8a68",
+        border: activeChip ? "rgba(232, 184, 106, 0.5)" : "rgba(212, 166, 94, 0.2)",
+        bg: activeChip ? "rgba(212, 166, 94, 0.12)" : "transparent",
+        onClick: () => this.setState({ achStatus: value, achPage: 1 }),
+      };
+    };
+
+    let detailVals = { achDetailOpen: false };
+    const detail = s.achDetailId == null ? null : all.find((a) => a.id === s.achDetailId);
+    if (detail) {
+      const idx = rows.findIndex((a) => a.id === detail.id);
+      const prev = idx > 0 ? rows[idx - 1] : null;
+      const next = idx >= 0 ? rows[idx + 1] : null;
+      const stages = Array.isArray(detail.stages) && detail.stages.length ? detail.stages : [{ objective: "Complete this achievement", rewards: [] }];
+      const done = this.achDone(detail);
+      const stageIdxs = this.achStageIndexes(detail);
+      detailVals = {
+        achDetailOpen: true,
+        achDetailPath: detail.categoryPath || `${detail.categoryGroup}/${detail.category}`,
+        achDetailTitle: detail.title,
+        achDetailId: detail.id,
+        achDetailDesc: detail.description || "",
+        achDetailHasDesc: Boolean(detail.description),
+        achDetailPosition: idx >= 0 ? `${idx + 1} of ${rows.length}` : "filtered out",
+        achDetailPct: `${this.achPctOf(detail)}%`,
+        achDetailStagesLabel: `${stageIdxs.length}/${this.achStageCount(detail)} stages complete`,
+        achDetailToggleLabel: done ? "Mark all open" : "Mark all complete",
+        achDetailPrevDisabled: !prev,
+        achDetailNextDisabled: !next,
+        achDetailPrevColor: prev ? "#cbb185" : "#5f5340",
+        achDetailNextColor: next ? "#cbb185" : "#5f5340",
+        onAchDetailPrev: () => { if (prev) this.openAchDetail(prev); },
+        onAchDetailNext: () => { if (next) this.openAchDetail(next); },
+        onAchDetailToggle: () => this.toggleAch(detail),
+        onAchDetailClose: () => this.closeAchDetail(),
+        onAchDetailBackdrop: (e) => { if (e.target === e.currentTarget) this.closeAchDetail(); },
+        achDetailStages: stages.map((stage, i) => {
+          const sd = stageIdxs.includes(i);
+          return {
+            objective: stage.objective || "",
+            hasRewards: Array.isArray(stage.rewards) && stage.rewards.length > 0,
+            rewardsLabel: (stage.rewards || []).join(" · "),
+            mark: sd ? "✓" : "",
+            boxBg: sd ? "#e8b86a" : "transparent",
+            boxBorder: sd ? "#f6d391" : "rgba(212, 166, 94, 0.4)",
+            border: sd ? "rgba(232, 184, 106, 0.4)" : "rgba(212, 166, 94, 0.12)",
+            bg: sd ? "rgba(212, 166, 94, 0.09)" : "rgba(10, 8, 5, 0.4)",
+            textColor: sd ? "#f6d391" : "#e6d6b4",
+            onToggle: () => this.toggleAchStage(detail, i),
+          };
+        }),
+      };
+    }
+
+    return {
+      ...base,
+      achLoaded: true,
+      achLoading: false,
+      headerCompletion: `${doneCount} / ${all.length}`,
+      achRingDeg: `${pct * 3.6}deg`,
+      achPctLabel: `${pct}%`,
+      achDoneCount: doneCount,
+      achTotalCount: all.length,
+      achOpenCount: all.length - doneCount,
+      achCategoryCount: cats.length,
+      onAchReset: () => {
+        if (!Object.keys(s.achProgress).length) return;
+        if (!window.confirm("Reset all local achievement progress?")) return;
+        this.setState({ achProgress: {} }, () => this.saveAchProgress());
+        this.showToast("Achievement progress reset");
+      },
+      achSearch: s.achSearch,
+      onAchSearch: (e) => this.setState({ achSearch: e.target.value, achPage: 1 }),
+      achStatusChips: [chip("All", "all"), chip("Open", "open"), chip("Done", "done")],
+      achHideCompleted: s.achHideCompleted,
+      onAchHideCompleted: (e) => this.setState({ achHideCompleted: e.target.checked, achPage: 1 }),
+      onAchClearFilters: () => this.setState({ achSearch: "", achCategory: "all", achStatus: "all", achHideCompleted: false, achPage: 1 }),
+      achCategoryRows: [catRow({ name: "All", total: all.length, done: doneCount }, "all"), ...cats.map((c) => catRow(c, c.name))],
+      achResultTitle: s.achCategory === "all" ? "All achievements" : s.achCategory,
+      achSort: s.achSort,
+      onAchSort: (e) => this.setState({ achSort: e.target.value, achPage: 1 }),
+      achPageSummary: rows.length ? `Showing ${start + 1}–${Math.min(start + s.achPageSize, rows.length)} of ${rows.length}` : "Showing 0 achievements",
+      achPageSize: String(s.achPageSize),
+      onAchPageSize: (e) => this.setState({ achPageSize: Number(e.target.value), achPage: 1 }),
+      achPageIndicator: `${page} / ${totalPages}`,
+      achPrevDisabled: page <= 1,
+      achNextDisabled: page >= totalPages,
+      achPrevColor: page <= 1 ? "#5f5340" : "#cbb185",
+      achNextColor: page >= totalPages ? "#5f5340" : "#cbb185",
+      onAchPrevPage: () => this.setState({ achPage: Math.max(page - 1, 1) }),
+      onAchNextPage: () => this.setState({ achPage: Math.min(page + 1, totalPages) }),
+      achEmpty: rows.length === 0,
+      achCards: pageRows.map((a) => {
+        const done = this.achDone(a);
+        const doneStages = this.achStageIndexes(a).length;
+        const n = this.achStageCount(a);
+        return {
+          title: a.title,
+          group: a.categoryGroup,
+          category: a.category,
+          pct: `${Math.round((doneStages / n) * 100)}%`,
+          stagesLabel: `${doneStages}/${n}`,
+          titleColor: done ? "#f6d391" : "#e6d6b4",
+          border: done ? "rgba(232, 184, 106, 0.4)" : "rgba(212, 166, 94, 0.14)",
+          bg: done ? "rgba(212, 166, 94, 0.09)" : "rgba(18, 14, 9, 0.55)",
+          mark: done ? "✓" : "",
+          boxBg: done ? "#e8b86a" : "transparent",
+          boxBorder: done ? "#f6d391" : "rgba(212, 166, 94, 0.4)",
+          onOpen: () => this.openAchDetail(a),
+          onToggle: (e) => { e.stopPropagation(); this.toggleAch(a); },
+        };
+      }),
+      ...detailVals,
+    };
+  }
+}
+</script>
+</body>
+</html>

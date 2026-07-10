@@ -1,0 +1,38 @@
+{
+  // Copy this file to config.local.json (git-ignored) and fill in local paths.
+  // NEVER put the real AES key in this example or any committed file.
+
+  // Game archive directory (read-only source).
+  "gamePaksDirectory": "D:\\SteamLibrary\\steamapps\\common\\Throne and Liberty\\TL\\Content\\Paks",
+
+  // Data root. Resolution order at runtime: --output flag, TL_DATA_ROOT environment
+  // variable, then this value. Must be OUTSIDE the game installation; the tool refuses
+  // to run otherwise. Outputs are build-scoped:
+  //   <dataRoot>\raw\<steamBuild>\collector\...   and   <dataRoot>\manifests\<steamBuild>\
+  "dataRoot": "D:\\TL_Data",
+
+  // The AES key is resolved at runtime from a local JSON file containing an "aes_key"
+  // field. Alternatively set "aesKey" directly in config.local.json — never here.
+  "aesKeySource": "D:\\path\\to\\local\\source-manifest.json",
+
+  // Native decompression libraries. CUE4Parse expects oodle-data-shared.dll and zlib-ng2.dll.
+  // If oodleDllPath is missing, the tool downloads it into <dataRoot>\cache\tools (not in dry-run).
+  "oodleDllPath": "D:\\TL_Helper\\oodle-data-shared.dll",
+  "zlibDllPath": "D:\\TL_Helper\\zlib-ng2.dll",
+
+  // Steam appmanifest for the game; its buildid is authoritative for build-scoped output
+  // paths. Falls back to "steamBuild" below when absent. The tool refuses to run with
+  // no build id at all.
+  "steamAppManifestPath": "D:\\SteamLibrary\\steamapps\\appmanifest_2429640.acf",
+
+  // Optional .usmap mappings file for UE5 unversioned properties. Leave unset if unavailable.
+  // "mappingsPath": "D:\\path\\to\\ThroneAndLiberty.usmap",
+
+  // Recorded into the manifest for provenance (steamBuild is also the fallback build id).
+  "gameVersion": "1.431.22.7761",
+  "steamBuild": "24118850",
+
+  // 'poc' command selections. The 'sample' command uses a fixed documented plan instead.
+  "tablePackage": "TL/Content/Game/Client/Table/TLRuneInfo",
+  "textureSearchPrefix": "TL/Content/Image/Icon/Item_128/"
+}

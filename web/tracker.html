@@ -58,6 +58,7 @@
     <nav style="display: flex; gap: 4px; align-items: center;">
       <a href="./index.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Armory</a>
       <span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f6d391; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(212, 166, 94, 0.12);">Tracker</span>
+      <a href="./achievements.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Achievements</a>
     </nav>
 
     <input value="{{ title }}" onChange="{{ onTitleChange }}" aria-label="Board title" spellcheck="false"
@@ -460,8 +461,12 @@ class Component extends DCLogic {
 
   async loadCharacter() {
     try {
-      const core = await import("./tl-core.js");
+      const [core, buildSnapshots] = await Promise.all([
+        import("./tl-core.js"),
+        import("./tl-build-snapshot.js"),
+      ]);
       this.core = core;
+      this.buildSnapshots = buildSnapshots;
       await core.initCore("./data/app-data.json");
       let profile = this.state.profile;
       let attributes = this.state.attributes;
@@ -503,9 +508,13 @@ class Component extends DCLogic {
   }
 
   characterVals() {
-    if (!this.state.charReady || !this.core) return { charReady: false, charLoading: true };
+    if (!this.state.charReady || !this.core || !this.buildSnapshots) return { charReady: false, charLoading: true };
     const core = this.core, build = this.state.build;
-    const calc = core.calculateBuild(build, this.state.attributes);
+    const calc = this.buildSnapshots.resolveBuildSnapshot({
+      build,
+      attributes: this.state.attributes,
+      metadata: { gameDataBuild: core.data?.gameBuild ?? "unversioned" },
+    }).resolved;
     const stat = (id) => core.statTotal(calc, id);
     const weaponPairLabel = core.equippedWeaponTypes(build).map(core.label).join(" / ") || "No weapons";
     const leftIds = ["head", "chest", "hands", "legs", "feet", "cloak"];

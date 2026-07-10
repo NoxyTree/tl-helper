@@ -1,0 +1,40 @@
+table,domain,decoderStatus,rows,rawBytes,questlogCoverage,localizationLink,refTargets,notes
+TLFormulaParameterNew,skill magnitudes (damage/heal/shield/duration/cost),decoded,10656,17024021,uncovered,tooltip placeholders in TLStringSkillDesc*,dynamic_stat_id->stat system,26 formula types; per-level arrays; PVE/boss/stack variant rows
+TLSkill,skill behavior/timing/targeting,decoded,15934,25270169,partial (210 player sets via Questlog),TEXT_SKILL_NAME_/TEXT_SKILL_DESC_,ObjectProperty->looks pkgs (cosmetic),no coefficients here; behavior only
+TLSkillOptionalDataForPc,cooldown/resource/cancel rules,decoded,3697,4640197,uncovered,none,TLDataHandle->TLFormulaParameterNew (cost_consumption/cooldown_time; verified),cooldown_group enum; cooldown-modifier eligibility flag
+TLSkillLevelSetting,skill grade->first level,decoded,5,1561,partial,none,none,kB/kA/kAA/kS/kSS -> levels 1/6/11/16/21
+TLSkillLevelUpRecipe,skill growth costs,decoded,3790,2788271,uncovered,TLStringSkillLevelUp,TLDataHandle->item rows (unresolved),tracker-relevant
+TLAbnormalState_Common,buffs/debuffs/CC mechanics,decoded,3297,6692212,uncovered,TLAbnormalLooks_* UINames,ContentsGroupId->TLAbnormalContentsGroup (unresolved),53 fields: StackCap GoodOrBad ModifyGroup Disable*/Prevent*
+TLAbnormalState_Weapon_Sword,weapon buff/debuff rows,decoded,193,394780,uncovered,TLAbnormalLooks_Weapon_*,same as Common,schema identical to Common
+TLAbnormalState_Weapon_Wand,weapon buff/debuff rows,decoded,163,334634,uncovered,same,same,schema identical
+TLAbnormalState_Weapon_{Bow;Crossbow;Dagger;Gauntlet;Orb;Spear;Staff;Sword2h;Common},weapon buff/debuff rows,raw-preserved,~150-200 each,2534000 total,uncovered,same,same,decode on demand; same schema as decoded siblings
+TLAbnormalState_{Item;DungeonAffix;L*},item/affix/zone effects,raw-preserved,unknown,7500000 approx,uncovered,TLAbnormalLooks_*,same,decode when item-proc audit begins
+TLAbnormalContentsGroup,abnormal exclusivity groups,raw-preserved,unknown,288349,uncovered,none,target of ContentsGroupId handles,needed to resolve stacking exclusivity
+TLStats,stat registry (292 stats + flags),decoded,292,348561,partial (stat ids appear in Questlog),TLStatAttrLooks names,none,min/max caps; primary-stat flags
+TLStatAttrLooks,stat display names/desc,decoded,287,253646,uncovered,TLString* UINames,none,links stat ids to player-facing names
+TLBaseMainStat,attribute-derived stat curves,decoded,650,1591745,partial (Questlog attributeStats mirrors),none,none,authoritative source of attribute->stat tables
+TLPCInitialStat,base attributes,decoded,1,1123,covered (implied),none,none,all 10s + preset
+TLPCLevelStat,per-level hp/cost/attack_rating,decoded,100,15097,partial (web BASE_LEVEL_STATS has lv50/55 slice),none,none,full 1-100 curve
+TLPcDynamicStat,dynamic stat definitions,decoded,496,57041,uncovered,none,referenced by dynamic_stat_id1..6,hook points for buffs into formulas
+TLContentStatLimit,per-content stat caps,decoded,59,381117,uncovered,none,none,PvP/PvE stat clamps; combat-relevant
+TLBasicStatBonusPreview,attribute breakpoint preview,decoded,40,13847,covered (web ATTRIBUTE_BREAKPOINTS),none,none,cross-check vs web table pending
+TLItemStats,item stat blocks,decoded,1818,2671031,partial (1351/1818 in Questlog),TLItemLooks* names,TLDataHandle->random stat groups,static build inputs
+TLItemEquip,equip rules/slots,decoded,1499,5153457,partial,same,unresolved handles,static build inputs
+TLItemMainLevelStat,item level scaling,decoded,4500,5086809,uncovered,none,none,enchant scaling curves
+TLItemExtraLevelStat,extra-level scaling,decoded,700,5976789,uncovered,none,none,
+TLItemMainStatInit,item initial stat rolls,decoded,21029,27311532,uncovered,none,none,largest decoded table
+TLStatsItemBaseValue,stat base values by item,decoded,54,9857506,uncovered,none,none,deep arrays
+TLStatsItemEnchantValue,enchant stat values,decoded,9,2485451,uncovered,none,none,
+TLItemMaterialStat,armor material bonuses,decoded,40,20961,covered (web ARMOR_MATERIAL_BONUSES),none,none,cross-check vs web table pending
+TLItemAttackSpeedBaseline,weapon speed baselines,decoded,9,see inventory,uncovered,none,none,attack timing input
+TLItemStatAttrConverter,stat<->attribute conversion,decoded,292,79269,uncovered,none,none,likely the attr-derived stat glue
+TLItemCombatPower,real combat power table,decoded,132,244000 approx,uncovered,none,none,replaces fitted web heuristic
+TLWeaponSpecializationStat,mastery stat grants,decoded,3602,3061207,covered (Questlog masteries),TLTableWeaponSpecializationLooks,none,
+TLGuildSkillInfo,guild skills,decoded,14,51993,uncovered,TLString*,unresolved handles,party/guild effects
+TLGuildSkillGlobalCoolDown,guild skill GCD,raw-preserved,unknown,1674,uncovered,none,unknown,tiny; decode on demand
+TLRaidSkillInfo,raid skills,raw-preserved,unknown,1186,uncovered,none,unknown,tiny
+TLCarrierSkill,carrier skills,raw-preserved,unknown,7080,uncovered,none,unknown,
+TLNpc_* (86 tables),NPC stats/classes,raw-preserved,unknown,33310000,uncovered,TLNpc*/TLStringNpc* names,unknown,needed for PvE target modeling; decode selected bosses on demand
+TLEffectProperty,effect properties,raw-preserved,unknown,26570000,uncovered,none,unknown,likely FX; verify before combat use
+TLItemRandomStatGroup,random stat pools,raw-preserved,unknown,2530000,uncovered,none,target of rune/item handles,resolve rune stat rolls
+TLItemEnchant*,enchant costs/probabilities,raw-preserved,unknown,600000 approx,uncovered,none,unknown,economy not combat; later

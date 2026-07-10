@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TlCollector</AssemblyName>
+    <RootNamespace>TlCollector</RootNamespace>
+    <Version>0.1.0</Version>
+    <Description>Read-only Throne and Liberty archive collector (Milestone 1 proof of concept)</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CUE4Parse" Version="1.2.2.202607" />
+    <PackageReference Include="CUE4Parse-Conversion" Version="1.2.2.202607" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.9" />
+  </ItemGroup>
+
+</Project>

@@ -7,14 +7,24 @@ const outDir = path.join(root, "out");
 const webDataDir = path.join(root, "web", "data");
 const publicDir = path.join(outDir, "questlog-public");
 
+// Icons resolve to locally mirrored files under web/assets/icons/ (see
+// scripts/mirror-icons.mjs, which fetches any missing files from the
+// Questlog CDN). The local path mirrors the CDN path after
+// /throne-and-liberty/assets/, so mirror-icons can reconstruct the source URL.
 function imageUrl(icon) {
   if (!icon) return "";
-  if (/^https?:\/\//i.test(icon)) return icon;
-  let assetPath = icon.startsWith("/") ? icon : `/${icon}`;
+  let assetPath = icon;
+  const cdnMatch = assetPath.match(/^https:\/\/cdn\.questlog\.gg\/throne-and-liberty\/(.+?)(?:\.webp)?$/i);
+  if (cdnMatch) {
+    assetPath = cdnMatch[1];
+  } else if (/^https?:\/\//i.test(assetPath)) {
+    return assetPath;
+  }
   if (assetPath.includes(".")) {
     assetPath = assetPath.slice(0, assetPath.lastIndexOf("."));
   }
-  return `https://cdn.questlog.gg/throne-and-liberty${assetPath}.webp`;
+  assetPath = assetPath.replace(/^\/+/, "").replace(/^assets\//i, "");
+  return `assets/icons/${assetPath}.webp`;
 }
 
 // The snapshots contain double-decoded UTF-8 (UTF-8 bytes re-read as
@@ -456,11 +466,17 @@ for (const id of [
   statIds.add(id);
 }
 
+const gameBuild = String(process.env.TL_STEAM_BUILD ?? "").trim();
+assert(/^\d+$/.test(gameBuild), "TL_STEAM_BUILD must be a numeric Steam build. Run through update-tl-helper.mjs or set it explicitly.");
+
 const appData = {
+  schema: "tl-helper.web-data",
+  schemaVersion: 1,
+  gameBuild,
   generatedAtUtc: new Date().toISOString(),
   sources: {
     questlogImageFormula:
-      "If icon path contains a dot, strip from the last dot, prefix https://cdn.questlog.gg/throne-and-liberty, append .webp",
+      "If icon path contains a dot, strip from the last dot, drop the leading /assets/, prefix assets/icons/, append .webp; files are mirrored locally by scripts/mirror-icons.mjs",
   },
   items,
   itemSets,
@@ -482,10 +498,10 @@ function assert(condition, message) {
 }
 
 function assertImageUrls(rows, label) {
-  const cdnPattern = /^https:\/\/cdn\.questlog\.gg\/throne-and-liberty\/.+\.webp$/;
+  const localPattern = /^assets\/icons\/.+\.webp$/;
   const invalid = rows
     .map((row) => row.imageUrl)
-    .filter((url) => url && !cdnPattern.test(url));
+    .filter((url) => url && !localPattern.test(url));
   assert(!invalid.length, `${label} contains invalid imageUrl values: ${invalid.slice(0, 3).join(", ")}`);
 }
 

@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8791", "--directory", "web"],
       "port": 8791
+    },
+    {
+      "name": "tl-tracker-web-2",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8792", "--directory", "web"],
+      "port": 8792
     }
   ]
 }

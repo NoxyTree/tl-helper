@@ -17,6 +17,7 @@ import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import process from "node:process";
 import * as core from "../web/tl-core.js";
+import { resolveBuildSnapshot } from "../web/tl-build-snapshot.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fixturesDir = join(repoRoot, "scripts", "reference-builds");
@@ -72,9 +73,13 @@ for (const fileName of fixtureFiles) {
   const preset = JSON.parse(await readFile(join(repoRoot, fixture.presetPath), "utf8"));
   const build = preset.build;
   build.masteries = core.normalizeMasterySelections(build.masteries);
-  const calculation = core.calculateBuild(build, preset.attributes);
-  const actual = Object.fromEntries(calculation.stats.map((row) => [row.id, row.total]));
-  actual.combat_power = core.calculateCombatPower(build);
+  const snapshot = resolveBuildSnapshot({
+    build,
+    attributes: preset.attributes,
+    metadata: { gameDataBuild: fixture.gameDataBuild ?? "fixture-unversioned" },
+  });
+  const actual = Object.fromEntries(snapshot.resolved.stats.map((row) => [row.id, row.total]));
+  actual.combat_power = snapshot.resolved.combatPower;
   const rows = Object.entries(fixture.expected).map(([statId, expected]) => {
     const value = Number(actual[statId] ?? 0);
     const difference = value - expected;
@@ -87,7 +92,7 @@ for (const fileName of fixtureFiles) {
   totalFailed += failed.length;
   if (process.env.TL_VERIFY_DETAILS) {
     for (const statId of process.env.TL_VERIFY_DETAILS.split(",")) {
-      const row = calculation.stats.find((entry) => entry.id === statId);
+      const row = snapshot.resolved.stats.find((entry) => entry.id === statId);
       console.log(`\n${statId}: ${row?.total ?? 0}`);
       console.table(row?.sources ?? []);
     }

@@ -107,6 +107,7 @@
       <nav style="display: flex; gap: 4px; align-items: center;">
         <span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f6d391; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(212, 166, 94, 0.12);">Armory</span>
         <a href="./tracker.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Tracker</a>
+        <a href="./achievements.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Achievements</a>
       </nav>
 
       <div style="width: 1px; height: 34px; background: linear-gradient(180deg, transparent, rgba(212, 166, 94, 0.35), transparent);"></div>
@@ -1586,9 +1587,10 @@ class Component extends DCLogic {
   PRESET_KEY = "tlhelper-builder-presets-v1";
 
   componentDidMount() {
-    import("./tl-core.js")
-      .then(async (core) => {
+    Promise.all([import("./tl-core.js"), import("./tl-build-snapshot.js")])
+      .then(async ([core, buildSnapshots]) => {
         this.core = core;
+        this.buildSnapshots = buildSnapshots;
         await core.initCore("./data/app-data.json");
         const referenceResponse = await fetch("./data/reference-build.json");
         if (!referenceResponse.ok) throw new Error(`Reference preset failed to load (${referenceResponse.status}).`);
@@ -2208,7 +2210,11 @@ class Component extends DCLogic {
     }
     const core = this.core;
     const build = this.state.build;
-    const calc = core.calculateBuild(build, this.state.attributes);
+    const calc = this.buildSnapshots.resolveBuildSnapshot({
+      build,
+      attributes: this.state.attributes,
+      metadata: { gameDataBuild: core.data?.gameBuild ?? "unversioned" },
+    }).resolved;
     const stat = (id) => core.statTotal(calc, id);
     const fmt = (id) => core.formatStat(id, stat(id));
 

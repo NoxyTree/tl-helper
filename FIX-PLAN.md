@@ -1,4 +1,9 @@
-# TL Helper — Comprehensive Fix Plan
+# TL Helper: Comprehensive Fix Plan
+
+> **Platform note (2026-07-10):** this is the historical application audit.
+> The audited phases are implemented except the healer and ranged reference
+> fixtures in 0.3. Current platform status, decoded game-file coverage, data
+> provenance, and future sequencing live in `STATUS.md`.
 
 > **Status (implemented 2026-07-10):** all phases landed except 0.3 — the
 > healer/ranged reference fixtures still need their expected tables
@@ -17,10 +22,13 @@ verified against a trustworthy engine.
 
 ## Ground rules
 
-- **Questlog is ground truth.** The calculator intentionally mirrors Questlog's
-  public client calculation (see `tracker-rules.md`). Any behavior change must
-  keep `node scripts/verify-reference-build.mjs` at 43/43, including
-  `combat_power: 7128`.
+- **Decoded game files are the primary client-data source.** The existing static
+  calculator intentionally mirrors Questlog's public client calculation (see
+  `tracker-rules.md`), so Questlog remains its compatibility and parity
+  reference. Any behavior change must keep
+  `node scripts/verify-reference-build.mjs` at 43/43, including
+  `combat_power: 7128`, unless an intentional versioned rules update documents
+  and tests the difference.
 - **Never fake missing data.** Where a fix is blocked on data we don't have
   (e.g. active/inactive trait flags, fixed enchant effects), surface the gap in
   the UI or docs — do not guess values. (Longstanding project rule.)
@@ -106,12 +114,14 @@ Do this first so every later change is provable.
     triggers both branches (tl-core.js:1608 vs 1611), or guard it.
   - Static set `bonus_stat` rows (tl-core.js:1526–1532) + `SET_PASSIVE_RULES`
     per-phase effects have no overlap guard — add an assertion or a test.
-- **1.6 Combat power honesty.** CP is a fitted heuristic (hardcoded
+- **1.6 Combat power honesty.** CP is currently a fitted heuristic (hardcoded
   `COMBAT_POWER` tables + two item-ID bonus allowlists in tl-questlog-rules.js:37–39;
   hardcoded talistone/gemstone/resonance/rune values in tl-core.js:1675–1726).
   It matches the one reference point. Either (a) label it "Estimated" in the
-  hero strip + tracker, or (b) extract real power tables — (a) is the realistic
-  scope. Also fix mixed rounding (`Math.round` in `combatPowerBreakdown` :1672
+  hero strip + tracker, or (b) integrate the decoded `TLItemCombatPower` table
+  after running it alongside the current calculation and explaining every
+  difference. The table is decoded but not yet integrated. Also fix mixed
+  rounding (`Math.round` in `combatPowerBreakdown` :1672
   vs `Math.floor` in `itemCombatPower` :1692) and reconcile the stale
   "combat power remains unavailable" claim in `extraction-report.md`.
 
