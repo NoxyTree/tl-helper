@@ -85,7 +85,8 @@ http://127.0.0.1:8790/index.html?preset=questlog-the-death-prophet-and-void
 ## Refresh and validate the current build
 
 The update orchestrator runs collection, decoding, warehouse and report builds,
-the build-scoped skill-to-formula map, web-data generation, stat-source indexing, and every
+the build-scoped skill-to-formula map, reviewed combat-ability ingestion,
+web-data generation, stat-source indexing, and every
 verification gate in dependency order. It stops at the first failure and writes
 a machine-readable run report.
 
@@ -125,6 +126,13 @@ locations, preflight checks, and safety boundaries.
   Synthetic mitigation and normal/critical branches validate the architecture
   but are explicitly not real game formulas. Unknown TL combat mechanics remain
   non-executable. See `packages/combat-engine/README.md`.
+- Combat Simulator Milestone 3 ingestion has started. Gaia Crash, Swift
+  Healing, and Distortion Veil now produce a versioned real-ability artifact
+  containing five reviewed formula components across every skill level, plus
+  twelve explicit unresolved stages. Gaia and Swift Healing remain
+  derived-high-confidence owner mappings; Distortion Veil is exact. No real
+  mitigation, Base Damage selection, dynamic modifier, or rounding stage is
+  executable yet.
 - Both the Armory and tracker now calculate through the same BuildSnapshot
   adapter used by automated verification.
 - Armory state and presets now use versioned, patch-safe persistence. Existing
@@ -154,7 +162,7 @@ locations, preflight checks, and safety boundaries.
   inherent stats. See `docs/stat-taxonomy.md` and
   `docs/stat-source-coverage-audit.md`.
 - The latest verification gate passed BuildSnapshot checks, 69/69 assertions
-  across three fixtures, all 12 edge checks, 86 JavaScript tests, and 92
+  across three fixtures, all 12 edge checks, 104 JavaScript tests, and 92
   collector tests.
 - Combat-power parity analysis now maps 1,280 items using source-aware evidence,
   with 161 unresolved. The decoded reference subtotal is 7,221, already 93
@@ -183,6 +191,7 @@ backed up before recovery, and build mismatches are surfaced to the user.
 - `docs/storage-and-retention.md`: data-root and retention rules
 - `docs/update-orchestrator.md`: one-command refresh, validation, and reports
 - `docs/skill-formula-mapping.md`: complete player skill-to-formula coverage and unresolved evidence
+- `scripts/combat-abilities/reviewed-abilities.json`: manually reviewed real ability rows
 - `docs/stat-taxonomy.md`: internal IDs to player-facing stat semantics
 - `docs/stat-source-coverage-audit.md`: current source coverage, exclusions, and missing joins
 - `docs/skill-stat-source-join.md`: evidence and implementation boundary for dynamic skill/passive grants

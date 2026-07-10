@@ -5,4 +5,15 @@ export { FormulaRegistry, PRECISION, UnsupportedFormulaError } from "./formulas.
 export { CalculationTrace } from "./trace.mjs";
 export { createUnitState, snapshotUnit } from "./state.mjs";
 export { createSyntheticFormulaRegistry } from "./synthetic-formulas.mjs";
+export {
+  ABILITY_DEFINITION_SCHEMA,
+  ABILITY_DEFINITION_SCHEMA_VERSION,
+  ABILITY_KIND,
+  FORMULA_COMPONENT_PRECISION,
+  FORMULA_COMPONENT_PROVENANCE,
+  UNRESOLVED_STAGE_CLASSIFICATION,
+  createAbilityDefinition,
+  normalizeAbilityDefinition,
+  validateAbilityDefinition,
+} from "./ability-definition.mjs";
 export { runSimulation, serializeSimulation } from "./simulation.mjs";

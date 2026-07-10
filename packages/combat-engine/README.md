@@ -37,3 +37,19 @@ The Milestone 2 fixture includes explicitly modeled static damage, target
 mitigation, and forced normal/critical branches. They validate engine wiring
 only and are marked `realGameFormula: false`. They must not be used as Throne
 and Liberty combat rules.
+
+## Real ability-data boundary
+
+`src/ability-definition.mjs` defines the immutable, build-scoped contract for
+reviewed real ability data. The current pipeline writes Gaia Crash, Swift
+Healing, and Distortion Veil to:
+
+```text
+TL_DATA_ROOT\reports\<build>\combat-abilities.json
+```
+
+The artifact retains every decoded level, raw coefficients, tooltips, dynamic
+stat IDs, owner-mapping evidence, source hash, decoder version, precision, and
+unresolved stages. It is evidence for the future single-action calculator, not
+an executable claim about mitigation, Base Damage selection, dynamic modifiers,
+or rounding.

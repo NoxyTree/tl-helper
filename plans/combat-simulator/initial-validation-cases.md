@@ -23,10 +23,13 @@ Selection: the smallest real ability set that exercises damage, healing, shieldi
 - Crit-style branches: `WA_Heal_Heal_Double` / `_Triple`; display row `WA_Heal_ToolTip`; trait `WA_Heal_Rare_SkillHealTakenModifier` (+duration row).
 - Calibrate: which AP (main-hand? wand-specific?), how `HealEffect` enters (additive vs multiplicative), overheal handling.
 
-## 4. Greatsword — Stalwart Bastion shield (`SW2_ShieldBuff_Absorption_*`) — SHIELDING
+## 4. Orb — Distortion Veil (`WP_ORB_Active_Shield`) — SHIELDING
 
-- Rows: `_MaxHPUp` (capacity from max HP — `kAmountFromHpMax` family), `_ChangeRate`, `_ChangeRate_HoT`, `_HPRegen`, `_AttackSpeed`, `_Duration`.
-- Calibrate: capacity formula vs observed absorb, expiry behavior, interaction with healing.
+- Capacity: `ORB_Active_Shield_ShieldHp` uses `kAmountFromAttackPower`; L1 is `mul=30000, add=600` (300% of Base Damage + 600), rising to `mul=48800, add=1900` at L21.
+- Duration: `ORB_Active_Shield_Duration` is 3000 ms / 3s. Both rows have exact localization-linked owner evidence.
+- Calibrate: which Base Damage value is selected, the `ORB_Active_Shield_ShieldHp` dynamic-stat operation, shield-health rounding, depletion/expiry ordering, and the Mana-refund interaction.
+
+Correction: Stalwart Bastion is a Sword damage-reduction buff, not a shield. The similarly named `SW2_ShieldBuff_Absorption_*` rows belong to DaVinci's Courage/shared greatsword effects and represent Max Health, Health Regen, and Attack Speed rather than shield capacity.
 
 ## 5. Sword — Provoking Roar (`SW_TauntBuff_*`) — CC/DEBUFF + TANKING
 

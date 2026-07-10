@@ -57,6 +57,11 @@ The current Claude assignment should finish uninterrupted. Its findings determin
 
 ## Milestone 3: Single-action calculator
 
+Status: in progress. The versioned ingestion boundary is complete for Gaia
+Crash, Swift Healing, and Distortion Veil. Five reviewed formula components are
+materialized with per-level coefficients and twelve explicit unresolved stages.
+No unresolved stage is executable yet.
+
 ### Work
 
 - Implement base damage and skill coefficient handling.
@@ -186,4 +191,3 @@ Use separate implementation sessions for:
 8. Optimizer and LLM
 
 This keeps the most error-prone formula work reviewable.
-

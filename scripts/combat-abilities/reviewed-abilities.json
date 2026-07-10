@@ -1,0 +1,233 @@
+{
+  "schema": "tl-helper.reviewed-combat-abilities",
+  "schemaVersion": 1,
+  "reviewedGameBuild": "24118850",
+  "abilities": [
+    {
+      "abilityId": "gaia-crash",
+      "skillSetId": "SkillSet_WP_SW2_S_GaiaCrash",
+      "kind": "damage",
+      "components": [
+        {
+          "id": "primary-damage",
+          "formulaRowId": "SW2_GaiaCrash_DD",
+          "role": "magnitude",
+          "effectKind": "damage",
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "derived_high_confidence",
+          "provenance": "derived",
+          "evidence": [
+            {
+              "kind": "review",
+              "reference": "plans/combat-simulator/initial-validation-cases.md#gaia-crash"
+            },
+            {
+              "kind": "mapping",
+              "reference": "skill-formula-map:SkillSet_WP_SW2_S_GaiaCrash->SW2_GaiaCrash_DD"
+            }
+          ]
+        }
+      ],
+      "unresolvedStages": [
+        {
+          "id": "base-damage-selection",
+          "stage": "base-damage-selection",
+          "reason": "The client row supplies the attack-power coefficient, but the live base-damage or attack-power roll selected by the server is not confirmed.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#basis-units" }]
+        },
+        {
+          "id": "dynamic-modifiers",
+          "stage": "dynamic-modifiers",
+          "reason": "The decoded dynamic modifier WP_Item_Gear_SW2_02_PC_DamageDown has not been assigned an executable operation.",
+          "classification": "extractable",
+          "evidence": [{ "kind": "formula-row", "reference": "TLFormulaParameterNew:SW2_GaiaCrash_DD.dynamic_stat_id2" }]
+        },
+        {
+          "id": "target-mitigation",
+          "stage": "target-mitigation",
+          "reason": "The target defense to mitigation curve and its place in the damage pipeline are not calibrated.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#armor-mitigation" }]
+        },
+        {
+          "id": "rounding-order",
+          "stage": "rounding-order",
+          "reason": "The live rounding boundaries and damage pipeline order are not confirmed.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order" }]
+        }
+      ]
+    },
+    {
+      "abilityId": "swift-healing",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "kind": "healing",
+      "components": [
+        {
+          "id": "first-heal",
+          "formulaRowId": "WA_Heal_Heal",
+          "role": "first-cast-magnitude",
+          "effectKind": "healing",
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "derived_high_confidence",
+          "provenance": "derived",
+          "evidence": [
+            { "kind": "review", "reference": "plans/combat-simulator/initial-validation-cases.md#swift-healing" },
+            { "kind": "mapping", "reference": "skill-formula-map:SkillSet_WP_WA_GR_S_Heal->WA_Heal_Heal" }
+          ]
+        },
+        {
+          "id": "second-heal",
+          "formulaRowId": "WA_Heal_Heal_Double",
+          "role": "second-cast-magnitude",
+          "effectKind": "healing",
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "derived_high_confidence",
+          "provenance": "derived",
+          "evidence": [
+            { "kind": "review", "reference": "plans/combat-simulator/initial-validation-cases.md#swift-healing" },
+            { "kind": "mapping", "reference": "skill-formula-map:SkillSet_WP_WA_GR_S_Heal->WA_Heal_Heal_Double" }
+          ]
+        }
+      ],
+      "unresolvedStages": [
+        {
+          "id": "base-damage-selection",
+          "stage": "base-damage-selection",
+          "reason": "The attack-power source used for healing and its live roll selection are not confirmed.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#basis-units" }]
+        },
+        {
+          "id": "dynamic-modifiers",
+          "stage": "dynamic-modifiers",
+          "reason": "HealEffect is present in the formula rows, but its exact operation and ordering are not yet materialized.",
+          "classification": "extractable",
+          "evidence": [{ "kind": "formula-row", "reference": "TLFormulaParameterNew:WA_Heal_Heal.dynamic_stat_id1" }]
+        },
+        {
+          "id": "rounding-order",
+          "stage": "rounding-order",
+          "reason": "The live healing rounding boundaries and modifier order are not confirmed.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order" }]
+        },
+        {
+          "id": "third-heal-accessibility",
+          "stage": "cast-accessibility",
+          "reason": "The conditions that expose a third Swift Healing cast are not established by the two reviewed magnitude rows.",
+          "classification": "currently_unknown",
+          "evidence": [{ "kind": "review", "reference": "plans/combat-simulator/initial-validation-cases.md#swift-healing" }]
+        }
+      ]
+    },
+    {
+      "abilityId": "distortion-veil",
+      "skillSetId": "SkillSet_WP_ORB_Active_Shield",
+      "kind": "shielding",
+      "components": [
+        {
+          "id": "shield-health",
+          "formulaRowId": "ORB_Active_Shield_ShieldHp",
+          "role": "shield-capacity",
+          "effectKind": "shielding",
+          "units": {
+            "min": "flat_points",
+            "max": "flat_points",
+            "add": "flat_points",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "display_percent",
+            "tooltip2": "display_points"
+          },
+          "precision": "verified_exact",
+          "provenance": "extracted",
+          "evidence": [
+            { "kind": "localization", "reference": "TLStringSkillDesc:TEXT_SKILL_DESC_WP_ORB_Active_Shield.tooltip1" },
+            { "kind": "localization", "reference": "TLStringSkillDesc:TEXT_SKILL_DESC_WP_ORB_Active_Shield.tooltip2" }
+          ]
+        },
+        {
+          "id": "shield-duration",
+          "formulaRowId": "ORB_Active_Shield_Duration",
+          "role": "duration",
+          "effectKind": "shielding",
+          "units": {
+            "min": "milliseconds",
+            "max": "milliseconds",
+            "add": "milliseconds",
+            "mul": "basis_points",
+            "mul2": "basis_points",
+            "mul3": "basis_points",
+            "tooltip1": "seconds",
+            "tooltip2": "display_points"
+          },
+          "precision": "verified_exact",
+          "provenance": "extracted",
+          "evidence": [
+            { "kind": "localization", "reference": "TLStringSkillDesc:TEXT_SKILL_DESC_WP_ORB_Active_Shield.tooltip1" }
+          ]
+        }
+      ],
+      "unresolvedStages": [
+        {
+          "id": "base-damage-selection",
+          "stage": "base-damage-selection",
+          "reason": "The formula coefficient is exact, but the live Base Damage source used for shield health is not confirmed.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#basis-units" }]
+        },
+        {
+          "id": "dynamic-modifiers",
+          "stage": "dynamic-modifiers",
+          "reason": "The self-referential shield-health and duration dynamic identifiers have not been assigned executable modifier semantics.",
+          "classification": "extractable",
+          "evidence": [{ "kind": "formula-row", "reference": "TLFormulaParameterNew:ORB_Active_Shield_ShieldHp.dynamic_stat_id1" }]
+        },
+        {
+          "id": "rounding-order",
+          "stage": "rounding-order",
+          "reason": "The live shield-health rounding boundary is not confirmed.",
+          "classification": "calibration_required",
+          "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order" }]
+        },
+        {
+          "id": "shield-modifier-expiry-interaction",
+          "stage": "shield-expiry-interaction",
+          "reason": "The ordering of shield modifiers, incoming mitigation, depletion, expiry, and the Mana refund is not established.",
+          "classification": "currently_unknown",
+          "evidence": [{ "kind": "skill-description", "reference": "SkillSet_WP_ORB_Active_Shield:depletion-and-expiry-refund" }]
+        }
+      ]
+    }
+  ]
+}

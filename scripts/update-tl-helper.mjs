@@ -15,7 +15,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 const DEFAULT_CONFIG = path.join(REPO_ROOT, "src", "TlCollector", "config.local.json");
 
 export const STAGE_ORDER = [
-  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "stat-sources", "coverage",
+  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "combat-abilities", "stat-sources", "coverage",
   "evidence", "combat-power-analysis", "snapshot-verify", "reference-verify", "edge-verify", "js-tests",
   "collector-tests",
 ];
@@ -25,6 +25,7 @@ const STAGE_ALIASES = new Map([
   ["web", "web-data"], ["verify-snapshot", "snapshot-verify"],
   ["power", "combat-power-analysis"],
   ["formulas", "skill-formula-map"],
+  ["abilities", "combat-abilities"],
   ["stats", "stat-sources"],
   ["verify-reference", "reference-verify"], ["verify-edges", "edge-verify"],
 ]);
@@ -154,6 +155,22 @@ export function stageDefinitions(context) {
         path.join(REPO_ROOT, "web", "data", "projections", "runes.json"),
       ],
       output: path.join(context.dataRoot, "reports", context.build, "stat-sources", "heavy-attack.json"),
+    },
+    "combat-abilities": {
+      command: command(node, [script("build-combat-ability-data.mjs")]),
+      required: [
+        path.join(REPO_ROOT, "web", "data", "projections", "skills.json"),
+        path.join(context.dataRoot, "reports", context.build, "skill-formula-map.json"),
+        path.join(context.dataRoot, "decoded", context.build, "tables", "TLFormulaParameterNew.json"),
+        path.join(REPO_ROOT, "scripts", "combat-abilities", "reviewed-abilities.json"),
+      ],
+      output: path.join(context.dataRoot, "reports", context.build, "combat-abilities.json"),
+      validateResult: (result) => {
+        const abilities = result.stdout?.match(/"abilities":\s*(\d+)/)?.[1];
+        const components = result.stdout?.match(/"formulaComponents":\s*(\d+)/)?.[1];
+        return Number(abilities) >= 3 && Number(components) >= 5
+          ? null : "Combat ability builder did not report at least 3 abilities and 5 reviewed components";
+      },
     },
     coverage: {
       command: command(node, [script("audit-questlog-coverage.mjs")]),

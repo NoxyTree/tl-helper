@@ -101,6 +101,27 @@ test("stat sources are rebuilt from projections before evidence and verification
   assert.deepEqual(parseArgs(["--only", "stats"]).only, ["stat-sources"]);
 });
 
+test("reviewed combat abilities are rebuilt after web data and before stat sources", () => {
+  const stages = selectedStages(parseArgs([]));
+  assert.ok(stages.indexOf("combat-abilities") > stages.indexOf("web-data"));
+  assert.ok(stages.indexOf("combat-abilities") < stages.indexOf("stat-sources"));
+
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definition = stageDefinitions(context)["combat-abilities"];
+  assert.match(definition.command.args[0], /build-combat-ability-data\.mjs$/);
+  assert.deepEqual(definition.required, [
+    path.join(path.resolve("."), "web", "data", "projections", "skills.json"),
+    path.join(context.dataRoot, "reports", "999", "skill-formula-map.json"),
+    path.join(context.dataRoot, "decoded", "999", "tables", "TLFormulaParameterNew.json"),
+    path.join(path.resolve("."), "scripts", "combat-abilities", "reviewed-abilities.json"),
+  ]);
+  assert.equal(definition.output, path.join(context.dataRoot, "reports", "999", "combat-abilities.json"));
+  assert.equal(definition.validateResult({ stdout: '{"abilities":3,"formulaComponents":5}' }), null);
+  assert.equal(definition.validateResult({ stdout: '{"abilities":4,"formulaComponents":7}' }), null);
+  assert.match(definition.validateResult({ stdout: '{"abilities":3,"formulaComponents":4}' }), /3 abilities/);
+  assert.deepEqual(parseArgs(["--only", "abilities"]).only, ["combat-abilities"]);
+});
+
 test("decoder requires a complete semantic success summary", () => {
   const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
   const validate = stageDefinitions(context).decode.validateResult;

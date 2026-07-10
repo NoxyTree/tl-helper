@@ -41,6 +41,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Discovery evidence | Ascended Ramux and WP_CL evidence packets | `D:\TL_Data\reports\24118850\evidence\` |
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
 | Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
+| Real ability ingestion | 3 abilities, 5 reviewed components, 12 explicit unresolved stages | `D:\TL_Data\reports\24118850\combat-abilities.json` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
@@ -79,7 +80,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 86/86, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 104/104, collector tests
   92/92.
 
 ## Combat milestones
@@ -114,6 +115,14 @@ is atomic, magnitudes are bounded, timed shields expire deterministically, and
 event expansion is capped. The synthetic mitigation and forced normal/critical
 fixture is architecture evidence only. Real mitigation, hit, critical, Heavy
 Attack, PvP, rounding order, and server timing remain unsupported until proven.
+
+Milestone 3's ingestion foundation is complete for Gaia Crash, Swift Healing,
+and Distortion Veil. The build-scoped artifact contains five reviewed formula
+components with every decoded level and twelve unresolved stages. Gaia Crash
+and Swift Healing use reviewed derived owner mappings because the table has no
+owner foreign key. Distortion Veil has exact localization-linked evidence.
+Stalwart Bastion was corrected in the validation plan: it is a damage-reduction
+buff, not a shield.
 
 Patch-safe Armory persistence is complete. State and presets use versioned
 documents with game-build provenance, legacy values migrate automatically,
@@ -183,8 +192,8 @@ index, and decoded-versus-live parity evidence before application verification.
 1. Complete full manual Questlog panels for healer and ranged builds.
 2. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 3. Resolve the remaining 29 skill mappings and 11 placeholder bases.
-4. Begin Combat Simulator Milestone 3 with reviewed coefficient ingestion and
-   explicit calibration evidence.
+4. Implement the Milestone 3 coefficient evaluator on the reviewed ability
+   artifact, returning pre-mitigation values with unsupported stages visible.
 5. Build the seven-case single-ability Combat Lab on the verified engine
    boundary with precision labels for every unresolved mechanic.
 

@@ -49,7 +49,7 @@ node scripts\update-tl-helper.mjs --build 24118850 --data-root D:\TL_Data
 Available stages are:
 
 ```text
-collector, decode, warehouse, inventory, skill-formula-map, web-data, stat-sources, coverage, evidence,
+collector, decode, warehouse, inventory, skill-formula-map, web-data, combat-abilities, stat-sources, coverage, evidence,
 combat-power-analysis, snapshot-verify, reference-verify, edge-verify, js-tests,
 collector-tests
 ```
@@ -83,3 +83,9 @@ progression, and rune projections. It rebuilds the build-scoped `stat_sources` t
 and writes the Heavy Attack coverage report beneath
 `TL_DATA_ROOT\reports\<build>\stat-sources\`. Use `--only stats` to rerun it
 after its inputs already exist.
+
+The `combat-abilities` stage uses the reviewed manifest plus the current skill
+projection, skill-formula map, and decoded formula table. It writes a validated,
+build-scoped `combat-abilities.json` report. Use `--only abilities` after those
+inputs already exist. Adding a formula row to the reviewed manifest is a manual
+evidence decision; the stage never promotes a row by substring alone.
