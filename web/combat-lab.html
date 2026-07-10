@@ -21,7 +21,7 @@
   <main>
     <section class="hero">
       <div><p class="eyebrow">Single-ability calculator</p><h1>Inspect what is known. See exactly what is not.</h1></div>
-      <p>This first lab projects verified client coefficients across a Base Damage roll range. It does not claim final damage, healing, or shield capacity.</p>
+      <p>This first lab projects verified client coefficients at both ends of a Base Damage interval. It does not assume a random roll or claim final damage, healing, or shield capacity.</p>
     </section>
 
     <div id="fatal-error" class="alert danger hidden" role="alert"></div>
@@ -51,7 +51,7 @@
         </article>
 
         <article class="panel">
-          <div class="panel-heading"><span>03</span><div><p class="eyebrow">Input</p><h2>Base Damage roll</h2></div></div>
+          <div class="panel-heading"><span>03</span><div><p class="eyebrow">Input</p><h2>Base Damage interval</h2></div></div>
           <label>Prefill from<select id="damage-source"><option value="main">Source main hand</option><option value="off">Source off hand</option><option value="manual">Manual values</option></select></label>
           <div class="two-column">
             <label>Minimum<input id="damage-min" inputmode="decimal" value="100"></label>

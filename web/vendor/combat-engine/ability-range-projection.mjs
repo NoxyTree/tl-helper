@@ -86,7 +86,8 @@ export function resolveAbilitySkillLevel({ rarityTier, displayedLevel } = {}) {
 
 /**
  * Project the reviewed coefficient expression at the minimum and maximum of
- * a caller-supplied Base Damage roll range. No combat outcome is resolved.
+ * a caller-supplied Base Damage input interval. No runtime selection model or
+ * combat outcome is resolved.
  */
 export function projectAbilityMagnitudeRange(request) {
   assertRangeRequest(request);
@@ -155,7 +156,8 @@ export function projectAbilityMagnitudeRange(request) {
     warnings: unique([
       ...minimum.warnings,
       forcedOutcome.warning,
-      "The displayed range varies only the supplied Base Damage roll; dynamic stats and other modifiers are not applied.",
+      "The displayed range evaluates only the supplied Base Damage endpoints; it does not assume the server randomly selects between them.",
+      "Dynamic stats, consecutive-use state, and other modifiers are not applied.",
     ]),
     projections: { minimum, maximum },
   });
@@ -173,6 +175,17 @@ export function describeForcedAbilityOutcome(outcome) {
       precision: "unsupported",
       reason: "Only the client-visible coefficient stage was requested.",
       warning: "No hit, critical, Heavy Attack, block, miss, or mitigation outcome has been applied.",
+    });
+  }
+  if (outcome === FORCED_ABILITY_OUTCOME.HEAVY_ATTACK) {
+    return deepFreeze({
+      requested: outcome,
+      status: "partially_verified_not_executed",
+      executable: false,
+      applied: false,
+      precision: "unsupported",
+      reason: "Video evidence verifies two heal applications for Heavy Attack, but the unresolved live magnitude and pipeline stages prevent execution here.",
+      warning: "Forced heavy_attack is not applied. Swift Healing multiplicity is verified as two applications, while its live magnitude and consecutive-use mechanics remain unresolved.",
     });
   }
   return deepFreeze({

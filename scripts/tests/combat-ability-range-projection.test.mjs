@@ -104,7 +104,7 @@ test("range projection evaluates both Base Damage endpoints and preserves their 
   assert.ok(Object.isFrozen(result));
 });
 
-test("forced live outcomes are descriptive, unsupported, and never alter the range", () => {
+test("forced live outcomes remain non-executable and never alter the range", () => {
   const request = {
     abilityDefinition: ability(), componentId: "magnitude", skillLevel: 11,
     baseDamageMinimum: "100", baseDamageMaximum: "200",
@@ -115,10 +115,13 @@ test("forced live outcomes are descriptive, unsupported, and never alter the ran
     const result = projectAbilityMagnitudeRange({ ...request, forcedOutcome: outcome });
     assert.deepEqual(result.preResolutionRange, baseline.preResolutionRange);
     assert.deepEqual(result.forcedOutcome, describeForcedAbilityOutcome(outcome));
-    assert.equal(result.forcedOutcome.status, "unsupported");
+    assert.equal(result.forcedOutcome.status, outcome === "heavy_attack"
+      ? "partially_verified_not_executed"
+      : "unsupported");
     assert.equal(result.forcedOutcome.executable, false);
     assert.equal(result.forcedOutcome.applied, false);
   }
+  assert.match(describeForcedAbilityOutcome("heavy_attack").reason, /two heal applications/);
 });
 
 test("invalid ranges and attempts to smuggle final resolution are rejected", () => {

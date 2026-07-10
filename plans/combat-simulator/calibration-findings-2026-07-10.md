@@ -12,7 +12,7 @@ was not captured; every checked value matches build `24118850` decoded data.
 The player subsequently confirmed that Stellarite was equipped during these
 observations. The recorded stat-panel Base Damage ranges already include its
 static attack-power modifier, so this does not change the tooltip-coefficient
-verification or the evidence for a varying per-cast Base Damage roll. It does
+verification or the observed live-magnitude variation. It does
 prevent treating the Gaia Crash hits as a clean consumable-free pipeline test,
 and Stellarite applicability must be controlled explicitly before using future
 heal or shield samples to discriminate multipliers. This note adds context to
@@ -39,7 +39,7 @@ level table.** Epic Lv.N = global level N+10; Heroic Lv.N = global level N+15.
 Observed on three skills. Inferred (unobserved): base/Rare tiers occupy levels
 1–10.
 
-## Finding 2 — Base Damage selection: per-cast roll strongly supported, not yet calibrated
+## Finding 2 — Base Damage selection: initial roll hypothesis, now in doubt
 
 Seven Swift Healing self-casts (Epic Lv.4 = global 14: `290% × BD + 980`)
 with Base Damage panel range 364~926, Healing +6%, Healing Received +4.2%:
@@ -47,26 +47,28 @@ with Base Damage panel range 364~926, Healing +6%, Healing Received +4.2%:
 - Normal: **3,114 / 3,106 / 2,714 / 2,714**
 - Heavy Attack procs (player-confirmed, displayed with ×2): **2,856 / 2,365 / 2,365**
 
-The values vary far beyond display noise, rejecting any constant
+The values varied far beyond display noise, initially rejecting any constant
 (min/max/midpoint) model. Implied Base Damage values sit inside 364–926 under
 every candidate outgoing-healing multiplier (×1.00, ×1.06, ×1.042, ×1.1045),
 so the multiplier and rounding cannot be discriminated yet. Two exact repeats
 (2,714 twice, 2,365 twice) hint at value quantization worth watching.
 
-Distortion Veil corroborates: eight self-cast shields (Heroic Lv.2 = global
+Distortion Veil initially appeared to corroborate this: eight self-cast shields (Heroic Lv.2 = global
 17: `456% × BD + 1,640`, panel 379~1,023) read **5,562 / 5,562 / 6,910 /
 7,690 / 5,627 / 7,932 / 7,803 / 5,003** from the HP-bar overlay — again
-widely varying.
+widely varying. The later video session showed that consecutive-cast state can
+produce large variation without a random Base Damage roll, so neither dataset
+now establishes random selection. See the video addendum below.
 
-## Finding 3 — Heavy Attack procs apply to heals (new mechanic evidence)
+## Finding 3 — Heavy Attack procs apply twice to heals: VERIFIED
 
-Player-confirmed: three of seven Swift Healing casts were Heavy Attack procs,
-shown in floating text with an ×2 marker. The healing session's Magic Heavy
-Attack Chance was 1,253 (3/7 observed proc rate is consistent with a contest
-around that magnitude). Open questions: whether the displayed value is the
-pre- or post-doubling amount, and whether Heavy Attack Damage (+133.8%)
-modifies heals. Engine consequence: healing outcomes need a heavy branch, not
-just damage.
+The first session established three player-confirmed ×2 Swift Healing procs.
+The later videos verified their arithmetic exactly: the HP delta equals twice
+the displayed number plus passive regeneration. The floating number is one
+application and Heavy Attack produces two applications. Whether Heavy Attack
+Damage modifies healing remains open. Engine consequence: healing outcomes
+need a verified two-application branch, separate from the still-unknown heal
+magnitude and consecutive-use stages.
 
 ## Finding 4 — Distortion Veil magnitude does not fit the naive model: UNRESOLVED
 
@@ -137,6 +139,7 @@ suspected to also reflect consecutive-cast state rather than a roll.
 2. **HealEffect basis**: hold Healing +6% fixed (or change only it) across a
    comparison set.
 3. **Distortion Veil multiplier puzzle** (Finding 4).
-4. Heavy-heal doubling semantics (Finding 3).
+4. **Consecutive-use state:** determine why closely spaced casts produce
+   varying reductions instead of the tooltip's apparent flat 30% penalty.
 5. Live client version capture at session start (screenshot the version
    string) so patch drift is ruled out explicitly.
