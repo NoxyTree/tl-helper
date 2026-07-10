@@ -54,6 +54,16 @@ test("application verifications are explicit and ordered before test suites", ()
   assert.match(definitions["edge-verify"].command.args[0], /verify-edge-cases\.mjs$/);
 });
 
+test("combat-power evidence is regenerated before calculator verification", () => {
+  const stages = selectedStages(parseArgs([]));
+  assert.ok(stages.indexOf("combat-power-analysis") > stages.indexOf("evidence"));
+  assert.ok(stages.indexOf("combat-power-analysis") < stages.indexOf("snapshot-verify"));
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definition = stageDefinitions(context)["combat-power-analysis"];
+  assert.match(definition.command.args[0], /analyze-combat-power\.mjs$/);
+  assert.equal(definition.command.args[1], "--write");
+});
+
 test("decoder requires a complete semantic success summary", () => {
   const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
   const validate = stageDefinitions(context).decode.validateResult;

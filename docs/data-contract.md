@@ -14,17 +14,28 @@ Raw decoded JSON stays available at `TL_DATA_ROOT\decoded\<build>\tables\*.json`
 
 ## Browser projection
 
-`web/data/app-data.json` is a generated, browser-focused projection rather than
-the canonical store. Its top-level provenance contract is:
+`web/data/app-data.json` is a small generated manifest for browser-focused
+projections rather than the canonical store. Its top-level contract is:
 
 ```json
 {
-  "schema": "tl-helper.web-data",
+  "schema": "tl-helper.web-data-manifest",
   "schemaVersion": 1,
+  "dataSchema": "tl-helper.web-data",
+  "dataSchemaVersion": 1,
   "gameBuild": "24118850",
-  "generatedAtUtc": "..."
+  "generatedAtUtc": "...",
+  "projections": []
 }
 ```
+
+The manifest currently references focused `equipment`, `runes`, `progression`,
+`skills`, and `labels` JSON files. Every projection repeats the data schema,
+schema version, game build, and generation timestamp. The shared loader rejects
+mixed provenance or unexpected top-level keys before assembling the same
+`tl-helper.web-data` object consumed by the calculation engine. This keeps the
+`initCore` contract stable while allowing individual projections to be cached
+and updated independently.
 
 `scripts/build-web-data.mjs` requires a numeric `TL_STEAM_BUILD` and refuses to
 write an unversioned projection. The update orchestrator supplies this value.

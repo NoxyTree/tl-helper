@@ -23,6 +23,7 @@ import { readFileSync, readdirSync, mkdirSync, writeFileSync, existsSync } from 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AssetCaseIndex } from "./lib/asset-case-index.mjs";
+import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const STEAM_BUILD = process.env.TL_STEAM_BUILD ?? "24118850";
@@ -164,7 +165,7 @@ if (existsSync(texturesIndexCsv)) {
 // ---------------------------------------------------------------- 2. referenced asset paths
 
 console.log("Collecting app-data.json image paths...");
-const appData = JSON.parse(readFileSync(appDataPath, "utf8"));
+const appData = await loadWebDataFromFile(appDataPath);
 const appPaths = new Set();
 deepStrings(appData, (s) => {
   if (/^assets\/icons\/.+\.webp$/i.test(s)) appPaths.add(s);

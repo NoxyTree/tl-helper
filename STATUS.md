@@ -6,8 +6,10 @@ game version `1.431.22.7761`, Steam build `24118850`, decoder `0.1.0`.
 TL-Helper now has a verified, one-command path from installed game archives to
 decoded, normalized, searchable, browser-ready data. Combat Simulator Milestone
 0 data discovery and Milestone 1 BuildSnapshot integration are complete. The
-next priority is broader regression coverage and smaller data projections before
-the first live-combat calculation layer.
+browser projection split and combat-power comparison are also complete. The
+next priorities are complete manual healer and ranged Questlog panels,
+patch-safe saved builds, remaining formula and combat-power mappings, and
+Combat Simulator Milestone 2.
 
 ## Current source-of-truth hierarchy
 
@@ -25,7 +27,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | --- | --- | --- |
 | Web application | Armory, tracker, achievements, static build calculator | `web/` |
 | BuildSnapshot v1 | Immutable, versioned static-build contract used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
-| Static calculation regression | 43/43 reference assertions; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
+| Static calculation regression | 69/69 assertions across 3 fixtures; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
 | Coverage audit | All four stated counts validate from the new data root | `node scripts/audit-questlog-coverage.mjs` |
 | `TLJsonDataTable` decoder | Tagged-property row format decoded; every attempted table clean | `node scripts/decode-tljson-table.mjs --all-priority` |
 | Collector | 92 tests; deterministic rerun, resume, build-scoped output, `TL_DATA_ROOT` | `dotnet run --project src/TlCollector/App -- sample` |
@@ -34,8 +36,10 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Asset casing | App-only 2,692 references: 2,269 exact and 423 case-insensitive; no missing references | `node --test scripts/tests/asset-case-index.test.mjs` |
 | Discovery evidence | Ascended Ramux and WP_CL evidence packets | `D:\TL_Data\reports\24118850\evidence\` |
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
+| Combat-power parity | Decoded item components analyzed; full aggregation and some item families remain unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Storage separation | Code in `D:\TL_Helper`; bulk data in `D:\TL_Data` | `docs/storage-and-retention.md` |
-| Update orchestrator | Complete guarded refresh with preflight, stage gates, and JSON run reports | `node scripts/update-tl-helper.mjs` |
+| Browser projections | 1,144-byte manifest plus 5 hashed projections; Armory and Tracker verified live | `web/data/app-data.json` |
+| Update orchestrator | Complete guarded refresh including `combat-power-analysis`, stage gates, and JSON run reports | `node scripts/update-tl-helper.mjs` |
 
 ## Verified data snapshot
 
@@ -50,13 +54,18 @@ coverage summary on 2026-07-10:
 - App references: 2,692 unique paths, all resolved. Of these, 423 require a case-insensitive match.
 - Combined audit set: 2,695 references, all resolved. The extra three are set bonus icons outside `app-data.json`.
 - Local unreferenced PNGs: 12,325, including 1,165 equipment icons, 1,807 other item icons, and 593 skill icons.
-- Web data: schema `tl-helper.web-data` v1, game build `24118850`, with a
-  generation timestamp and source metadata embedded in `web/data/app-data.json`.
+- Web data: `web/data/app-data.json` is a 1,144-byte manifest for five hashed
+  projections covering equipment, runes, progression, skills, and labels. The
+  manifest records schema, game build `24118850`, generation time, byte sizes,
+  and SHA-256 hashes.
+- Live browser verification: Armory and Tracker both passed against the
+  projected dataset.
 - BuildSnapshot: schema `tl-helper.build-snapshot` v1, ruleset
   `questlog-static-v1`, with immutable resolved output and canonical JSON
   round-trip verification.
-- Latest verification gate: BuildSnapshot passed, reference build 43/43, all 12
-  edge checks passed, JavaScript tests 16/16, collector tests 92/92.
+- Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
+  fixtures, all 12 edge checks passed, JavaScript tests 25/25, collector tests
+  92/92.
 
 ## Combat milestones
 
@@ -111,6 +120,8 @@ exit codes, output tails, and safety state beneath
 `D:\TL_Data\reports\<build>\update-runs\`. It resolves the verified SDK at
 `D:\TL_Data\cache\tools\dotnet-sdk\dotnet.exe` automatically. Detailed usage,
 targeted recovery, and safety rules are in `docs/update-orchestrator.md`.
+The guarded sequence includes `combat-power-analysis`, which refreshes the
+decoded-versus-live parity evidence before the application verification stages.
 
 ## Open technical work
 
@@ -120,22 +131,21 @@ targeted recovery, and safety rules are in `docs/update-orchestrator.md`.
 - Parse package-local `ObjectProperty` imports where future non-cosmetic links require them.
 - Resolve the 175 NPC-kit tooltip bases not covered by player formula rows.
 - Capture a second game build before claiming patch-history behavior.
-- Add healer and ranged reference fixtures to broaden static calculator safety.
+- Complete full manual Questlog expected panels for the healer and ranged
+  fixtures. Their current focused smoke panels are passing.
 - Add saved-build schema versions, migrations, and data-build identifiers.
-- Generate smaller page-specific web projections instead of growing one large browser payload indefinitely.
+- Resolve the remaining combat-power aggregation rules and unsupported legacy
+  item families before replacing the fitted live calculation.
 - Arrange off-machine backup only with explicit user authorization.
 
 ## Recommended refinement order
 
-1. Review and checkpoint the collector, decoder, warehouse, audit, orchestrator,
-   and BuildSnapshot work while keeping bulk data out of Git.
-2. Expand reference fixtures for healer and ranged builds.
-3. Split browser data into focused, page-specific projections.
-4. Compare extracted rules with current Questlog-parity rules before replacing
-   any calculation, starting with combat power.
-5. Add patch-safe saved-build migration and recovery.
-6. Begin Combat Simulator Milestone 2, the deterministic engine skeleton.
-7. Build the seven-case single-ability Combat Lab after the engine boundary and
+1. Complete full manual Questlog panels for healer and ranged builds.
+2. Add patch-safe saved-build migration and recovery.
+3. Materialize the complete skill-to-formula mapping.
+4. Resolve the combat-power aggregation pipeline and unsupported item families.
+5. Begin Combat Simulator Milestone 2, the deterministic engine skeleton.
+6. Build the seven-case single-ability Combat Lab after the engine boundary and
    calibration labels are ready.
 
 ## Read first next session

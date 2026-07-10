@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as core from "../web/tl-core.js";
+import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 import {
   BUILD_SNAPSHOT_SCHEMA,
   BUILD_SNAPSHOT_VERSION,
@@ -16,7 +17,7 @@ import {
 } from "../web/tl-build-snapshot.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const appData = JSON.parse(await readFile(join(repoRoot, "web", "data", "app-data.json"), "utf8"));
+const appData = await loadWebDataFromFile(join(repoRoot, "web", "data", "app-data.json"));
 const preset = JSON.parse(await readFile(join(repoRoot, "web", "data", "reference-build.json"), "utf8"));
 await core.initCore(appData);
 

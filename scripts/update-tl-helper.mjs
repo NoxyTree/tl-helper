@@ -16,13 +16,14 @@ const DEFAULT_CONFIG = path.join(REPO_ROOT, "src", "TlCollector", "config.local.
 
 export const STAGE_ORDER = [
   "collector", "decode", "warehouse", "inventory", "web-data", "coverage",
-  "evidence", "snapshot-verify", "reference-verify", "edge-verify", "js-tests",
+  "evidence", "combat-power-analysis", "snapshot-verify", "reference-verify", "edge-verify", "js-tests",
   "collector-tests",
 ];
 
 const STAGE_ALIASES = new Map([
   ["collect", "collector"], ["test-js", "js-tests"], ["test-collector", "collector-tests"],
   ["web", "web-data"], ["verify-snapshot", "snapshot-verify"],
+  ["power", "combat-power-analysis"],
   ["verify-reference", "reference-verify"], ["verify-edges", "edge-verify"],
 ]);
 
@@ -140,6 +141,15 @@ export function stageDefinitions(context) {
       command: command(node, [script("build-evidence-packets.mjs")]),
       required: [path.join(context.dataRoot, "warehouse", `tl-${context.build}.sqlite`)],
       output: path.join(context.dataRoot, "reports", context.build, "evidence"),
+    },
+    "combat-power-analysis": {
+      command: command(node, [script("analyze-combat-power.mjs"), "--write"]),
+      required: [
+        path.join(context.dataRoot, "decoded", context.build, "tables", "TLItemCombatPower.json"),
+        path.join(REPO_ROOT, "web", "data", "app-data.json"),
+        path.join(REPO_ROOT, "web", "data", "reference-build.json"),
+      ],
+      output: path.join(context.dataRoot, "reports", context.build, "combat-power-parity.json"),
     },
     "snapshot-verify": {
       command: command(node, [script("verify-build-snapshot.mjs")]),

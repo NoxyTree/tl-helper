@@ -7,9 +7,10 @@ import { fileURLToPath } from "node:url";
 import process from "node:process";
 import * as core from "../web/tl-core.js";
 import { SET_PASSIVE_RULES } from "../web/tl-questlog-rules.js";
+import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const appData = JSON.parse(await readFile(join(repoRoot, "web", "data", "app-data.json"), "utf8"));
+const appData = await loadWebDataFromFile(join(repoRoot, "web", "data", "app-data.json"));
 await core.initCore(appData);
 const preset = JSON.parse(await readFile(join(repoRoot, "web", "data", "reference-build.json"), "utf8"));
 

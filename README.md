@@ -31,7 +31,7 @@ remain explicitly marked instead of being guessed.
 | Collector | Read-only, build-scoped collection from installed game archives | `src/TlCollector/` |
 | Decoder | Converts `TLJsonDataTable` packages into structured rows | `scripts/decode-tljson-table.mjs` |
 | Warehouse | Normalized records, provenance, references, assets, and FTS5 search | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
-| Validation | Reference builds, edge cases, asset casing, coverage, and inventories | `scripts/`, `out/coverage-audit/` |
+| Validation | Reference builds, browser checks, edge cases, asset casing, coverage, and inventories | `scripts/`, `out/coverage-audit/` |
 | Content intelligence | Evidence-based discovery and future patch comparison | `plans/upcoming-content-radar/` |
 | Combat data | Decoded formulas, coverage audit, unknowns, and validation cases | `plans/combat-simulator/` |
 | Update orchestrator | One guarded command for refresh, reports, web data, and verification | `scripts/update-tl-helper.mjs` |
@@ -97,7 +97,9 @@ node scripts\update-tl-helper.mjs
 The orchestrator resolves .NET from `TL_DOTNET`, then
 `D:\TL_Data\cache\tools\dotnet-sdk\dotnet.exe`, then `dotnet` on `PATH`.
 Reports and bulk outputs remain build-scoped, while generated browser data
-embeds its schema and selected game build. See
+uses a small manifest plus five hashed projections. The guarded
+sequence also runs the `combat-power-analysis` stage before application
+verification. See
 `docs/update-orchestrator.md` for targeted `--only` and `--skip` runs, report
 locations, preflight checks, and safety boundaries.
 
@@ -115,11 +117,22 @@ locations, preflight checks, and safety boundaries.
   serialization.
 - Both the Armory and tracker now calculate through the same BuildSnapshot
   adapter used by automated verification.
-- Generated browser data declares `schema: tl-helper.web-data`,
-  `schemaVersion: 1`, `gameBuild: 24118850`, and `generatedAtUtc`, so every
-  browser snapshot carries its source game build.
-- The latest verification gate passed BuildSnapshot checks, 43/43 reference
-  assertions, all 12 edge checks, 16 JavaScript tests, and 92 collector tests.
+- `web/data/app-data.json` is now a 1,144-byte manifest for five hashed
+  projections: equipment, runes, progression, skills, and labels. Each
+  projection retains the web-data schema and game-build provenance. The split
+  separates concerns, improves integrity and caching, and enables future
+  selective loading. The current browser initialization still assembles all
+  five projections.
+- Live browser verification passed for both the Armory and Tracker against the
+  projected data.
+- The latest verification gate passed BuildSnapshot checks, 69/69 assertions
+  across three fixtures, all 12 edge checks, 25 JavaScript tests, and 92
+  collector tests.
+- Combat-power parity analysis confirms that `TLItemCombatPower` contains exact
+  item component weights but not the full aggregation pipeline. The live
+  calculator remains unchanged until unresolved item families and aggregation
+  rules are proven. See
+  `plans/combat-simulator/combat-power-parity.md`.
 
 See `STATUS.md` for the current snapshot, open issues, verified commands, and
 recommended next work.
@@ -140,10 +153,13 @@ Saved-build versioning and patch-safe migration are planned refinements.
 - `docs/update-orchestrator.md`: one-command refresh, validation, and reports
 - `FIX-PLAN.md`: completed application audit plus remaining fixture work
 - `plans/combat-simulator/combat-data-audit.md`: decoded combat-data findings
+- `plans/combat-simulator/combat-power-parity.md`: decoded component parity and replacement limits
 - `plans/combat-simulator/unknown-formulas.md`: mechanics that remain uncertain
 - `plans/upcoming-content-radar/`: content-intelligence architecture
 - `design-handoff/`: original application design references
 
-The reference build regression currently matches all 43 asserted totals,
-including 7,128 combat power. Questlog parity remains protected while extracted
-game data is introduced behind versioned, test-backed contracts.
+The build regression currently matches all 69 asserted totals across three
+fixtures. The original Questlog reference build still matches 7,128 combat
+power, while focused healer and ranged smoke fixtures broaden calculator
+coverage. Complete manual Questlog panels for those two archetypes remain the
+next fixture task.

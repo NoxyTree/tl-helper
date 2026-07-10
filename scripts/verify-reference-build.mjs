@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import process from "node:process";
 import * as core from "../web/tl-core.js";
 import { resolveBuildSnapshot } from "../web/tl-build-snapshot.js";
+import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fixturesDir = join(repoRoot, "scripts", "reference-builds");
@@ -56,7 +57,7 @@ async function refreshFixtureFromLive(fixture) {
   console.log(`Refreshed preset from live: ${fixture.presetPath}`);
 }
 
-const appData = JSON.parse(await readFile(join(repoRoot, "web", "data", "app-data.json"), "utf8"));
+const appData = await loadWebDataFromFile(join(repoRoot, "web", "data", "app-data.json"));
 await core.initCore(appData);
 
 const fixtureFiles = (await readdir(fixturesDir)).filter((name) => name.endsWith(".json")).sort();
@@ -69,7 +70,14 @@ let totalRows = 0;
 let totalFailed = 0;
 for (const fileName of fixtureFiles) {
   const fixture = JSON.parse(await readFile(join(fixturesDir, fileName), "utf8"));
-  if (process.env.TL_VERIFY_LIVE) await refreshFixtureFromLive(fixture);
+  if (!fixture.expected || !Object.keys(fixture.expected).length) {
+    throw new Error(`${fileName} has no independently evidenced expected assertions`);
+  }
+  if (process.env.TL_VERIFY_LIVE && fixture.characterSlug) {
+    await refreshFixtureFromLive(fixture);
+  } else if (process.env.TL_VERIFY_LIVE) {
+    console.log(`Skipped live refresh for local fixture: ${fixture.name}`);
+  }
   const preset = JSON.parse(await readFile(join(repoRoot, fixture.presetPath), "utf8"));
   const build = preset.build;
   build.masteries = core.normalizeMasterySelections(build.masteries);

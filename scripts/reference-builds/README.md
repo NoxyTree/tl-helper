@@ -1,7 +1,8 @@
 # Reference build fixtures
 
-Each `*.json` file here drives one assertion pass in
+Each top-level `*.json` file here drives one assertion pass in
 `node scripts/verify-reference-build.mjs` (hermetic, offline by default).
+Build inputs for focused fixtures live under `presets/`.
 
 Fields:
 
@@ -18,12 +19,22 @@ Fields:
   stats panel** — the tRPC API returns only the build inputs, never computed
   totals, and the character page is a client-rendered shell, so there is no
   scriptable source for them.
+- `evidence` — optional provenance for a partial assertion table. Focused
+  game-file smoke fixtures use manually traced decoded base and item rows and
+  must not be described as full Questlog parity fixtures.
 
-## Adding a fixture (the missing archetypes)
+The verifier rejects fixtures with an empty `expected` table. Partial tables
+are allowed only when the fixture documents evidence independent from
+`calculateBuild()`.
 
-Coverage today is a single sword/greatsword tank. Per FIX-PLAN 0.3 we still
-want a staff/wand healer and a bow/dagger ranged build to exercise
-ranged/magic accuracy sources, heal modifiers, and more passives. To add one:
+## Adding a complete Questlog fixture
+
+Coverage includes one complete sword/greatsword Questlog parity build plus two
+small game-file-backed smoke builds for wand/staff and bow/dagger. The smoke
+builds protect base, weapon, off-hand, ranged/magic accuracy, mana regeneration,
+health regeneration, and attack-range paths. They do not replace the
+still-needed complete healer and ranged Questlog totals, particularly healing
+passives, mastery, traits, runes, and complete combat power. To add one:
 
 1. Find a public questlog.gg character of the archetype; note its character
    slug (URL) and owner slug (from the skill/mastery build API calls).
@@ -35,3 +46,14 @@ ranged/magic accuracy sources, heal modifiers, and more passives. To add one:
    the raw totals into `expected` (convert displayed values back to raw units
    with `STAT_UNIT_MODIFIERS` from `web/tl-questlog-rules.js`).
 4. Run the verifier offline; investigate any mismatch before committing.
+
+## Current evidence gap
+
+- Healer candidate: `TheSkilledPhaseOfSand`, build `7467952` ("1. Start Path
+  of Ascension"), owner `is7DrBnXJxQJ`.
+- `TheGrievingSilverAndDawn` was investigated as a ranged candidate, but its
+  first build currently imports with a blank main-hand weapon and is unsuitable.
+
+Questlog's tRPC payload supplies build inputs only. The complete expected table
+must still be transcribed from the visible Combined Stats panel in a real
+browser. Never use this verifier's calculated output as the evidence source.

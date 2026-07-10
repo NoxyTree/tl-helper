@@ -50,7 +50,8 @@ Available stages are:
 
 ```text
 collector, decode, warehouse, inventory, web-data, coverage, evidence,
-snapshot-verify, reference-verify, edge-verify, js-tests, collector-tests
+combat-power-analysis, snapshot-verify, reference-verify, edge-verify, js-tests,
+collector-tests
 ```
 
 The three application verification stages are deliberately separate. The run

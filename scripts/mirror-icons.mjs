@@ -3,9 +3,10 @@
 // Incremental: files already on disk are skipped, so after a game patch the
 // flow is `node scripts/build-web-data.mjs` then `node scripts/mirror-icons.mjs`
 // and only newly referenced icons are downloaded.
-import { readFile, mkdir, writeFile, access } from "node:fs/promises";
+import { mkdir, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const webDir = path.join(root, "web");
@@ -40,7 +41,7 @@ async function fetchWithRetry(url) {
   throw lastError;
 }
 
-const raw = await readFile(appDataPath, "utf8");
+const raw = JSON.stringify(await loadWebDataFromFile(appDataPath));
 const refs = [...new Set(raw.match(/assets\/icons\/[^"\\ ,]+\.webp/g) ?? [])];
 if (!refs.length) {
   throw new Error("No assets/icons/ references found in app-data.json — run build-web-data.mjs first.");

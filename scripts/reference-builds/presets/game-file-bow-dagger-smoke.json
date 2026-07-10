@@ -1,0 +1,25 @@
+{
+  "id": "game-file-bow-dagger-smoke",
+  "name": "Bow/dagger game-file smoke build",
+  "source": "TLPCInitialStat, TLPCLevelStat and generated item projection for game build 24118850",
+  "profile": { "name": "Bow/dagger static calculator smoke build", "role": "Fixture", "server": "Local" },
+  "attributes": { "str": 0, "dex": 0, "int": 0, "per": 0, "con": 0 },
+  "build": {
+    "equipment": {
+      "main_hand": {
+        "itemId": "bow_c_t1_nomal_001", "level": 1, "traits": [], "uniqueTrait": null,
+        "resonance": [], "heroicEffects": [], "artifactStatId": "", "potentialId": "", "perkId": "", "runes": []
+      },
+      "off_hand": {
+        "itemId": "dagger_c_t1_nomal_001", "level": 1, "traits": [], "uniqueTrait": null,
+        "resonance": [], "heroicEffects": [], "artifactStatId": "", "potentialId": "", "perkId": "", "runes": []
+      }
+    },
+    "artifacts": {},
+    "supportEffects": {},
+    "skills": { "active": {}, "passive": {}, "defensive": {} },
+    "skillTraits": {},
+    "masteries": {},
+    "unifiedMasteries": []
+  }
+}

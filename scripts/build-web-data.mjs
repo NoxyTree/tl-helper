@@ -1,4 +1,5 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -469,11 +470,12 @@ for (const id of [
 const gameBuild = String(process.env.TL_STEAM_BUILD ?? "").trim();
 assert(/^\d+$/.test(gameBuild), "TL_STEAM_BUILD must be a numeric Steam build. Run through update-tl-helper.mjs or set it explicitly.");
 
+const generatedAtUtc = new Date().toISOString();
 const appData = {
   schema: "tl-helper.web-data",
   schemaVersion: 1,
   gameBuild,
-  generatedAtUtc: new Date().toISOString(),
+  generatedAtUtc,
   sources: {
     questlogImageFormula:
       "If icon path contains a dot, strip from the last dot, drop the leading /assets/, prefix assets/icons/, append .webp; files are mirrored locally by scripts/mirror-icons.mjs",
@@ -518,14 +520,53 @@ assert(items.every((item) => item.grade !== undefined && item.grade !== null), "
 }
 
 await mkdir(webDataDir, { recursive: true });
-const serialized = JSON.stringify(appData);
-assert(!serialized.includes("â"), "Serialized payload still contains double-decoded UTF-8 (mojibake)");
-await writeFile(path.join(webDataDir, "app-data.json"), serialized, "utf8");
-// app-data.js (a window-global file:// fallback of the same payload) was
-// emitted historically but no page ever loaded it — both index.html and
-// tracker.html initCore("./data/app-data.json"). Dropped from the pipeline.
+const projectionGroups = [
+  ["equipment", { items, itemSets, artifactSets, slotDefinitions }],
+  ["runes", { runes, runeSynergies }],
+  ["progression", { attributeStats: attributeStatsRaw, masteries }],
+  ["skills", { skills, skillTraits, traitsBySkillId, skillsByWeapon }],
+  ["labels", { sources: appData.sources, statLabels: appData.statLabels }],
+];
+const projectionDir = path.join(webDataDir, "projections");
+await mkdir(projectionDir, { recursive: true });
+const projections = [];
+let projectedBytes = 0;
+for (const [id, projectionData] of projectionGroups) {
+  const payload = {
+    schema: appData.schema,
+    schemaVersion: appData.schemaVersion,
+    gameBuild,
+    generatedAtUtc,
+    projection: id,
+    data: projectionData,
+  };
+  const serialized = JSON.stringify(payload);
+  assert(!serialized.includes("â"), `${id} projection still contains double-decoded UTF-8 (mojibake)`);
+  const file = `projections/${id}.json`;
+  await writeFile(path.join(webDataDir, file), serialized, "utf8");
+  const bytes = Buffer.byteLength(serialized);
+  projectedBytes += bytes;
+  projections.push({
+    id,
+    file,
+    keys: Object.keys(projectionData),
+    bytes,
+    sha256: createHash("sha256").update(serialized).digest("hex"),
+  });
+}
+const manifest = {
+  schema: "tl-helper.web-data-manifest",
+  schemaVersion: 1,
+  dataSchema: appData.schema,
+  dataSchemaVersion: appData.schemaVersion,
+  gameBuild,
+  generatedAtUtc,
+  projections,
+};
+const serializedManifest = JSON.stringify(manifest);
+await writeFile(path.join(webDataDir, "app-data.json"), serializedManifest, "utf8");
 const roundTrip = JSON.parse(await readFile(path.join(webDataDir, "app-data.json"), "utf8"));
-assert(roundTrip.items.length === items.length && roundTrip.skills.length === skills.length, "Post-write integrity check failed: app-data.json does not round-trip");
+assert(roundTrip.projections.length === projectionGroups.length, "Post-write manifest integrity check failed");
 
 console.log({
   items: items.length,
@@ -538,5 +579,7 @@ console.log({
   artifactSets: artifactSets.length,
   slotDefinitions: Object.keys(slotDefinitions).length,
   statLabels: Object.keys(appData.statLabels).length,
-  bytes: serialized.length,
+  manifestBytes: Buffer.byteLength(serializedManifest),
+  projectedBytes,
+  projections: Object.fromEntries(projections.map(({ id, bytes }) => [id, bytes])),
 });

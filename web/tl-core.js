@@ -22,6 +22,7 @@ import {
   UNIFIED_MASTERY_RULES,
   allocatedAttributeValue,
 } from "./tl-questlog-rules.js";
+import { loadWebData } from "./tl-data-loader.js";
 
 export const EQUIPMENT_SLOTS = [
   { id: "main_hand", label: "Main Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
@@ -225,11 +226,7 @@ export let data = null;
 export let indexes = null;
 
 export async function initCore(source) {
-  if (typeof source === "string") {
-    const response = await fetch(source, { cache: "no-store" });
-    if (!response.ok) throw new Error(`Failed to load data: ${response.status}`);
-    source = await response.json();
-  }
+  source = await loadWebData(source);
   data = source;
   indexes = buildIndexes(source);
   return { data, indexes };

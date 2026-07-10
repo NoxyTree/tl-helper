@@ -1,0 +1,21 @@
+{
+  "id": "game-file-wand-staff-smoke",
+  "name": "Wand/staff static calculator smoke build",
+  "presetPath": "scripts/reference-builds/presets/game-file-wand-staff-smoke.json",
+  "gameDataBuild": "24118850",
+  "evidence": {
+    "kind": "manual-game-file-arithmetic",
+    "sources": [
+      "D:/TL_Data/warehouse/tl-24118850.sqlite records TLPCInitialStat:1 and TLPCLevelStat:54",
+      "web projection item rows wand_c_t1_nomal_001 and staff_c_t1_nomal_001",
+      "web/tl-questlog-rules.js attribute rows for 11 STR, INT and PER"
+    ],
+    "note": "Expected values were manually traced from decoded base rows and item fields, not copied from calculateBuild output. This is a focused static-calculator fixture, not a full Questlog parity build."
+  },
+  "expected": {
+    "str": 11, "dex": 11, "int": 11, "per": 11, "con": 11,
+    "hp_max": 6720, "cost_max": 6120, "attack_rating": 2753,
+    "attack_power_main_hand_min": 25, "attack_power_main_hand_max": 46,
+    "attack_range_main_hand": 1400, "cost_regen": 368000, "magic_accuracy": 550
+  }
+}
