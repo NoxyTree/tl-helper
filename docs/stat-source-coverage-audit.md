@@ -8,7 +8,16 @@ Audit scope: current 38 decoded table families, the five browser projections, Qu
 
 ## Bottom line
 
-TL-Helper can find a large proportion of static stat sources today, but the warehouse is not yet a complete one-query catalogue of every source that grants a stat.
+TL-Helper now materializes a large proportion of static stat sources into one
+queryable index, but it is not yet a complete catalogue of every dynamic source
+that grants a stat.
+
+The implemented `stat_sources` table contains 293,446 rows across 2,394 named
+sources and 110 canonical metrics. It includes equipment, optional item stats,
+runes, rune synergies, direct item and artifact set bonuses, attribute curves,
+attribute breakpoints, material rules, and masteries. Heavy Attack Chance has
+15,247 level/rank rows across 490 named sources. Skills, passives, dynamic set
+effects, and unsafe raw-curve owner guesses remain excluded.
 
 For Heavy Attack Chance, the current data can identify named equipment, optional item rolls, runes, rune synergies, masteries, one direct set bonus, two Strength breakpoints, three material bonuses, and several skill descriptions. The remaining problem is normalization and joining, not lack of raw values.
 
@@ -165,9 +174,9 @@ Static item, rune, and mastery coverage is therefore already broad. Dynamic skil
 
 The main gaps blocking a trustworthy one-query answer are:
 
-1. **Canonical stat taxonomy.** Raw enums, snake-case IDs, Questlog labels, units, scopes, and exclusions need one versioned mapping.
-2. **Materialized source index.** Generic curves must be expanded into rows owned by named items, traits, runes, sets, attributes, and masteries.
-3. **Grant versus option semantics.** Fixed stats, selectable traits, random pools, potential choices, negative modifiers, and contextual bonuses must have different source modes.
+1. **Canonical stat taxonomy.** Implemented for the current 204 projected IDs. Less common labels retain provisional status until independently verified.
+2. **Materialized source index.** Implemented for the static source families listed above. Dynamic effects and unlinked raw curves remain outstanding.
+3. **Grant versus option semantics.** Source components and structured conditions now distinguish current static modes. A dedicated `grant_mode` field is still useful before exposing a public API.
 4. **Skill-effect joins.** The 210-set skill/formula map links names to formula rows, but it does not state which formula changes which canonical stat or which abnormal state applies it.
 5. **Abnormal-state coverage.** Only Common, Sword, and Wand abnormal-state tables are in the current warehouse. Other weapon families are required for game-wide skill buff/debuff coverage.
 6. **Modifier payload owner.** Current abnormal rows contain stack, group, disable, and presentation metadata but no general numeric stat-modifier structure. The table or package object that applies the modifier remains unidentified.

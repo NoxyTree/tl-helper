@@ -34,7 +34,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | `TLJsonDataTable` decoder | Tagged-property row format decoded; every attempted table clean | `node scripts/decode-tljson-table.mjs --all-priority` |
 | Collector | 92 tests; deterministic rerun, resume, build-scoped output, `TL_DATA_ROOT` | `dotnet run --project src/TlCollector/App -- sample` |
 | Normalized warehouse | **85,099 records across 38 decoded tables**, with provenance and FTS5 | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
-| Stat-source index | 183,676 level/rank rows across 2,070 named equipment/mastery sources and 106 canonical metrics | `scripts/build-stat-sources.mjs` |
+| Stat-source index | 293,446 level/rank rows across 2,394 named static sources and 110 canonical metrics | `scripts/build-stat-sources.mjs` |
 | Table inventory | 1,387 tables across 680 families inventoried and prioritized | `D:\TL_Data\reports\24118850\table-inventory.json` |
 | Asset casing | App-only 2,692 references: 2,269 exact and 423 case-insensitive; no missing references | `node --test scripts/tests/asset-case-index.test.mjs` |
 | Discovery evidence | Ascended Ramux and WP_CL evidence packets | `D:\TL_Data\reports\24118850\evidence\` |
@@ -71,12 +71,13 @@ coverage summary on 2026-07-10:
 - BuildSnapshot: schema `tl-helper.build-snapshot` v1, ruleset
   `questlog-static-v1`, with immutable resolved output and canonical JSON
   round-trip verification.
-- Stat sources: 183,676 build-scoped rows, 2,070 named sources, 169 raw stat
-  IDs, and 106 canonical metrics. Heavy Attack Chance has 5,061 rows across
-  430 named sources, with fixed curves, traits, resonance, unique traits, and
-  mastery ranks kept distinct.
+- Stat sources: 293,446 build-scoped rows, 2,394 named sources, 193 raw stat
+  IDs, and 110 canonical metrics. Heavy Attack Chance has 15,247 rows across
+  490 named sources. Fixed curves, selectable traits, randomized rune and
+  resonance rolls, direct synergies and sets, attributes, threshold bonuses,
+  material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 39/39, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 64/64, collector tests
   92/92.
 
 ## Combat milestones
@@ -148,9 +149,9 @@ index, and decoded-versus-live parity evidence before application verification.
 
 ## Open technical work
 
-- Extend `stat_sources` to runes, rune synergies, item sets, attribute
-  breakpoints, material bonuses, skills, and passives. Current exact gaps and
-  exclusions are in `docs/stat-source-coverage-audit.md`.
+- Extend `stat_sources` to dynamic set effects, skills, and passives. The first
+  nine Heavy Attack skill joins are mapped in `docs/skill-stat-source-join.md`.
+  Current exact gaps and exclusions are in `docs/stat-source-coverage-audit.md`.
 - Decode or map `TLAbnormalContentsGroup` for buff exclusivity references.
 - Curate the field-to-table map needed for complete `TLDataHandle` resolution.
 - Parse package-local `ObjectProperty` imports where future non-cosmetic links require them.

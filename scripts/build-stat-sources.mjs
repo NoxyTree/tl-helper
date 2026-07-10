@@ -9,7 +9,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 import { buildEquipmentStatSources, buildMasteryStatSources } from "./lib/stat-sources.mjs";
+import { buildRuneStatSources, buildRuneSynergyStatSources } from "./lib/stat-sources-runes.mjs";
+import {
+  attributeBreakpointStatSources, attributeCurveStatSources, buildArtifactSetStatSources,
+  buildItemSetStatSources, materialBonusStatSources,
+} from "./lib/stat-sources-progression.mjs";
 import { resolveStatTaxonomy } from "./lib/stat-taxonomy.mjs";
+import { ARMOR_MATERIAL_BONUSES, ATTRIBUTE_BREAKPOINTS } from "../web/tl-questlog-rules.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const gameBuild = process.env.TL_STEAM_BUILD ?? "24118850";
@@ -19,12 +25,18 @@ const projectionPath = path.join(root, "web", "data", "projections", "equipment.
 const projection = JSON.parse(readFileSync(projectionPath, "utf8"));
 const progressionPath = path.join(root, "web", "data", "projections", "progression.json");
 const progression = JSON.parse(readFileSync(progressionPath, "utf8"));
+const runesPath = path.join(root, "web", "data", "projections", "runes.json");
+const runes = JSON.parse(readFileSync(runesPath, "utf8"));
+const rulesPath = path.join(root, "web", "tl-questlog-rules.js");
 
 if (String(projection.gameBuild) !== String(gameBuild)) {
   throw new Error(`equipment projection build ${projection.gameBuild} does not match requested build ${gameBuild}`);
 }
 if (String(progression.gameBuild) !== String(gameBuild)) {
   throw new Error(`progression projection build ${progression.gameBuild} does not match requested build ${gameBuild}`);
+}
+if (String(runes.gameBuild) !== String(gameBuild)) {
+  throw new Error(`runes projection build ${runes.gameBuild} does not match requested build ${gameBuild}`);
 }
 
 const rows = buildEquipmentStatSources(projection.data.items ?? [], {
@@ -37,6 +49,30 @@ rows.push(...buildMasteryStatSources(progression.data.masteries ?? [], {
   sourcePath: path.relative(root, progressionPath).replaceAll("\\", "/"),
   resolveTaxonomy: resolveStatTaxonomy,
 }));
+rows.push(...buildRuneStatSources(runes.data.runes ?? [], {
+  gameBuild,
+  sourcePath: path.relative(root, runesPath).replaceAll("\\", "/"),
+  resolveTaxonomy: resolveStatTaxonomy,
+}));
+rows.push(...buildRuneSynergyStatSources(runes.data.runeSynergies ?? [], {
+  gameBuild,
+  sourcePath: path.relative(root, runesPath).replaceAll("\\", "/"),
+  resolveTaxonomy: resolveStatTaxonomy,
+}));
+const equipmentOptions = {
+  gameBuild,
+  sourcePath: path.relative(root, projectionPath).replaceAll("\\", "/"),
+  rulesSourcePath: path.relative(root, rulesPath).replaceAll("\\", "/"),
+  resolveTaxonomy: resolveStatTaxonomy,
+};
+rows.push(...buildItemSetStatSources(projection.data.itemSets ?? [], equipmentOptions));
+rows.push(...buildArtifactSetStatSources(projection.data.artifactSets ?? [], equipmentOptions));
+rows.push(...attributeCurveStatSources(progression.data.attributeStats ?? {}, {
+  ...equipmentOptions,
+  sourcePath: path.relative(root, progressionPath).replaceAll("\\", "/"),
+}));
+rows.push(...attributeBreakpointStatSources(ATTRIBUTE_BREAKPOINTS, equipmentOptions));
+rows.push(...materialBonusStatSources(ARMOR_MATERIAL_BONUSES, equipmentOptions));
 
 if (!existsSync(dbPath)) {
   throw new Error(`warehouse does not exist for build ${gameBuild}: ${dbPath}`);
@@ -91,7 +127,8 @@ try {
 }
 
 const counts = db.prepare(`
-  SELECT source_component, COUNT(*) AS rows, COUNT(DISTINCT source_id) AS sources,
+  SELECT source_component, COUNT(*) AS rows,
+         COUNT(DISTINCT source_type || ':' || source_id) AS sources,
          COUNT(DISTINCT raw_stat_id) AS raw_stats
   FROM stat_sources GROUP BY source_component ORDER BY source_component
 `).all();
@@ -103,7 +140,7 @@ const heavy = db.prepare(`
   ORDER BY source_name, source_component, COALESCE(level, rank)
 `).all();
 const totals = db.prepare(`
-  SELECT COUNT(*) AS rows, COUNT(DISTINCT source_id) AS sources,
+  SELECT COUNT(*) AS rows, COUNT(DISTINCT source_type || ':' || source_id) AS sources,
          COUNT(DISTINCT raw_stat_id) AS raw_stats,
          COUNT(DISTINCT canonical_stat_id) AS canonical_stats
   FROM stat_sources
@@ -118,13 +155,13 @@ const report = {
   gameBuild,
   generatedAtUtc: new Date().toISOString(),
   warehouse: dbPath,
-  coverage: "Named equipment progression, traits, resonance, unique traits, and numeric mastery ranks present in validated browser projections. Skills, passives, sets, runes, attributes, and unlinked raw curves are not yet indexed.",
+  coverage: "Named equipment, item and artifact sets, runes and synergies, attribute curves and breakpoints, armor-material rules, and mastery ranks. Skills, passives, dynamic set effects, and unlinked raw curves are not yet indexed.",
   totals,
   byComponent: counts,
-  heavyAttack: { rows: heavy.length, sources: new Set(heavy.map((row) => row.source_id)).size, results: heavy },
+  heavyAttack: { rows: heavy.length, sources: new Set(heavy.map((row) => `${row.source_type}:${row.source_id}`)).size, results: heavy },
 };
 writeFileSync(path.join(reportDir, "heavy-attack.json"), JSON.stringify(report, null, 2) + "\n");
-const heavyBreakdown = dbPath && [
+const heavyBreakdown = [
   "# Heavy Attack stat-source index",
   "",
   `Game build: ${gameBuild}`,
@@ -141,9 +178,9 @@ const heavyBreakdown = dbPath && [
     return groups;
   }, {})).map((group) => `| ${group.label} | ${group.rows.toLocaleString("en-US")} | ${group.sources.size.toLocaleString("en-US")} |`),
   "",
-  "Use `scripts/queries/heavy-attack-sources.sql` for the full result. Optional traits, resonance, and unique traits are possibilities, not guaranteed grants; inspect `conditions_json` before presenting them.",
+  "Use `scripts/queries/heavy-attack-sources.sql` for the full result. Optional traits, resonance, unique traits, and rune rolls are possibilities, not guaranteed grants; inspect `conditions_json` before presenting them.",
   "",
-  "Current gaps: runes, set bonuses, attribute breakpoints, skills, passives, and unlinked raw curves are not yet materialized in this index.",
+  "Current gaps: skills, passives, dynamic set effects, and unlinked raw curves are not yet materialized in this index.",
   "",
 ].join("\n");
 writeFileSync(path.join(reportDir, "heavy-attack.md"), heavyBreakdown);

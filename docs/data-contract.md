@@ -92,7 +92,9 @@ Each row preserves the canonical and raw stat IDs, player-facing label,
 source type/ID/name/component, raw and display values, unit, level/rank, attack
 scope, structured context and conditions, source table/path, game build,
 confidence, and evidence. Fixed item curves, selectable traits, randomized
-resonance, unique traits, and mastery ranks remain distinguishable.
+resonance and runes, direct rune synergies and set bonuses, attributes,
+breakpoints, material rules, unique traits, and mastery ranks remain
+distinguishable.
 
 All currently indexed Heavy Attack Chance sources can be queried with
 `scripts/queries/heavy-attack-sources.sql`. Current coverage is intentionally

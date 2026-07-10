@@ -151,6 +151,7 @@ export function stageDefinitions(context) {
         path.join(context.dataRoot, "warehouse", `tl-${context.build}.sqlite`),
         path.join(REPO_ROOT, "web", "data", "projections", "equipment.json"),
         path.join(REPO_ROOT, "web", "data", "projections", "progression.json"),
+        path.join(REPO_ROOT, "web", "data", "projections", "runes.json"),
       ],
       output: path.join(context.dataRoot, "reports", context.build, "stat-sources", "heavy-attack.json"),
     },

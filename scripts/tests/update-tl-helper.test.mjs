@@ -92,6 +92,7 @@ test("stat sources are rebuilt from projections before evidence and verification
     path.join(context.dataRoot, "warehouse", "tl-999.sqlite"),
     path.join(path.resolve("."), "web", "data", "projections", "equipment.json"),
     path.join(path.resolve("."), "web", "data", "projections", "progression.json"),
+    path.join(path.resolve("."), "web", "data", "projections", "runes.json"),
   ]);
   assert.equal(
     definition.output,

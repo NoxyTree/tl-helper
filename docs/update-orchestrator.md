@@ -78,8 +78,8 @@ The `web-data` stage regenerates the repository's existing
 `web\data\app-data.json`. Skip that stage when only warehouse or report outputs
 are wanted.
 
-The `stat-sources` stage consumes the warehouse plus the generated equipment
-and progression projections. It rebuilds the build-scoped `stat_sources` table
+The `stat-sources` stage consumes the warehouse plus the generated equipment,
+progression, and rune projections. It rebuilds the build-scoped `stat_sources` table
 and writes the Heavy Attack coverage report beneath
 `TL_DATA_ROOT\reports\<build>\stat-sources\`. Use `--only stats` to rerun it
 after its inputs already exist.
