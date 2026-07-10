@@ -193,24 +193,6 @@ export const STAT_ALIASES = {
   undead_damage_resistance: "Undead Damage Resistance",
 };
 
-export const SKILL_TOOLTIP_STAT_MAP = {
-  "max health": "hp_max",
-  "stamina regen": "stamina_regen",
-  "max stamina": "stamina_max",
-  "damage reduction": "damage_reduction",
-  "hit chance": "all_accuracy",
-  "ranged hit chance": "range_accuracy",
-  "magic hit chance": "magic_accuracy",
-  "melee hit chance": "melee_accuracy",
-  "critical hit chance": "all_critical_attack",
-  "magic, melee, and ranged critical hit chance": "all_critical_attack",
-  "magic, melee, and ranged hit chance": "all_accuracy",
-  "heavy attack chance": "all_double_attack",
-  "all heavy attack chance": "all_double_attack",
-  "attack speed": "attack_speed",
-  "cooldown speed": "skill_cooldown_modifier",
-};
-
 export const TOOLTIP_STAT_LABELS = {
   shield_block_chance: "Block Chance",
   block_chance: "Block Chance",
@@ -740,7 +722,6 @@ export function itemMatchesPicker(item, slotId, query, pickerType, pickerGrade) 
   if (pickerType && pickerType !== "all" && item.equipmentType !== pickerType) return false;
   if (pickerGrade && pickerGrade !== "all" && String(item.grade) !== String(pickerGrade)) return false;
   if (!query) return true;
-  const level = getItemLevels(item).at(-1) ?? 0;
   const haystack = [
     item.name,
     item.equipmentType,
@@ -748,11 +729,29 @@ export function itemMatchesPicker(item, slotId, query, pickerType, pickerGrade) 
     itemLevelRangeLabel(getItemLevels(item)),
     itemSourceText(item),
     itemPassiveText(item),
-    ...itemStatSummary(item, slotId, level, 12).flatMap((entry) => [statName(entry.id), String(entry.value)]),
+    ...itemSearchStatNames(item),
     ...Object.keys(item.itemStats?.traits ?? {}).map(statName),
     ...Object.keys(item.itemStats?.resonance ?? {}).map(statName),
   ].filter(Boolean).join(" ").toLowerCase();
   return haystack.includes(query);
+}
+
+// Stat display names found anywhere in the item's raw stat blocks, for the
+// picker search haystack only — display values come from the live engine.
+export function itemSearchStatNames(item) {
+  const names = new Set();
+  const isStatId = (key) => STAT_UNIT_MODIFIERS[key] !== undefined || STAT_ALIASES[key] !== undefined || data?.statLabels?.[key] !== undefined;
+  const visit = (value) => {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) { value.forEach(visit); return; }
+    for (const [key, nested] of Object.entries(value)) {
+      if (isStatId(key)) names.add(statName(key));
+      else if (key === "stat_id" || key === "statId") { if (typeof nested === "string" && nested) names.add(statName(nested)); }
+      if (nested && typeof nested === "object") visit(nested);
+    }
+  };
+  visit(item.itemStats ?? {});
+  return [...names];
 }
 
 export function sortItemPickerItems(a, b, sort) {
@@ -804,16 +803,8 @@ export function statSummaryRank(a, b) {
   return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
 }
 
-export function itemStatSummary(item, slotId, level, limit = 4) {
-  return Object.entries(itemStatContribution(item, slotId, level))
-    .filter(([id, value]) => value && id !== "value")
-    .map(([id, value]) => ({ id, value, kind: statSummaryKind(id) }))
-    .sort((a, b) => statSummaryRank(a.id, b.id) || Math.abs(b.value) - Math.abs(a.value) || statName(a.id).localeCompare(statName(b.id)))
-    .slice(0, limit);
-}
-
-export function pickerRowChips(item, slotId, level) {
-  const contribution = itemStatContribution(item, slotId, level);
+export function pickerRowChips(item, slotId, level, build, attributes) {
+  const contribution = itemStatContribution(item, slotId, level, build, attributes);
   const handBase = slotId === "off_hand" ? "attack_power_off_hand" : "attack_power_main_hand";
   const minId = `${handBase}_min`;
   const maxId = `${handBase}_max`;
@@ -830,16 +821,25 @@ export function pickerRowChips(item, slotId, level) {
     if (chips.length >= 3) break;
     chips.push(`${TOOLTIP_STAT_LABELS[entry.id] ?? statName(entry.id)} ${formatStat(entry.id, entry.value)}`);
   }
+  // Artifacts contribute nothing until one of their stats is selected — list
+  // the choices instead of showing an empty (but truthful) card.
+  if (!chips.length) {
+    const artifactRows = item.itemStats?.artifact?.[0] ?? item.itemStats?.artifact?.["0"];
+    const options = Object.keys(artifactRows ?? {});
+    if (options.length) chips.push(`Pick one: ${options.slice(0, 3).map(statName).join(" / ")}${options.length > 3 ? " …" : ""}`);
+  }
   return chips;
 }
 
-export function itemComparisonRows(slotId, item, level, build) {
+export function itemComparisonRows(slotId, item, level, build, attributes) {
   const selection = slotSelection(slotId, build);
   const currentItem = indexes.itemById[selection.itemId];
   const comparing = Boolean(currentItem) && currentItem.id !== item.id;
-  const currentLevel = currentItem ? selectedItemLevel(currentItem, selection.level) : 0;
-  const before = comparing ? itemStatContribution(currentItem, slotId, currentLevel) : {};
-  const after = itemStatContribution(item, slotId, level);
+  // "Before" is the equipped item with its full selection (traits, runes,
+  // heroic effects) because unequipping loses all of it; "after" is the
+  // candidate equipped bare, exactly as equipItem will apply it.
+  const before = currentItem ? slotSelectionContribution(slotId, selection, build, attributes) : {};
+  const after = comparing || !currentItem ? itemStatContribution(item, slotId, level, build, attributes) : before;
   const consumed = new Set();
   const rows = [];
   const handBase = slotId === "off_hand" ? "attack_power_off_hand" : "attack_power_main_hand";
@@ -1054,34 +1054,6 @@ export function skillSpecSpent(build) {
 export function skillSpecSpentForSelection(selection) {
   if (!selection) return 0;
   return (selection.specializationIds ?? []).reduce((total, id) => total + Number(indexes.skillTraitById[id]?.points || 0), 0);
-}
-
-export function skillStructuredContributions(skill, level) {
-  const row = skillLevelRow(skill, level);
-  if (skillLoadoutType(skill) !== "passive") return [];
-  return (row?.tooltipOptions ?? [])
-    .map((option) => skillTooltipOptionContribution(option, skill.name))
-    .filter(Boolean);
-}
-
-function skillTooltipOptionContribution(option, sourceLabel) {
-  const normalizedName = plainInline(option?.name).replace(/[^\w\s,-]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
-  const statId = SKILL_TOOLTIP_STAT_MAP[normalizedName];
-  const value = parseSkillTooltipValue(option?.parameter, statId);
-  return statId && Number.isFinite(value) && value !== 0
-    ? statContribution(statId, value, sourceLabel, "skill")
-    : null;
-}
-
-function parseSkillTooltipValue(parameter, statId) {
-  const text = String(parameter ?? "").trim();
-  if (!text || /[+~]/.test(text)) return NaN;
-  const match = text.match(/-?\d+(?:\.\d+)?/);
-  if (!match) return NaN;
-  const numeric = Number(match[0]);
-  if (!Number.isFinite(numeric)) return NaN;
-  if (text.includes("%") && (statId?.endsWith("_modifier") || statId === "attack_speed")) return numeric * 100;
-  return numeric;
 }
 
 // ---------- mastery helpers ----------
@@ -1452,6 +1424,10 @@ export function calculateBuild(build, attributes) {
     }
     const level = selectedItemLevel(item, selection.level);
     const mainStats = item.itemStats?.main?.[String(level)];
+    // Questlog parity: off-hand damage comes from the main-hand item's
+    // `offhand` sub-block, so an off-hand item's own main block is skipped.
+    // Unverified edge: what Questlog shows with ONLY an off-hand equipped —
+    // no reference data available; revisit if a fixture covers it.
     if (mainStats && slotId !== "off_hand") {
       for (const [statId, value] of Object.entries(flattenQuestlogMainStats(mainStats))) {
         add(statId, value, item.name, slotId, item.grade, item.imageUrl);
@@ -1725,307 +1701,64 @@ function runeCombatPowerLevelCap(grade) {
   return 20;
 }
 
-export function calculateBuildLegacy(build, attributes) {
-  const result = collectBuildContributions(build, attributes);
-  const totals = new Map();
-  const sourceMap = new Map();
-  for (const contribution of result.contributions) {
-    const id = contribution.statId;
-    const value = contribution.value;
-    if (!id || value === null || value === undefined || Number.isNaN(Number(value))) continue;
-    const numeric = Number(value);
-    totals.set(id, (totals.get(id) ?? 0) + numeric);
-    if (!sourceMap.has(id)) sourceMap.set(id, []);
-    sourceMap.get(id).push({
-      sourceLabel: contribution.sourceLabel,
-      name: contribution.sourceLabel,
-      value: numeric,
-      type: contribution.sourceType ?? "source",
-    });
+// ---------- per-slot contribution slices (live engine) ----------
+// Picker chips and comparison rows are computed as a slice of calculateBuild:
+// clone the build, swap the slot's selection, and diff the resulting totals
+// against the same build with the slot empty. Because equipItem resets the
+// selection (traits/runes/etc.), a candidate item is measured "bare", while
+// the currently equipped item is measured with its full selection — so the
+// displayed delta always equals the real total change on click.
+
+const slotDeltaCache = new WeakMap();
+
+function slotDeltaCacheFor(build, attributes) {
+  let entry = slotDeltaCache.get(build);
+  const attrKey = JSON.stringify(attributes ?? {});
+  if (!entry || entry.attrKey !== attrKey) {
+    entry = { attrKey, map: new Map() };
+    slotDeltaCache.set(build, entry);
   }
-  const stats = [...totals.entries()].map(([id, total]) => ({ id, total, sources: sourceMap.get(id) ?? [] }));
-  return {
-    stats,
-    runeSynergies: result.runeSynergies,
-    validation: validateBuild(result.runeSynergies, build),
-  };
+  return entry.map;
 }
 
-function collectBuildContributions(build, attributes) {
-  const runeResult = sourceRuneContributions(build);
-  return {
-    runeSynergies: runeResult.runeSynergies,
-    contributions: [
-      ...sourceAttributeContributions(attributes, build),
-      ...sourceItemContributions(build),
-      ...sourceArtifactItemContributions(build),
-      ...sourceItemSetContributions(build),
-      ...sourceArtifactSetContributions(build),
-      ...sourceTraitContributions(build),
-      ...sourceUniqueTraitContributions(build),
-      ...sourceHeroicEffectContributions(build),
-      ...sourceResonanceContributions(build),
-      ...runeResult.contributions,
-      ...sourceMasteryContributions(build),
-      ...sourceSkillContributions(build),
-    ],
-  };
-}
-
-function sourceAttributeContributions(attributes, build) {
-  const contributions = [];
-  for (const [attr] of ATTRIBUTES) {
-    const level = String(attributes[attr] ?? 0);
-    contributions.push(statContribution(attr, Number(attributes[attr] ?? 0), "Attribute points", "attribute"));
-    contributions.push(...statObjectContributions(data.attributeStats[attr]?.[level], `${label(attr)} attribute`, "attribute", "", build));
-  }
-  return contributions;
-}
-
-function sourceItemContributions(build) {
-  const contributions = [];
-  for (const [slot, selection] of Object.entries(build.equipment)) {
-    const item = indexes.itemById[selection.itemId];
-    if (!item) continue;
-    const level = selectedItemLevel(item, selection.level);
-    contributions.push(...itemStatContributionsForSlot(item, slot, level, build));
-  }
-  return contributions;
-}
-
-function sourceArtifactItemContributions(build) {
-  const contributions = [];
-  for (const [slot, selection] of Object.entries(build.artifacts ?? {})) {
-    const item = indexes.itemById[selection.itemId];
-    if (!item) continue;
-    contributions.push(...artifactStatContributionsForSlot(item, slot, build));
-  }
-  return contributions;
-}
-
-function sourceItemSetContributions(build) {
-  return setBonusContributions(Object.values(build.equipment).map((selection) => indexes.itemById[selection.itemId]).filter(Boolean), "set");
-}
-
-function sourceArtifactSetContributions(build) {
-  const artifacts = Object.values(build.artifacts ?? {})
-    .map((selection) => indexes.itemById[selection.itemId])
-    .filter(Boolean);
-  return setBonusContributions(artifacts, "artifact-set");
-}
-
-function setBonusContributions(items, sourceType) {
-  const setCounts = {};
-  for (const item of items) {
-    if (item.setId) setCounts[item.setId] = (setCounts[item.setId] ?? 0) + 1;
-  }
-  const contributions = [];
-  for (const [setId, count] of Object.entries(setCounts)) {
-    const set = indexes.itemSetById[setId];
-    if (!set) continue;
-    for (const bonus of set.itemSetBonus ?? []) {
-      const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
-      if (count < required) continue;
-      for (const stat of bonus.bonus_stat ?? bonus.bonusStat ?? []) {
-        contributions.push(statContribution(stat.type, stat.value, `${set.name} (${required})`, sourceType));
-      }
-    }
-  }
-  return contributions;
-}
-
-function sourceTraitContributions(build) {
-  const contributions = [];
-  for (const [, selection] of Object.entries({ ...build.equipment, ...(build.artifacts ?? {}) })) {
-    const item = indexes.itemById[selection.itemId];
-    if (!item) continue;
-    for (const trait of selection.traits ?? []) {
-      const row = selectedTierContribution(item.itemStats?.traits, trait, `${item.name} Trait`, "trait");
-      if (row) contributions.push(row);
-    }
-  }
-  return contributions;
-}
-
-function sourceUniqueTraitContributions(build) {
-  const contributions = [];
-  for (const selection of [...Object.values(build.equipment), ...Object.values(build.artifacts ?? {})]) {
-    const item = indexes.itemById[selection.itemId];
-    const row = item ? selectedTierContribution(item.itemStats?.uniqueTraits, selection.uniqueTrait, `${item.name} Heroic Trait`, "unique-trait") : null;
-    if (row) contributions.push(row);
-  }
-  return contributions;
-}
-
-function sourceHeroicEffectContributions(build) {
-  const contributions = [];
-  for (const selection of Object.values(build.equipment ?? {})) {
-    const item = indexes.itemById[selection.itemId];
-    if (!item) continue;
-    for (const effect of selectedHeroicEffects(item, selection)) {
-      contributions.push(statContribution(
-        effect.statId,
-        effect.value,
-        `${item.name} Heroic Effect ${effect.groupNumber}`,
-        "heroic-effect",
-      ));
-    }
-  }
-  return contributions;
-}
-
-function sourceResonanceContributions(build) {
-  const contributions = [];
-  const addSelectionRows = (selection, item) => {
-    for (const resonance of selection.resonance ?? []) {
-      const row = selectedTierContribution(item.itemStats?.resonance, resonance, `${item.name} Resonance`, "resonance", true);
-      if (row) contributions.push(row);
-    }
-  };
-  for (const selection of Object.values(build.equipment)) {
-    const item = indexes.itemById[selection.itemId];
-    if (item) addSelectionRows(selection, item);
-  }
-  for (const selection of Object.values(build.artifacts ?? {})) {
-    const item = indexes.itemById[selection.itemId];
-    if (item) addSelectionRows(selection, item);
-  }
-  return contributions;
-}
-
-function selectedTierContribution(pool, selection, sourceLabel, sourceType, nestedTiers = false) {
-  if (!selection) return null;
-  const statId = typeof selection === "string" ? selection : selection.statId;
-  if (!statId) return null;
-  const tiers = nestedTiers ? pool?.[statId]?.tiers : pool?.[statId];
-  const tierValues = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
-  const tierIndex = Math.max(0, Number(selection.tier ?? selection.level ?? tierValues.length) - 1);
-  const value = Number(selection.value ?? tierValues[tierIndex] ?? 0);
-  return value ? statContribution(statId, value, sourceLabel, sourceType) : null;
-}
-
-function sourceRuneContributions(build) {
-  const contributions = [];
-  const runeSynergies = {};
-  for (const [slot, selection] of Object.entries(build.equipment)) {
-    const rows = selection.runes ?? [];
-    const category = runeCategoryForSlot(slot);
-    for (const row of rows) {
-      const rune = indexes.runeById[row.runeId];
-      if (!rune || !row.statId) continue;
-      const option = runeStatOptions(rune).find((entry) => entry.statId === row.statId);
-      const level = clamp(Number(row.level || 1), 1, option?.maxLevel ?? 1);
-      const value = option?.levels?.[level] ?? 0;
-      contributions.push(statContribution(row.statId, value, `${rune.name} Lv. ${level}`, "rune"));
-    }
-    const selectedRunes = rows.map((row) => indexes.runeById[row.runeId]).filter(Boolean);
-    if (selectedRunes.length === 3) {
-      const synergy = findRuneSynergy(category, selectedRunes.map((rune) => rune.runeType));
-      if (synergy) {
-        runeSynergies[slot] = synergy;
-        contributions.push(...statObjectContributions(synergy.stats, `${synergy.name} Rune Synergy`, "rune-synergy", slot, build));
-      }
-    }
-  }
-  return { contributions, runeSynergies };
-}
-
-function sourceMasteryContributions(build) {
-  const contributions = [];
-  for (const [id, selected] of Object.entries(build.masteries ?? {})) {
-    const mastery = data.masteries.find((entry) => entry.id === id);
-    if (!mastery) continue;
-    const stats = mastery.stats?.[Math.max(0, Number(selected.level || 1) - 1)];
-    contributions.push(...statObjectContributions(stats, `${mastery.name} Mastery`, "mastery", "", build));
-  }
-  return contributions;
-}
-
-function sourceSkillContributions(build) {
-  const contributions = [];
-  for (const row of selectedSkillRows(build)) {
-    contributions.push(...skillStructuredContributions(row.skill, row.selection.level));
-  }
-  return contributions;
-}
-
-export function itemStatContributionsForSlot(item, slot, level, build) {
-  const contributions = [];
-  const mainStats = item.itemStats?.main?.[String(level)];
-  if (mainStats) {
-    contributions.push(...statObjectContributions(mainStats.armor, item.name, "equipment", slot, build));
-    contributions.push(...statObjectContributions(mainStats.extra, item.name, "equipment", slot, build));
-    contributions.push(...statObjectContributions(mainStats.shield, item.name, "equipment", slot, build));
-    const handKey = slot === "off_hand" ? "offhand" : "mainhand";
-    const hand = mainStats[handKey] ?? mainStats.mainhand ?? mainStats.offhand;
-    if (hand?.statId) {
-      contributions.push(statContribution(`${hand.statId}_min`, hand.min ?? 0, item.name, "equipment"));
-      contributions.push(statContribution(`${hand.statId}_max`, hand.max ?? 0, item.name, "equipment"));
-    }
-  }
-  contributions.push(...statObjectContributions(item.itemStats?.extra?.[String(level)], item.name, "equipment", slot, build));
-  return contributions;
-}
-
-export function artifactStatContributionsForSlot(item, slot, build) {
-  const contributions = [];
-  const artifactRows = item.itemStats?.artifact ?? {};
-  const level = Object.keys(artifactRows)[0] ?? "0";
-  contributions.push(...statObjectContributions(artifactRows[level], item.name, "artifact", slot, build));
-  contributions.push(...statObjectContributions(item.itemStats?.extra?.[String(level)], item.name, "artifact", slot, build));
-  return contributions;
-}
-
-function statObjectContributions(object, sourceLabel, sourceType, slotId, build) {
-  const contributions = [];
-  const add = (id, value) => contributions.push(statContribution(id, value, sourceLabel, sourceType));
-  if (object) {
-    for (const [key, value] of Object.entries(object)) {
-      collectContributionValue(key, value, add, slotId, build);
-    }
-  }
-  return contributions;
-}
-
-function collectContributionValue(key, value, add, slotId, build) {
-  if (typeof value === "number") return add(key, value);
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    if (typeof value.statId === "string" && typeof value.value === "number") {
-      return add(value.statId, value.value);
-    }
-    if (key === "bonus_attack_power_main_hand" || key === "bonus_attack_power_off_hand") {
-      const weapon = (build ? getSelectedWeaponType(key.includes("off") ? "off_hand" : "main_hand", build) : "") || "none";
-      return add(key, value[weapon] ?? value.none ?? 0);
-    }
-    for (const [nestedKey, nestedValue] of Object.entries(value)) {
-      collectContributionValue(nestedKey, nestedValue, add, slotId, build);
-    }
-  }
-}
-
-function statContribution(statId, value, sourceLabel, sourceType) {
-  return { statId, value, sourceLabel, sourceType };
-}
-
-export function itemStatContribution(item, slotId, level) {
+function totalsWithSlotSelection(build, attributes, slotId, selection) {
+  const clone = deepClone(build);
+  slotCollectionForSlot(clone, slotId)[slotId] = selection
+    ? { ...emptyEquipmentSelection(), ...deepClone(selection) }
+    : emptyEquipmentSelection();
   const totals = {};
-  const contributions = isArtifactSlot(slotId)
-    ? artifactStatContributionsForSlot(item, slotId)
-    : itemStatContributionsForSlot(item, slotId, level);
-  for (const contribution of contributions) {
-    if (!contribution.statId || Number.isNaN(Number(contribution.value))) continue;
-    totals[contribution.statId] = (totals[contribution.statId] ?? 0) + Number(contribution.value);
+  for (const row of calculateBuild(clone, attributes ?? {}).stats) {
+    if (row.total) totals[row.id] = row.total;
   }
   return totals;
 }
 
-export function diffContributions(before, after) {
-  const deltas = {};
-  for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
-    const value = (after[key] ?? 0) - (before[key] ?? 0);
-    if (value) deltas[key] = value;
+// Total-stat delta of placing `selection` into `slotId` versus leaving the
+// slot empty, with everything else in the build unchanged.
+export function slotSelectionContribution(slotId, selection, build, attributes) {
+  const cache = slotDeltaCacheFor(build, attributes);
+  const key = `${slotId}|${JSON.stringify(selection ?? null)}`;
+  if (cache.has(key)) return cache.get(key);
+  const baselineKey = `${slotId}|<empty>`;
+  let baseline = cache.get(baselineKey);
+  if (!baseline) {
+    baseline = totalsWithSlotSelection(build, attributes, slotId, null);
+    cache.set(baselineKey, baseline);
   }
-  return deltas;
+  const withSelection = selection?.itemId ? totalsWithSlotSelection(build, attributes, slotId, selection) : baseline;
+  const delta = {};
+  for (const id of new Set([...Object.keys(baseline), ...Object.keys(withSelection)])) {
+    const value = (withSelection[id] ?? 0) - (baseline[id] ?? 0);
+    if (Math.abs(value) > 1e-9) delta[id] = value;
+  }
+  cache.set(key, delta);
+  return delta;
+}
+
+// Contribution of equipping `item` bare (as equipItem does) at `level`.
+export function itemStatContribution(item, slotId, level, build, attributes) {
+  if (!item) return {};
+  return slotSelectionContribution(slotId, { itemId: item.id, level: Number(level) || 0 }, build, attributes);
 }
 
 export function statTotal(calc, statId) {

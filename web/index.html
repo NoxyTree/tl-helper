@@ -3098,7 +3098,7 @@ class Component extends DCLogic {
         name: item.name,
         nameColor: color,
         meta: `${core.gradeName(item.grade)} · ${core.label(item.equipmentType)} · iLv ${core.itemLevelRangeLabel(levels)}`,
-        chips: core.pickerRowChips(item, slot.id, levels.at(-1) ?? 0),
+        chips: core.pickerRowChips(item, slot.id, levels.at(-1) ?? 0, build, this.state.attributes),
         ringBorder: `1.5px solid ${color}`,
         cardBorder: isEquipped ? "rgba(232, 184, 106, 0.65)" : "rgba(212, 166, 94, 0.12)",
         cardBg: isEquipped ? "rgba(212, 166, 94, 0.08)" : "rgba(14, 11, 7, 0.5)",
@@ -3121,7 +3121,7 @@ class Component extends DCLogic {
       const level = isEquippedPreview
         ? Number(core.selectedItemLevel(previewItem, selection.level))
         : levels.at(-1) ?? 0;
-      const comparison = core.itemComparisonRows(slot.id, previewItem, level, build);
+      const comparison = core.itemComparisonRows(slot.id, previewItem, level, build, this.state.attributes);
       const color = core.gradeColor(previewItem.grade);
       const deltaView = (row) => ({
         label: row.label,
