@@ -1,5 +1,6 @@
 import { EQUIPMENT_SLOTS, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
 import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
+import { resolveVisibleMatchupInputs } from "./combat-lab-build-inputs.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
 import {
   HEALING_CASTS,
@@ -326,24 +327,8 @@ function prefillHealing() {
 function prefillMatchup() {
   const source = selectedBuild(ui["source-build"].value);
   const target = selectedBuild(ui["target-build"].value);
-  const type = ui["attack-type"].value;
-  const set = (id, snapshot, statId, pvpStatId) => {
-    if (!snapshot) return;
-    ui[id].value = displayStatTotal(snapshot, [statId, pvpStatId], 0.1);
-  };
-  set("pvp-hit", source?.snapshot, `${type}_accuracy`, `pvp_${type}_accuracy`);
-  set("pvp-evasion", target?.snapshot, `${type}_evasion`, `pvp_${type}_evasion`);
-  set("pvp-critical", source?.snapshot, `${type}_critical_attack`, `pvp_${type}_critical_attack`);
-  set("pvp-endurance", target?.snapshot, `${type}_critical_defense`, `pvp_${type}_critical_defense`);
-  set("pvp-heavy", source?.snapshot, `${type}_double_attack`, `pvp_${type}_double_attack`);
-  set("pvp-heavy-evasion", target?.snapshot, `${type}_double_defense`, `pvp_${type}_double_defense`);
-  set("pvp-sdb", source?.snapshot, "skill_power_amplification", null);
-  set("pvp-sdr", target?.snapshot, "skill_power_resistance", null);
-}
-
-function displayStatTotal(snapshot, statIds, scale) {
-  const total = statIds.filter(Boolean).reduce((sum, id) => sum + snapshotStat(snapshot, id), 0);
-  return String(Number((total * scale).toFixed(4)));
+  const values = resolveVisibleMatchupInputs({ sourceSnapshot: source?.snapshot, targetSnapshot: target?.snapshot, attackType: ui["attack-type"].value, readStat: snapshotStat });
+  for (const [id, key] of Object.entries({ "pvp-hit":"hit", "pvp-evasion":"evasion", "pvp-critical":"criticalHit", "pvp-endurance":"endurance", "pvp-heavy":"heavyAttackChance", "pvp-heavy-evasion":"heavyAttackEvasion", "pvp-sdb":"skillDamageBoost", "pvp-sdr":"skillDamageResistance" })) ui[id].value = String(values[key]);
 }
 
 function displayStat(snapshot, statId, scale) {
