@@ -47,3 +47,11 @@ export {
   validateCalibrationObservation,
 } from "./calibration-observation.mjs";
 export { runSimulation, serializeSimulation } from "./simulation.mjs";
+export {
+  PVP_MODEL_VERSION,
+  modelSkillDamageMultiplier,
+  modelDefenseMultiplier,
+  modelCriticalDamageMultiplier,
+  modelHeavyDamageMultiplier,
+  modelGlanceChance,
+} from "./pvp-models.mjs";

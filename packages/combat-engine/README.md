@@ -70,6 +70,14 @@ Current live observations fall outside the naive projection interval, so the
 result is explicitly not a final live-healing prediction and no expected value
 is produced.
 
+`pvp-models.mjs` contains isolated, opt-in community models rather than a full
+damage pipeline. It exposes the signed Skill Damage Boost minus Skill Damage
+Resistance curve, a Defense curve with a required caller-supplied level
+constant, Critical and Heavy damage-resistance floors, and the symmetry-derived
+glancing chance. Every result is labeled `modeled`, names its evidence class,
+and lists unresolved denominators, ordering, and rounding. These operations are
+not composed automatically and are not exact final-damage claims.
+
 ## Manual calibration evidence
 
 `calibration-observation.mjs` defines the immutable observation contract.

@@ -1,6 +1,6 @@
 # Project status: TL data platform
 
-Updated 2026-07-11 after combat-log import and decoder coverage updates. Current snapshot:
+Updated 2026-07-11 after PvP formula research and modeled-operation updates. Current snapshot:
 game version `1.431.22.7761`, Steam build `24118850`, decoder `0.2.0`.
 
 TL-Helper now has a verified, one-command path from installed game archives to
@@ -47,6 +47,8 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Combat-log calibration | Version 4 schema reviewed across 531 dummy hits; Critical and Heavy flags are explicit, and the displayed +128.4% Heavy Attack Damage fits a 2.284 magnitude multiplier | `plans/combat-simulator/combat-log-findings-2026-07-11.md` |
 | Combat-log importer | Versioned `CombatLogVersion,4` importer with source hash, explicit outcome flags, and reviewed Judgment Lightning effect mappings | `node scripts/import-combat-log.mjs --input <log>` |
 | Combat effect links | Reviewed formula components linked to client-visible effect rows without inferring total damage or server execution order | `node scripts/build-combat-effect-links.mjs` |
+| PvP modeled operations | Signed SDB−SDR curve, caller-constant Defense curve, Critical/Heavy resistance floors, and glancing chance are isolated, opt-in, provenance-labeled operations | `packages/combat-engine/src/pvp-models.mjs` |
+| PvP formula research | Four manual packages reduced to Heavy Evasion as the top PvP unknown plus small checks for current-cap constants, rounding, DoT crits, and block stacking | `docs/pvp-formula-research-2026-07-11.md` |
 | Test readiness | Exact no-test, passive-log, and deliberate-capture boundaries for every pending combat question | `docs/combat-testing-rundown.md` |
 | Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, and opt-in Swift Healing v1 projections with complete traces and explicit modeled/final boundaries | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
@@ -88,7 +90,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 138/138, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 176/176, collector tests
   92/92.
 
 ## Combat milestones

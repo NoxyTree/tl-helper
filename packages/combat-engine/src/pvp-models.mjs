@@ -1,0 +1,120 @@
+import { FixedPointContext, ROUNDING } from "./fixed-point.mjs";
+
+export const PVP_MODEL_VERSION = "community-model-2026-07-11.v1";
+
+/** Community-tested signed Skill Damage Boost minus Resistance curve. */
+export function modelSkillDamageMultiplier({ boost, resistance, denominator = "1000" } = {}) {
+  const fixed = context();
+  const b = nonNegative(fixed, boost, "boost");
+  const r = nonNegative(fixed, resistance, "resistance");
+  const k = positive(fixed, denominator, "denominator");
+  const difference = b - r;
+  const magnitude = difference < 0n ? -difference : difference;
+  const adjustment = fixed.divide(magnitude, magnitude + k);
+  const multiplier = difference < 0n ? fixed.from(1) - adjustment : fixed.from(1) + adjustment;
+  return result(fixed, multiplier, {
+    operation: "signed_difference_curve",
+    inputs: { boost: fixed.format(b), resistance: fixed.format(r), denominator: fixed.format(k) },
+    evidence: "community_tested",
+    unresolved: ["current-level-cap denominator", "server rounding and pipeline order"],
+  });
+}
+
+/** Defense mitigation candidate with caller-selected level/build constant. */
+export function modelDefenseMultiplier({ defense, constant } = {}) {
+  const fixed = context();
+  const d = nonNegative(fixed, defense, "defense");
+  const k = positive(fixed, constant, "constant");
+  const multiplier = fixed.divide(k, d + k);
+  return result(fixed, multiplier, {
+    operation: "constant_over_defense_plus_constant",
+    inputs: { defense: fixed.format(d), constant: fixed.format(k) },
+    evidence: "community_tested_shape_level_constant_partial",
+    unresolved: ["current-level-cap constant", "server rounding and pipeline order"],
+  });
+}
+
+/** Critical damage bonus and resistance are percentage-point values above base damage. */
+export function modelCriticalDamageMultiplier({ criticalDamage, resistance } = {}) {
+  const fixed = context();
+  const dealt = nonNegative(fixed, criticalDamage, "criticalDamage");
+  const resisted = nonNegative(fixed, resistance, "resistance");
+  const remaining = dealt > resisted ? dealt - resisted : 0n;
+  const multiplier = fixed.from(1) + fixed.divide(remaining, fixed.from(100));
+  return result(fixed, multiplier, {
+    operation: "base_plus_positive_percentage_difference",
+    inputs: { criticalDamage: fixed.format(dealt), resistance: fixed.format(resisted) },
+    evidence: "datamined_floor_additive_interaction_inferred",
+    floor: "1",
+    unresolved: ["server rounding and pipeline order"],
+  });
+}
+
+/** Heavy bonus and resistance are percentage points; client tooltip establishes a 150% floor. */
+export function modelHeavyDamageMultiplier({ heavyDamageBonus, resistance } = {}) {
+  const fixed = context();
+  const bonus = nonNegative(fixed, heavyDamageBonus, "heavyDamageBonus");
+  const resisted = nonNegative(fixed, resistance, "resistance");
+  const netBonus = bonus > resisted ? bonus - resisted : 0n;
+  const floor = fixed.from("1.5");
+  const candidate = fixed.from(1) + fixed.divide(netBonus, fixed.from(100));
+  const multiplier = candidate > floor ? candidate : floor;
+  return result(fixed, multiplier, {
+    operation: "base_plus_heavy_bonus_minus_resistance_with_floor",
+    inputs: { heavyDamageBonus: fixed.format(bonus), resistance: fixed.format(resisted) },
+    evidence: "datamined_floor_additive_interaction_inferred",
+    floor: "1.5",
+    unresolved: ["server rounding and pipeline order"],
+  });
+}
+
+/** Symmetry-derived glance probability. A glance selects minimum Base Damage. */
+export function modelGlanceChance({ endurance, criticalHit, denominator = "1000" } = {}) {
+  const fixed = context();
+  const end = nonNegative(fixed, endurance, "endurance");
+  const crit = nonNegative(fixed, criticalHit, "criticalHit");
+  const k = positive(fixed, denominator, "denominator");
+  const difference = end > crit ? end - crit : 0n;
+  const probability = difference === 0n ? 0n : fixed.divide(difference, difference + k);
+  return result(fixed, probability, {
+    operation: "positive_difference_probability_curve",
+    inputs: { endurance: fixed.format(end), criticalHit: fixed.format(crit), denominator: fixed.format(k) },
+    evidence: "community_corroborated_symmetry_inferred",
+    outcome: "select_minimum_base_damage",
+    unresolved: ["curve denominator", "glance and Heavy interaction", "server rounding"],
+  });
+}
+
+function context() {
+  return new FixedPointContext({ scale: 1_000_000n, rounding: ROUNDING.TRUNCATE });
+}
+
+function nonNegative(fixed, value, name) {
+  const parsed = fixed.from(required(value, name));
+  if (parsed < 0n) throw new RangeError(`${name} must be non-negative.`);
+  return parsed;
+}
+
+function positive(fixed, value, name) {
+  const parsed = fixed.from(required(value, name));
+  if (parsed <= 0n) throw new RangeError(`${name} must be positive.`);
+  return parsed;
+}
+
+function required(value, name) {
+  if (value === undefined || value === null || value === "") throw new TypeError(`${name} is required.`);
+  return value;
+}
+
+function result(fixed, value, details) {
+  return Object.freeze({
+    schema: "tl-helper.pvp-modeled-operation",
+    schemaVersion: 1,
+    modelVersion: PVP_MODEL_VERSION,
+    status: "modeled",
+    precision: "modeled",
+    provenance: details.evidence,
+    value: fixed.format(value),
+    ...details,
+  });
+}
