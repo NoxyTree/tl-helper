@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./combat-lab.css">
+  <link rel="stylesheet" href="./combat-lab.css?v=24118850-3">
 </head>
 <body data-combat-view="ability">
   <header class="topbar">
@@ -31,7 +31,7 @@
     <section class="build-picker panel" aria-label="Build selection">
       <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2 id="build-picker-heading">Choose your build</h2></div></div>
       <label>Your build<select id="source-build"></select></label>
-      <label class="opponent-control">Opponent build <span class="optional">optional</span><select id="target-build"><option value="">No opponent selected</option></select></label>
+      <label class="opponent-control">Opponent build<select id="target-build"><option value="">Choose an opponent</option></select></label>
       <div id="source-summary" class="hidden"></div><div id="target-summary" class="hidden">No opponent selected.</div>
     </section>
 
@@ -89,12 +89,12 @@
           <details class="panel advanced-panel"><summary>Edit matchup stats</summary><div class="matchup-inputs advanced-content"><label>Your Hit<input id="pvp-hit" inputmode="decimal" value="0"></label><label>Opponent Evasion<input id="pvp-evasion" inputmode="decimal" value="0"></label><label>Your Critical<input id="pvp-critical" inputmode="decimal" value="0"></label><label>Opponent Endurance<input id="pvp-endurance" inputmode="decimal" value="0"></label><label>Your Heavy Chance<input id="pvp-heavy" inputmode="decimal" value="0"></label><label>Opponent Heavy Evasion<input id="pvp-heavy-evasion" inputmode="decimal" value="0"></label><label>Your SDB<input id="pvp-sdb" inputmode="decimal" value="0"></label><label>Opponent SDR<input id="pvp-sdr" inputmode="decimal" value="0"></label></div><p class="field-note">Edit any value to scout another opponent or test a possible upgrade.</p></details>
         </div>
         <div class="result-stack">
-          <article class="result-card matchup-card"><div class="result-head"><div><p class="eyebrow">Matchup summary</p><h2 id="matchup-title">General PvP · Melee</h2></div><span class="badge modeled">Evidence-scoped</span></div><div id="matchup-results" class="matchup-results"></div><p id="matchup-note" class="field-note"></p></article>
+          <article class="result-card matchup-card"><div class="result-head"><div><p class="eyebrow">Matchup summary</p><h2 id="matchup-title">General PvP · Melee</h2></div><span class="badge modeled">Evidence-scoped</span></div><p id="matchup-context" class="matchup-context"></p><div id="matchup-results" class="matchup-results"></div><p id="matchup-note" class="field-note"></p></article>
           <article class="panel next-step-card"><p class="eyebrow">How to use this</p><h2>Find the stat that changes the fight.</h2><p>Adjust one value and the result updates instantly. Compare a gear swap without pretending every server-only damage stage is known.</p></article>
         </div>
       </div>
     </section>
   </main>
-  <script type="module" src="./combat-lab.js"></script>
+  <script type="module" src="./combat-lab.js?v=24118850-3"></script>
 </body>
 </html>

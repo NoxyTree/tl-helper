@@ -15,7 +15,7 @@ import {
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-context","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
 const state = { data: null, builds: [] };
 const ABILITY_ART = Object.freeze({
   "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
@@ -70,7 +70,7 @@ function collectBuilds(reference) {
 
 function populateBuilds() {
   ui["source-build"].innerHTML = "";
-  ui["target-build"].innerHTML = '<option value="">No target selected</option>';
+  ui["target-build"].innerHTML = '<option value="">Choose an opponent</option>';
   for (const build of state.builds) {
     ui["source-build"].add(new Option(build.label, build.id));
     ui["target-build"].add(new Option(build.label, build.id));
@@ -114,6 +114,13 @@ function bindEvents() {
 function selectView(view) {
   document.body.dataset.combatView = view;
   ui["build-picker-heading"].textContent = view === "matchup" ? "Choose both builds" : "Choose your build";
+  if (view === "matchup" && !ui["target-build"].value && state.builds.length) {
+    const fallback = state.builds.find((build) => build.id !== ui["source-build"].value) ?? state.builds[0];
+    ui["target-build"].value = fallback.id;
+    updateBuildSummaries();
+    prefillMatchup();
+    render();
+  }
   for (const name of ["ability", "matchup"]) {
     const active = name === view;
     ui[`${name}-tab`].classList.toggle("active", active);
@@ -289,6 +296,9 @@ function renderMatchup() {
     skillDamageResistance: ui["pvp-sdr"].value,
   });
   ui["matchup-title"].textContent = `${title(result.pvpMode)} PvP · ${title(result.attackType)}`;
+  const source = selectedBuild(ui["source-build"].value);
+  const target = selectedBuild(ui["target-build"].value);
+  ui["matchup-context"].textContent = `${source?.label ?? "Your build"}: ${ui["pvp-hit"].value} Hit, ${ui["pvp-critical"].value} Critical, ${ui["pvp-heavy"].value} Heavy, ${ui["pvp-sdb"].value} SDB · ${target?.label ?? "Manual opponent"}: ${ui["pvp-evasion"].value} Evasion, ${ui["pvp-endurance"].value} Endurance, ${ui["pvp-heavy-evasion"].value} Heavy Evasion, ${ui["pvp-sdr"].value} SDR`;
   const rows = [
     ["Hit", percent(result.hitChance), `Miss ${percent(result.missChance)}`],
     ["Critical", percent(result.criticalChance), `Glance ${percent(result.glanceChance)}`],
