@@ -137,6 +137,7 @@ locations, preflight checks, and safety boundaries.
   explicitly opted-in tooltip-style projection from caller-supplied Base Damage,
   but it cannot label that projection as final damage, healing, or shield health.
 - Combat-log import supports build `24118850` and `CombatLogVersion,4`. It preserves effect IDs, localized names, Critical and Heavy flags, and confirmed first/conditional-second Judgment Lightning mappings without asserting a whole-ability total.
+- `TLEffectProperty` links are materialized as reviewed component evidence, and [`docs/combat-testing-rundown.md`](docs/combat-testing-rundown.md) identifies which evidence is already usable, passively collected from normal play, or worth a short deliberate capture.
 - The manual calibration harness now validates canonical, SHA-256-addressed
   observations and stores them atomically by game build. It accepts manual,
   screenshot, user-created recording, or reviewed OCR evidence only. The first

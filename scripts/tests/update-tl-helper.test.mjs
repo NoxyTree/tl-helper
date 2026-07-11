@@ -104,7 +104,7 @@ test("stat sources are rebuilt from projections before evidence and verification
 test("reviewed combat abilities are rebuilt after web data and before stat sources", () => {
   const stages = selectedStages(parseArgs([]));
   assert.ok(stages.indexOf("combat-abilities") > stages.indexOf("web-data"));
-  assert.ok(stages.indexOf("combat-abilities") < stages.indexOf("stat-sources"));
+  assert.ok(stages.indexOf("combat-abilities") < stages.indexOf("combat-effect-links"));
 
   const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
   const definition = stageDefinitions(context)["combat-abilities"];
@@ -120,6 +120,23 @@ test("reviewed combat abilities are rebuilt after web data and before stat sourc
   assert.equal(definition.validateResult({ stdout: '{"abilities":4,"formulaComponents":7}' }), null);
   assert.match(definition.validateResult({ stdout: '{"abilities":3,"formulaComponents":4}' }), /3 abilities/);
   assert.deepEqual(parseArgs(["--only", "abilities"]).only, ["combat-abilities"]);
+});
+
+test("combat effect links follow reviewed abilities and retain build-scoped inputs", () => {
+  const stages = selectedStages(parseArgs([]));
+  assert.ok(stages.indexOf("combat-effect-links") > stages.indexOf("combat-abilities"));
+  assert.ok(stages.indexOf("combat-effect-links") < stages.indexOf("stat-sources"));
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definition = stageDefinitions(context)["combat-effect-links"];
+  assert.match(definition.command.args[0], /build-combat-effect-links\.mjs$/);
+  assert.deepEqual(definition.required, [
+    path.join(context.dataRoot, "decoded", "999", "tables", "TLEffectProperty.json"),
+    path.join(context.dataRoot, "reports", "999", "combat-abilities.json"),
+  ]);
+  assert.equal(definition.output, path.join(context.dataRoot, "reports", "999", "combat-effect-links.json"));
+  assert.equal(definition.validateResult({ stdout: '{"abilities":3,"components":5}' }), null);
+  assert.match(definition.validateResult({ stdout: '{"abilities":3,"components":4}' }), /all reviewed abilities/);
+  assert.deepEqual(parseArgs(["--only", "effects"]).only, ["combat-effect-links"]);
 });
 
 test("decoder requires a complete semantic success summary", () => {

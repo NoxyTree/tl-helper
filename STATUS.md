@@ -46,6 +46,8 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Community calculator audit | Healing, Healing Received, Skill Damage Boost, Cooldown Speed, and Buff Duration assumptions classified without promoting community formulas to verified rules | `plans/combat-simulator/community-calculator-audit-2026-07-11.md` |
 | Combat-log calibration | Version 4 schema reviewed across 531 dummy hits; Critical and Heavy flags are explicit, and the displayed +128.4% Heavy Attack Damage fits a 2.284 magnitude multiplier | `plans/combat-simulator/combat-log-findings-2026-07-11.md` |
 | Combat-log importer | Versioned `CombatLogVersion,4` importer with source hash, explicit outcome flags, and reviewed Judgment Lightning effect mappings | `node scripts/import-combat-log.mjs --input <log>` |
+| Combat effect links | Reviewed formula components linked to client-visible effect rows without inferring total damage or server execution order | `node scripts/build-combat-effect-links.mjs` |
+| Test readiness | Exact no-test, passive-log, and deliberate-capture boundaries for every pending combat question | `docs/combat-testing-rundown.md` |
 | Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, and opt-in Swift Healing v1 projections with complete traces and explicit modeled/final boundaries | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
@@ -220,14 +222,13 @@ index, and decoded-versus-live parity evidence before application verification.
 
 ## Recommended refinement order
 
-1. Use decoded `TLEffectProperty` rows to classify Judgment Lightning and other effect components without inferring server execution order.
-2. Materialize the nine reviewed Heavy Attack skill/passive sources.
-3. Build the calibration hypothesis enumerator for multiplier, roll, and
+1. Build the calibration hypothesis enumerator for multiplier, roll, and
    rounding candidates.
-4. Wire additional reviewed real abilities into the Combat Lab one case at a
+2. Materialize the nine reviewed Heavy Attack skill/passive sources.
+3. Wire additional reviewed real abilities into the Combat Lab one case at a
    time.
-5. Complete full manual Questlog panels for healer and ranged builds.
-6. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
+4. Complete full manual Questlog panels for healer and ranged builds.
+5. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 
 ## Read first next session
 

@@ -15,7 +15,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 const DEFAULT_CONFIG = path.join(REPO_ROOT, "src", "TlCollector", "config.local.json");
 
 export const STAGE_ORDER = [
-  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "combat-abilities", "stat-sources", "coverage",
+  "collector", "decode", "warehouse", "inventory", "skill-formula-map", "web-data", "combat-abilities", "combat-effect-links", "stat-sources", "coverage",
   "evidence", "combat-power-analysis", "snapshot-verify", "reference-verify", "edge-verify", "js-tests",
   "collector-tests",
 ];
@@ -26,6 +26,7 @@ const STAGE_ALIASES = new Map([
   ["power", "combat-power-analysis"],
   ["formulas", "skill-formula-map"],
   ["abilities", "combat-abilities"],
+  ["effects", "combat-effect-links"],
   ["stats", "stat-sources"],
   ["verify-reference", "reference-verify"], ["verify-edges", "edge-verify"],
 ]);
@@ -170,6 +171,20 @@ export function stageDefinitions(context) {
         const components = result.stdout?.match(/"formulaComponents":\s*(\d+)/)?.[1];
         return Number(abilities) >= 3 && Number(components) >= 5
           ? null : "Combat ability builder did not report at least 3 abilities and 5 reviewed components";
+      },
+    },
+    "combat-effect-links": {
+      command: command(node, [script("build-combat-effect-links.mjs")]),
+      required: [
+        path.join(context.dataRoot, "decoded", context.build, "tables", "TLEffectProperty.json"),
+        path.join(context.dataRoot, "reports", context.build, "combat-abilities.json"),
+      ],
+      output: path.join(context.dataRoot, "reports", context.build, "combat-effect-links.json"),
+      validateResult: (result) => {
+        const abilities = result.stdout?.match(/"abilities":\s*(\d+)/)?.[1];
+        const components = result.stdout?.match(/"components":\s*(\d+)/)?.[1];
+        return Number(abilities) >= 3 && Number(components) >= 5
+          ? null : "Combat effect linker did not report all reviewed abilities and components";
       },
     },
     coverage: {
