@@ -65,8 +65,8 @@ record model, retention policy, and legacy-location status.
 ## Run the web application
 
 ```powershell
-cd D:\TL_Helper\web
-python -m http.server 8790 --bind 127.0.0.1
+cd D:\TL_Helper
+node scripts\serve-web.mjs web 8790
 ```
 
 Open:
@@ -75,7 +75,11 @@ Open:
 http://127.0.0.1:8790/index.html
 http://127.0.0.1:8790/tracker.html
 http://127.0.0.1:8790/achievements.html
+http://127.0.0.1:8790/combat-lab.html
 ```
+
+Use the bundled Node server rather than a generic static server. Combat Lab's
+Questlog URL importer uses its locked-down same-origin adapter.
 
 The bundled Questlog parity build is available at:
 

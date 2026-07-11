@@ -22,3 +22,11 @@ test("Combat Lab control IDs are unique", () => {
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length);
 });
+
+test("PvP Matchup provides two Questlog imports and visible fighter cards", () => {
+  assert.match(html, /id="source-questlog-url"/);
+  assert.match(html, /id="target-questlog-url"/);
+  assert.match(html, /id="source-gear"/);
+  assert.match(html, /id="target-gear"/);
+  assert.match(html, /id="swap-builds"/);
+});

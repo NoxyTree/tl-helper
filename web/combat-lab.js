@@ -1,4 +1,4 @@
-import { initCore } from "./tl-core.js";
+import { EQUIPMENT_SLOTS, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
 import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
 import {
@@ -15,7 +15,7 @@ import {
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-context","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-context","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
 const state = { data: null, builds: [] };
 const ABILITY_ART = Object.freeze({
   "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
@@ -46,6 +46,7 @@ async function boot() {
   prefillMatchup();
   prefillDamage();
   prefillHealing();
+  renderFighters();
   render();
 }
 
@@ -97,8 +98,11 @@ function bindEvents() {
   ui.tier.addEventListener("change", () => { populateLevels(); render(); });
   ui.level.addEventListener("change", render);
   ui.outcome.addEventListener("change", render);
-  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); prefillDamage(); prefillHealing(); prefillMatchup(); render(); });
-  ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); render(); });
+  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["source-questlog-import"].addEventListener("click", () => importQuestlog("source"));
+  ui["target-questlog-import"].addEventListener("click", () => importQuestlog("target"));
+  ui["swap-builds"].addEventListener("click", swapBuilds);
   ui["attack-type"].addEventListener("change", () => { prefillMatchup(); render(); });
   ui["pvp-mode"].addEventListener("change", render);
   for (const id of ["pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr"]) ui[id].addEventListener("input", render);
@@ -119,6 +123,7 @@ function selectView(view) {
     ui["target-build"].value = fallback.id;
     updateBuildSummaries();
     prefillMatchup();
+    renderFighters();
     render();
   }
   for (const name of ["ability", "matchup"]) {
@@ -131,6 +136,112 @@ function selectView(view) {
 
 function selectedAbility() { return state.data.abilities.find((entry) => entry.id === ui.ability.value); }
 function selectedBuild(id) { return state.builds.find((entry) => entry.id === id); }
+
+async function importQuestlog(side) {
+  const input = ui[`${side}-questlog-url`];
+  const button = ui[`${side}-questlog-import`];
+  const errorBox = ui[`${side}-import-error`];
+  errorBox.classList.add("hidden");
+  button.disabled = true;
+  button.textContent = "Importing…";
+  try {
+    const response = await fetch(`/api/questlog/character?url=${encodeURIComponent(input.value.trim())}`, { cache: "no-store" });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
+    const requested = payload.buildId === null ? null : String(payload.buildId);
+    const rows = (payload.characterData?.builds ?? []).filter((row) => requested === null || String(row.id) === requested);
+    if (!rows.length) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
+    const importedCandidates = rows.map((sourceBuild) => questlogCandidate(payload, sourceBuild));
+    for (const candidate of importedCandidates) {
+      const existing = state.builds.findIndex((entry) => entry.id === candidate.id);
+      if (existing >= 0) state.builds[existing] = candidate;
+      else {
+        state.builds.push(candidate);
+        ui["source-build"].add(new Option(candidate.label, candidate.id));
+        ui["target-build"].add(new Option(candidate.label, candidate.id));
+      }
+    }
+    ui[`${side}-build`].value = importedCandidates[0].id;
+    updateBuildSummaries();
+    prefillDamage();
+    prefillHealing();
+    prefillMatchup();
+    renderFighters();
+    render();
+  } catch (error) {
+    errorBox.textContent = String(error?.message ?? error);
+    errorBox.classList.remove("hidden");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Import";
+  }
+}
+
+function questlogCandidate(payload, rawBuild) {
+  const sourceBuild = {
+    ...rawBuild,
+    equipment: Object.fromEntries(Object.entries(rawBuild.equipment ?? {}).map(([slot, row]) => [slot, row ? { ...row, itemLevel: row.itemLevel ?? row.enhLvl } : row])),
+  };
+  const skillBuild = payload.skillData?.builds?.find((row) => String(row.id) === String(sourceBuild.skillBuildId));
+  const masteryBuild = payload.masteryData?.builds?.find((row) => String(row.id) === String(sourceBuild.weaponSpecializationBuildId));
+  const imported = importQuestlogBuild({ characterData: payload.characterData, build: sourceBuild, skillBuild, masteryBuild });
+  const id = `questlog:${payload.characterSlug}:${sourceBuild.id}`;
+  const label = `${imported.profile.name} · ${sourceBuild.name ?? `Build ${sourceBuild.id}`}`;
+  return {
+    id, label, state: imported, profile: imported.profile, source: "questlog", sourceUrl: payload.sourceUrl,
+    snapshot: resolveBuildSnapshot({ build: imported.build, attributes: imported.attributes, metadata: { gameDataBuild: state.data.gameBuild } }),
+  };
+}
+
+function swapBuilds() {
+  const source = ui["source-build"].value;
+  ui["source-build"].value = ui["target-build"].value;
+  ui["target-build"].value = source;
+  updateBuildSummaries();
+  prefillDamage();
+  prefillHealing();
+  prefillMatchup();
+  renderFighters();
+  render();
+}
+
+function renderFighters() {
+  renderFighter("source", selectedBuild(ui["source-build"].value));
+  renderFighter("target", selectedBuild(ui["target-build"].value));
+}
+
+function renderFighter(side, candidate) {
+  const build = candidate?.state?.build;
+  const snapshot = candidate?.snapshot;
+  ui[`${side}-fighter-name`].textContent = candidate?.label ?? (side === "source" ? "Choose your build" : "Choose an opponent");
+  const weaponItems = ["main_hand", "off_hand"].map((slotId) => itemFor(build, slotId)).filter(({ item }) => item);
+  ui[`${side}-fighter-weapons`].textContent = weaponItems.map(({ item }) => title(item.equipmentType ?? item.mainCategory ?? "Weapon")).join(" / ") || "No weapons resolved";
+  ui[`${side}-fighter-cp`].textContent = snapshot ? `Combat Power ${formatNumber(snapshot.resolved.combatPower)}` : "Import or select a build";
+  ui[`${side}-weapons`].innerHTML = weaponItems.map(renderWeaponStrip).join("") || '<p class="field-note">No weapon data.</p>';
+  ui[`${side}-gear`].innerHTML = EQUIPMENT_SLOTS.filter(({ id }) => !["main_hand", "off_hand"].includes(id)).map((slot) => renderGearSlot(slot, itemFor(build, slot.id))).join("");
+}
+
+function itemFor(build, slotId) {
+  const selection = build?.equipment?.[slotId];
+  return { slotId, selection, item: indexes.itemById?.[selection?.itemId] };
+}
+
+function renderWeaponStrip({ slotId, selection, item }) {
+  const icon = itemIcon(item);
+  return `<div class="weapon-strip">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span class="gear-placeholder"></span>'}<div><span>${slotId === "main_hand" ? "Main weapon" : "Off weapon"}</span><strong>${escapeHtml(item.name ?? selection.itemId)}</strong></div><b>Lv.${escapeHtml(selection.level ?? "?")}</b></div>`;
+}
+
+function renderGearSlot(slot, { selection, item }) {
+  const icon = itemIcon(item);
+  return `<div class="gear-slot" title="${escapeHtml(item?.name ?? `Empty ${slot.label}`)}">${selection?.level ? `<span class="level">${escapeHtml(selection.level)}</span>` : ""}${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span class="gear-placeholder"></span>'}<small>${escapeHtml(slot.label)}</small></div>`;
+}
+
+function itemIcon(item) {
+  const value = item?.imageUrl ?? item?.icon ?? "";
+  if (!value) return "";
+  if (/^https?:\/\//.test(value)) return value;
+  return `./${String(value).replace(/^\.\/?/, "")}`;
+}
 
 function populateComponents() {
   const ability = selectedAbility();
