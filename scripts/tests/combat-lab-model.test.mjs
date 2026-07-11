@@ -21,10 +21,10 @@ test("Combat Lab maps only the observed rarity windows", () => {
 });
 
 test("Combat Lab projects a saved-build Base Damage range without resolving outcomes", () => {
-  const ability = data.abilities.find(({ id }) => id === "gaia-crash");
+  const ability = data.abilities.find(({ id }) => id === "judgment-lightning");
   const shared = {
     ability,
-    componentId: "primary-damage",
+    componentId: "first-cast-per-hit-damage",
     globalLevel: 11,
     minimum: "399",
     maximum: "640",
@@ -33,8 +33,8 @@ test("Combat Lab projects a saved-build Base Damage range without resolving outc
   const heavy = projectAbilityRange({ ...shared, outcomeId: "heavy_attack" });
 
   assert.deepEqual(coefficientOnly.result, {
-    minimum: "1204.15",
-    maximum: "1891",
+    minimum: "3692.6",
+    maximum: "5717",
     stage: "pre_resolution",
     semantic: "tooltip_coefficient_projection",
   });

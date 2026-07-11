@@ -1,14 +1,15 @@
 # Initial validation cases
 
-Build 24118850 · decoder 0.1.0 · All row IDs verified present in `TL_DATA_ROOT\decoded\24118850\tables\TLFormulaParameterNew.json` on 2026-07-10.
+Build 24118850 · decoder 0.2.0 · All row IDs verified present in `TL_DATA_ROOT\decoded\24118850\tables\TLFormulaParameterNew.json` on 2026-07-11.
 
 Selection: the smallest real ability set that exercises damage, healing, shielding, mitigation-side effects, buffs, debuffs (incl. DoT + CC), and party effects, with one deliberately simple and one multi-stage/conditional case. Each case lists the decoded evidence and what the in-game calibration must confirm.
 
-## 1. Greatsword — Gaia Crash (`WP_SW2_S_GaiaCrash`) — SIMPLE damage
+## 1. Staff - Judgment Lightning (`WP_ST_S_PowerAttack`) - SIMPLE first-hit damage
 
-- Formula: `SW2_GaiaCrash_DD` L1 = `kAmountFromAttackPower, mul=25500, add=37` → tooltip "255% of Base Damage + 37" (`tooltip1=255, tooltip2=37`).
-- Variants present: `_DD_Last` (final hit), `_DD_PVE` (PvE split), `_DD_CCG`, trait rows `_Trait_1_DD/_DD2`.
-- Calibrate: basis (10000=100%), which attack-power value ("Base Damage" = min..max roll?), rounding, PvE-vs-PvP row selection.
+- First-hit formula: `ST_PowerAttack_DD` L1 = `kAmountFromAttackPower, mul=71000, add=188` → tooltip "710% of Base Damage + 188" (`tooltip1=710, tooltip2=188`). This is a **per-hit component**, not a whole-ability total.
+- Confirmed combat-log mapping: `950004896` is the first cast (`WP_ST_S_PowerAttack`); `968485880` is the conditional second cast (`WP_ST_S_PowerAttack_2`). Preserve these as distinct cast variants. The condition and aggregation rule do not establish a safe whole-ability total.
+- Variants present: `_DD_Boss` (monster split), `_DD_Wet` (Wet/Frost AoE), and Burning/Ignite conditional second-cast metadata.
+- Calibrate: basis (10000=100%), which attack-power value ("Base Damage" = min..max roll?), rounding, conditional trigger and the relationship between first/second cast components.
 
 ## 2. Bow — Power Shot (`WP_BO_S_PowerShot`) — MULTI-STAGE / CONDITIONAL
 

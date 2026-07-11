@@ -7,7 +7,7 @@ normalized SQLite warehouse, validation reports, and planned combat and content
 intelligence tools.
 
 The current data snapshot is game version `1.431.22.7761`, Steam build
-`24118850`. The warehouse contains **85,099 records from 38 decoded tables**.
+`24118850`. The warehouse contains **140,591 records from 48 decoded tables**.
 
 ## Source of truth
 
@@ -111,7 +111,7 @@ locations, preflight checks, and safety boundaries.
 ## Current capability
 
 - The `TLJsonDataTable` tagged-property row format is decoded for this build.
-- All 38 attempted tables decoded cleanly, producing 85,099 warehouse records.
+- The 30 curated priority tables decode cleanly with decoder `0.2.0`; this includes 54,205 `TLEffectProperty` rows and all weapon abnormal-state tables. The warehouse currently holds 140,591 records from 48 decoded tables.
 - `TLFormulaParameterNew` exposes 10,656 skill formula rows and 26 formula types. It resolves 95.4% of distinct player-facing tooltip placeholder bases.
 - Cooldowns, costs, skill magnitudes, stat curves, item scaling, and much of the buff, debuff, stack, and crowd-control metadata are client-visible.
 - Final live damage is not yet exact because mitigation and contest curves, pipeline order, and rounding require calibration or may be server-side.
@@ -127,15 +127,16 @@ locations, preflight checks, and safety boundaries.
   Synthetic mitigation and normal/critical branches validate the architecture
   but are explicitly not real game formulas. Unknown TL combat mechanics remain
   non-executable. See `packages/combat-engine/README.md`.
-- Combat Simulator Milestone 3 ingestion has started. Gaia Crash, Swift
+- Combat Simulator Milestone 3 ingestion has started. Judgment Lightning, Swift
   Healing, and Distortion Veil now produce a versioned real-ability artifact
   containing five reviewed formula components across every skill level, plus
-  twelve explicit unresolved stages. Gaia and Swift Healing remain
+  thirteen explicit unresolved stages. Judgment Lightning and Swift Healing remain
   derived-high-confidence owner mappings; Distortion Veil is exact. No real
   mitigation, Base Damage selection, dynamic modifier, or rounding stage is
   executable yet. The engine can inspect these expressions or produce an
   explicitly opted-in tooltip-style projection from caller-supplied Base Damage,
   but it cannot label that projection as final damage, healing, or shield health.
+- Combat-log import supports build `24118850` and `CombatLogVersion,4`. It preserves effect IDs, localized names, Critical and Heavy flags, and confirmed first/conditional-second Judgment Lightning mappings without asserting a whole-ability total.
 - The manual calibration harness now validates canonical, SHA-256-addressed
   observations and stores them atomically by game build. It accepts manual,
   screenshot, user-created recording, or reviewed OCR evidence only. The first

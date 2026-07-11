@@ -5,7 +5,7 @@ import { validateAbilityDefinition } from "../../packages/combat-engine/src/abil
 
 const BUILD = "24118850";
 const cases = [
-  ["gaia-crash", "SkillSet_WP_SW2_S_GaiaCrash", "Gaia Crash", "damage", "SW2_GaiaCrash_DD", "kAmountFromAttackPower", "derived", "derived_high_confidence", "derived"],
+  ["judgment-lightning", "SkillSet_WP_ST_S_PowerAttack", "Judgment Lightning", "damage", "ST_PowerAttack_DD", "kAmountFromAttackPower", "exact", "derived_high_confidence", "derived"],
   ["swift-healing", "SkillSet_WP_WA_GR_S_Heal", "Swift Healing", "healing", "WA_Heal_Heal", "kAmountFromAttackPower", "derived", "derived_high_confidence", "derived"],
   ["distortion-veil", "SkillSet_WP_ORB_Active_Shield", "Distortion Veil", "shielding", "ORB_Active_Shield_ShieldHp", "kAmountFromTargetHpMax", "exact", "verified_exact", "extracted"],
 ];
@@ -95,17 +95,17 @@ test("builds deterministic reviewed bundles for damage, healing, and shielding",
   assert.equal(result.gameBuild, BUILD);
   assert.deepEqual(result.abilities.map((ability) => [ability.abilityId, ability.kind]), [
     ["distortion-veil", "shielding"],
-    ["gaia-crash", "damage"],
+    ["judgment-lightning", "damage"],
     ["swift-healing", "healing"],
   ]);
 
-  const gaia = result.abilities.find((ability) => ability.abilityId === "gaia-crash");
-  assert.deepEqual(gaia.skillLevelRange, { minimum: 1, maximum: 2 });
-  assert.deepEqual(gaia.unresolvedStages.map((stage) => stage.id), [
+  const judgment = result.abilities.find((ability) => ability.abilityId === "judgment-lightning");
+  assert.deepEqual(judgment.skillLevelRange, { minimum: 1, maximum: 2 });
+  assert.deepEqual(judgment.unresolvedStages.map((stage) => stage.id), [
     "base-damage-selection", "rounding-order",
   ]);
-  const component = gaia.formulaComponents[0];
-  assert.equal(component.mappingClass, "derived");
+  const component = judgment.formulaComponents[0];
+  assert.equal(component.mappingClass, "exact");
   assert.equal(component.precision, "derived_high_confidence");
   assert.equal(component.provenance, "derived");
   assert.deepEqual(component.skillLevelRange, { minimum: 1, maximum: 2 });
@@ -115,13 +115,13 @@ test("builds deterministic reviewed bundles for damage, healing, and shielding",
   assert.deepEqual(component.dynamicStatIdsByLevel[0].dynamicStatIds.slice(0, 3), [
     "attack_power_main_hand", "None", "target_hp_max",
   ]);
-  assert.deepEqual(component.rawLevels[0].raw, input.formulaTable.rows.SW2_GaiaCrash_DD.FormulaParameter[1]);
+  assert.deepEqual(component.rawLevels[0].raw, input.formulaTable.rows.ST_PowerAttack_DD.FormulaParameter[1]);
   assert.equal(component.rawLevels[0].mul, "50000");
   assert.equal(component.rawLevels[1].tooltip1, "115.5");
   assert.equal(component.rawLevels[0].dynamicStatIds[1], "None");
   assert.deepEqual(component.source, {
     table: "TLFormulaParameterNew",
-    rowId: "SW2_GaiaCrash_DD",
+    rowId: "ST_PowerAttack_DD",
     gameBuild: BUILD,
     sourcePath: "D:/TL_Extracted/TLFormulaParameterNew.uasset",
     sourceSha256: "abc123",
@@ -145,7 +145,7 @@ test("rejects reviewed rows absent from mapping or decoded table", () => {
   assert.throws(() => buildCombatAbilityData(notMapped), /is not mapped/);
 
   const notDecoded = fixture();
-  delete notDecoded.formulaTable.rows.SW2_GaiaCrash_DD;
+  delete notDecoded.formulaTable.rows.ST_PowerAttack_DD;
   assert.throws(() => buildCombatAbilityData(notDecoded), /missing from decoded formula data/);
 });
 
@@ -155,7 +155,7 @@ test("rejects duplicate skill and formula levels", () => {
   assert.throws(() => buildCombatAbilityData(skillDuplicate), /duplicate skill level/);
 
   const formulaDuplicate = fixture();
-  formulaDuplicate.formulaTable.rows.SW2_GaiaCrash_DD.FormulaParameter.push({ skill_level: 1 });
+  formulaDuplicate.formulaTable.rows.ST_PowerAttack_DD.FormulaParameter.push({ skill_level: 1 });
   assert.throws(() => buildCombatAbilityData(formulaDuplicate), /duplicate formula level/);
 });
 

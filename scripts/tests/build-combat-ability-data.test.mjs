@@ -125,16 +125,19 @@ test("reviewed manifest contains only the five approved real formula rows", () =
   ));
   assert.equal(review.reviewedGameBuild, "24118850");
   assert.deepEqual(review.abilities.map((ability) => ability.abilityId), [
-    "gaia-crash", "swift-healing", "distortion-veil",
+    "judgment-lightning", "swift-healing", "distortion-veil",
   ]);
   assert.deepEqual(review.abilities.flatMap((ability) => ability.components.map((component) => [
     component.formulaRowId, component.precision, component.provenance,
   ])), [
-    ["SW2_GaiaCrash_DD", "derived_high_confidence", "derived"],
+    ["ST_PowerAttack_DD", "derived_high_confidence", "derived"],
     ["WA_Heal_Heal", "derived_high_confidence", "derived"],
     ["WA_Heal_Heal_Double", "derived_high_confidence", "derived"],
     ["ORB_Active_Shield_ShieldHp", "verified_exact", "extracted"],
     ["ORB_Active_Shield_Duration", "verified_exact", "extracted"],
   ]);
+  const judgment = review.abilities.find((ability) => ability.abilityId === "judgment-lightning");
+  assert.equal(judgment.components[0].role, "first-cast-per-hit-magnitude");
+  assert.ok(judgment.unresolvedStages.some((stage) => stage.id === "conditional-second-cast"));
   assert.ok(!JSON.stringify(review).toLowerCase().includes("stalwart"));
 });

@@ -76,7 +76,7 @@ function populateBuilds() {
 
 function populateStaticOptions() {
   state.data.abilities.forEach((ability) => ui.ability.add(new Option(`${ability.name} · ${ability.weapon}`, ability.id)));
-  if (state.data.abilities.some(({ id }) => id === "gaia-crash")) ui.ability.value = "gaia-crash";
+  if (state.data.abilities.some(({ id }) => id === "judgment-lightning")) ui.ability.value = "judgment-lightning";
   TIER_MAPPINGS.forEach((tier) => ui.tier.add(new Option(tier.label, tier.id)));
   ui.tier.value = "epic";
   populateOutcomes();

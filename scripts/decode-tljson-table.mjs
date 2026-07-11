@@ -22,7 +22,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-export const DECODER_VERSION = "0.1.0";
+export const DECODER_VERSION = "0.2.0";
 const EXTRACT_ROOT = process.env.TL_EXTRACT_ROOT ?? "D:\\TL_Extracted";
 const DATA_ROOT = process.env.TL_DATA_ROOT ?? "D:\\TL_Data";
 const BUILD = process.env.TL_STEAM_BUILD ?? "24118850";
@@ -30,7 +30,11 @@ const BUILD = process.env.TL_STEAM_BUILD ?? "24118850";
 const PRIORITY_TABLES = [
   "TLRuneInfo", "TLSkillLevelSetting", "TLItemStats", "TLItemEquip",
   "TLSkill", "TLRuneGrowth", "TLRuneSynergy", "TLItemCombatPower",
-  "TLPassiveSkillLooks", "TLAbnormalState_Common", "TLCraftingRecipe",
+  "TLPassiveSkillLooks", "TLAbnormalState_Common", "TLEffectProperty",
+  "TLAbnormalState_Weapon_Bow", "TLAbnormalState_Weapon_Common", "TLAbnormalState_Weapon_Crossbow",
+  "TLAbnormalState_Weapon_Dagger", "TLAbnormalState_Weapon_Gauntlet", "TLAbnormalState_Weapon_Orb",
+  "TLAbnormalState_Weapon_Spear", "TLAbnormalState_Weapon_Staff", "TLAbnormalState_Weapon_Sword",
+  "TLAbnormalState_Weapon_Sword2h", "TLAbnormalState_Weapon_Wand", "TLCraftingRecipe",
   "TLCookingRecipe", "TLRewardNpcFoItem", "TLItemLooks_Equip", "TLItemLooks",
   "TLSkillLevelUpRecipe", "TLItemAttackSpeedBaseline", "TLItemStatAttrConverter",
 ];
@@ -206,10 +210,11 @@ export function decodeTable(filePath) {
   const noneIdx = nameIndex.get("None");
   if (noneIdx === undefined) throw new Error("name table has no 'None'");
 
-  // Locate the export's UObject property stream: first valid FPropertyTag
-  // ([nameIdx][0][typeIdx of a *Property name][0]) after the name table.
-  // The export blob then reads: tagged UObject props … None, u32 guid flag,
-  // i32 rowCount, rows (verified layout on build 24118850).
+  // Locate the export's UObject property stream. A tag-shaped sequence alone
+  // is insufficient: TLEffectProperty contains package metadata that looks
+  // like a tag. Require a parseable UObject header with the RowStruct handle
+  // before accepting a candidate. The export then reads: tagged UObject props,
+  // u32 guid flag, i32 rowCount, rows (verified on build 24118850).
   const propTypeIdx = new Set(names.map((n, i) => (/Property$/.test(n) ? i : -1)).filter((i) => i >= 0));
   let exportStart = -1;
   for (let i = endOffset; i < buf.length - 24; i++) {
@@ -217,8 +222,17 @@ export function decodeTable(filePath) {
     if (pn >= names.length || names[pn] === "None" || /Property$/.test(names[pn]) || buf.readUInt32LE(i + 4) !== 0) continue;
     const tt = buf.readUInt32LE(i + 8);
     if (!propTypeIdx.has(tt) || buf.readUInt32LE(i + 12) !== 0) continue;
-    exportStart = i;
-    break;
+    try {
+      const candidate = new Reader(buf, names);
+      candidate.p = i;
+      const header = readTaggedStruct(candidate, 0);
+      if (!Object.hasOwn(header, "RowStruct")) continue;
+      if (candidate.u32() !== 0) continue;
+      const candidateRowCount = candidate.i32();
+      if (candidateRowCount < 0 || candidateRowCount > 5_000_000) continue;
+      exportStart = i;
+      break;
+    } catch { /* a false tag candidate is not an export */ }
   }
   if (exportStart < 0) throw new Error("could not locate export property stream");
 

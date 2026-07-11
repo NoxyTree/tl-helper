@@ -4,14 +4,14 @@
   "reviewedGameBuild": "24118850",
   "abilities": [
     {
-      "abilityId": "gaia-crash",
-      "skillSetId": "SkillSet_WP_SW2_S_GaiaCrash",
+      "abilityId": "judgment-lightning",
+      "skillSetId": "SkillSet_WP_ST_S_PowerAttack",
       "kind": "damage",
       "components": [
         {
-          "id": "primary-damage",
-          "formulaRowId": "SW2_GaiaCrash_DD",
-          "role": "magnitude",
+          "id": "first-cast-per-hit-damage",
+          "formulaRowId": "ST_PowerAttack_DD",
+          "role": "first-cast-per-hit-magnitude",
           "effectKind": "damage",
           "units": {
             "min": "flat_points",
@@ -28,11 +28,11 @@
           "evidence": [
             {
               "kind": "review",
-              "reference": "plans/combat-simulator/initial-validation-cases.md#gaia-crash"
+              "reference": "plans/combat-simulator/initial-validation-cases.md#judgment-lightning"
             },
             {
               "kind": "mapping",
-              "reference": "skill-formula-map:SkillSet_WP_SW2_S_GaiaCrash->SW2_GaiaCrash_DD"
+              "reference": "skill-formula-map:SkillSet_WP_ST_S_PowerAttack->ST_PowerAttack_DD"
             }
           ]
         }
@@ -41,16 +41,16 @@
         {
           "id": "base-damage-selection",
           "stage": "base-damage-selection",
-          "reason": "The client row supplies the attack-power coefficient, but the live base-damage or attack-power roll selected by the server is not confirmed.",
+          "reason": "The client row supplies the first-cast per-hit attack-power coefficient, but the live base-damage or attack-power roll selected by the server is not confirmed.",
           "classification": "calibration_required",
           "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#basis-units" }]
         },
         {
           "id": "dynamic-modifiers",
           "stage": "dynamic-modifiers",
-          "reason": "The decoded dynamic modifier WP_Item_Gear_SW2_02_PC_DamageDown has not been assigned an executable operation.",
+          "reason": "The decoded first-cast dynamic modifiers have not been assigned executable operations.",
           "classification": "extractable",
-          "evidence": [{ "kind": "formula-row", "reference": "TLFormulaParameterNew:SW2_GaiaCrash_DD.dynamic_stat_id2" }]
+          "evidence": [{ "kind": "formula-row", "reference": "TLFormulaParameterNew:ST_PowerAttack_DD.dynamic_stat_id1-2" }]
         },
         {
           "id": "target-mitigation",
@@ -65,6 +65,16 @@
           "reason": "The live rounding boundaries and damage pipeline order are not confirmed.",
           "classification": "calibration_required",
           "evidence": [{ "kind": "audit", "reference": "plans/combat-simulator/unknown-formulas.md#rounding-order" }]
+        },
+        {
+          "id": "conditional-second-cast",
+          "stage": "conditional-second-cast",
+          "reason": "The combat log confirms a distinct conditional second Judgment Lightning hit, but the client-visible rule that produces its whole-ability total and its relation to the first-cast formula remain unresolved. Do not add this per-hit component to a whole-ability total.",
+          "classification": "extractable",
+          "evidence": [
+            { "kind": "combat-log", "reference": "CombatLogVersion4:968485880->WP_ST_S_PowerAttack_2" },
+            { "kind": "skill-description", "reference": "SkillSet_WP_ST_S_PowerAttack:Burning-or-Ignite conditional second cast" }
+          ]
         }
       ]
     },

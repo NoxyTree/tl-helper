@@ -1,7 +1,7 @@
 # Project status: TL data platform
 
-Updated 2026-07-11 after Combat Simulator Milestones 0, 1, and 2. Current snapshot:
-game version `1.431.22.7761`, Steam build `24118850`, decoder `0.1.0`.
+Updated 2026-07-11 after combat-log import and decoder coverage updates. Current snapshot:
+game version `1.431.22.7761`, Steam build `24118850`, decoder `0.2.0`.
 
 TL-Helper now has a verified, one-command path from installed game archives to
 decoded, normalized, searchable, browser-ready data. Combat Simulator Milestone
@@ -32,9 +32,9 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | BuildSnapshot v1 | Immutable, versioned static-build contract used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
 | Static calculation regression | 69/69 assertions across 3 fixtures; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
 | Coverage audit | All four stated counts validate from the new data root | `node scripts/audit-questlog-coverage.mjs` |
-| `TLJsonDataTable` decoder | Tagged-property row format decoded; every attempted table clean | `node scripts/decode-tljson-table.mjs --all-priority` |
+| `TLJsonDataTable` decoder | RowStruct-validated tagged-property decoding; 30 curated tables clean, including `TLEffectProperty` and all weapon abnormal states | `node scripts/decode-tljson-table.mjs --all-priority` |
 | Collector | 92 tests; deterministic rerun, resume, build-scoped output, `TL_DATA_ROOT` | `dotnet run --project src/TlCollector/App -- sample` |
-| Normalized warehouse | **85,099 records across 38 decoded tables**, with provenance and FTS5 | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
+| Normalized warehouse | **140,591 records across 48 decoded tables**, with provenance and FTS5 | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
 | Stat-source index | 293,446 level/rank rows across 2,394 named static sources and 110 canonical metrics | `scripts/build-stat-sources.mjs` |
 | Table inventory | 1,387 tables across 680 families inventoried and prioritized | `D:\TL_Data\reports\24118850\table-inventory.json` |
 | Asset casing | App-only 2,692 references: 2,269 exact and 423 case-insensitive; no missing references | `node --test scripts/tests/asset-case-index.test.mjs` |
@@ -45,6 +45,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Calibration harness | 49 real observations across 8 experiments: tooltip basis verified, Heavy Heal ×2 verified by HP deltas, Health Regen semantics identified, and a reviewed +20.85% versus +4.2% Healing Received comparison preserved | `plans/combat-simulator/calibration-findings-2026-07-10.md` |
 | Community calculator audit | Healing, Healing Received, Skill Damage Boost, Cooldown Speed, and Buff Duration assumptions classified without promoting community formulas to verified rules | `plans/combat-simulator/community-calculator-audit-2026-07-11.md` |
 | Combat-log calibration | Version 4 schema reviewed across 531 dummy hits; Critical and Heavy flags are explicit, and the displayed +128.4% Heavy Attack Damage fits a 2.284 magnitude multiplier | `plans/combat-simulator/combat-log-findings-2026-07-11.md` |
+| Combat-log importer | Versioned `CombatLogVersion,4` importer with source hash, explicit outcome flags, and reviewed Judgment Lightning effect mappings | `node scripts/import-combat-log.mjs --input <log>` |
 | Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, and opt-in Swift Healing v1 projections with complete traces and explicit modeled/final boundaries | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
@@ -58,7 +59,8 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 The following values were checked against the warehouse, inventory JSON, and
 coverage summary on 2026-07-10:
 
-- Warehouse: **85,099 records**, **38 distinct decoded tables**, 8,564 records with resolved English names.
+- Warehouse: **140,591 records**, **48 distinct decoded tables**, 8,564 records with resolved English names.
+- Newly decoded combat coverage: `TLEffectProperty` contributes 54,205 client-visible effect-property rows; all eleven weapon abnormal-state tables are decoded, including 174 Staff rows. This improves effect and buff evidence, but does not prove server modifier order, mitigation, contests, or rounding.
 - Inventory: 1,387 tables, 680 families, 676,769,295 raw bytes indexed.
 - Formula system: `TLFormulaParameterNew` has 10,656 rows and 26 formula types.
 - Tooltip resolution: 3,602 of 3,777 distinct bases resolve, or 95.4%.
@@ -122,11 +124,11 @@ event expansion is capped. The synthetic mitigation and forced normal/critical
 fixture is architecture evidence only. Real mitigation, hit, critical, Heavy
 Attack, PvP, rounding order, and server timing remain unsupported until proven.
 
-Milestone 3's ingestion foundation is complete for Gaia Crash, Swift Healing,
+Milestone 3's ingestion foundation is complete for Judgment Lightning, Swift Healing,
 and Distortion Veil. The build-scoped artifact contains five reviewed formula
-components with every decoded level and twelve unresolved stages. Gaia Crash
-and Swift Healing use reviewed derived owner mappings because the table has no
-owner foreign key. Distortion Veil has exact localization-linked evidence.
+components with every decoded level and thirteen unresolved stages. Judgment Lightning
+and Swift Healing retain reviewed derived-high-confidence components. Distortion Veil
+has exact localization-linked evidence.
 Stalwart Bastion was corrected in the validation plan: it is a damage-reduction
 buff, not a shield.
 
@@ -138,7 +140,11 @@ always marked pre-resolution with final combat precision unsupported.
 The first Milestone 3 user-facing slice is complete. The Combat Lab projects
 both ends of a selected source build's Base Damage range, maps only the
 live-verified Epic and Heroic level windows, preserves both fixed-point traces,
-and exposes forced outcomes as descriptive but non-executable. The browser
+and exposes forced outcomes as descriptive but non-executable. Judgment
+Lightning is the simple-damage baseline: its displayed result is explicitly a
+first-cast per-hit component, never a whole-ability total. The confirmed log
+IDs `950004896` and `968485880` remain distinct first-cast and conditional
+second-cast mappings. The browser
 runtime is a byte-exact generated mirror of the authored engine modules, and
 the reviewed ability artifact is refreshed by the normal combat-ability build.
 
@@ -198,7 +204,7 @@ index, and decoded-versus-live parity evidence before application verification.
 - Extend `stat_sources` to dynamic set effects, skills, and passives. The first
   nine Heavy Attack skill joins are mapped in `docs/skill-stat-source-join.md`.
   Current exact gaps and exclusions are in `docs/stat-source-coverage-audit.md`.
-- Decode or map `TLAbnormalContentsGroup` for buff exclusivity references.
+- Decode `TLAbnormalContentsGroup` with a dedicated layout parser for buff exclusivity references; it does not use the normal tagged `RowStruct` header.
 - Curate the field-to-table map needed for complete `TLDataHandle` resolution.
 - Parse package-local `ObjectProperty` imports where future non-cosmetic links require them.
 - Resolve the remaining 29 player skill sets and 11 skill-linked placeholder
@@ -214,13 +220,14 @@ index, and decoded-versus-live parity evidence before application verification.
 
 ## Recommended refinement order
 
-1. Materialize the nine reviewed Heavy Attack skill/passive sources.
-2. Build the calibration hypothesis enumerator for multiplier, roll, and
+1. Use decoded `TLEffectProperty` rows to classify Judgment Lightning and other effect components without inferring server execution order.
+2. Materialize the nine reviewed Heavy Attack skill/passive sources.
+3. Build the calibration hypothesis enumerator for multiplier, roll, and
    rounding candidates.
-3. Wire additional reviewed real abilities into the Combat Lab one case at a
+4. Wire additional reviewed real abilities into the Combat Lab one case at a
    time.
-4. Complete full manual Questlog panels for healer and ranged builds.
-5. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
+5. Complete full manual Questlog panels for healer and ranged builds.
+6. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 
 ## Read first next session
 
