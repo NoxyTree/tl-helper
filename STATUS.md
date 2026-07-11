@@ -90,7 +90,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 189/189, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 190/190, collector tests
   92/92.
 
 ## Combat milestones

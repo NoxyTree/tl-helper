@@ -1,6 +1,6 @@
 import { EQUIPMENT_SLOTS, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
 import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
-import { resolveVisibleMatchupInputs } from "./combat-lab-build-inputs.js";
+import { inferBuildAttackType, resolveVisibleMatchupInputs } from "./combat-lab-build-inputs.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
 import {
   HEALING_CASTS,
@@ -44,6 +44,7 @@ async function boot() {
   updateModeControls();
   populateLevels();
   updateBuildSummaries();
+  syncAttackTypeFromSource();
   prefillMatchup();
   prefillDamage();
   prefillHealing();
@@ -99,12 +100,12 @@ function bindEvents() {
   ui.tier.addEventListener("change", () => { populateLevels(); render(); });
   ui.level.addEventListener("change", render);
   ui.outcome.addEventListener("change", render);
-  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["source-questlog-import"].addEventListener("click", () => importQuestlog("source"));
   ui["target-questlog-import"].addEventListener("click", () => importQuestlog("target"));
   ui["swap-builds"].addEventListener("click", swapBuilds);
-  ui["attack-type"].addEventListener("change", () => { prefillMatchup(); render(); });
+  ui["attack-type"].addEventListener("change", () => { byId("attack-type-note").textContent = `Manual override: ${title(ui["attack-type"].value)} attacks.`; prefillMatchup(); render(); });
   ui["pvp-mode"].addEventListener("change", render);
   for (const id of ["pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr"]) ui[id].addEventListener("input", render);
   ui["damage-source"].addEventListener("change", () => { prefillDamage(); render(); });
@@ -164,6 +165,7 @@ async function importQuestlog(side) {
     }
     ui[`${side}-build`].value = importedCandidates[0].id;
     updateBuildSummaries();
+    if (side === "source") syncAttackTypeFromSource();
     prefillDamage();
     prefillHealing();
     prefillMatchup();
@@ -199,6 +201,7 @@ function swapBuilds() {
   ui["source-build"].value = ui["target-build"].value;
   ui["target-build"].value = source;
   updateBuildSummaries();
+  syncAttackTypeFromSource();
   prefillDamage();
   prefillHealing();
   prefillMatchup();
@@ -329,6 +332,18 @@ function prefillMatchup() {
   const target = selectedBuild(ui["target-build"].value);
   const values = resolveVisibleMatchupInputs({ sourceSnapshot: source?.snapshot, targetSnapshot: target?.snapshot, attackType: ui["attack-type"].value, readStat: snapshotStat });
   for (const [id, key] of Object.entries({ "pvp-hit":"hit", "pvp-evasion":"evasion", "pvp-critical":"criticalHit", "pvp-endurance":"endurance", "pvp-heavy":"heavyAttackChance", "pvp-heavy-evasion":"heavyAttackEvasion", "pvp-sdb":"skillDamageBoost", "pvp-sdr":"skillDamageResistance" })) ui[id].value = String(values[key]);
+}
+
+function syncAttackTypeFromSource() {
+  const source = selectedBuild(ui["source-build"].value);
+  const inferred = inferBuildAttackType(source?.state?.build, (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "");
+  if (!inferred) {
+    byId("attack-type-note").textContent = "Choose an attack type manually because no main weapon was resolved.";
+    return;
+  }
+  ui["attack-type"].value = inferred.attackType;
+  const hand = inferred.slotId === "main_hand" ? "main weapon" : "off weapon";
+  byId("attack-type-note").textContent = `Automatically using ${title(inferred.attackType)} from the attacker's ${title(inferred.weaponType)} ${hand}. Change it here when testing a skill from their other weapon.`;
 }
 
 function displayStat(snapshot, statId, scale) {

@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveVisibleMatchupInputs } from "../../web/combat-lab-build-inputs.js";
+import { inferBuildAttackType, resolveVisibleMatchupInputs } from "../../web/combat-lab-build-inputs.js";
+
+test("attack type follows the attacking build's main weapon", () => {
+  const items = { bow1: "bow", wand1: "wand", spear1: "spear" };
+  const resolveItemType = (id) => items[id] ?? "";
+  assert.deepEqual(inferBuildAttackType({ equipment: { main_hand: { itemId: "bow1" }, off_hand: { itemId: "wand1" } } }, resolveItemType), { attackType: "range", weaponType: "bow", slotId: "main_hand" });
+  assert.deepEqual(inferBuildAttackType({ equipment: { main_hand: { itemId: "wand1" } } }, resolveItemType), { attackType: "magic", weaponType: "wand", slotId: "main_hand" });
+  assert.deepEqual(inferBuildAttackType({ equipment: { main_hand: { itemId: "spear1" } } }, resolveItemType), { attackType: "melee", weaponType: "spear", slotId: "main_hand" });
+  assert.deepEqual(inferBuildAttackType({ equipment: { off_hand: { itemId: "wand1" } } }, resolveItemType), { attackType: "magic", weaponType: "wand", slotId: "off_hand" });
+});
 
 test("matchup inputs use one visible stat and never add PvP projections", () => {
   const source = { stats: { magic_accuracy: 23048, magic_critical_attack: 67104, magic_double_attack: 31256, skill_power_amplification: 8770, pvp_magic_accuracy: 99999 } };
