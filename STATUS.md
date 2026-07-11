@@ -50,7 +50,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | PvP modeled operations | Signed SDB−SDR, caller-constant Defense, Critical/Heavy resistance floors, glancing, and Heavy Chance−Evasion are isolated provenance-labeled operations; official mode caps remain distinct from modeled curves | `packages/combat-engine/src/pvp-models.mjs` |
 | PvP formula research | Four manual packages reduced to Heavy Evasion as the top PvP unknown plus small checks for current-cap constants, rounding, DoT crits, and block stacking | `docs/pvp-formula-research-2026-07-11.md` |
 | Test readiness | Exact no-test, passive-log, and deliberate-capture boundaries for every pending combat question | `docs/combat-testing-rundown.md` |
-| Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, and opt-in Swift Healing v1 projections with complete traces and explicit modeled/final boundaries | `web/combat-lab.html` |
+| Combat Lab | Saved-build Base Damage ranges, reviewed ability coefficients, and an evidence-scoped PvP matchup summary for Hit, Critical, Heavy, and SDB/SDR contests | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
@@ -90,7 +90,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 178/178, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 181/181, collector tests
   92/92.
 
 ## Combat milestones
@@ -108,8 +108,12 @@ all PvP modifiers. These are catalogued in
 The first trustworthy Combat Lab is now available at `web/combat-lab.html`.
 It uses saved BuildSnapshots, reviewed real ability rows, verified Epic and
 Heroic level mappings, Base Damage range endpoints, complete calculation
-traces, and stage-level precision. It does not apply target mitigation or any
-forced live outcome.
+traces, and stage-level precision. Its PvP matchup panel prefills visible stats
+from saved source and target builds, supports melee, ranged, and magic contests,
+and reports Hit, miss, Critical, glance, Heavy, and signed SDB/SDR results under
+General, Battleground, or Arena caps. The matchup remains separate from the
+ability coefficient projection and does not claim target mitigation or a final
+live outcome.
 
 Combat Simulator Milestone 1 is also complete. The Armory and tracker both use
 `resolveBuildSnapshot()` as the stable browser boundary around

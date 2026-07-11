@@ -10,6 +10,12 @@ import {
   HEALING_ROLL_OUTCOME,
   resolveHealingRange,
 } from "./vendor/combat-engine/healing-resolver.mjs";
+import {
+  modelCriticalContest,
+  modelHeavyAttackChance,
+  modelHitChance,
+  modelSkillDamageMultiplier,
+} from "./vendor/combat-engine/pvp-models.mjs";
 
 export const HEALING_OUTCOMES = Object.freeze([
   { id: "normal", label: "Forced normal" },
@@ -44,6 +50,29 @@ export function loadCombatLabData(input) {
 
 export function mapDisplayedLevel(tierId, displayedLevel) {
   return resolveAbilitySkillLevel({ rarityTier: tierId, displayedLevel });
+}
+
+export function resolvePvpMatchup(input) {
+  const shared = { pvpMode: input.pvpMode };
+  const hit = modelHitChance({ hit: input.hit, evasion: input.evasion, ...shared });
+  const critical = modelCriticalContest({ criticalHit: input.criticalHit, endurance: input.endurance, ...shared });
+  const heavy = modelHeavyAttackChance({ heavyAttackChance: input.heavyAttackChance, heavyAttackEvasion: input.heavyAttackEvasion, ...shared });
+  const skillDamage = modelSkillDamageMultiplier({ boost: input.skillDamageBoost, resistance: input.skillDamageResistance });
+  return Object.freeze({
+    schema: "tl-helper.pvp-matchup-summary",
+    schemaVersion: 1,
+    status: "modeled",
+    pvpMode: input.pvpMode,
+    attackType: input.attackType,
+    hitChance: hit.value,
+    missChance: hit.missChance,
+    criticalChance: critical.criticalChance,
+    glanceChance: critical.glanceChance,
+    normalRollChance: critical.normalRollChance,
+    heavyChance: heavy.value,
+    skillDamageMultiplier: skillDamage.value,
+    operations: { hit, critical, heavy, skillDamage },
+  });
 }
 
 export function projectAbilityRange({ ability, componentId, globalLevel, minimum, maximum, outcomeId }) {

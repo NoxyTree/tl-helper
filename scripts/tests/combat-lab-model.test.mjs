@@ -8,6 +8,7 @@ import {
   mapDisplayedLevel,
   projectAbilityRange,
   resolveCombatLabHealing,
+  resolvePvpMatchup,
 } from "../../web/combat-lab-model.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -18,6 +19,21 @@ test("Combat Lab maps only the observed rarity windows", () => {
   assert.equal(mapDisplayedLevel("epic", 1).globalSkillLevel, 11);
   assert.equal(mapDisplayedLevel("heroic", 5).globalSkillLevel, 20);
   assert.throws(() => mapDisplayedLevel("rare", 1), /Unsupported or uncalibrated/);
+});
+
+test("Combat Lab resolves a capped PvP matchup without claiming final damage", () => {
+  const result = resolvePvpMatchup({
+    pvpMode: "general", attackType: "melee",
+    hit: "3000", evasion: "2800",
+    criticalHit: "1500", endurance: "500",
+    heavyAttackChance: "800", heavyAttackEvasion: "400",
+    skillDamageBoost: "500", skillDamageResistance: "300",
+  });
+  assert.equal(result.hitChance, "1");
+  assert.equal(result.criticalChance, "0.5");
+  assert.equal(result.heavyChance, "0.285714");
+  assert.equal(result.skillDamageMultiplier, "1.166666");
+  assert.equal(result.status, "modeled");
 });
 
 test("Combat Lab projects a saved-build Base Damage range without resolving outcomes", () => {

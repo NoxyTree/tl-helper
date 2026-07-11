@@ -34,7 +34,26 @@
           <div id="source-summary" class="build-summary"></div>
           <label>Target build<select id="target-build"><option value="">No target selected</option></select></label>
           <div id="target-summary" class="build-summary muted">Target defenses are context only.</div>
-          <div class="alert warning compact"><strong>Mitigation is not applied.</strong> Target armor, evasion, endurance, block, and PvP modifiers do not change this projection.</div>
+          <div class="alert warning compact"><strong>Separate outputs.</strong> Evasion, Endurance, Heavy Evasion, and SDR affect the matchup summary below. They do not silently alter the ability coefficient projection.</div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading"><span>P</span><div><p class="eyebrow">PvP matchup</p><h2>Visible stat contests</h2></div></div>
+          <div class="two-column">
+            <label>Mode<select id="pvp-mode"><option value="general">General PvP</option><option value="battleground">Battleground</option><option value="arena">Arena</option></select></label>
+            <label>Attack type<select id="attack-type"><option value="melee">Melee</option><option value="range">Ranged</option><option value="magic">Magic</option></select></label>
+          </div>
+          <div class="matchup-inputs">
+            <label>Source Hit<input id="pvp-hit" inputmode="decimal" value="0"></label>
+            <label>Target Evasion<input id="pvp-evasion" inputmode="decimal" value="0"></label>
+            <label>Source Critical<input id="pvp-critical" inputmode="decimal" value="0"></label>
+            <label>Target Endurance<input id="pvp-endurance" inputmode="decimal" value="0"></label>
+            <label>Source Heavy Chance<input id="pvp-heavy" inputmode="decimal" value="0"></label>
+            <label>Target Heavy Evasion<input id="pvp-heavy-evasion" inputmode="decimal" value="0"></label>
+            <label>Source SDB<input id="pvp-sdb" inputmode="decimal" value="0"></label>
+            <label>Target SDR<input id="pvp-sdr" inputmode="decimal" value="0"></label>
+          </div>
+          <p class="field-note">Saved builds prefill these values. You can edit any field for opponent scouting or sensitivity checks.</p>
         </article>
 
         <article class="panel">
@@ -76,6 +95,12 @@
       </div>
 
       <div class="result-stack">
+        <article class="result-card matchup-card">
+          <div class="result-head"><div><p class="eyebrow">PvP matchup summary</p><h2 id="matchup-title">General PvP · Melee</h2></div><span class="badge modeled">Evidence-scoped</span></div>
+          <div id="matchup-results" class="matchup-results"></div>
+          <p id="matchup-note" class="field-note"></p>
+        </article>
+
         <article class="result-card">
           <div class="result-head"><div><p class="eyebrow">Pre-resolution output</p><h2 id="result-title">Coefficient projection</h2></div><span id="overall-badge" class="badge unsupported">Unsupported final outcome</span></div>
           <div id="result-range" class="range">Waiting for data</div>

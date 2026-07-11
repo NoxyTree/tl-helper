@@ -5,6 +5,8 @@ import {
   modelDefenseMultiplier,
   modelGlanceChance,
   modelHeavyAttackChance,
+  modelHitChance,
+  modelCriticalContest,
   modelHeavyDamageMultiplier,
   modelSkillDamageMultiplier,
 } from "../../packages/combat-engine/src/index.mjs";
@@ -13,6 +15,23 @@ test("SDB and SDR subtract before the signed curve", () => {
   assert.equal(modelSkillDamageMultiplier({ boost: "500", resistance: "300" }).value, "1.166666");
   assert.equal(modelSkillDamageMultiplier({ boost: "300", resistance: "500" }).value, "0.833334");
   assert.equal(modelSkillDamageMultiplier({ boost: "500", resistance: "500" }).value, "1");
+});
+
+test("Hit chance is 100 percent until Evasion exceeds Hit", () => {
+  assert.equal(modelHitChance({ hit: "3000", evasion: "2800", pvpMode: "general" }).value, "1");
+  const disadvantaged = modelHitChance({ hit: "1000", evasion: "1500" });
+  assert.equal(disadvantaged.value, "0.666667");
+  assert.equal(disadvantaged.missChance, "0.333333");
+});
+
+test("Critical and glance are mutually exclusive sides of the contest", () => {
+  assert.deepEqual(
+    (({ criticalChance, glanceChance, normalRollChance }) => ({ criticalChance, glanceChance, normalRollChance }))(modelCriticalContest({ criticalHit: "1500", endurance: "500" })),
+    { criticalChance: "0.5", glanceChance: "0", normalRollChance: "0.5" },
+  );
+  const glance = modelCriticalContest({ criticalHit: "500", endurance: "1500" });
+  assert.equal(glance.criticalChance, "0");
+  assert.equal(glance.glanceChance, "0.5");
 });
 
 test("defense uses an explicit caller-selected level constant", () => {

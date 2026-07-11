@@ -11,6 +11,7 @@ export const COMBAT_ENGINE_WEB_MODULES = [
   "ability-magnitude.mjs",
   "ability-range-projection.mjs",
   "healing-resolver.mjs",
+  "pvp-models.mjs",
   "fixed-point.mjs",
   "trace.mjs",
 ];

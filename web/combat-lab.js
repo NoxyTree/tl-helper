@@ -10,11 +10,12 @@ import {
   OUTCOMES,
   projectAbilityRange,
   resolveCombatLabHealing,
+  resolvePvpMatchup,
   TIER_MAPPINGS,
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","source-build","source-summary","target-build","target-summary","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const ui = Object.fromEntries(["game-build","fatal-error","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
 const state = { data: null, builds: [] };
 
 boot().catch(showFatal);
@@ -37,6 +38,7 @@ async function boot() {
   updateModeControls();
   populateLevels();
   updateBuildSummaries();
+  prefillMatchup();
   prefillDamage();
   prefillHealing();
   render();
@@ -89,8 +91,11 @@ function bindEvents() {
   ui.tier.addEventListener("change", () => { populateLevels(); render(); });
   ui.level.addEventListener("change", render);
   ui.outcome.addEventListener("change", render);
-  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); prefillDamage(); prefillHealing(); render(); });
-  ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); render(); });
+  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); prefillDamage(); prefillHealing(); prefillMatchup(); render(); });
+  ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); render(); });
+  ui["attack-type"].addEventListener("change", () => { prefillMatchup(); render(); });
+  ui["pvp-mode"].addEventListener("change", render);
+  for (const id of ["pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr"]) ui[id].addEventListener("input", render);
   ui["damage-source"].addEventListener("change", () => { prefillDamage(); render(); });
   ui["damage-min"].addEventListener("input", render);
   ui["damage-max"].addEventListener("input", render);
@@ -178,12 +183,36 @@ function prefillHealing() {
   ui["skill-damage-boost"].value = displayStat(source?.snapshot, "skill_power_amplification", 0.1);
 }
 
+function prefillMatchup() {
+  const source = selectedBuild(ui["source-build"].value);
+  const target = selectedBuild(ui["target-build"].value);
+  const type = ui["attack-type"].value;
+  const set = (id, snapshot, statId, pvpStatId) => {
+    if (!snapshot) return;
+    ui[id].value = displayStatTotal(snapshot, [statId, pvpStatId], 0.1);
+  };
+  set("pvp-hit", source?.snapshot, `${type}_accuracy`, `pvp_${type}_accuracy`);
+  set("pvp-evasion", target?.snapshot, `${type}_evasion`, `pvp_${type}_evasion`);
+  set("pvp-critical", source?.snapshot, `${type}_critical_attack`, `pvp_${type}_critical_attack`);
+  set("pvp-endurance", target?.snapshot, `${type}_critical_defense`, `pvp_${type}_critical_defense`);
+  set("pvp-heavy", source?.snapshot, `${type}_double_attack`, `pvp_${type}_double_attack`);
+  set("pvp-heavy-evasion", target?.snapshot, `${type}_double_defense`, `pvp_${type}_double_defense`);
+  set("pvp-sdb", source?.snapshot, "skill_power_amplification", null);
+  set("pvp-sdr", target?.snapshot, "skill_power_resistance", null);
+}
+
+function displayStatTotal(snapshot, statIds, scale) {
+  const total = statIds.filter(Boolean).reduce((sum, id) => sum + snapshotStat(snapshot, id), 0);
+  return String(Number((total * scale).toFixed(4)));
+}
+
 function displayStat(snapshot, statId, scale) {
   return String(Number(((snapshot ? snapshotStat(snapshot, statId) : 0) * scale).toFixed(4)));
 }
 
 function render() {
   try {
+    renderMatchup();
     const mapping = mapDisplayedLevel(ui.tier.value, Number(ui.level.value));
     if (isHealingResolverAbility(selectedAbility())) {
       renderHealing(resolveCombatLabHealing({
@@ -223,6 +252,32 @@ function render() {
     ui.provenance.innerHTML = "";
   }
 }
+
+function renderMatchup() {
+  const result = resolvePvpMatchup({
+    pvpMode: ui["pvp-mode"].value,
+    attackType: ui["attack-type"].value,
+    hit: ui["pvp-hit"].value,
+    evasion: ui["pvp-evasion"].value,
+    criticalHit: ui["pvp-critical"].value,
+    endurance: ui["pvp-endurance"].value,
+    heavyAttackChance: ui["pvp-heavy"].value,
+    heavyAttackEvasion: ui["pvp-heavy-evasion"].value,
+    skillDamageBoost: ui["pvp-sdb"].value,
+    skillDamageResistance: ui["pvp-sdr"].value,
+  });
+  ui["matchup-title"].textContent = `${title(result.pvpMode)} PvP · ${title(result.attackType)}`;
+  const rows = [
+    ["Hit", percent(result.hitChance), `Miss ${percent(result.missChance)}`],
+    ["Critical", percent(result.criticalChance), `Glance ${percent(result.glanceChance)}`],
+    ["Heavy", percent(result.heavyChance), "Official mode cap applied"],
+    ["SDB/SDR", `${Number(result.skillDamageMultiplier).toFixed(3)}×`, "Signed difference model"],
+  ];
+  ui["matchup-results"].innerHTML = rows.map(([label,value,note]) => `<div><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><span>${escapeHtml(note)}</span></div>`).join("");
+  ui["matchup-note"].textContent = "Hit uses the established one-sided Evasion rule. Heavy and glancing remain evidence-scoped models. Final damage, block, Defense, modifier order, and rounding are not applied here.";
+}
+
+function percent(value) { return `${(Number(value) * 100).toFixed(2)}%`; }
 
 function renderHealing(result) {
   const supported = result.status === "modeled";
