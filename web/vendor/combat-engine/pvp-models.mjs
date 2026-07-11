@@ -6,10 +6,16 @@ export const PVP_HEAVY_DIFFERENCE_CAPS = Object.freeze({
   battleground: Object.freeze({ positive: "3000", negative: "2000" }),
   arena: Object.freeze({ positive: "2250", negative: "1500" }),
 });
-export const PVP_CONTEST_DIFFERENCE_CAPS = PVP_HEAVY_DIFFERENCE_CAPS;
+export const PVP_CRITICAL_DIFFERENCE_CAPS = PVP_HEAVY_DIFFERENCE_CAPS;
+export const PVP_HIT_DIFFERENCE_CAPS = Object.freeze({
+  general: Object.freeze({ positive: "3000", negative: "4500" }),
+  battleground: Object.freeze({ positive: "2000", negative: "3000" }),
+  arena: Object.freeze({ positive: "1500", negative: "2250" }),
+});
+export const PVP_CONTEST_DIFFERENCE_CAPS = PVP_CRITICAL_DIFFERENCE_CAPS;
 
 export function modelHitChance({ hit, evasion, denominator = "1000", pvpMode } = {}) {
-  const contest = contestInputs({ offense: hit, defense: evasion, denominator, pvpMode, offenseName: "hit", defenseName: "evasion" });
+  const contest = contestInputs({ offense: hit, defense: evasion, denominator, pvpMode, capsByMode: PVP_HIT_DIFFERENCE_CAPS, offenseName: "hit", defenseName: "evasion" });
   const { fixed, difference, k, cap } = contest;
   const missChance = difference < 0n ? fixed.divide(-difference, -difference + k) : 0n;
   return result(fixed, fixed.from(1) - missChance, {
@@ -24,7 +30,7 @@ export function modelHitChance({ hit, evasion, denominator = "1000", pvpMode } =
 }
 
 export function modelCriticalContest({ criticalHit, endurance, denominator = "1000", pvpMode } = {}) {
-  const contest = contestInputs({ offense: criticalHit, defense: endurance, denominator, pvpMode, offenseName: "criticalHit", defenseName: "endurance" });
+  const contest = contestInputs({ offense: criticalHit, defense: endurance, denominator, pvpMode, capsByMode: PVP_CRITICAL_DIFFERENCE_CAPS, offenseName: "criticalHit", defenseName: "endurance" });
   const { fixed, difference, k, cap } = contest;
   const criticalChance = difference > 0n ? fixed.divide(difference, difference + k) : 0n;
   const glanceChance = difference < 0n ? fixed.divide(-difference, -difference + k) : 0n;
@@ -152,6 +158,9 @@ export function modelHeavyAttackChance({ heavyAttackChance, heavyAttackEvasion, 
       denominator: fixed.format(k),
       differenceCap: cap === null ? null : fixed.format(cap),
       pvpMode: pvpMode ?? null,
+      rawDifference: fixed.format(rawDifference),
+      effectiveDifference: fixed.format(effectiveDifference),
+      capApplied: effectiveDifference !== rawDifference,
     },
     evidence: "client_paired_stats_plus_community_tested_operation",
     confidence: "medium",
@@ -165,14 +174,15 @@ function context() {
   return new FixedPointContext({ scale: 1_000_000n, rounding: ROUNDING.TRUNCATE });
 }
 
-function contestInputs({ offense, defense, denominator, pvpMode, offenseName, defenseName }) {
+function contestInputs({ offense, defense, denominator, pvpMode, capsByMode, offenseName, defenseName }) {
   const fixed = context();
   const attack = nonNegative(fixed, offense, offenseName);
   const resist = nonNegative(fixed, defense, defenseName);
   const k = positive(fixed, denominator, "denominator");
-  const caps = pvpMode === undefined ? null : PVP_CONTEST_DIFFERENCE_CAPS[pvpMode];
+  const caps = pvpMode === undefined ? null : capsByMode[pvpMode];
   if (pvpMode !== undefined && !caps) throw new RangeError(`Unsupported PvP mode: ${pvpMode}`);
-  let difference = attack - resist;
+  const rawDifference = attack - resist;
+  let difference = rawDifference;
   if (caps) {
     const positiveCap = fixed.from(caps.positive);
     const negativeCap = fixed.from(caps.negative);
@@ -184,7 +194,9 @@ function contestInputs({ offense, defense, denominator, pvpMode, offenseName, de
     displayInputs: {
       [offenseName]: fixed.format(attack),
       [defenseName]: fixed.format(resist),
+      rawDifference: fixed.format(rawDifference),
       effectiveDifference: fixed.format(difference),
+      capApplied: difference !== rawDifference,
       denominator: fixed.format(k),
       pvpMode: pvpMode ?? null,
     },

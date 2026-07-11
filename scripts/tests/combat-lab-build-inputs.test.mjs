@@ -11,11 +11,11 @@ test("attack type follows the attacking build's main weapon", () => {
   assert.deepEqual(inferBuildAttackType({ equipment: { off_hand: { itemId: "wand1" } } }, resolveItemType), { attackType: "magic", weaponType: "wand", slotId: "off_hand" });
 });
 
-test("matchup inputs use one visible stat and never add PvP projections", () => {
-  const source = { stats: { magic_accuracy: 23048, magic_critical_attack: 67104, magic_double_attack: 31256, skill_power_amplification: 8770, pvp_magic_accuracy: 99999 } };
-  const target = { stats: { magic_evasion: 4280, magic_critical_defense: 30600, magic_double_defense: 43400, skill_power_resistance: 9770, pvp_magic_critical_defense: 39230 } };
+test("matchup inputs use complete typed PvP totals without adding base stats", () => {
+  const source = { stats: { magic_accuracy: 13880, magic_critical_attack: 40430, magic_double_attack: 23840, skill_power_amplification: 8770, pvp_magic_accuracy: 23048, pvp_magic_critical_attack: 67104, pvp_magic_double_attack: 34968 } };
+  const target = { stats: { magic_evasion: 680, magic_critical_defense: 27810, magic_double_defense: 25790, skill_power_resistance: 8610, pvp_magic_evasion: 680, pvp_magic_critical_defense: 35010, pvp_magic_double_defense: 29330 } };
   const calls = [];
   const result = resolveVisibleMatchupInputs({ sourceSnapshot: source, targetSnapshot: target, attackType: "magic", readStat: (snapshot, id) => { calls.push(id); return snapshot.stats[id] ?? 0; } });
-  assert.deepEqual(result, { hit:2305, evasion:428, criticalHit:6710, endurance:3060, heavyAttackChance:3126, heavyAttackEvasion:4340, skillDamageBoost:877, skillDamageResistance:977 });
-  assert.ok(calls.every((id) => !id.startsWith("pvp_")));
+  assert.deepEqual(result, { hit:2304.8, evasion:68, criticalHit:6710.4, endurance:3501, heavyAttackChance:3496.8, heavyAttackEvasion:2933, skillDamageBoost:877, skillDamageResistance:861 });
+  assert.deepEqual(calls.filter((id) => id.includes("accuracy") || id.includes("critical") || id.includes("double")), ["pvp_magic_accuracy","pvp_magic_critical_attack","pvp_magic_critical_defense","pvp_magic_double_attack","pvp_magic_double_defense"]);
 });

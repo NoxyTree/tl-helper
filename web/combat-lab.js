@@ -456,15 +456,21 @@ function renderMatchup() {
   ui["matchup-title"].textContent = `${title(result.pvpMode)} PvP · ${title(result.attackType)}`;
   const source = selectedBuild(ui["source-build"].value);
   const target = selectedBuild(ui["target-build"].value);
+  const typeLabel = title(result.attackType);
   ui["matchup-context"].textContent = `${source?.label ?? "Your build"}: ${ui["pvp-hit"].value} Hit, ${ui["pvp-critical"].value} Critical, ${ui["pvp-heavy"].value} Heavy, ${ui["pvp-sdb"].value} SDB · ${target?.label ?? "Manual opponent"}: ${ui["pvp-evasion"].value} Evasion, ${ui["pvp-endurance"].value} Endurance, ${ui["pvp-heavy-evasion"].value} Heavy Evasion, ${ui["pvp-sdr"].value} SDR`;
   const rows = [
-    ["Hit", percent(result.hitChance), `Miss ${percent(result.missChance)}`],
-    ["Critical", percent(result.criticalChance), `Glance ${percent(result.glanceChance)}`],
-    ["Heavy", percent(result.heavyChance), "Official mode cap applied"],
+    [`${typeLabel} Hit`, percent(result.hitChance), contestNote(result.operations.hit, ui["pvp-hit"].value, ui["pvp-evasion"].value, "Hit", "Evasion")],
+    [`${typeLabel} Critical`, percent(result.criticalChance), `${contestNote(result.operations.critical, ui["pvp-critical"].value, ui["pvp-endurance"].value, "Critical", "Endurance")}; Glance ${percent(result.glanceChance)}`],
+    [`${typeLabel} Heavy`, percent(result.heavyChance), contestNote(result.operations.heavy, ui["pvp-heavy"].value, ui["pvp-heavy-evasion"].value, "Heavy", "Heavy Evasion")],
     ["SDB/SDR", `${Number(result.skillDamageMultiplier).toFixed(3)}×`, "Signed difference model"],
   ];
   ui["matchup-results"].innerHTML = rows.map(([label,value,note], index) => `<div style="--meter:${matchupMeter(result,index)}"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><span>${escapeHtml(note)}</span></div>`).join("");
   ui["matchup-note"].textContent = "Hit uses the established one-sided Evasion rule. Heavy and glancing remain evidence-scoped models. Final damage, block, Defense, modifier order, and rounding are not applied here.";
+}
+
+function contestNote(operation, offense, defense, offenseLabel, defenseLabel) {
+  const cap = operation?.inputs?.capApplied ? `; capped to ${operation.inputs.effectiveDifference}` : "";
+  return `${offense} ${offenseLabel} vs ${defense} ${defenseLabel}${cap}`;
 }
 
 function matchupMeter(result, index) {

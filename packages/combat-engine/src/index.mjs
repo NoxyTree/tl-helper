@@ -50,6 +50,8 @@ export { runSimulation, serializeSimulation } from "./simulation.mjs";
 export {
   PVP_MODEL_VERSION,
   PVP_HEAVY_DIFFERENCE_CAPS,
+  PVP_HIT_DIFFERENCE_CAPS,
+  PVP_CRITICAL_DIFFERENCE_CAPS,
   PVP_CONTEST_DIFFERENCE_CAPS,
   modelHitChance,
   modelCriticalContest,

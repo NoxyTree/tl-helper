@@ -24,6 +24,25 @@ test("Hit chance is 100 percent until Evasion exceeds Hit", () => {
   assert.equal(disadvantaged.missChance, "0.333333");
 });
 
+test("Hit and Critical use their distinct official cap directions in every mode", () => {
+  const expectations = {
+    general: { hitNegative: "-4500", criticalPositive: "4500", criticalNegative: "-3000" },
+    battleground: { hitNegative: "-3000", criticalPositive: "3000", criticalNegative: "-2000" },
+    arena: { hitNegative: "-2250", criticalPositive: "2250", criticalNegative: "-1500" },
+  };
+  for (const [pvpMode, expected] of Object.entries(expectations)) {
+    const hit = modelHitChance({ hit: "0", evasion: "10000", pvpMode });
+    const critical = modelCriticalContest({ criticalHit: "10000", endurance: "0", pvpMode });
+    const glance = modelCriticalContest({ criticalHit: "0", endurance: "10000", pvpMode });
+    assert.equal(hit.inputs.effectiveDifference, expected.hitNegative);
+    assert.equal(critical.inputs.effectiveDifference, expected.criticalPositive);
+    assert.equal(glance.inputs.effectiveDifference, expected.criticalNegative);
+    assert.equal(hit.inputs.capApplied, true);
+    assert.equal(critical.inputs.capApplied, true);
+    assert.equal(glance.inputs.capApplied, true);
+  }
+});
+
 test("Critical and glance are mutually exclusive sides of the contest", () => {
   assert.deepEqual(
     (({ criticalChance, glanceChance, normalRollChance }) => ({ criticalChance, glanceChance, normalRollChance }))(modelCriticalContest({ criticalHit: "1500", endurance: "500" })),
