@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./combat-lab.css?v=24118850-8">
+  <link rel="stylesheet" href="./combat-lab.css?v=24118850-9">
 </head>
 <body data-combat-view="ability">
   <header class="topbar">
@@ -88,20 +88,18 @@
           <div class="fighter-label"><span>Your build</span><strong id="source-fighter-name">Local build</strong></div>
           <div class="questlog-import"><input id="source-questlog-url" type="url" placeholder="Paste Questlog character-builder link" aria-label="Your Questlog build URL"><button id="source-questlog-import" type="button">Import</button></div>
           <p id="source-import-error" class="import-error hidden"></p>
-          <label class="character-stage player-stage" id="player-image-drop"><input id="player-image-input" type="file" accept="image/*"><img id="source-character-image" alt="" hidden><span class="portrait-prompt"><b>＋</b><strong>Add your character</strong><small>Drop or choose a screenshot</small></span></label>
-          <div class="fighter-portrait"><div><strong id="source-fighter-weapons">Build weapons</strong><span id="source-fighter-cp">Combat Power</span></div></div>
+          <div class="character-loadout"><div id="source-gear-left" class="gear-column"></div><label class="character-stage player-stage" id="player-image-drop"><input id="player-image-input" type="file" accept="image/*"><img id="source-character-image" alt="" hidden><span class="portrait-prompt"><b>＋</b><strong>Add your character</strong><small>Drop or choose a screenshot</small></span><span class="portrait-identity"><strong id="source-portrait-name">Your character</strong><small id="source-portrait-weapons">Build weapons</small></span></label><div id="source-gear-right" class="gear-column"></div></div>
           <div id="source-weapons" class="weapon-strips"></div>
-          <details class="equipment-disclosure"><summary>View equipment</summary><div id="source-gear" class="gear-grid"></div></details>
+          <div id="source-combat-stats" class="fighter-stat-strip"></div><div id="source-artifacts" class="fighter-artifacts"></div>
         </article>
         <button id="swap-builds" class="versus-mark" type="button" aria-label="Swap builds"><span>VS</span><small>Swap</small></button>
         <article class="fighter-card enemy-card">
           <div class="fighter-label"><span>Opponent</span><strong id="target-fighter-name">Choose a build</strong></div>
           <div class="questlog-import"><input id="target-questlog-url" type="url" placeholder="Paste Questlog character-builder link" aria-label="Opponent Questlog build URL"><button id="target-questlog-import" type="button">Import</button></div>
           <p id="target-import-error" class="import-error hidden"></p>
-          <div class="character-stage enemy-stage"><img src="./assets/portraits/shadow-opponent.webp" alt="Mysterious shadow opponent"><span class="enemy-caption">Unknown challenger</span></div>
-          <div class="fighter-portrait"><div><strong id="target-fighter-weapons">Opponent weapons</strong><span id="target-fighter-cp">Combat Power</span></div></div>
+          <div class="character-loadout"><div id="target-gear-left" class="gear-column"></div><div class="character-stage enemy-stage"><img src="./assets/portraits/shadow-opponent.webp" alt="Mysterious shadow opponent"><span class="portrait-identity"><strong id="target-portrait-name">Unknown challenger</strong><small id="target-portrait-weapons">Opponent weapons</small></span></div><div id="target-gear-right" class="gear-column"></div></div>
           <div id="target-weapons" class="weapon-strips"></div>
-          <details class="equipment-disclosure"><summary>View equipment</summary><div id="target-gear" class="gear-grid"></div></details>
+          <div id="target-combat-stats" class="fighter-stat-strip"></div><div id="target-artifacts" class="fighter-artifacts"></div>
         </article>
       </div>
       <div class="workspace">
@@ -116,6 +114,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="./combat-lab.js?v=24118850-8"></script>
+  <script type="module" src="./combat-lab.js?v=24118850-10"></script>
 </body>
 </html>

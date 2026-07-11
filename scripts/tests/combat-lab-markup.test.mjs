@@ -26,8 +26,12 @@ test("Combat Lab control IDs are unique", () => {
 test("PvP Matchup provides two Questlog imports and visible fighter cards", () => {
   assert.match(html, /id="source-questlog-url"/);
   assert.match(html, /id="target-questlog-url"/);
-  assert.match(html, /id="source-gear"/);
-  assert.match(html, /id="target-gear"/);
+  assert.match(html, /id="source-gear-left"/);
+  assert.match(html, /id="source-gear-right"/);
+  assert.match(html, /id="target-gear-left"/);
+  assert.match(html, /id="target-gear-right"/);
+  assert.match(html, /id="source-combat-stats"/);
+  assert.match(html, /id="target-artifacts"/);
   assert.match(html, /id="swap-builds"/);
   assert.match(html, /id="player-image-input"[^>]*accept="image\/\*"/);
   assert.match(html, /assets\/portraits\/shadow-opponent\.webp/);

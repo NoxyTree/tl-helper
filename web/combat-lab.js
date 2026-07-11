@@ -1,4 +1,4 @@
-import { EQUIPMENT_SLOTS, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
+import { ARTIFACT_SLOTS, EQUIPMENT_SLOTS, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
 import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
 import { inferBuildAttackType, resolveVisibleMatchupInputs } from "./combat-lab-build-inputs.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
@@ -239,10 +239,14 @@ function renderFighter(side, candidate) {
   const snapshot = candidate?.snapshot;
   ui[`${side}-fighter-name`].textContent = candidate?.label ?? (side === "source" ? "Choose your build" : "Choose an opponent");
   const weaponItems = ["main_hand", "off_hand"].map((slotId) => itemFor(build, slotId)).filter(({ item }) => item);
-  ui[`${side}-fighter-weapons`].textContent = weaponItems.map(({ item }) => title(item.equipmentType ?? item.mainCategory ?? "Weapon")).join(" / ") || "No weapons resolved";
-  ui[`${side}-fighter-cp`].textContent = snapshot ? `Combat Power ${formatNumber(snapshot.resolved.combatPower)}` : "Import or select a build";
+  const weaponPair = weaponItems.map(({ item }) => title(item.equipmentType ?? item.mainCategory ?? "Weapon")).join(" / ") || "No weapons resolved";
+  byId(`${side}-portrait-name`).textContent = candidate?.profile?.name ?? candidate?.state?.build?.name ?? candidate?.label ?? (side === "source" ? "Your character" : "Unknown challenger");
+  byId(`${side}-portrait-weapons`).textContent = weaponPair;
   ui[`${side}-weapons`].innerHTML = weaponItems.map(renderWeaponStrip).join("") || '<p class="field-note">No weapon data.</p>';
-  ui[`${side}-gear`].innerHTML = EQUIPMENT_SLOTS.filter(({ id }) => !["main_hand", "off_hand"].includes(id)).map((slot) => renderGearSlot(slot, itemFor(build, slot.id))).join("");
+  byId(`${side}-gear-left`).innerHTML = ["head","chest","hands","legs","feet","cloak"].map((id) => renderGearNode(EQUIPMENT_SLOTS.find((slot) => slot.id === id), itemFor(build, id))).join("");
+  byId(`${side}-gear-right`).innerHTML = ["necklace","bracelet","belt","ring_1","ring_2","brooch","earring"].map((id) => renderGearNode(EQUIPMENT_SLOTS.find((slot) => slot.id === id), itemFor(build, id))).join("");
+  byId(`${side}-combat-stats`).innerHTML = renderCombatStatStrip(snapshot);
+  byId(`${side}-artifacts`).innerHTML = renderArtifacts(build);
 }
 
 function itemFor(build, slotId) {
@@ -252,12 +256,34 @@ function itemFor(build, slotId) {
 
 function renderWeaponStrip({ slotId, selection, item }) {
   const icon = itemIcon(item);
-  return `<div class="weapon-strip">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span class="gear-placeholder"></span>'}<div><span>${slotId === "main_hand" ? "Main weapon" : "Off weapon"}</span><strong>${escapeHtml(item.name ?? selection.itemId)}</strong></div><b>Lv.${escapeHtml(selection.level ?? "?")}</b></div>`;
+  return `<div class="weapon-strip ${slotId === "main_hand" ? "main-weapon" : "off-weapon"}">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span class="gear-placeholder"></span>'}<div><span>${slotId === "main_hand" ? "Main weapon" : "Off weapon"}</span><strong>${escapeHtml(item.name ?? selection.itemId)}</strong><small>${escapeHtml(title(item.equipmentType ?? "Weapon"))}</small></div><b>Lv.${escapeHtml(selection.level ?? "?")}</b></div>`;
 }
 
-function renderGearSlot(slot, { selection, item }) {
+function renderGearNode(slot, { selection, item }) {
   const icon = itemIcon(item);
-  return `<div class="gear-slot" title="${escapeHtml(item?.name ?? `Empty ${slot.label}`)}">${selection?.level ? `<span class="level">${escapeHtml(selection.level)}</span>` : ""}${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span class="gear-placeholder"></span>'}<small>${escapeHtml(slot.label)}</small></div>`;
+  return `<div class="gear-node" title="${escapeHtml(item?.name ?? `Empty ${slot.label}`)}"><span class="gear-orb">${selection?.level ? `<span class="level">${escapeHtml(selection.level)}</span>` : ""}${icon ? `<img src="${escapeHtml(icon)}" alt="">` : '<span class="gear-placeholder"></span>'}</span><small>${escapeHtml(slot.label)}</small></div>`;
+}
+
+function renderCombatStatStrip(snapshot) {
+  const value = (id) => snapshot ? snapshotStat(snapshot, id) : 0;
+  const minimum = value("attack_power_main_hand_min");
+  const maximum = value("attack_power_main_hand_max");
+  const cells = [
+    ["Base damage", snapshot ? `${formatNumber(minimum)}–${formatNumber(maximum)}` : "Unavailable"],
+    ["Attack speed", snapshot ? `${(value("attack_speed_main_hand") / 1000).toFixed(2)}s` : "Unavailable"],
+    ["Range", snapshot ? `${(value("attack_range_main_hand") / 100).toFixed(2)}m` : "Unavailable"],
+  ];
+  return cells.map(([label, result]) => `<div><small>${label}</small><strong>${result}</strong></div>`).join("");
+}
+
+function renderArtifacts(build) {
+  const icons = ARTIFACT_SLOTS.map((slot) => {
+    const selection = build?.artifacts?.[slot.id];
+    const item = indexes.itemById?.[selection?.itemId];
+    const icon = itemIcon(item);
+    return `<span class="artifact-orb" title="${escapeHtml(item?.name ?? `Empty ${slot.label}`)}">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : ""}</span>`;
+  }).join("");
+  return `<small>Artifacts</small><div class="artifact-icons">${icons}</div>`;
 }
 
 function itemIcon(item) {
