@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Combat Lab | TL Helper</title>
+  <title>Combat Calculator | TL Helper</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,123 +11,87 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="./index.html"><span class="sigil">T</span><span><b>TL HELPER</b><small>Combat Lab</small></span></a>
-    <nav aria-label="Primary navigation">
-      <a href="./index.html">Armory</a><a href="./tracker.html">Tracker</a><a href="./achievements.html">Achievements</a><span>Combat Lab</span>
-    </nav>
+    <a class="brand" href="./index.html"><span class="sigil">T</span><span><b>TL HELPER</b><small>Combat Calculator</small></span></a>
+    <nav aria-label="Primary navigation"><a href="./index.html">Armory</a><a href="./tracker.html">Tracker</a><a href="./achievements.html">Achievements</a><span>Combat Lab</span></nav>
     <div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div>
   </header>
 
   <main>
     <section class="hero">
-      <div><p class="eyebrow">Single-ability calculator</p><h1>Inspect what is known. See exactly what is not.</h1></div>
-      <p>This first lab projects verified client coefficients at both ends of a Base Damage interval. It does not assume a random roll or claim final damage, healing, or shield capacity.</p>
+      <div><p class="eyebrow">Combat calculator</p><h1>See what your build can do.</h1></div>
+      <p>Choose a build and get a useful answer immediately. Open the deeper evidence only when you want it.</p>
     </section>
-
     <div id="fatal-error" class="alert danger hidden" role="alert"></div>
 
-    <section class="workspace" aria-label="Combat Lab controls">
-      <div class="control-stack">
-        <article class="panel">
-          <div class="panel-heading"><span>01</span><div><p class="eyebrow">Combatants</p><h2>Build context</h2></div></div>
-          <label>Source build<select id="source-build"></select></label>
-          <div id="source-summary" class="build-summary"></div>
-          <label>Target build<select id="target-build"><option value="">No target selected</option></select></label>
-          <div id="target-summary" class="build-summary muted">Target defenses are context only.</div>
-          <div class="alert warning compact"><strong>Separate outputs.</strong> Evasion, Endurance, Heavy Evasion, and SDR affect the matchup summary below. They do not silently alter the ability coefficient projection.</div>
-        </article>
+    <div class="tool-tabs" role="tablist" aria-label="Combat tools">
+      <button id="ability-tab" class="tool-tab active" type="button" role="tab" aria-selected="true" data-view="ability">Ability Damage<span>Damage, healing, or shield range</span></button>
+      <button id="matchup-tab" class="tool-tab" type="button" role="tab" aria-selected="false" data-view="matchup">PvP Matchup<span>Hit, crit, Heavy, and SDB</span></button>
+    </div>
 
-        <article class="panel">
-          <div class="panel-heading"><span>P</span><div><p class="eyebrow">PvP matchup</p><h2>Visible stat contests</h2></div></div>
-          <div class="two-column">
-            <label>Mode<select id="pvp-mode"><option value="general">General PvP</option><option value="battleground">Battleground</option><option value="arena">Arena</option></select></label>
-            <label>Attack type<select id="attack-type"><option value="melee">Melee</option><option value="range">Ranged</option><option value="magic">Magic</option></select></label>
-          </div>
-          <div class="matchup-inputs">
-            <label>Source Hit<input id="pvp-hit" inputmode="decimal" value="0"></label>
-            <label>Target Evasion<input id="pvp-evasion" inputmode="decimal" value="0"></label>
-            <label>Source Critical<input id="pvp-critical" inputmode="decimal" value="0"></label>
-            <label>Target Endurance<input id="pvp-endurance" inputmode="decimal" value="0"></label>
-            <label>Source Heavy Chance<input id="pvp-heavy" inputmode="decimal" value="0"></label>
-            <label>Target Heavy Evasion<input id="pvp-heavy-evasion" inputmode="decimal" value="0"></label>
-            <label>Source SDB<input id="pvp-sdb" inputmode="decimal" value="0"></label>
-            <label>Target SDR<input id="pvp-sdr" inputmode="decimal" value="0"></label>
-          </div>
-          <p class="field-note">Saved builds prefill these values. You can edit any field for opponent scouting or sensitivity checks.</p>
-        </article>
+    <section class="build-picker panel" aria-label="Build selection">
+      <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2>Choose your builds</h2></div></div>
+      <label>Your build<select id="source-build"></select></label>
+      <label>Opponent build <span class="optional">optional</span><select id="target-build"><option value="">No opponent selected</option></select></label>
+      <details class="build-details"><summary>Show build details</summary><div class="summary-grid"><div id="source-summary" class="build-summary"></div><div id="target-summary" class="build-summary muted">No opponent selected.</div></div></details>
+    </section>
 
-        <article class="panel">
-          <div class="panel-heading"><span>02</span><div><p class="eyebrow">Ability</p><h2>Reviewed formula</h2></div></div>
-          <label>Ability<select id="ability"></select></label>
-          <label>Component<select id="component"></select></label>
-          <p class="field-note">A component is one hit or effect, not a whole-ability total. A conditional follow-up is never added unless its aggregation rule is explicitly supported.</p>
-          <label id="cast-field" class="hidden">Swift Healing cast<select id="cast"><option value="first">First cast</option><option value="second">Second consecutive cast</option></select></label>
-          <div class="two-column">
-            <label>Rarity mapping<select id="tier"></select></label>
-            <label>Displayed level<select id="level"></select></label>
-          </div>
-          <p id="level-note" class="field-note"></p>
-          <label>Forced outcome<select id="outcome"></select></label>
-          <p id="outcome-note" class="field-note"></p>
-        </article>
+    <section id="ability-view" class="calculator-view active" aria-labelledby="ability-tab">
+      <div class="workspace">
+        <div class="control-stack">
+          <article class="panel quick-panel">
+            <div class="panel-heading"><span>2</span><div><p class="eyebrow">Ability</p><h2>What are you using?</h2></div></div>
+            <div class="ability-preview"><img id="ability-icon" alt=""><div><strong id="ability-name">Judgment Lightning</strong><span id="ability-kind">Staff · Raw damage per hit</span></div></div>
+            <label>Ability<select id="ability"></select></label>
+            <div class="two-column"><label>Ability rarity<select id="tier"></select></label><label>Ability level<select id="level"></select></label></div>
+            <p id="level-note" class="field-note"></p>
+            <div class="calculation-note"><strong>Automatic input</strong><span>Your equipped weapon’s Base Damage is used by default.</span></div>
+          </article>
 
-        <article class="panel">
-          <div class="panel-heading"><span>03</span><div><p class="eyebrow">Input</p><h2>Base Damage interval</h2></div></div>
-          <label>Prefill from<select id="damage-source"><option value="main">Source main hand</option><option value="off">Source off hand</option><option value="manual">Manual values</option></select></label>
-          <div class="two-column">
-            <label>Minimum<input id="damage-min" inputmode="decimal" value="100"></label>
-            <label>Maximum<input id="damage-max" inputmode="decimal" value="120"></label>
-          </div>
-          <p class="field-note">These are caller-selected inputs. Saved-build values already include equipped Stellarite, so it is never applied a second time. The game’s per-cast selection and live rounding order are still being calibrated.</p>
-        </article>
+          <details class="panel advanced-panel">
+            <summary>Advanced calculation options</summary>
+            <div class="advanced-content">
+              <label>Ability component<select id="component"></select></label>
+              <p class="field-note">One component is one hit or effect. Conditional follow-ups are not silently added.</p>
+              <label id="cast-field" class="hidden">Swift Healing cast<select id="cast"><option value="first">First cast</option><option value="second">Second consecutive cast</option></select></label>
+              <label>Outcome preview<select id="outcome"></select></label><p id="outcome-note" class="field-note"></p>
+              <label>Base Damage source<select id="damage-source"><option value="main">Main-hand weapon</option><option value="off">Off-hand weapon</option><option value="manual">Manual values</option></select></label>
+              <div class="two-column"><label>Minimum<input id="damage-min" inputmode="decimal" value="100"></label><label>Maximum<input id="damage-max" inputmode="decimal" value="120"></label></div>
+              <p class="field-note">Saved-build values already include Stellarite. The live roll and rounding order are not invented.</p>
+              <div id="healing-inputs" class="hidden">
+                <div class="two-column"><label>Source Healing (%)<input id="healing" inputmode="decimal" value="0"></label><label>Target Healing Received (%)<input id="healing-received" inputmode="decimal" value="0"></label></div>
+                <label>Source Skill Damage Boost<input id="skill-damage-boost" inputmode="decimal" value="0"></label>
+                <label class="modeled-opt-in"><input id="allow-modeled" type="checkbox"><span>Allow explicitly modeled healing stages</span></label>
+                <p id="modeled-note" class="field-note">Off by default. Modeled stages are never silently applied.</p>
+              </div>
+            </div>
+          </details>
+        </div>
 
-        <article id="healing-inputs" class="panel hidden">
-          <div class="panel-heading"><span>04</span><div><p class="eyebrow">Healing Resolver v1</p><h2>Healing context</h2></div></div>
-          <p class="field-note">Build values are prefilled when available and remain editable for calibration. Healing belongs to the source. Healing Received belongs to the target.</p>
-          <div class="two-column">
-            <label>Source Healing (%)<input id="healing" inputmode="decimal" value="0"></label>
-            <label>Target Healing Received (%)<input id="healing-received" inputmode="decimal" value="0"></label>
-          </div>
-          <label>Source Skill Damage Boost<input id="skill-damage-boost" inputmode="decimal" value="0"></label>
-          <label class="modeled-opt-in"><input id="allow-modeled" type="checkbox"><span>Allow explicitly modeled stages</span></label>
-          <p id="modeled-note" class="field-note">Off by default. Community-modeled Skill Damage Boost and unresolved stages are never silently applied.</p>
-        </article>
+        <div class="result-stack">
+          <article class="result-card hero-result">
+            <div class="result-head"><div><p class="eyebrow">Your result</p><h2 id="result-title">Raw damage per hit</h2></div><span id="overall-badge" class="badge unsupported">Before defense</span></div>
+            <p class="result-label">Raw range before target Defense and combat modifiers</p>
+            <div id="result-range" class="range">Waiting for data</div><div id="expression" class="expression"></div>
+            <div id="healing-results" class="healing-results hidden"><div><small>Minimum</small><strong id="result-minimum">Unsupported</strong></div><div><small>Maximum</small><strong id="result-maximum">Unsupported</strong></div><div><small>Expected</small><strong id="result-expected">Unsupported</strong></div><div><small>Total applications</small><strong id="total-applications">Unsupported</strong></div></div>
+            <div id="precision-grid" class="precision-grid"></div>
+          </article>
+          <details class="panel limit-panel"><summary>Known limits</summary><div id="warnings" class="warning-list"></div></details>
+          <details class="panel"><summary>How was this calculated?</summary><div id="trace"></div></details>
+          <details class="panel"><summary>Where did the formula come from?</summary><div id="provenance" class="provenance"></div></details>
+        </div>
       </div>
+    </section>
 
-      <div class="result-stack">
-        <article class="result-card matchup-card">
-          <div class="result-head"><div><p class="eyebrow">PvP matchup summary</p><h2 id="matchup-title">General PvP · Melee</h2></div><span class="badge modeled">Evidence-scoped</span></div>
-          <div id="matchup-results" class="matchup-results"></div>
-          <p id="matchup-note" class="field-note"></p>
-        </article>
-
-        <article class="result-card">
-          <div class="result-head"><div><p class="eyebrow">Pre-resolution output</p><h2 id="result-title">Coefficient projection</h2></div><span id="overall-badge" class="badge unsupported">Unsupported final outcome</span></div>
-          <div id="result-range" class="range">Waiting for data</div>
-          <div id="expression" class="expression"></div>
-          <div id="healing-results" class="healing-results hidden">
-            <div><small>Minimum</small><strong id="result-minimum">Unsupported</strong></div>
-            <div><small>Maximum</small><strong id="result-maximum">Unsupported</strong></div>
-            <div><small>Expected</small><strong id="result-expected">Unsupported</strong></div>
-            <div><small>Total applications</small><strong id="total-applications">Unsupported</strong></div>
-          </div>
-          <div id="precision-grid" class="precision-grid"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-heading"><span>!</span><div><p class="eyebrow">Safety boundary</p><h2>Unsupported stages</h2></div></div>
-          <div id="warnings" class="warning-list"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-heading"><span>05</span><div><p class="eyebrow">Audit trail</p><h2>Full calculation trace</h2></div></div>
-          <div id="trace"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-heading"><span>06</span><div><p class="eyebrow">Provenance</p><h2>Where this came from</h2></div></div>
-          <div id="provenance" class="provenance"></div>
-        </article>
+    <section id="matchup-view" class="calculator-view" aria-labelledby="matchup-tab">
+      <div class="workspace">
+        <div class="control-stack">
+          <article class="panel quick-panel"><div class="panel-heading"><span>2</span><div><p class="eyebrow">Matchup</p><h2>Choose the fight</h2></div></div><div class="two-column"><label>Mode<select id="pvp-mode"><option value="general">General PvP</option><option value="battleground">Battleground</option><option value="arena">Arena</option></select></label><label>Attack type<select id="attack-type"><option value="melee">Melee</option><option value="range">Ranged</option><option value="magic">Magic</option></select></label></div><p class="field-note">Your selected builds automatically fill the relevant visible stats.</p></article>
+          <details class="panel advanced-panel"><summary>Edit matchup stats</summary><div class="matchup-inputs advanced-content"><label>Your Hit<input id="pvp-hit" inputmode="decimal" value="0"></label><label>Opponent Evasion<input id="pvp-evasion" inputmode="decimal" value="0"></label><label>Your Critical<input id="pvp-critical" inputmode="decimal" value="0"></label><label>Opponent Endurance<input id="pvp-endurance" inputmode="decimal" value="0"></label><label>Your Heavy Chance<input id="pvp-heavy" inputmode="decimal" value="0"></label><label>Opponent Heavy Evasion<input id="pvp-heavy-evasion" inputmode="decimal" value="0"></label><label>Your SDB<input id="pvp-sdb" inputmode="decimal" value="0"></label><label>Opponent SDR<input id="pvp-sdr" inputmode="decimal" value="0"></label></div><p class="field-note">Edit any value to scout another opponent or test a possible upgrade.</p></details>
+        </div>
+        <div class="result-stack">
+          <article class="result-card matchup-card"><div class="result-head"><div><p class="eyebrow">Matchup summary</p><h2 id="matchup-title">General PvP · Melee</h2></div><span class="badge modeled">Evidence-scoped</span></div><div id="matchup-results" class="matchup-results"></div><p id="matchup-note" class="field-note"></p></article>
+          <article class="panel next-step-card"><p class="eyebrow">How to use this</p><h2>Find the stat that changes the fight.</h2><p>Adjust one value and the result updates instantly. Compare a gear swap without pretending every server-only damage stage is known.</p></article>
+        </div>
       </div>
     </section>
   </main>

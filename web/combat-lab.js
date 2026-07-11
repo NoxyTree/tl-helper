@@ -15,8 +15,13 @@ import {
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
 const state = { data: null, builds: [] };
+const ABILITY_ART = Object.freeze({
+  "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
+  "swift-healing": "./assets/icons/Game/Image/Skill/Active/S_WP_WA_GR_S_Heal_AA.webp",
+  "distortion-veil": "./assets/icons/Game/Image/Skill/Active/S_WP_ORB_Active_Shield.webp",
+});
 
 boot().catch(showFatal);
 
@@ -85,6 +90,7 @@ function populateStaticOptions() {
 }
 
 function bindEvents() {
+  for (const id of ["ability-tab", "matchup-tab"]) ui[id].addEventListener("click", () => selectView(ui[id].dataset.view));
   ui.ability.addEventListener("change", () => { populateComponents(); updateModeControls(); populateOutcomes(); updateBuildSummaries(); prefillHealing(); render(); });
   ui.component.addEventListener("change", () => { syncCastFromComponent(); render(); });
   ui.cast.addEventListener("change", () => { syncComponentFromCast(); render(); });
@@ -103,6 +109,15 @@ function bindEvents() {
   ui["healing-received"].addEventListener("input", render);
   ui["skill-damage-boost"].addEventListener("input", render);
   ui["allow-modeled"].addEventListener("change", render);
+}
+
+function selectView(view) {
+  for (const name of ["ability", "matchup"]) {
+    const active = name === view;
+    ui[`${name}-tab`].classList.toggle("active", active);
+    ui[`${name}-tab`].setAttribute("aria-selected", String(active));
+    ui[`${name}-view`].classList.toggle("active", active);
+  }
 }
 
 function selectedAbility() { return state.data.abilities.find((entry) => entry.id === ui.ability.value); }
@@ -125,7 +140,12 @@ function populateOutcomes() {
 }
 
 function updateModeControls() {
-  const healing = isHealingResolverAbility(selectedAbility());
+  const ability = selectedAbility();
+  const healing = isHealingResolverAbility(ability);
+  ui["ability-icon"].src = ABILITY_ART[ability?.id] ?? "";
+  ui["ability-icon"].alt = ability ? `${ability.name} icon` : "";
+  ui["ability-name"].textContent = ability?.name ?? "Select an ability";
+  ui["ability-kind"].textContent = ability?.id === "judgment-lightning" ? `${title(ability.weapon)} · Raw damage per hit` : `${title(ability?.weapon)} · ${title(ability?.kind ?? "Reviewed effect")}`;
   ui["cast-field"].classList.toggle("hidden", !healing);
   ui["healing-inputs"].classList.toggle("hidden", !healing);
   ui["healing-results"].classList.toggle("hidden", !healing);
@@ -233,10 +253,10 @@ function render() {
       ability: selectedAbility(), componentId: ui.component.value, globalLevel: mapping.globalSkillLevel,
       minimum: ui["damage-min"].value, maximum: ui["damage-max"].value, outcomeId: ui.outcome.value,
     });
-    ui["result-title"].textContent = `${result.abilityName} · ${title(result.componentId)} · global Lv.${result.globalLevel}`;
+    ui["result-title"].textContent = result.abilityName === "Judgment Lightning" ? "Judgment Lightning raw damage per hit" : `${result.abilityName} output`;
     ui["result-range"].textContent = result.supported ? `${result.result.minimum} – ${result.result.maximum}` : "No numeric result";
     ui.expression.textContent = result.expression ?? "Inspection only";
-    ui["overall-badge"].textContent = "Unsupported final outcome";
+    ui["overall-badge"].textContent = "Before defense";
     ui["overall-badge"].className = "badge unsupported";
     ui["outcome-note"].textContent = result.outcome.reason ?? "The selected outcome is not applied to the coefficient projection.";
     renderPrecision(result);
@@ -273,8 +293,13 @@ function renderMatchup() {
     ["Heavy", percent(result.heavyChance), "Official mode cap applied"],
     ["SDB/SDR", `${Number(result.skillDamageMultiplier).toFixed(3)}×`, "Signed difference model"],
   ];
-  ui["matchup-results"].innerHTML = rows.map(([label,value,note]) => `<div><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><span>${escapeHtml(note)}</span></div>`).join("");
+  ui["matchup-results"].innerHTML = rows.map(([label,value,note], index) => `<div style="--meter:${matchupMeter(result,index)}"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><span>${escapeHtml(note)}</span></div>`).join("");
   ui["matchup-note"].textContent = "Hit uses the established one-sided Evasion rule. Heavy and glancing remain evidence-scoped models. Final damage, block, Defense, modifier order, and rounding are not applied here.";
+}
+
+function matchupMeter(result, index) {
+  const values = [result.hitChance, result.criticalChance, result.heavyChance, Math.min(1, Math.max(0, Number(result.skillDamageMultiplier) - 0.5))];
+  return `${Math.max(3, Number(values[index]) * 100).toFixed(2)}%`;
 }
 
 function percent(value) { return `${(Number(value) * 100).toFixed(2)}%`; }
@@ -283,7 +308,7 @@ function renderHealing(result) {
   const supported = result.status === "modeled";
   const perApplication = result.modeledRange?.perApplication;
   const totalApplied = result.modeledRange?.totalApplied;
-  ui["result-title"].textContent = `${result.abilityName} · ${title(result.componentId)} · global Lv.${result.globalLevel}`;
+  ui["result-title"].textContent = `${result.abilityName} healing per application`;
   ui["result-range"].textContent = supported ? `${perApplication.minimum} – ${perApplication.maximum}` : "Modeled resolver disabled";
   ui.expression.textContent = supported ? "Per-application modeled projection interval before overheal" : "Enable modeled stages to calculate this projection interval.";
   ui["result-minimum"].textContent = supported ? perApplication.minimum : "Unsupported";
