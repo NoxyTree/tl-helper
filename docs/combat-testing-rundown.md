@@ -55,7 +55,7 @@ handles extraction, storage, comparison, and rejection of malformed evidence.
 | 2 | How does Cooldown Speed round? | Two visible cooldown timers for one skill, baseline and a large stat change | 3 casts per condition with timestamps | 5 per condition, including a decimal boundary | Fits duration candidates and reports any remaining rounding ambiguity |
 | 3 | How does Buff Duration round? | A simple self-buff timer, baseline and a large duration-stat change | 3 timer captures per condition | 5 per condition, including an expiry boundary | Compares duration models without conflating refreshes or recipient effects |
 | 4 | What is the defense mitigation curve? | Same unbuffed attack against two targets or two controlled defense values | 10 normal, non-Heavy, non-critical hits per value | 20 per value and a third defense point | Uses the logs, clusters repeated effects, and fits only curves supported by the data |
-| Later | Hit, critical, Heavy, and block chance contests | Ordinary detailed logs from known attacker and target stat states | No special session required if both stat panels are recorded | Large, varied samples with known opponent stats | Builds effect-aware samples; does not treat multi-hit rows as independent trials |
+| Later | Hit, critical, Heavy, and block chance contests | Controlled duel video with both stat panels and a visible single-hit action | 30 clearly reviewable independent attempts per stat point | 50 to 100 attempts per point when fitting a probability curve | Reviewed OCR/manual classification counts outcomes; detailed combat logs are unavailable in PvP |
 | Later | DoT/HoT tick alignment | A short recording with timestamps | One full application to expiry | Three repeats if timing differs | Extracts tick intervals and preserves a server-timing uncertainty label |
 
 ## What not to test now
@@ -75,6 +75,11 @@ basis, rarity mapping, or Heavy magnitude unless the game build changes.
 3. TL-Helper keeps raw evidence immutable, evaluates the relevant candidate
    models, and reports whether the capture was enough to upgrade a stage.
 4. A stage remains `unsupported` when the evidence cannot distinguish models.
+
+The game's detailed Combat Log is limited to supported PvE boss content and
+safe-zone Practice Dummies. It must not be assumed to record PvP. PvP contest
+testing therefore uses user-created duel recordings, visible stat panels, and
+reviewed outcome classification rather than the folder importer.
 
 The best next human input is therefore not a long testing session: it is one
 short Healing Received comparison with a large visible stat difference. Every
