@@ -106,10 +106,10 @@ The LLM explains and configures. It never performs authoritative combat arithmet
 - [04-data-and-calibration.md](04-data-and-calibration.md)
 - [05-ui-and-llm.md](05-ui-and-llm.md)
 - [06-implementation-roadmap.md](06-implementation-roadmap.md)
+- [community-calculator-audit-2026-07-11.md](community-calculator-audit-2026-07-11.md)
 - [IDEAS.md](IDEAS.md)
 - [CLAUDE-HANDOFF-AFTER-COLLECTOR.md](CLAUDE-HANDOFF-AFTER-COLLECTOR.md)
 
 ## Current dependency
 
 The collector and custom `TLJsonDataTable` investigation in `plans/upcoming-content-radar` should finish before combat-engine implementation begins. That work may unlock the authoritative skill, stat, abnormal-effect, attack-speed, and mitigation records required here.
-

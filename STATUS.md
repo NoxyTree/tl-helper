@@ -1,6 +1,6 @@
 # Project status: TL data platform
 
-Updated 2026-07-10 after Combat Simulator Milestones 0, 1, and 2. Current snapshot:
+Updated 2026-07-11 after Combat Simulator Milestones 0, 1, and 2. Current snapshot:
 game version `1.431.22.7761`, Steam build `24118850`, decoder `0.1.0`.
 
 TL-Helper now has a verified, one-command path from installed game archives to
@@ -43,6 +43,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
 | Real ability ingestion | 3 abilities, 5 reviewed components, 12 explicit unresolved stages | `D:\TL_Data\reports\24118850\combat-abilities.json` |
 | Calibration harness | 37 real observations: tooltip basis verified, Heavy Heal ×2 verified by HP deltas, Health Regen semantics identified, random Base Damage roll now in doubt | `plans/combat-simulator/calibration-findings-2026-07-10.md` |
+| Community calculator audit | Healing, Healing Received, Skill Damage Boost, Cooldown Speed, and Buff Duration assumptions classified without promoting community formulas to verified rules | `plans/combat-simulator/community-calculator-audit-2026-07-11.md` |
 | Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, complete fixed-point traces, and explicit unsupported outcome/mitigation boundaries | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
