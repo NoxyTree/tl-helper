@@ -49,9 +49,11 @@ export {
 export { runSimulation, serializeSimulation } from "./simulation.mjs";
 export {
   PVP_MODEL_VERSION,
+  PVP_HEAVY_DIFFERENCE_CAPS,
   modelSkillDamageMultiplier,
   modelDefenseMultiplier,
   modelCriticalDamageMultiplier,
   modelHeavyDamageMultiplier,
   modelGlanceChance,
+  modelHeavyAttackChance,
 } from "./pvp-models.mjs";

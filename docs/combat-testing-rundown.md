@@ -16,6 +16,7 @@ check. No step reads memory, captures packets, injects code, or automates play.
 | Tooltip basis and level mapping | Verified tooltip display encoding and Epic/Heroic five-level windows | Does not prove server resolution |
 | Heavy Attack magnitude evidence | Existing log pairs support normal resolved magnitude times `2.284` for the recorded build | Exact hidden precision and rounding remain open |
 | Successful shield-block magnitude | Current shield item data exposes `Shield Damage Reduction 40%`, so the base candidate retains 60% damage after a successful block | Block probability, penetration contest, modified block values, pipeline order, and rounding remain separate unresolved stages |
+| Heavy Chance versus Heavy Evasion model | Client data confirms paired `DoubleAttack`/`DoubleDefense` families for melee, ranged, magic, boss, and PvP; published testing supports subtracting Evasion before the common chance curve; official 3.28.0 caps are encoded separately for General, Battleground, and Arena | Curve and denominator remain medium-confidence; mode caps are exact official inputs; rounding remains unresolved |
 | Build planning and stat sources | Decoded items, skills, runes, attributes, sets, and provenance | Existing static-calculation scope only |
 
 ## Automatic collection during ordinary play
@@ -56,7 +57,7 @@ handles extraction, storage, comparison, and rejection of malformed evidence.
 | 2 | How does Cooldown Speed round? | Two visible cooldown timers for one skill, baseline and a large stat change | 3 casts per condition with timestamps | 5 per condition, including a decimal boundary | Fits duration candidates and reports any remaining rounding ambiguity |
 | 3 | How does Buff Duration round? | A simple self-buff timer, baseline and a large duration-stat change | 3 timer captures per condition | 5 per condition, including an expiry boundary | Compares duration models without conflating refreshes or recipient effects |
 | 4 | What is the defense mitigation curve? | Same unbuffed attack against two targets or two controlled defense values | 10 normal, non-Heavy, non-critical hits per value | 20 per value and a third defense point | Uses the logs, clusters repeated effects, and fits only curves supported by the data |
-| Later | Hit, critical, Heavy, and block chance contests | Controlled duel video with both stat panels and a visible single-hit action | 30 clearly reviewable independent attempts per stat point | 50 to 100 attempts per point when fitting a probability curve | Reviewed OCR/manual classification counts outcomes; detailed combat logs are unavailable in PvP |
+| Optional later | Hit, critical, Heavy, and block chance contests | Existing third-party footage is preferred; only use a new controlled duel video if exact current-patch promotion becomes essential | 30 clearly reviewable independent attempts per stat point | 50 to 100 attempts per point when fitting a probability curve | Reviewed OCR/manual classification counts outcomes; modeled product functionality does not require the user or guild to produce this evidence |
 | Later | DoT/HoT tick alignment | A short recording with timestamps | One full application to expiry | Three repeats if timing differs | Extracts tick intervals and preserves a server-timing uncertainty label |
 
 ## What not to test now
@@ -82,6 +83,8 @@ safe-zone Practice Dummies. It must not be assumed to record PvP. PvP contest
 testing therefore uses user-created duel recordings, visible stat panels, and
 reviewed outcome classification rather than the folder importer.
 
-The best next human input is therefore not a long testing session: it is one
-short Healing Received comparison with a large visible stat difference. Every
-other pending check can wait until it supports a feature you actually want.
+No PvP guild testing is required for the current product milestone. The Heavy
+contest ships only as an explicit medium-confidence model while automation
+continues to search third-party footage and decode client evidence. A short
+Healing Received comparison remains useful for healing work, but it is optional
+and unrelated to the PvP model.

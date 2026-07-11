@@ -4,6 +4,7 @@ import {
   modelCriticalDamageMultiplier,
   modelDefenseMultiplier,
   modelGlanceChance,
+  modelHeavyAttackChance,
   modelHeavyDamageMultiplier,
   modelSkillDamageMultiplier,
 } from "../../packages/combat-engine/src/index.mjs";
@@ -34,4 +35,20 @@ test("glancing is a positive Endurance difference probability", () => {
   assert.equal(glance.value, "0.5");
   assert.equal(glance.outcome, "select_minimum_base_damage");
   assert.equal(modelGlanceChance({ endurance: "500", criticalHit: "1500" }).value, "0");
+});
+
+test("Heavy Evasion subtracts before the modeled common curve", () => {
+  const result = modelHeavyAttackChance({ heavyAttackChance: "800", heavyAttackEvasion: "400" });
+  assert.equal(result.value, "0.285714");
+  assert.equal(result.confidence, "medium");
+  assert.equal(modelHeavyAttackChance({ heavyAttackChance: "400", heavyAttackEvasion: "800" }).value, "0");
+});
+
+test("Heavy contest caps are explicit caller inputs, never silently assumed", () => {
+  assert.equal(modelHeavyAttackChance({ heavyAttackChance: "5000", heavyAttackEvasion: "0" }).value, "0.833333");
+  assert.equal(modelHeavyAttackChance({ heavyAttackChance: "5000", heavyAttackEvasion: "0", differenceCap: "3000" }).value, "0.75");
+  const arena = modelHeavyAttackChance({ heavyAttackChance: "5000", heavyAttackEvasion: "0", pvpMode: "arena" });
+  assert.equal(arena.value, "0.692307");
+  assert.deepEqual(arena.exactStages, ["official_mode_specific_difference_cap"]);
+  assert.throws(() => modelHeavyAttackChance({ heavyAttackChance: "5000", heavyAttackEvasion: "0", pvpMode: "arena", differenceCap: "3000" }), /not both/);
 });

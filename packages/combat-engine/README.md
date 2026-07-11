@@ -74,7 +74,10 @@ is produced.
 damage pipeline. It exposes the signed Skill Damage Boost minus Skill Damage
 Resistance curve, a Defense curve with a required caller-supplied level
 constant, Critical and Heavy damage-resistance floors, and the symmetry-derived
-glancing chance. Every result is labeled `modeled`, names its evidence class,
+glancing chance. It also exposes Heavy Attack Chance minus Heavy Attack Evasion
+as a medium-confidence model: client tables verify the paired stat families,
+while the subtract-first curve comes from community testing. Its denominator
+and optional content cap remain explicit caller inputs. Every result is labeled `modeled`, names its evidence class,
 and lists unresolved denominators, ordering, and rounding. These operations are
 not composed automatically and are not exact final-damage claims.
 

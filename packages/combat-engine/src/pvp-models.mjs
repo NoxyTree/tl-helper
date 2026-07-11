@@ -1,6 +1,11 @@
 import { FixedPointContext, ROUNDING } from "./fixed-point.mjs";
 
 export const PVP_MODEL_VERSION = "community-model-2026-07-11.v1";
+export const PVP_HEAVY_DIFFERENCE_CAPS = Object.freeze({
+  general: Object.freeze({ positive: "4500", negative: "3000" }),
+  battleground: Object.freeze({ positive: "3000", negative: "2000" }),
+  arena: Object.freeze({ positive: "2250", negative: "1500" }),
+});
 
 /** Community-tested signed Skill Damage Boost minus Resistance curve. */
 export function modelSkillDamageMultiplier({ boost, resistance, denominator = "1000" } = {}) {
@@ -82,6 +87,41 @@ export function modelGlanceChance({ endurance, criticalHit, denominator = "1000"
     evidence: "community_corroborated_symmetry_inferred",
     outcome: "select_minimum_base_damage",
     unresolved: ["curve denominator", "glance and Heavy interaction", "server rounding"],
+  });
+}
+
+/**
+ * Heavy Attack Chance and Heavy Attack Evasion are client-confirmed paired
+ * stats. Their subtract-first common curve is community-tested but the current
+ * build's server denominator and content caps are not extracted.
+ */
+export function modelHeavyAttackChance({ heavyAttackChance, heavyAttackEvasion, denominator = "1000", pvpMode, differenceCap } = {}) {
+  const fixed = context();
+  const chance = nonNegative(fixed, heavyAttackChance, "heavyAttackChance");
+  const evasion = nonNegative(fixed, heavyAttackEvasion, "heavyAttackEvasion");
+  const k = positive(fixed, denominator, "denominator");
+  const rawDifference = chance > evasion ? chance - evasion : 0n;
+  if (pvpMode !== undefined && differenceCap !== undefined) throw new TypeError("Use pvpMode or differenceCap, not both.");
+  const officialCap = pvpMode === undefined ? null : PVP_HEAVY_DIFFERENCE_CAPS[pvpMode]?.positive;
+  if (pvpMode !== undefined && officialCap === undefined) throw new RangeError(`Unsupported PvP mode: ${pvpMode}`);
+  const selectedCap = differenceCap ?? officialCap;
+  const cap = selectedCap === undefined || selectedCap === null ? null : positive(fixed, selectedCap, "differenceCap");
+  const effectiveDifference = cap !== null && rawDifference > cap ? cap : rawDifference;
+  const probability = effectiveDifference === 0n ? 0n : fixed.divide(effectiveDifference, effectiveDifference + k);
+  return result(fixed, probability, {
+    operation: "positive_heavy_chance_minus_evasion_curve",
+    inputs: {
+      heavyAttackChance: fixed.format(chance),
+      heavyAttackEvasion: fixed.format(evasion),
+      denominator: fixed.format(k),
+      differenceCap: cap === null ? null : fixed.format(cap),
+      pvpMode: pvpMode ?? null,
+    },
+    evidence: "client_paired_stats_plus_community_tested_operation",
+    confidence: "medium",
+    zeroBranch: "heavyAttackChance <= heavyAttackEvasion",
+    exactStages: pvpMode === undefined ? [] : ["official_mode_specific_difference_cap"],
+    unresolved: ["current-build server denominator", "server rounding"],
   });
 }
 
