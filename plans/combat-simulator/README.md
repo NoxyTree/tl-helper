@@ -107,6 +107,7 @@ The LLM explains and configures. It never performs authoritative combat arithmet
 - [05-ui-and-llm.md](05-ui-and-llm.md)
 - [06-implementation-roadmap.md](06-implementation-roadmap.md)
 - [community-calculator-audit-2026-07-11.md](community-calculator-audit-2026-07-11.md)
+- [combat-log-findings-2026-07-11.md](combat-log-findings-2026-07-11.md)
 - [IDEAS.md](IDEAS.md)
 - [CLAUDE-HANDOFF-AFTER-COLLECTOR.md](CLAUDE-HANDOFF-AFTER-COLLECTOR.md)
 
