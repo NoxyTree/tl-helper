@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./combat-lab.css?v=24118850-6">
+  <link rel="stylesheet" href="./combat-lab.css?v=24118850-8">
 </head>
 <body data-combat-view="ability">
   <header class="topbar">
@@ -88,7 +88,8 @@
           <div class="fighter-label"><span>Your build</span><strong id="source-fighter-name">Local build</strong></div>
           <div class="questlog-import"><input id="source-questlog-url" type="url" placeholder="Paste Questlog character-builder link" aria-label="Your Questlog build URL"><button id="source-questlog-import" type="button">Import</button></div>
           <p id="source-import-error" class="import-error hidden"></p>
-          <div class="fighter-portrait"><div class="fighter-avatar player-avatar" aria-label="Player placeholder"></div><div><strong id="source-fighter-weapons">Build weapons</strong><span id="source-fighter-cp">Combat Power</span></div></div>
+          <label class="character-stage player-stage" id="player-image-drop"><input id="player-image-input" type="file" accept="image/*"><img id="source-character-image" alt="" hidden><span class="portrait-prompt"><b>＋</b><strong>Add your character</strong><small>Drop or choose a screenshot</small></span></label>
+          <div class="fighter-portrait"><div><strong id="source-fighter-weapons">Build weapons</strong><span id="source-fighter-cp">Combat Power</span></div></div>
           <div id="source-weapons" class="weapon-strips"></div>
           <details class="equipment-disclosure"><summary>View equipment</summary><div id="source-gear" class="gear-grid"></div></details>
         </article>
@@ -97,7 +98,8 @@
           <div class="fighter-label"><span>Opponent</span><strong id="target-fighter-name">Choose a build</strong></div>
           <div class="questlog-import"><input id="target-questlog-url" type="url" placeholder="Paste Questlog character-builder link" aria-label="Opponent Questlog build URL"><button id="target-questlog-import" type="button">Import</button></div>
           <p id="target-import-error" class="import-error hidden"></p>
-          <div class="fighter-portrait"><div class="fighter-avatar enemy-avatar" aria-label="Enemy placeholder"></div><div><strong id="target-fighter-weapons">Opponent weapons</strong><span id="target-fighter-cp">Combat Power</span></div></div>
+          <div class="character-stage enemy-stage"><img src="./assets/portraits/shadow-opponent.webp" alt="Mysterious shadow opponent"><span class="enemy-caption">Unknown challenger</span></div>
+          <div class="fighter-portrait"><div><strong id="target-fighter-weapons">Opponent weapons</strong><span id="target-fighter-cp">Combat Power</span></div></div>
           <div id="target-weapons" class="weapon-strips"></div>
           <details class="equipment-disclosure"><summary>View equipment</summary><div id="target-gear" class="gear-grid"></div></details>
         </article>
@@ -114,6 +116,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="./combat-lab.js?v=24118850-7"></script>
+  <script type="module" src="./combat-lab.js?v=24118850-8"></script>
 </body>
 </html>

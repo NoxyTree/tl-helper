@@ -40,6 +40,7 @@ async function boot() {
   populateBuilds();
   populateStaticOptions();
   bindEvents();
+  setupPortraitUpload();
   populateComponents();
   updateModeControls();
   populateLevels();
@@ -115,6 +116,25 @@ function bindEvents() {
   ui["healing-received"].addEventListener("input", render);
   ui["skill-damage-boost"].addEventListener("input", render);
   ui["allow-modeled"].addEventListener("change", render);
+}
+
+function setupPortraitUpload() {
+  const drop = byId("player-image-drop");
+  const input = byId("player-image-input");
+  const image = byId("source-character-image");
+  let objectUrl = "";
+  const applyFile = (file) => {
+    if (!file?.type?.startsWith("image/")) return;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(file);
+    image.src = objectUrl;
+    image.hidden = false;
+    drop.classList.add("has-image");
+  };
+  input.addEventListener("change", () => applyFile(input.files?.[0]));
+  for (const eventName of ["dragenter", "dragover"]) drop.addEventListener(eventName, (event) => { event.preventDefault(); drop.classList.add("dragging"); });
+  for (const eventName of ["dragleave", "drop"]) drop.addEventListener(eventName, (event) => { event.preventDefault(); drop.classList.remove("dragging"); });
+  drop.addEventListener("drop", (event) => applyFile(event.dataTransfer?.files?.[0]));
 }
 
 function selectView(view) {

@@ -29,4 +29,6 @@ test("PvP Matchup provides two Questlog imports and visible fighter cards", () =
   assert.match(html, /id="source-gear"/);
   assert.match(html, /id="target-gear"/);
   assert.match(html, /id="swap-builds"/);
+  assert.match(html, /id="player-image-input"[^>]*accept="image\/\*"/);
+  assert.match(html, /assets\/portraits\/shadow-opponent\.webp/);
 });
