@@ -15,6 +15,7 @@ check. No step reads memory, captures packets, injects code, or automates play.
 | Judgment Lightning component view | `ST_PowerAttack_DD` plus eight client-visible direct-damage effect variants | First and conditional second hit are distinct; no whole-ability total is claimed |
 | Tooltip basis and level mapping | Verified tooltip display encoding and Epic/Heroic five-level windows | Does not prove server resolution |
 | Heavy Attack magnitude evidence | Existing log pairs support normal resolved magnitude times `2.284` for the recorded build | Exact hidden precision and rounding remain open |
+| Successful shield-block magnitude | Current shield item data exposes `Shield Damage Reduction 40%`, so the base candidate retains 60% damage after a successful block | Block probability, penetration contest, modified block values, pipeline order, and rounding remain separate unresolved stages |
 | Build planning and stat sources | Decoded items, skills, runes, attributes, sets, and provenance | Existing static-calculation scope only |
 
 ## Automatic collection during ordinary play
