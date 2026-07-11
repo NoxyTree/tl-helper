@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./combat-lab.css?v=24118850-4">
+  <link rel="stylesheet" href="./combat-lab.css?v=24118850-5">
 </head>
 <body data-combat-view="ability">
   <header class="topbar">
@@ -71,9 +71,9 @@
           <article class="result-card hero-result">
             <div class="result-head"><div><p class="eyebrow">Your result</p><h2 id="result-title">Raw damage per hit</h2></div><span id="overall-badge" class="badge unsupported">Before defense</span></div>
             <p class="result-label">Raw range before target Defense and combat modifiers</p>
-            <div id="result-range" class="range">Waiting for data</div><div id="expression" class="expression"></div>
+            <div id="result-range" class="range">Waiting for data</div>
             <div id="healing-results" class="healing-results hidden"><div><small>Minimum</small><strong id="result-minimum">Unsupported</strong></div><div><small>Maximum</small><strong id="result-maximum">Unsupported</strong></div><div><small>Expected</small><strong id="result-expected">Unsupported</strong></div><div><small>Total applications</small><strong id="total-applications">Unsupported</strong></div></div>
-            <details class="result-evidence"><summary>Result confidence</summary><div id="precision-grid" class="precision-grid"></div></details>
+            <details class="result-evidence"><summary>Result confidence and formula</summary><div id="expression" class="expression"></div><div id="precision-grid" class="precision-grid"></div></details>
           </article>
           <details class="panel limit-panel"><summary>Known limits</summary><div id="warnings" class="warning-list"></div></details>
           <details class="panel"><summary>How was this calculated?</summary><div id="trace"></div></details>
@@ -114,6 +114,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="./combat-lab.js?v=24118850-4"></script>
+  <script type="module" src="./combat-lab.js?v=24118850-5"></script>
 </body>
 </html>

@@ -374,7 +374,8 @@ function render() {
       minimum: ui["damage-min"].value, maximum: ui["damage-max"].value, outcomeId: ui.outcome.value,
     });
     ui["result-title"].textContent = result.abilityName === "Judgment Lightning" ? "Judgment Lightning raw damage per hit" : `${result.abilityName} output`;
-    ui["result-range"].textContent = result.supported ? `${result.result.minimum} – ${result.result.maximum}` : "No numeric result";
+    if (result.supported) renderWholeNumberRange(result.result.minimum, result.result.maximum);
+    else ui["result-range"].textContent = "No numeric result";
     ui.expression.textContent = result.expression ?? "Inspection only";
     ui["overall-badge"].textContent = "Before defense";
     ui["overall-badge"].className = "badge unsupported";
@@ -427,12 +428,19 @@ function matchupMeter(result, index) {
 
 function percent(value) { return `${(Number(value) * 100).toFixed(2)}%`; }
 
+function renderWholeNumberRange(minimum, maximum) {
+  const format = (value) => Math.round(Number(value)).toLocaleString();
+  ui["result-range"].innerHTML = `<span class="range-bound"><small>Minimum</small><strong>${escapeHtml(format(minimum))}</strong></span><span class="range-divider" aria-hidden="true"><i></i><b>to</b><i></i></span><span class="range-bound"><small>Maximum</small><strong>${escapeHtml(format(maximum))}</strong></span>`;
+  ui["result-range"].setAttribute("aria-label", `Minimum ${format(minimum)}, maximum ${format(maximum)}`);
+}
+
 function renderHealing(result) {
   const supported = result.status === "modeled";
   const perApplication = result.modeledRange?.perApplication;
   const totalApplied = result.modeledRange?.totalApplied;
   ui["result-title"].textContent = `${result.abilityName} healing per application`;
-  ui["result-range"].textContent = supported ? `${perApplication.minimum} – ${perApplication.maximum}` : "Modeled resolver disabled";
+  if (supported) renderWholeNumberRange(perApplication.minimum, perApplication.maximum);
+  else ui["result-range"].textContent = "Modeled resolver disabled";
   ui.expression.textContent = supported ? "Per-application modeled projection interval before overheal" : "Enable modeled stages to calculate this projection interval.";
   ui["result-minimum"].textContent = supported ? perApplication.minimum : "Unsupported";
   ui["result-maximum"].textContent = supported ? perApplication.maximum : "Unsupported";
