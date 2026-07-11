@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./combat-lab.css">
 </head>
-<body>
+<body data-combat-view="ability">
   <header class="topbar">
     <a class="brand" href="./index.html"><span class="sigil">T</span><span><b>TL HELPER</b><small>Combat Calculator</small></span></a>
     <nav aria-label="Primary navigation"><a href="./index.html">Armory</a><a href="./tracker.html">Tracker</a><a href="./achievements.html">Achievements</a><span>Combat Lab</span></nav>
@@ -18,8 +18,8 @@
 
   <main>
     <section class="hero">
-      <div><p class="eyebrow">Combat calculator</p><h1>See what your build can do.</h1></div>
-      <p>Choose a build and get a useful answer immediately. Open the deeper evidence only when you want it.</p>
+      <div><p class="eyebrow">Combat Lab</p><h1>Combat Calculator</h1></div>
+      <p>Pick a build and ability. Your result updates immediately.</p>
     </section>
     <div id="fatal-error" class="alert danger hidden" role="alert"></div>
 
@@ -29,10 +29,10 @@
     </div>
 
     <section class="build-picker panel" aria-label="Build selection">
-      <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2>Choose your builds</h2></div></div>
+      <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2 id="build-picker-heading">Choose your build</h2></div></div>
       <label>Your build<select id="source-build"></select></label>
-      <label>Opponent build <span class="optional">optional</span><select id="target-build"><option value="">No opponent selected</option></select></label>
-      <details class="build-details"><summary>Show build details</summary><div class="summary-grid"><div id="source-summary" class="build-summary"></div><div id="target-summary" class="build-summary muted">No opponent selected.</div></div></details>
+      <label class="opponent-control">Opponent build <span class="optional">optional</span><select id="target-build"><option value="">No opponent selected</option></select></label>
+      <div id="source-summary" class="hidden"></div><div id="target-summary" class="hidden">No opponent selected.</div>
     </section>
 
     <section id="ability-view" class="calculator-view active" aria-labelledby="ability-tab">
@@ -73,7 +73,7 @@
             <p class="result-label">Raw range before target Defense and combat modifiers</p>
             <div id="result-range" class="range">Waiting for data</div><div id="expression" class="expression"></div>
             <div id="healing-results" class="healing-results hidden"><div><small>Minimum</small><strong id="result-minimum">Unsupported</strong></div><div><small>Maximum</small><strong id="result-maximum">Unsupported</strong></div><div><small>Expected</small><strong id="result-expected">Unsupported</strong></div><div><small>Total applications</small><strong id="total-applications">Unsupported</strong></div></div>
-            <div id="precision-grid" class="precision-grid"></div>
+            <details class="result-evidence"><summary>Result confidence</summary><div id="precision-grid" class="precision-grid"></div></details>
           </article>
           <details class="panel limit-panel"><summary>Known limits</summary><div id="warnings" class="warning-list"></div></details>
           <details class="panel"><summary>How was this calculated?</summary><div id="trace"></div></details>

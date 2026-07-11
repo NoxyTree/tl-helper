@@ -15,7 +15,7 @@ import {
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
 const state = { data: null, builds: [] };
 const ABILITY_ART = Object.freeze({
   "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
@@ -112,6 +112,8 @@ function bindEvents() {
 }
 
 function selectView(view) {
+  document.body.dataset.combatView = view;
+  ui["build-picker-heading"].textContent = view === "matchup" ? "Choose both builds" : "Choose your build";
   for (const name of ["ability", "matchup"]) {
     const active = name === view;
     ui[`${name}-tab`].classList.toggle("active", active);
