@@ -42,10 +42,10 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
 | Combat engine | Milestone 2 complete; deterministic fixed-point simulation and 22 focused tests | `packages/combat-engine/` |
 | Real ability ingestion | 3 abilities, 5 reviewed components, 12 explicit unresolved stages | `D:\TL_Data\reports\24118850\combat-abilities.json` |
-| Calibration harness | 37 real observations: tooltip basis verified, Heavy Heal ×2 verified by HP deltas, Health Regen semantics identified, random Base Damage roll now in doubt | `plans/combat-simulator/calibration-findings-2026-07-10.md` |
+| Calibration harness | 49 real observations across 8 experiments: tooltip basis verified, Heavy Heal ×2 verified by HP deltas, Health Regen semantics identified, and a reviewed +20.85% versus +4.2% Healing Received comparison preserved | `plans/combat-simulator/calibration-findings-2026-07-10.md` |
 | Community calculator audit | Healing, Healing Received, Skill Damage Boost, Cooldown Speed, and Buff Duration assumptions classified without promoting community formulas to verified rules | `plans/combat-simulator/community-calculator-audit-2026-07-11.md` |
 | Combat-log calibration | Version 4 schema reviewed across 531 dummy hits; Critical and Heavy flags are explicit, and the displayed +128.4% Heavy Attack Damage fits a 2.284 magnitude multiplier | `plans/combat-simulator/combat-log-findings-2026-07-11.md` |
-| Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, complete fixed-point traces, and explicit unsupported outcome/mitigation boundaries | `web/combat-lab.html` |
+| Combat Lab | Saved-build Base Damage ranges, verified rarity mapping, reviewed ability coefficients, and opt-in Swift Healing v1 projections with complete traces and explicit modeled/final boundaries | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |

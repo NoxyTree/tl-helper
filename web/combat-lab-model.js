@@ -5,6 +5,22 @@ import {
   projectAbilityMagnitudeRange,
   resolveAbilitySkillLevel,
 } from "./vendor/combat-engine/ability-range-projection.mjs";
+import {
+  HEALING_CAST_COMPONENT,
+  HEALING_ROLL_OUTCOME,
+  resolveHealingRange,
+} from "./vendor/combat-engine/healing-resolver.mjs";
+
+export const HEALING_OUTCOMES = Object.freeze([
+  { id: "normal", label: "Forced normal" },
+  { id: "critical", label: "Forced critical" },
+  { id: "heavy", label: "Forced Heavy Attack" },
+]);
+
+export const HEALING_CASTS = Object.freeze([
+  { id: HEALING_CAST_COMPONENT.FIRST, label: "First cast", componentId: "first-heal" },
+  { id: HEALING_CAST_COMPONENT.SECOND, label: "Second consecutive cast", componentId: "second-heal" },
+]);
 
 export const OUTCOMES = Object.freeze([
   { id: FORCED_ABILITY_OUTCOME.COEFFICIENT_ONLY, label: "Coefficient projection" },
@@ -71,6 +87,57 @@ export function projectAbilityRange({ ability, componentId, globalLevel, minimum
       traceFor("maximum", projection.projections.maximum.trace),
     ],
     unresolvedStages: projection.projections.minimum.unresolvedStages ?? [],
+  });
+}
+
+export function isHealingResolverAbility(ability) {
+  return ability?.id === "swift-healing";
+}
+
+export function resolveCombatLabHealing({
+  ability,
+  globalLevel,
+  castComponent,
+  minimum,
+  maximum,
+  outcomeId,
+  outgoingHealingPercent,
+  healingReceivedPercent,
+  skillDamageBoost,
+  allowModeledHealing,
+}) {
+  if (!isHealingResolverAbility(ability)) throw new Error("Healing Resolver v1 supports Swift Healing only.");
+  const critical = outcomeId === "critical";
+  const heavyAttack = outcomeId === "heavy";
+  const resolution = resolveHealingRange({
+    abilityDefinition: ability,
+    skillLevel: globalLevel,
+    castComponent,
+    baseDamageMinimum: minimum,
+    baseDamageMaximum: maximum,
+    rollOutcome: critical ? HEALING_ROLL_OUTCOME.CRITICAL : HEALING_ROLL_OUTCOME.NORMAL,
+    outgoingHealingPercent,
+    healingReceivedPercent,
+    skillDamageBoost,
+    heavyAttack,
+    rounding: "truncate",
+    allowModeledHealing,
+  });
+  const componentId = HEALING_CASTS.find(({ id }) => id === castComponent)?.componentId ?? `${castComponent}-heal`;
+  const component = ability.formulaComponents.find(({ id }) => id === componentId);
+  return Object.freeze({
+    ...resolution,
+    mode: "healing_resolver_v1",
+    abilityId: ability.id,
+    abilityName: ability.name,
+    componentId,
+    globalLevel,
+    outcome: { id: outcomeId, critical, heavyAttack },
+    source: component?.source ?? null,
+    evidence: component?.evidence ?? [],
+    warnings: resolution.status === "modeled"
+      ? [...resolution.warnings, "Clean live calibration observations currently fall outside this community-modeled pipeline. Treat the range as a calibration aid, never an exact prediction."]
+      : resolution.warnings,
   });
 }
 

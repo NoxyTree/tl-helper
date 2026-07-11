@@ -130,14 +130,43 @@ suspected to also reflect consecutive-cast state rather than a roll.
 3. Then map the penalty: pairs of casts with deliberate gaps of 2, 4, 6, 8,
    10, and 12 seconds between them.
 
+## High Healing Received comparison (recorded 2026-07-11, experiment `swift-healing-high-received-e`)
+
+One preserved Medal recording contains six reviewed two-cast Swift Healing
+activations at Base Damage 311~713, Healing +15%, Healing Received +20.85%,
+Skill Damage Boost 459.2, and Max Health 29,564. The build panel is preserved
+as `swift-healing-high-received-e-stats.png`; the same core build with Healing
+Received +4.2% is preserved as
+`swift-healing-high-received-e-stats-lower-confirmation.png`.
+
+The player-confirmed ordered magnitudes are:
+
+| Activation | `WA_Heal_Heal` | `WA_Heal_Heal_Double` |
+| --- | ---: | ---: |
+| 1 | 1,949 | 2,036 |
+| 2 | 3,220 | 2,365 |
+| 3 | 2,253 | 2,841 |
+| 4 | 2,693 | 1,645 |
+| 5 | 2,536 | 2,006 |
+| 6 | 2,918 | 1,841 |
+
+All twelve selected floating values were visually reviewed with no visible
+`x2` marker and are stored as normal outcomes. Odd entries are the first-cast
+component and even entries are the second-cast component by player-confirmed
+session order. The observations do not assert that Healing Received is
+additive or multiplicative, nor do they establish the consecutive-use stage.
+They provide a reviewed one-variable comparison dataset for testing those
+hypotheses against the +4.2% control without promoting a fitted formula.
+
 ## What is still open
 
 1. **Multiplier and rounding discrimination** needs protocol groups 6–7:
    one-item gear changes (configurations B and C) with fresh stat-panel
    screenshots and ≥20 eligible casts each, plus HP-before/HP-after per cast
    (screen recording strongly preferred over single frames).
-2. **HealEffect basis**: hold Healing +6% fixed (or change only it) across a
-   comparison set.
+2. **HealEffect and Healing Received basis**: compare the reviewed +20.85%
+   session against its +4.2% control while keeping first- and second-cast
+   components separate; do not fit across mixed consecutive-use state.
 3. **Distortion Veil multiplier puzzle** (Finding 4).
 4. **Consecutive-use state:** determine why closely spaced casts produce
    varying reductions instead of the tooltip's apparent flat 30% penalty.

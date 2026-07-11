@@ -41,6 +41,7 @@
           <div class="panel-heading"><span>02</span><div><p class="eyebrow">Ability</p><h2>Reviewed formula</h2></div></div>
           <label>Ability<select id="ability"></select></label>
           <label>Component<select id="component"></select></label>
+          <label id="cast-field" class="hidden">Swift Healing cast<select id="cast"><option value="first">First cast</option><option value="second">Second consecutive cast</option></select></label>
           <div class="two-column">
             <label>Rarity mapping<select id="tier"></select></label>
             <label>Displayed level<select id="level"></select></label>
@@ -59,6 +60,18 @@
           </div>
           <p class="field-note">These are caller-selected inputs. Saved-build values already include equipped Stellarite, so it is never applied a second time. The game’s per-cast selection and live rounding order are still being calibrated.</p>
         </article>
+
+        <article id="healing-inputs" class="panel hidden">
+          <div class="panel-heading"><span>04</span><div><p class="eyebrow">Healing Resolver v1</p><h2>Healing context</h2></div></div>
+          <p class="field-note">Build values are prefilled when available and remain editable for calibration. Healing belongs to the source. Healing Received belongs to the target.</p>
+          <div class="two-column">
+            <label>Source Healing (%)<input id="healing" inputmode="decimal" value="0"></label>
+            <label>Target Healing Received (%)<input id="healing-received" inputmode="decimal" value="0"></label>
+          </div>
+          <label>Source Skill Damage Boost<input id="skill-damage-boost" inputmode="decimal" value="0"></label>
+          <label class="modeled-opt-in"><input id="allow-modeled" type="checkbox"><span>Allow explicitly modeled stages</span></label>
+          <p id="modeled-note" class="field-note">Off by default. Community-modeled Skill Damage Boost and unresolved stages are never silently applied.</p>
+        </article>
       </div>
 
       <div class="result-stack">
@@ -66,6 +79,12 @@
           <div class="result-head"><div><p class="eyebrow">Pre-resolution output</p><h2 id="result-title">Coefficient projection</h2></div><span id="overall-badge" class="badge unsupported">Unsupported final outcome</span></div>
           <div id="result-range" class="range">Waiting for data</div>
           <div id="expression" class="expression"></div>
+          <div id="healing-results" class="healing-results hidden">
+            <div><small>Minimum</small><strong id="result-minimum">Unsupported</strong></div>
+            <div><small>Maximum</small><strong id="result-maximum">Unsupported</strong></div>
+            <div><small>Expected</small><strong id="result-expected">Unsupported</strong></div>
+            <div><small>Total applications</small><strong id="total-applications">Unsupported</strong></div>
+          </div>
           <div id="precision-grid" class="precision-grid"></div>
         </article>
 
@@ -75,12 +94,12 @@
         </article>
 
         <article class="panel">
-          <div class="panel-heading"><span>04</span><div><p class="eyebrow">Audit trail</p><h2>Full calculation trace</h2></div></div>
+          <div class="panel-heading"><span>05</span><div><p class="eyebrow">Audit trail</p><h2>Full calculation trace</h2></div></div>
           <div id="trace"></div>
         </article>
 
         <article class="panel">
-          <div class="panel-heading"><span>05</span><div><p class="eyebrow">Provenance</p><h2>Where this came from</h2></div></div>
+          <div class="panel-heading"><span>06</span><div><p class="eyebrow">Provenance</p><h2>Where this came from</h2></div></div>
           <div id="provenance" class="provenance"></div>
         </article>
       </div>

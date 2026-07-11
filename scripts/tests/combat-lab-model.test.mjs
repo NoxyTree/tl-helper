@@ -7,6 +7,7 @@ import {
   loadCombatLabData,
   mapDisplayedLevel,
   projectAbilityRange,
+  resolveCombatLabHealing,
 } from "../../web/combat-lab-model.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -56,4 +57,47 @@ test("Combat Lab keeps Distortion Veil shield magnitude explicitly non-final", (
   });
   assert.equal(result.completeness.isFinalCombatOutcome, false);
   assert.ok(result.warnings.some((warning) => warning.includes("must not be treated as shield capacity")));
+});
+
+test("Combat Lab requires explicit modeled opt-in for healing", () => {
+  const ability = data.abilities.find(({ id }) => id === "swift-healing");
+  const result = resolveCombatLabHealing({
+    ability,
+    globalLevel: 11,
+    castComponent: "first",
+    minimum: "366",
+    maximum: "993",
+    outcomeId: "normal",
+    outgoingHealingPercent: "0",
+    healingReceivedPercent: "4.2",
+    skillDamageBoost: "713.7",
+    allowModeledHealing: false,
+  });
+  assert.equal(result.status, "unsupported");
+  assert.equal(result.modeledRange, undefined);
+  assert.equal(result.completeness.isFinalHealingOutcome, false);
+});
+
+test("Combat Lab exposes modeled healing and video-verified Heavy applications without an expected value", () => {
+  const ability = data.abilities.find(({ id }) => id === "swift-healing");
+  const result = resolveCombatLabHealing({
+    ability,
+    globalLevel: 11,
+    castComponent: "first",
+    minimum: "366",
+    maximum: "993",
+    outcomeId: "heavy",
+    outgoingHealingPercent: "0",
+    healingReceivedPercent: "4.2",
+    skillDamageBoost: "713.7",
+    allowModeledHealing: true,
+  });
+  assert.equal(result.status, "modeled");
+  assert.deepEqual(result.modeledRange.perApplication, { minimum: "2221", maximum: "4324" });
+  assert.deepEqual(result.modeledRange.totalApplied, { minimum: "4442", maximum: "8648" });
+  assert.equal(result.applications.count, 2);
+  assert.equal(result.applications.precision, "verified_exact");
+  assert.equal(result.expectedValue, undefined);
+  assert.equal(result.precision.overall, "modeled");
+  assert.equal(result.completeness.isFinalHealingOutcome, false);
 });

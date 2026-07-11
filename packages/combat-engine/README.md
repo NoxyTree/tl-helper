@@ -62,6 +62,14 @@ Its numeric result is always labeled `tooltip_coefficient_projection`,
 `pre_resolution`, and `overall: unsupported`; it is never final damage, healing,
 or shield capacity.
 
+`resolveHealingRange()` adds the first opt-in Swift Healing calibration model.
+It keeps the reviewed first- and second-cast coefficients exact, then traces
+caller-provided Base Damage, Healing, Healing Received, Skill Damage Boost, and
+forced Heavy applications as separately labeled modeled or calibrated stages.
+Current live observations fall outside the naive projection interval, so the
+result is explicitly not a final live-healing prediction and no expected value
+is produced.
+
 ## Manual calibration evidence
 
 `calibration-observation.mjs` defines the immutable observation contract.

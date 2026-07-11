@@ -30,6 +30,11 @@ export {
   describeForcedAbilityOutcome,
 } from "./ability-range-projection.mjs";
 export {
+  HEALING_CAST_COMPONENT,
+  HEALING_ROLL_OUTCOME,
+  resolveHealingRange,
+} from "./healing-resolver.mjs";
+export {
   CALIBRATION_OBSERVATION_SCHEMA,
   CALIBRATION_OBSERVATION_SCHEMA_VERSION,
   CALIBRATION_SCENARIO_MODE,

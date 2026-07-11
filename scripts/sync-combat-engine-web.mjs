@@ -10,6 +10,7 @@ export const COMBAT_ENGINE_WEB_MODULES = [
   "ability-data.mjs",
   "ability-magnitude.mjs",
   "ability-range-projection.mjs",
+  "healing-resolver.mjs",
   "fixed-point.mjs",
   "trace.mjs",
 ];
