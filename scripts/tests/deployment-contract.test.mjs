@@ -111,4 +111,7 @@ test("standalone pages use the shared application header", async () => {
     assert.match(document, /<nav class="tl-app-nav"/i, `${file} uses the shared navigation`);
     assert.match(document, /class="tl-app-brand"/i, `${file} uses the shared brand`);
   }
+  const shell = await read("web/tl-shell.css");
+  assert.match(shell, /view-transition-name:\s*tl-app-logo/);
+  assert.match(shell, /::view-transition-new\(tl-app-logo\)\s*\{\s*opacity:\s*0/);
 });
