@@ -66,6 +66,8 @@
     table.gear th.active-sort { color: #ffe9b8; }
     table.gear td { padding: 6px 10px; border-bottom: 1px solid rgba(212, 166, 94, 0.07); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     table.gear tr:hover td { background: rgba(212, 166, 94, 0.05); }
+    table.gear tr.equipped-row td { background: rgba(85, 213, 138, 0.045); border-top: 1px solid rgba(126, 224, 166, 0.24); border-bottom-color: rgba(126, 224, 166, 0.2); }
+    table.gear tr.equipped-row td.item-cell-td, table.gear tr.equipped-row td.fav-cell { background: #10140d; }
     td.fav-cell, th.fav-col { width: 30px; text-align: center; }
     .fav-btn { border: 0; background: none; font-size: 15px; cursor: pointer; color: rgba(220, 199, 158, 0.28); padding: 2px 4px; }
     .fav-btn.on { color: #f6d391; }
@@ -89,6 +91,7 @@
     .score-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, rgba(212, 166, 94, 0.5), rgba(246, 211, 145, 0.9)); }
     .score-bar b { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 100%; padding: 0 6px; font-size: 11px; color: #ffe9b8; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
     .equipped-mark { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid rgba(127, 214, 201, 0.55); border-radius: 999px; font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: #7fd6c9; vertical-align: middle; }
+    .pinned-mark { color: #7ee0a6; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; }
     /* Item hover card (mirrors the Armory's ItemHoverCard) */
     #hover-card { position: fixed; z-index: 80; width: min(340px, calc(100vw - 24px)); max-height: 86vh; overflow-y: auto; pointer-events: none; border: 1px solid rgba(212, 166, 94, 0.48); border-radius: 10px; background: linear-gradient(180deg, rgba(27, 20, 13, 0.995), rgba(11, 8, 5, 0.995)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.75); }
     #hover-card .hc-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
@@ -285,7 +288,8 @@
         .filter((slot) => slot.types.includes(item.equipmentType))
         .map((slot) => ({ slotId: slot.id, equipped: equippedItemForSlot(slot.id, build) }))
         .filter((row) => row.equipped?.equipmentType === item.equipmentType)
-        .sort((a, b) => Number(isHeroic(a.equipped)) - Number(isHeroic(b.equipped)));
+        .sort((a, b) => Number(b.equipped.id === item.id) - Number(a.equipped.id === item.id)
+          || Number(isHeroic(a.equipped)) - Number(isHeroic(b.equipped)));
       return matching[0]?.slotId ?? TYPE_SLOT[item.equipmentType];
     }
 
@@ -341,6 +345,7 @@
       const query = state.search.trim().toLowerCase();
       const types = state.category === "all" ? null : CATEGORY_TYPES[state.category];
       const equippedWeaponTypes = new Set(state.mode === "bare" ? [] : equippedWeaponSlots().map((row) => row.type));
+      const contextBuild = state.mode === "bare" ? null : scoringContext().build;
       const lockedHeroicBySlot = new Map();
       if (state.mode !== "bare" && state.keepHeroic) {
         for (const slot of core.BUILD_SLOTS) {
@@ -348,15 +353,18 @@
           if (isHeroic(item)) lockedHeroicBySlot.set(slot.id, item.id);
         }
       }
-      return rows.filter((row) =>
-        (!types || types.has(row.item.equipmentType))
-        && (SLOT_CATEGORY[row.slotId] !== "weapons" || !equippedWeaponTypes.size || equippedWeaponTypes.has(row.item.equipmentType))
-        && (!lockedHeroicBySlot.has(row.slotId) || lockedHeroicBySlot.get(row.slotId) === row.item.id)
-        && (state.type === "all" || row.item.equipmentType === state.type)
-        && (state.grade === "all" || String(row.item.grade) === state.grade)
-        && (state.itemLevel === "all" || String(row.level) === state.itemLevel)
-        && (!state.favoritesOnly || favorites.has(row.item.id))
-        && (!query || row.haystack.includes(query)));
+      return rows.filter((row) => {
+        row.isPinned = Boolean(contextBuild && core.slotSelection(row.slotId, contextBuild)?.itemId === row.item.id);
+        const structuralMatch = (!types || types.has(row.item.equipmentType))
+          && (SLOT_CATEGORY[row.slotId] !== "weapons" || !equippedWeaponTypes.size || equippedWeaponTypes.has(row.item.equipmentType))
+          && (!lockedHeroicBySlot.has(row.slotId) || lockedHeroicBySlot.get(row.slotId) === row.item.id)
+          && (state.type === "all" || row.item.equipmentType === state.type);
+        const ordinaryMatch = (state.grade === "all" || String(row.item.grade) === state.grade)
+          && (state.itemLevel === "all" || String(row.level) === state.itemLevel)
+          && (!state.favoritesOnly || favorites.has(row.item.id))
+          && (!query || row.haystack.includes(query));
+        return structuralMatch && (row.isPinned || ordinaryMatch);
+      });
     }
 
     function availableStats(rows) {
@@ -442,7 +450,8 @@
           const statId = key.slice(5);
           diff = (a.contribution[statId] ?? 0) - (b.contribution[statId] ?? 0);
         }
-        return Number(b.protectionPass) - Number(a.protectionPass)
+        return Number(b.isPinned) - Number(a.isPinned)
+          || Number(b.protectionPass) - Number(a.protectionPass)
           || dir * diff
           || (b.score ?? 0) - (a.score ?? 0)
           || (b.item.grade ?? 0) - (a.item.grade ?? 0)
@@ -507,12 +516,12 @@
             ? `<td class="zero" title="Choose My Armory build or import Questlog to compare protected stats">Needs build</td>`
             : `<td class="${row.protectionPass ? "guard-pass" : "guard-blocked"}" title="${esc(guardDetails)}">${row.protectionPass ? "Pass" : "Blocked"}</td>`
           : "";
-        return `<tr class="${row.protectionPass ? "" : "protection-blocked"}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
+        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
           <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${row.item.id}" aria-label="Toggle favourite">★</button></td>
           <td class="item-cell-td"><span class="item-cell">
             <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
             <span><span class="name" style="color:${color}">${row.item.name}</span>
-            <span class="sub"><span>${core.label(row.item.equipmentType)}</span>${equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
+            <span class="sub"><span>${core.label(row.item.equipmentType)}</span>${row.isPinned ? `<span class="pinned-mark">● Currently equipped</span>` : equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
           </span></td>
           <td style="color:${color}">${core.gradeName(row.item.grade)}</td>
           <td>${row.level}</td>
@@ -735,7 +744,7 @@
       }
       scoreRows(rows, filtered);
       const visible = state.columns.length
-        ? filtered.filter((row) => row.score > 0 || state.sortKey !== "score")
+        ? filtered.filter((row) => row.isPinned || row.score > 0 || state.sortKey !== "score")
         : filtered;
       sortRows(visible);
       renderHead();
@@ -753,7 +762,9 @@
         ? 0
         : core.BUILD_SLOTS.filter((slot) => isHeroic(equippedItemForSlot(slot.id))).length;
       const heroicLabel = heroicLockCount ? ` · ${heroicLockCount} equipped Heroic slot${heroicLockCount > 1 ? "s" : ""} locked` : "";
-      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${guardLabel}${heroicLabel}`;
+      const pinnedCount = visible.filter((row) => row.isPinned).length;
+      const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
+      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${guardLabel}${heroicLabel}${pinnedLabel}`;
       writeHash();
     }
 
