@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gear Viewer | TL Helper</title>
+  <meta name="description" content="Browse every item as a sortable table: pick stat columns, filter, and rank by a build-aware aggregate score.">
+  <meta name="theme-color" content="#0e0a07"><link rel="canonical" href="https://tlhelper.org/gear-viewer"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website"><meta property="og:title" content="Gear Viewer | TL Helper"><meta property="og:description" content="Compare Throne and Liberty gear while increasing chosen stats and protecting the stats your build needs."><meta property="og:url" content="https://tlhelper.org/gear-viewer"><meta name="twitter:card" content="summary">
+  <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./tl-shell.css">
+  <style>
+    body { font-family: "Instrument Sans", system-ui, sans-serif; color: #e8dcc2; }
+    main { max-width: 1400px; margin: 0 auto; padding: 18px clamp(14px, 2.5vw, 30px) 80px; }
+    h1, h2 { font-family: Marcellus, serif; font-weight: 400; margin: 0; }
+    .page-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 18px; margin: 12px 0 16px; }
+    .page-head h1 { font-size: clamp(24px, 3.2vw, 32px); }
+    .page-head p { margin: 0; color: var(--tl-shell-muted); font-size: 13.5px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 14px; }
+    .toolbar label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--tl-shell-muted); }
+    .toolbar select, .toolbar input[type="search"], .toolbar input[type="url"] { box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13.5px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
+    .toolbar input[type="search"] { width: 240px; }
+    .toolbar .grow { flex: 1; }
+    .check-inline { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--tl-shell-muted); padding-bottom: 9px; }
+    /* Column picker dropdown */
+    .col-picker { position: relative; }
+    .col-picker > button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; font: inherit; font-size: 13.5px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; cursor: pointer; }
+    .col-picker > button .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #d4a65e; color: #120d07; font-size: 11.5px; font-weight: 700; }
+    .col-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; width: 300px; max-height: 380px; display: flex; flex-direction: column; border: 1px solid var(--tl-shell-line); border-radius: 10px; background: #14100a; box-shadow: 0 14px 34px rgba(0,0,0,0.55); }
+    .col-menu input { margin: 10px; padding: 7px 10px; font: inherit; font-size: 13px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 7px; }
+    .col-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px 10px 0; }
+    .col-mode button { padding: 7px 9px; border: 1px solid var(--tl-shell-line); border-radius: 7px; background: rgba(10, 8, 5, 0.7); color: var(--tl-shell-muted); font: inherit; font-size: 12px; cursor: pointer; }
+    .col-mode button.active { border-color: rgba(212, 166, 94, 0.65); background: rgba(212, 166, 94, 0.16); color: #ffe9b8; }
+    .col-menu .options { overflow-y: auto; flex: 1; }
+    .col-menu .options button { display: flex; justify-content: space-between; gap: 8px; width: 100%; box-sizing: border-box; padding: 7px 12px; border: 0; background: none; color: #ded1b2; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+    .col-menu .options button:hover { background: rgba(212, 166, 94, 0.1); }
+    .col-menu .options button.selected { color: #ffe9b8; background: rgba(212, 166, 94, 0.16); }
+    .col-menu .options .count { color: var(--tl-shell-muted); font-size: 11.5px; }
+    .col-menu .foot { padding: 8px 12px; border-top: 1px solid var(--tl-shell-line); display: flex; justify-content: space-between; }
+    .col-menu .foot button { border: 0; background: none; color: var(--tl-shell-gold); font: inherit; font-size: 12.5px; cursor: pointer; }
+    /* Questlog row */
+    .ql-row { display: flex; gap: 6px; }
+    .ql-row input { width: 260px; }
+    .ql-row button { padding: 8px 13px; font: inherit; font-size: 13px; color: #120d07; background: linear-gradient(180deg, #f6d391, #d4a65e); border: 0; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .ql-row button:disabled { opacity: 0.55; cursor: default; }
+    .active-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+    .active-chips .chip-label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tl-shell-muted); margin-right: 2px; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border: 1px solid rgba(212, 166, 94, 0.5); border-radius: 999px; background: rgba(60, 42, 20, 0.45); font-size: 12.5px; color: #f2dfae; }
+    .chip.filter-chip { border-color: rgba(212, 166, 94, 0.22); background: rgba(24, 18, 11, 0.6); color: var(--tl-shell-muted); }
+    .chip button { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; padding: 0; opacity: 0.7; line-height: 1; }
+    .chip button:hover { opacity: 1; }
+    .status-line { margin: 0 0 10px; font-size: 12.5px; color: var(--tl-shell-muted); min-height: 17px; }
+    .status-line .error { color: #ffb9a3; }
+    .progress { display: inline-block; width: 160px; height: 6px; margin-left: 8px; border-radius: 4px; background: rgba(212,166,94,0.14); vertical-align: middle; overflow: hidden; }
+    .progress i { display: block; height: 100%; background: linear-gradient(90deg, rgba(212,166,94,0.6), #f6d391); transition: width 0.15s; }
+    /* Table */
+    .table-wrap { border: 1px solid var(--tl-shell-line); border-radius: 12px; background: linear-gradient(180deg, rgba(24, 18, 11, 0.6), rgba(13, 10, 7, 0.85)); overflow-x: auto; }
+    table.gear { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 700px; }
+    table.gear th { position: sticky; top: 0; z-index: 2; padding: 9px 10px; text-align: right; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tl-shell-muted); background: #17110a; border-bottom: 1px solid var(--tl-shell-line); white-space: nowrap; cursor: pointer; user-select: none; }
+    table.gear th.no-sort { cursor: default; }
+    table.gear th.item-col { text-align: left; }
+    table.gear th .arrow { color: var(--tl-shell-gold); font-size: 10px; margin-left: 3px; }
+    table.gear th.active-sort { color: #ffe9b8; }
+    table.gear td { padding: 6px 10px; border-bottom: 1px solid rgba(212, 166, 94, 0.07); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    table.gear tr:hover td { background: rgba(212, 166, 94, 0.05); }
+    td.fav-cell, th.fav-col { width: 30px; text-align: center; }
+    .fav-btn { border: 0; background: none; font-size: 15px; cursor: pointer; color: rgba(220, 199, 158, 0.28); padding: 2px 4px; }
+    .fav-btn.on { color: #f6d391; }
+    td.item-cell-td { text-align: left; }
+    .item-cell { display: flex; align-items: center; gap: 9px; min-width: 210px; }
+    .item-cell img { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--tl-shell-line); background: #14100a; flex: 0 0 30px; }
+    .item-cell .name { display: block; font-weight: 600; line-height: 1.2; white-space: normal; }
+    .item-cell .sub { display: block; font-size: 11px; color: var(--tl-shell-muted); }
+    .zero { color: rgba(220, 199, 158, 0.28); }
+    .neg { color: #ff9d84; }
+    tr.protection-blocked { opacity: 0.62; }
+    .guard-pass { color: #7ee0a6; }
+    .guard-blocked { color: #ff9d84; }
+    /* Sticky item column so it survives horizontal scrolling with many stat columns */
+    table.gear th.item-col, td.item-cell-td { position: sticky; left: 30px; z-index: 1; background: #120d08; }
+    table.gear th.fav-col, td.fav-cell { position: sticky; left: 0; z-index: 1; background: #120d08; }
+    table.gear th.item-col, table.gear th.fav-col { z-index: 3; }
+    table.gear tr:hover td.item-cell-td, table.gear tr:hover td.fav-cell { background: #17110b; }
+    td.score-cell { min-width: 120px; }
+    .score-bar { position: relative; display: block; height: 16px; min-width: 96px; border-radius: 4px; background: rgba(212, 166, 94, 0.1); overflow: hidden; }
+    .score-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, rgba(212, 166, 94, 0.5), rgba(246, 211, 145, 0.9)); }
+    .score-bar b { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 100%; padding: 0 6px; font-size: 11px; color: #ffe9b8; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
+    .equipped-mark { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid rgba(127, 214, 201, 0.55); border-radius: 999px; font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: #7fd6c9; vertical-align: middle; }
+    /* Item hover card (mirrors the Armory's ItemHoverCard) */
+    #hover-card { position: fixed; z-index: 80; width: min(300px, calc(100vw - 24px)); max-height: 86vh; overflow-y: auto; pointer-events: none; border: 1px solid rgba(212, 166, 94, 0.4); border-radius: 10px; background: linear-gradient(180deg, rgba(24, 18, 11, 0.99), rgba(11, 8, 5, 0.99)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.7); }
+    #hover-card .hc-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
+    #hover-card .hc-icon { flex: none; width: 46px; height: 46px; border-radius: 9px; background-size: cover; background-position: center; background-color: #171209; border: 1px solid transparent; }
+    #hover-card .hc-name { font-size: 15px; font-weight: 700; line-height: 1.2; }
+    #hover-card .hc-meta { font-size: 10.5px; color: #9d8a68; margin-top: 3px; }
+    #hover-card .hc-section { padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1); }
+    #hover-card .hc-title { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px; }
+    #hover-card .hc-title.heroic { color: #ffb765; }
+    #hover-card .hc-title.resonance { color: #cf9dff; }
+    #hover-card .hc-line { font-size: 11.5px; color: #d9c8a5; line-height: 1.5; }
+    #hover-card .hc-effect { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 6px; }
+    #hover-card .hc-effect:last-child { margin-bottom: 0; }
+    #hover-card .hc-effect-icon { flex: none; width: 30px; height: 30px; border-radius: 999px; border: 1px solid rgba(212, 166, 94, 0.35); background-size: cover; background-position: center; background-color: #171209; }
+    #hover-card .hc-effect-name { font-size: 11.5px; font-weight: 650; color: #e6d6b4; }
+    #hover-card .hc-effect-name span { color: #8a795f; font-weight: 400; }
+    #hover-card .hc-effect-text { font-size: 10.5px; line-height: 1.5; color: #a4906d; margin-top: 2px; }
+    #hover-card .hc-heroic-row { display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; line-height: 1.5; }
+    #hover-card .hc-heroic-row .num { color: #8a795f; }
+    #hover-card .hc-heroic-row .fill { flex: 1; border-bottom: 1px dotted rgba(255, 152, 45, 0.18); transform: translateY(-3px); }
+    #hover-card .hc-heroic-row .val { color: #ffb765; font-weight: 650; }
+    #hover-card .hc-abilities { display: flex; flex-wrap: wrap; gap: 5px; }
+    #hover-card .hc-ability { width: 30px; height: 30px; border-radius: 7px; border: 1px solid rgba(212, 166, 94, 0.25); background-size: cover; background-position: center; background-color: #171209; }
+    #hover-card .hc-set-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+    #hover-card .hc-set-count { font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums; }
+    #hover-card .hc-bonus { display: flex; gap: 8px; font-size: 11px; line-height: 1.45; margin-bottom: 3px; }
+    #hover-card .hc-bonus .req { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #hover-card .hc-bonus .txt { color: #a4906d; }
+    .table-foot { display: flex; justify-content: center; padding: 12px; }
+    .table-foot button { padding: 8px 18px; font: inherit; font-size: 13px; color: #f0e5cb; background: rgba(212, 166, 94, 0.12); border: 1px solid var(--tl-shell-line); border-radius: 8px; cursor: pointer; }
+    .empty { padding: 40px 10px; text-align: center; color: var(--tl-shell-muted); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <a class="tl-skip-link" href="#main-content">Skip to gear viewer</a>
+  <header class="tl-app-header">
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Gear Viewer</span></span></a>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><span class="tl-app-nav-item is-active" aria-current="page">Gear Viewer</span><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+    <div class="tl-app-header-end"><div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div></div>
+  </header>
+
+  <main id="main-content">
+    <div class="page-head">
+      <h1>Gear Viewer</h1>
+      <p>Every item, one table. Pick stat columns, sort any of them, and rank by a scale-normalized score — optionally against your build.</p>
+    </div>
+
+    <div class="toolbar">
+      <label>Search
+        <input id="search" type="search" placeholder="Search for name or stat" autocomplete="off">
+      </label>
+      <label>Score against
+        <select id="mode-select">
+          <option value="bare">Item alone</option>
+          <option value="build">My Armory build</option>
+          <option value="questlog" disabled>Imported Questlog build</option>
+        </select>
+      </label>
+      <label>Questlog link
+        <span class="ql-row">
+          <input id="ql-url" type="url" placeholder="Paste character-builder link" autocomplete="off">
+          <button id="ql-import" type="button">Import</button>
+        </span>
+      </label>
+      <span class="grow"></span>
+      <label>Category
+        <select id="category-select">
+          <option value="all">All Equipment</option>
+          <option value="weapons">Weapons</option>
+          <option value="armor">Armor</option>
+          <option value="accessories">Accessories</option>
+          <option value="artifacts">Artifacts</option>
+        </select>
+      </label>
+      <label>Type
+        <select id="type-select"><option value="all">All types</option></select>
+      </label>
+      <label>Grade
+        <select id="grade-select"><option value="all">All grades</option></select>
+      </label>
+      <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Max traits</label></span>
+      <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
+      <div class="col-picker">
+        <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
+        <div id="col-menu" class="col-menu hidden">
+          <div class="col-mode"><button id="col-mode-increase" type="button" class="active">Increase</button><button id="col-mode-protect" type="button">Protect</button></div>
+          <input id="col-search" type="search" placeholder="Search stats…" autocomplete="off">
+          <div id="col-options" class="options"></div>
+          <div class="foot"><button id="col-clear" type="button">Clear current list</button><button id="col-close" type="button">Done</button></div>
+        </div>
+      </div>
+      <label id="protect-tolerance-wrap" class="hidden">Allowed protected-stat loss
+        <select id="protect-tolerance"><option value="0">None</option><option value="0.5">0.5%</option><option value="1" selected>1%</option><option value="2">2%</option><option value="5">5%</option></select>
+      </label>
+    </div>
+
+    <div id="active-chips" class="active-chips hidden"></div>
+    <p class="status-line"><span id="status"></span><span id="progress" class="progress hidden"><i id="progress-fill" style="width:0%"></i></span><span id="ql-error" class="error"></span></p>
+
+    <div class="table-wrap">
+      <table class="gear">
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div id="table-foot" class="table-foot hidden"><button id="show-more" type="button"></button></div>
+      <div id="empty" class="empty hidden"></div>
+    </div>
+    <div id="hover-card" class="hidden" role="tooltip" aria-hidden="true"></div>
+  </main>
+
+  <script type="module">
+    import * as core from "./tl-core.js";
+    import { loadArmoryState } from "./tl-persistence.js";
+
+    const $ = (id) => document.getElementById(id);
+    const FAVORITES_KEY = "tlhelper-gear-viewer-favorites-v1";
+    const ROW_LIMIT = 120;
+
+    const state = {
+      mode: "bare",
+      category: "all",
+      type: "all",
+      grade: "all",
+      search: "",
+      withTraits: true,
+      favoritesOnly: false,
+      columns: [],            // selected statIds, in pick order
+      protected: [],          // stats that candidates should not reduce beyond tolerance
+      protectTolerancePct: 1,
+      colMode: "increase",
+      sortKey: "score",       // score | name | grade | ilv | stat:<id>
+      sortDir: "desc",
+      colSearch: "",
+      limit: ROW_LIMIT,
+    };
+
+    let armory = null;    // { build, attributes }
+    let questlog = null;  // { build, attributes, label }
+    let favorites = new Set();
+    try { favorites = new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]")); } catch {}
+
+    const ZERO_ATTRS = { str: 0, dex: 0, int: 0, per: 0, con: 0 };
+    // Natural slot per equipment type (first slot in BUILD_SLOTS wins: ring -> ring_1, weapons -> main_hand).
+    const TYPE_SLOT = {};
+    const SLOT_CATEGORY = {};
+    let CATEGORY_TYPES = {};
+
+    function scoringContext() {
+      if (state.mode === "build" && armory) return armory;
+      if (state.mode === "questlog" && questlog) return questlog;
+      return { build: core.createInitialBuild(), attributes: ZERO_ATTRS };
+    }
+
+    function maxTraitRows(item) {
+      return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
+        const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+        return { statId, tier: list.length };
+      }).filter((row) => row.tier > 0);
+    }
+
+    // ---------- compute pipeline (chunked, cancellable, cached) ----------
+    const poolCache = new Map(); // mode|traits -> rows
+    let computeToken = 0;
+
+    async function computeRows() {
+      const key = `${state.mode}|${state.withTraits ? "t" : "b"}`;
+      if (poolCache.has(key)) return poolCache.get(key);
+      const token = ++computeToken;
+      const { build, attributes } = scoringContext();
+      const items = core.data.items.filter((item) => TYPE_SLOT[item.equipmentType] && SLOT_CATEGORY[TYPE_SLOT[item.equipmentType]] !== "support");
+      const rows = [];
+      $("progress").classList.remove("hidden");
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const slotId = TYPE_SLOT[item.equipmentType];
+        const level = core.itemMaxLevel(item);
+        const selection = {
+          ...core.emptyEquipmentSelection(),
+          itemId: item.id,
+          level,
+          traits: state.withTraits ? maxTraitRows(item) : [],
+        };
+        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes);
+        rows.push({
+          item, slotId, level, contribution,
+          haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${Object.keys(contribution).map(core.statName).join(" ")}`.toLowerCase(),
+        });
+        if (i % 40 === 39) {
+          $("status").textContent = `Scoring items… ${i + 1} / ${items.length}`;
+          $("progress-fill").style.width = `${Math.round(((i + 1) / items.length) * 100)}%`;
+          await new Promise((resolve) => setTimeout(resolve));
+          if (token !== computeToken) return null; // superseded by a newer request
+        }
+      }
+      $("progress").classList.add("hidden");
+      poolCache.set(key, rows);
+      return rows;
+    }
+
+    // ---------- filtering / scoring / sorting ----------
+
+    function filteredRows(rows) {
+      const query = state.search.trim().toLowerCase();
+      const types = state.category === "all" ? null : CATEGORY_TYPES[state.category];
+      return rows.filter((row) =>
+        (!types || types.has(row.item.equipmentType))
+        && (state.type === "all" || row.item.equipmentType === state.type)
+        && (state.grade === "all" || String(row.item.grade) === state.grade)
+        && (!state.favoritesOnly || favorites.has(row.item.id))
+        && (!query || row.haystack.includes(query)));
+    }
+
+    function availableStats(rows) {
+      const counts = new Map();
+      for (const row of rows) {
+        for (const [statId, value] of Object.entries(row.contribution)) {
+          if (value > 0) counts.set(statId, (counts.get(statId) ?? 0) + 1);
+        }
+      }
+      return [...counts.entries()]
+        .map(([statId, count]) => ({ statId, count, name: core.statName(statId) }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Peer group for normalization: same natural slot; weapons compare within
+    // their own weapon type so a greatsword is never the yardstick for a wand.
+    function peerKey(row) {
+      return SLOT_CATEGORY[row.slotId] === "weapons" ? `w:${row.item.equipmentType}` : row.slotId;
+    }
+
+    // Maxima are computed over the COMPLETE pool for the mode (not the filtered
+    // rows), so an item's Fit never changes when search/grade filters change.
+    function scoreRows(allRows, filtered) {
+      const peerMax = new Map(); // peerKey -> { statId: max }
+      for (const row of allRows) {
+        const key = peerKey(row);
+        let maxima = peerMax.get(key);
+        if (!maxima) peerMax.set(key, maxima = {});
+        for (const statId of state.columns) {
+          const value = row.contribution[statId] ?? 0;
+          if (value > (maxima[statId] ?? 0)) maxima[statId] = value;
+        }
+      }
+      const protectionActive = state.mode !== "bare" && state.protected.length > 0;
+      const context = protectionActive ? scoringContext() : null;
+      const currentTotals = context
+        ? Object.fromEntries(core.calculateBuild(context.build, context.attributes).stats.map((row) => [row.id, row.total]))
+        : {};
+      const currentBySlot = new Map();
+      for (const row of filtered) {
+        const maxima = peerMax.get(peerKey(row)) ?? {};
+        let sum = 0;
+        row.parts = state.columns.map((statId) => {
+          const value = row.contribution[statId] ?? 0;
+          const max = maxima[statId] ?? 0;
+          const normalized = max > 0 ? Math.max(0, value) / max : 0;
+          sum += normalized;
+          return { statId, value, max, normalized };
+        });
+        row.score = state.columns.length ? sum / state.columns.length : 0;
+        if (protectionActive) {
+          if (!currentBySlot.has(row.slotId)) {
+            const equipped = core.slotSelection(row.slotId, context.build);
+            currentBySlot.set(row.slotId, equipped?.itemId
+              ? core.slotSelectionContribution(row.slotId, equipped, context.build, context.attributes)
+              : {});
+          }
+          const equippedContribution = currentBySlot.get(row.slotId);
+          row.protection = state.protected.map((statId) => {
+            const delta = (row.contribution[statId] ?? 0) - (equippedContribution[statId] ?? 0);
+            const allowedLoss = Math.abs(currentTotals[statId] ?? 0) * state.protectTolerancePct / 100;
+            return { statId, delta, allowedLoss, pass: delta >= -allowedLoss - 1e-9 };
+          });
+          row.protectionPass = row.protection.every((part) => part.pass);
+        } else {
+          row.protection = [];
+          row.protectionPass = true;
+        }
+      }
+      return filtered;
+    }
+
+    function sortRows(rows) {
+      const dir = state.sortDir === "asc" ? 1 : -1;
+      const key = state.sortKey;
+      return rows.sort((a, b) => {
+        let diff = 0;
+        if (key === "score") diff = a.score - b.score;
+        else if (key === "name") diff = a.item.name.localeCompare(b.item.name);
+        else if (key === "grade") diff = (a.item.grade ?? 0) - (b.item.grade ?? 0);
+        else if (key === "ilv") diff = a.level - b.level;
+        else if (key.startsWith("stat:")) {
+          const statId = key.slice(5);
+          diff = (a.contribution[statId] ?? 0) - (b.contribution[statId] ?? 0);
+        }
+        return Number(b.protectionPass) - Number(a.protectionPass)
+          || dir * diff
+          || (b.score ?? 0) - (a.score ?? 0)
+          || (b.item.grade ?? 0) - (a.item.grade ?? 0)
+          || a.item.name.localeCompare(b.item.name);
+      });
+    }
+
+    // ---------- rendering ----------
+
+    function renderHead() {
+      const arrow = (key) => state.sortKey === key ? `<span class="arrow">${state.sortDir === "asc" ? "▲" : "▼"}</span>` : "";
+      const statHeads = state.columns.map((statId) =>
+        `<th data-sort="stat:${statId}" class="${state.sortKey === `stat:${statId}` ? "active-sort" : ""}">${core.statName(statId)}${arrow(`stat:${statId}`)}</th>`).join("");
+      $("table-head").innerHTML = `<tr>
+        <th class="fav-col no-sort"></th>
+        <th class="item-col ${state.sortKey === "name" ? "active-sort" : ""}" data-sort="name">Item${arrow("name")}</th>
+        <th data-sort="grade" class="${state.sortKey === "grade" ? "active-sort" : ""}">Grade${arrow("grade")}</th>
+        <th data-sort="ilv" class="${state.sortKey === "ilv" ? "active-sort" : ""}">iLv${arrow("ilv")}</th>
+        ${statHeads}
+        ${state.protected.length ? `<th class="no-sort" title="Protected-stat change versus your equipped item">Guard</th>` : ""}
+        ${state.columns.length ? `<th data-sort="score" class="${state.sortKey === "score" ? "active-sort" : ""}" title="Stat fit out of 100, compared with items for the same slot / weapon type">Fit${arrow("score")}</th>` : ""}
+      </tr>`;
+      for (const th of $("table-head").querySelectorAll("th[data-sort]")) {
+        th.setAttribute("aria-sort", state.sortKey === th.dataset.sort ? (state.sortDir === "asc" ? "ascending" : "descending") : "none");
+        th.addEventListener("click", () => {
+          const key = th.dataset.sort;
+          if (state.sortKey === key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+          else { state.sortKey = key; state.sortDir = key === "name" ? "asc" : "desc"; }
+          refresh({ recompute: false });
+        });
+      }
+    }
+
+    function renderBody(rows) {
+      const contextBuild = state.mode !== "bare" ? scoringContext().build : null;
+      const equippedIds = new Set();
+      if (contextBuild) {
+        for (const slot of core.BUILD_SLOTS) {
+          const id = core.slotSelection(slot.id, contextBuild)?.itemId;
+          if (id) equippedIds.add(id);
+        }
+      }
+      const shown = rows.slice(0, state.limit);
+      $("table-body").innerHTML = shown.map((row) => {
+        const color = core.gradeColor(row.item.grade) ?? "#d4a65e";
+        const statCells = state.columns.map((statId) => {
+          const value = row.contribution[statId] ?? 0;
+          if (value > 0) return `<td>${core.formatStat(statId, value)}</td>`;
+          if (value < 0) return `<td class="neg">${core.formatStat(statId, value)}</td>`;
+          return `<td class="zero">—</td>`;
+        }).join("");
+        const fit = Math.round((row.score ?? 0) * 100);
+        const breakdown = (row.parts ?? [])
+          .map((part) => `${core.statName(part.statId)}: ${Math.round(part.normalized * 100)}/100 (best in group: ${part.max > 0 ? core.formatStat(part.statId, part.max) : "n/a"})`)
+          .join("\n");
+        const scoreCell = state.columns.length
+          ? `<td class="score-cell" title="${breakdown ? `${breakdown}\nCompared with items for the same slot / weapon type.` : ""}"><span class="score-bar"><i style="width:${fit}%"></i><b>${fit}</b></span></td>`
+          : "";
+        const guardDetails = (row.protection ?? []).map((part) => `${core.statName(part.statId)}: ${core.formatStat(part.statId, part.delta)} (allowed loss ${core.formatStat(part.statId, part.allowedLoss)})`).join("\n");
+        const guardCell = state.protected.length
+          ? state.mode === "bare"
+            ? `<td class="zero" title="Choose My Armory build or import Questlog to compare protected stats">Needs build</td>`
+            : `<td class="${row.protectionPass ? "guard-pass" : "guard-blocked"}" title="${esc(guardDetails)}">${row.protectionPass ? "Pass" : "Blocked"}</td>`
+          : "";
+        return `<tr class="${row.protectionPass ? "" : "protection-blocked"}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
+          <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${row.item.id}" aria-label="Toggle favourite">★</button></td>
+          <td class="item-cell-td"><span class="item-cell">
+            <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span><span class="name" style="color:${color}">${row.item.name}${equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span>
+            <span class="sub">${core.label(row.item.equipmentType)}</span></span>
+          </span></td>
+          <td style="color:${color}">${core.gradeName(row.item.grade)}</td>
+          <td>${row.level}</td>
+          ${statCells}
+          ${guardCell}
+          ${scoreCell}
+        </tr>`;
+      }).join("");
+      for (const button of $("table-body").querySelectorAll("[data-fav]")) {
+        button.addEventListener("click", () => {
+          const id = button.dataset.fav;
+          favorites.has(id) ? favorites.delete(id) : favorites.add(id);
+          localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+          button.classList.toggle("on", favorites.has(id));
+          if (state.favoritesOnly) refresh({ recompute: false });
+        });
+      }
+      $("empty").classList.toggle("hidden", rows.length > 0);
+      if (!rows.length) $("empty").textContent = "No items match the current filters.";
+      const remaining = rows.length - shown.length;
+      $("table-foot").classList.toggle("hidden", remaining <= 0);
+      if (remaining > 0) {
+        $("show-more").textContent = `Show all ${rows.length} items (${remaining} more)`;
+        $("show-more").onclick = () => { state.limit = rows.length; refresh({ recompute: false }); };
+      }
+    }
+
+    function renderActiveChips() {
+      const box = $("active-chips");
+      box.innerHTML = "";
+      const addChip = (label, className, onRemove, removeLabel) => {
+        const chip = document.createElement("span");
+        chip.className = `chip ${className}`;
+        chip.textContent = label + " ";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.setAttribute("aria-label", removeLabel);
+        remove.textContent = "✕";
+        remove.addEventListener("click", onRemove);
+        chip.appendChild(remove);
+        box.appendChild(chip);
+      };
+      if (state.columns.length) {
+        const label = document.createElement("span");
+        label.className = "chip-label";
+        label.textContent = "Columns";
+        box.appendChild(label);
+        for (const statId of state.columns) {
+          addChip(core.statName(statId), "", () => {
+            state.columns = state.columns.filter((id) => id !== statId);
+            refresh({ recompute: false });
+          }, `Remove ${core.statName(statId)} column`);
+        }
+      }
+      if (state.protected.length) {
+        const label = document.createElement("span");
+        label.className = "chip-label";
+        label.textContent = "Protect";
+        box.appendChild(label);
+        for (const statId of state.protected) {
+          addChip(core.statName(statId), "filter-chip", () => {
+            state.protected = state.protected.filter((id) => id !== statId);
+            refresh({ recompute: false });
+          }, `Stop protecting ${core.statName(statId)}`);
+        }
+      }
+      const filters = [];
+      if (state.category !== "all") filters.push([`Category: ${$("category-select").selectedOptions[0]?.textContent ?? state.category}`, () => { state.category = "all"; state.type = "all"; $("category-select").value = "all"; renderTypeOptions(); }]);
+      if (state.type !== "all") filters.push([`Type: ${core.label(state.type)}`, () => { state.type = "all"; $("type-select").value = "all"; }]);
+      if (state.grade !== "all") filters.push([`Grade: ${core.gradeName(state.grade)}`, () => { state.grade = "all"; $("grade-select").value = "all"; }]);
+      if (state.search.trim()) filters.push([`Search: "${state.search.trim()}"`, () => { state.search = ""; $("search").value = ""; }]);
+      if (state.favoritesOnly) filters.push(["★ favourites only", () => { state.favoritesOnly = false; $("fav-toggle").checked = false; }]);
+      if (filters.length) {
+        const label = document.createElement("span");
+        label.className = "chip-label";
+        label.textContent = "Filters";
+        box.appendChild(label);
+        for (const [text, undo] of filters) {
+          addChip(text, "filter-chip", () => { undo(); state.limit = ROW_LIMIT; refresh({ recompute: false }); }, `Remove filter ${text}`);
+        }
+      }
+      box.classList.toggle("hidden", !box.children.length);
+    }
+
+    function renderColumnMenu(stats) {
+      const query = state.colSearch.trim().toLowerCase();
+      const matches = stats.filter((row) => !query || row.name.toLowerCase().includes(query) || row.statId.includes(query));
+      const currentList = state.colMode === "protect" ? state.protected : state.columns;
+      // Selected stats pinned to the top so the current picks are always visible.
+      const visible = [
+        ...matches.filter((row) => currentList.includes(row.statId)),
+        ...matches.filter((row) => !currentList.includes(row.statId)),
+      ];
+      $("col-options").innerHTML = "";
+      for (const row of visible) {
+        const selected = currentList.includes(row.statId);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = selected ? "selected" : "";
+        const listLabel = state.colMode === "protect" ? "protected stats" : "increase stats";
+        button.setAttribute("aria-label", `${selected ? "Remove" : "Add"} ${row.name} ${selected ? "from" : "to"} ${listLabel}`);
+        button.innerHTML = `<span></span><span class="count"></span>`;
+        button.firstChild.textContent = (selected ? "✓ " : "") + row.name;
+        button.lastChild.textContent = `${row.count}`;
+        button.addEventListener("click", () => {
+          if (state.colMode === "protect") {
+            state.protected = selected ? state.protected.filter((id) => id !== row.statId) : [...state.protected, row.statId];
+          } else {
+            state.columns = selected ? state.columns.filter((id) => id !== row.statId) : [...state.columns, row.statId];
+          }
+          state.limit = ROW_LIMIT;
+          refresh({ recompute: false });
+        });
+        $("col-options").appendChild(button);
+      }
+      $("col-count").textContent = String(state.columns.length + state.protected.length);
+      $("col-mode-increase").classList.toggle("active", state.colMode === "increase");
+      $("col-mode-protect").classList.toggle("active", state.colMode === "protect");
+      $("protect-tolerance-wrap").classList.toggle("hidden", state.protected.length === 0);
+    }
+
+    // ---------- item hover card (same model as the Armory's ItemHoverCard) ----------
+    const hoverModelCache = new Map(); // itemId -> model
+    const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    function hoverModelFor(itemId, slotId) {
+      if (hoverModelCache.has(itemId)) return hoverModelCache.get(itemId);
+      // Place the item bare into its natural slot of an empty build; the model
+      // builder then falls back to the item's own trait/resonance lines at max tier.
+      const build = core.createInitialBuild();
+      core.slotCollectionForSlot(build, slotId)[slotId] = { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(core.indexes.itemById[itemId]) };
+      const model = core.buildItemHoverModel(slotId, build, null);
+      hoverModelCache.set(itemId, model);
+      return model;
+    }
+
+    function renderHoverCard(model) {
+      const lines = (rows) => rows.map((row) => `<div class="hc-line">${esc(row.text)}</div>`).join("");
+      const sections = [];
+      sections.push(`<div class="hc-head" style="border-top:${model.headBorder};background:${model.headBg}">
+        ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
+        <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
+      </div>`);
+      if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${lines(model.traits)}</div>`);
+      if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${lines(model.unique)}</div>`);
+      if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
+        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
+      if (model.hasResonance) sections.push(`<div class="hc-section"><div class="hc-title resonance">Trait Resonance</div>${lines(model.resonance)}</div>`);
+      if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
+        `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
+      if (model.hasCores) sections.push(`<div class="hc-section"><div class="hc-title" style="color:#8fd0ff">Skill Cores · Potentials</div>${model.cores.map((coreRow) =>
+        `<div class="hc-effect">${coreRow.hasIcon ? `<span class="hc-effect-icon" style="border-color:rgba(143,208,255,0.35);border-radius:7px;background-image:url('${esc(coreRow.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name" style="color:#cfe6ff">${esc(coreRow.name)}</div><div class="hc-effect-text" style="color:#8ba0b5">${esc(coreRow.text)}</div></div></div>`).join("")}${model.hasCoreMore ? `<div class="hc-effect-text">${esc(model.coreMoreLabel)}</div>` : ""}</div>`);
+      if (model.hasAbilities) sections.push(`<div class="hc-section"><div class="hc-title">Weapon Abilities</div><div class="hc-abilities">${model.abilities.map((ab) =>
+        `<span class="hc-ability" title="${esc(ab.name)}" style="background-image:url('${esc(ab.icon)}')"></span>`).join("")}</div></div>`);
+      if (model.hasSet) sections.push(`<div class="hc-section"><div class="hc-set-head"><span class="hc-title" style="margin:0">${esc(model.setInfo.name)}</span><span class="hc-set-count">${esc(model.setInfo.countLabel)}</span></div>${model.setInfo.bonuses.map((bonus) =>
+        `<div class="hc-bonus"><span class="req" style="color:${bonus.color}">${esc(bonus.required)}</span><span class="txt">${esc(bonus.text)}${bonus.hasComputed ? `<i style="display:block;font-style:normal;color:${bonus.color}">${esc(bonus.computedText)}</i>` : ""}</span></div>`).join("")}</div>`);
+      $("hover-card").innerHTML = sections.join("");
+    }
+
+    function positionHoverCard(event) {
+      const card = $("hover-card");
+      const flip = event.clientY > window.innerHeight * 0.5;
+      card.style.left = `${Math.max(12, Math.min(event.clientX + 20, window.innerWidth - card.offsetWidth - 12))}px`;
+      card.style.top = flip ? "" : `${event.clientY}px`;
+      card.style.bottom = flip ? `${window.innerHeight - event.clientY}px` : "";
+    }
+
+    let hoverItemId = "";
+    function bindHoverCard() {
+      const body = $("table-body");
+      body.addEventListener("mouseover", (event) => {
+        const tr = event.target.closest("tr[data-item-id]");
+        if (!tr || tr.dataset.itemId === hoverItemId) return;
+        hoverItemId = tr.dataset.itemId;
+        const model = hoverModelFor(tr.dataset.itemId, tr.dataset.slotId);
+        if (!model) {
+          hoverItemId = "";
+          return;
+        }
+        renderHoverCard(model);
+        $("hover-card").classList.remove("hidden");
+        $("hover-card").setAttribute("aria-hidden", "false");
+        positionHoverCard(event);
+      });
+      body.addEventListener("mousemove", (event) => {
+        if (hoverItemId) positionHoverCard(event);
+      });
+      body.addEventListener("mouseleave", () => {
+        hoverItemId = "";
+        $("hover-card").classList.add("hidden");
+        $("hover-card").setAttribute("aria-hidden", "true");
+      });
+      document.addEventListener("scroll", () => {
+        hoverItemId = "";
+        $("hover-card").classList.add("hidden");
+        $("hover-card").setAttribute("aria-hidden", "true");
+      }, { passive: true });
+    }
+
+    let lastStats = [];
+    async function refresh({ recompute = true } = {}) {
+      const rows = await computeRows();
+      if (!rows) return; // superseded
+      const filtered = filteredRows(rows);
+      lastStats = availableStats(filtered);
+      state.columns = state.columns.filter((id) => lastStats.some((row) => row.statId === id) || rows.some((r) => (r.contribution[id] ?? 0) > 0));
+      state.protected = state.protected.filter((id) => lastStats.some((row) => row.statId === id) || rows.some((r) => (r.contribution[id] ?? 0) > 0));
+      if (state.sortKey.startsWith("stat:") && !state.columns.includes(state.sortKey.slice(5))) {
+        state.sortKey = "score";
+        state.sortDir = "desc";
+      }
+      scoreRows(rows, filtered);
+      const visible = state.columns.length
+        ? filtered.filter((row) => row.score > 0 || state.sortKey !== "score")
+        : filtered;
+      sortRows(visible);
+      renderHead();
+      renderBody(visible);
+      renderColumnMenu(lastStats);
+      renderActiveChips();
+      const modeLabel = state.mode === "bare" ? "item alone"
+        : state.mode === "build" ? "delta in your Armory build"
+        : `delta in ${questlog?.label ?? "imported build"}`;
+      const guardLabel = state.protected.length
+        ? state.mode === "bare" ? ` · ${state.protected.length} protected stat${state.protected.length > 1 ? "s" : ""} waiting for a build`
+        : ` · ${visible.filter((row) => row.protectionPass).length} pass ${state.protected.length} protected stat${state.protected.length > 1 ? "s" : ""} at ${state.protectTolerancePct}% tolerance`
+        : "";
+      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${guardLabel}`;
+      writeHash();
+    }
+
+    // ---------- URL hash (shareable view) ----------
+    function writeHash() {
+      const params = new URLSearchParams();
+      if (state.columns.length) params.set("stats", state.columns.join(","));
+      if (state.protected.length) params.set("protect", state.protected.join(","));
+      if (state.protected.length && state.protectTolerancePct !== 1) params.set("loss", String(state.protectTolerancePct));
+      if (state.category !== "all") params.set("cat", state.category);
+      if (state.type !== "all") params.set("type", state.type);
+      if (state.grade !== "all") params.set("grade", state.grade);
+      if (state.sortKey !== "score" || state.sortDir !== "desc") params.set("sort", `${state.sortKey}:${state.sortDir}`);
+      if (state.search) params.set("q", state.search);
+      history.replaceState(null, "", params.size ? `#${params}` : location.pathname);
+    }
+
+    function readHash() {
+      const params = new URLSearchParams(location.hash.slice(1));
+      if (params.get("stats")) state.columns = params.get("stats").split(",").filter(Boolean);
+      if (params.get("protect")) state.protected = params.get("protect").split(",").filter(Boolean);
+      if (params.has("loss")) state.protectTolerancePct = Math.max(0, Math.min(5, Number(params.get("loss")) || 0));
+      if (params.get("cat")) state.category = params.get("cat");
+      if (params.get("type")) state.type = params.get("type");
+      if (params.get("grade")) state.grade = params.get("grade");
+      if (params.get("q")) state.search = params.get("q");
+      const sort = params.get("sort");
+      if (sort) {
+        const split = sort.lastIndexOf(":");
+        state.sortKey = split > 0 ? sort.slice(0, split) : "score";
+        state.sortDir = sort.slice(split + 1) === "asc" ? "asc" : "desc";
+      }
+    }
+
+    // ---------- boot ----------
+    async function boot() {
+      try {
+        await core.initCore("./data/app-data.json");
+      } catch (error) {
+        $("status").innerHTML = `<span class="error">Failed to load game data: ${error.message}</span>`;
+        return;
+      }
+      $("game-build").textContent = core.data.gameBuild ?? "Unknown";
+
+      // slot/category maps
+      const armorSlots = new Set(["head", "chest", "hands", "legs", "feet", "cloak"]);
+      const accessorySlots = new Set(["necklace", "bracelet", "belt", "ring_1", "ring_2", "brooch", "earring"]);
+      for (const slot of core.BUILD_SLOTS) {
+        SLOT_CATEGORY[slot.id] =
+          slot.id === "main_hand" || slot.id === "off_hand" ? "weapons"
+          : armorSlots.has(slot.id) ? "armor"
+          : accessorySlots.has(slot.id) ? "accessories"
+          : core.ARTIFACT_SLOTS.some((s) => s.id === slot.id) ? "artifacts"
+          : "support";
+        for (const type of slot.types) if (!(type in TYPE_SLOT)) TYPE_SLOT[type] = slot.id;
+      }
+      CATEGORY_TYPES = { weapons: new Set(), armor: new Set(), accessories: new Set(), artifacts: new Set() };
+      for (const [type, slotId] of Object.entries(TYPE_SLOT)) {
+        const category = SLOT_CATEGORY[slotId];
+        if (CATEGORY_TYPES[category]) CATEGORY_TYPES[category].add(type);
+      }
+
+      // Precedence: valid hash -> saved defaults -> product defaults.
+      const PREFS_KEY = "tlhelper-gear-viewer-prefs-v1";
+      if (location.hash.length > 1) {
+        readHash();
+      } else {
+        try {
+          const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) ?? "null");
+          if (prefs) {
+            if (Array.isArray(prefs.columns)) state.columns = prefs.columns;
+            if (Array.isArray(prefs.protected)) state.protected = prefs.protected;
+            if (Number.isFinite(prefs.protectTolerancePct)) state.protectTolerancePct = Math.max(0, Math.min(5, prefs.protectTolerancePct));
+            if (prefs.category) state.category = prefs.category;
+            if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
+          }
+        } catch {}
+      }
+      window.addEventListener("pagehide", () => {
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, category: state.category, mode: state.mode })); } catch {}
+      });
+
+      // saved Armory build
+      try {
+        const saved = loadArmoryState(localStorage, { currentGameBuild: core.data.gameBuild });
+        if (saved.ok && saved.data?.build?.equipment) {
+          armory = { build: saved.data.build, attributes: { ...ZERO_ATTRS, ...(saved.data.attributes ?? {}) } };
+        }
+      } catch {}
+      if (!armory) {
+        $("mode-select").querySelector('option[value="build"]').disabled = true;
+        if (state.mode === "build") state.mode = "bare";
+      }
+      if (state.mode === "questlog" && !questlog) state.mode = "bare";
+
+      // controls
+      const grades = core.pickerGradeOptions(core.data.items);
+      $("grade-select").innerHTML = `<option value="all">All grades</option>` + grades.map((grade) => `<option value="${grade}">${core.gradeName(grade)}</option>`).join("");
+      $("grade-select").value = grades.some((g) => String(g) === state.grade) ? state.grade : "all";
+      $("category-select").value = state.category;
+      renderTypeOptions();
+      $("search").value = state.search;
+      $("mode-select").value = state.mode;
+      $("protect-tolerance").value = String(state.protectTolerancePct);
+
+      let searchTimer = 0;
+      $("search").addEventListener("input", () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => { state.search = $("search").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); }, 120);
+      });
+      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; state.limit = ROW_LIMIT; refresh(); });
+      $("category-select").addEventListener("change", () => { state.category = $("category-select").value; state.type = "all"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("type-select").addEventListener("change", () => { state.type = $("type-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("grade-select").addEventListener("change", () => { state.grade = $("grade-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("traits-toggle").addEventListener("change", () => { state.withTraits = $("traits-toggle").checked; refresh(); });
+      $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+
+      // column picker dropdown
+      const menu = $("col-menu");
+      $("col-button").addEventListener("click", () => {
+        const open = menu.classList.toggle("hidden");
+        $("col-button").setAttribute("aria-expanded", String(!open));
+        if (!open) $("col-search").focus();
+      });
+      $("col-close").addEventListener("click", () => menu.classList.add("hidden"));
+      $("col-mode-increase").addEventListener("click", () => { state.colMode = "increase"; renderColumnMenu(lastStats); });
+      $("col-mode-protect").addEventListener("click", () => { state.colMode = "protect"; renderColumnMenu(lastStats); });
+      $("col-clear").addEventListener("click", () => { if (state.colMode === "protect") state.protected = []; else state.columns = []; refresh({ recompute: false }); });
+      $("col-search").addEventListener("input", () => { state.colSearch = $("col-search").value; renderColumnMenu(lastStats); });
+      $("protect-tolerance").addEventListener("change", () => { state.protectTolerancePct = Number($("protect-tolerance").value); refresh({ recompute: false }); });
+      document.addEventListener("click", (event) => {
+        if (!menu.classList.contains("hidden") && !event.target.closest(".col-picker")) menu.classList.add("hidden");
+      });
+
+      // questlog import
+      $("ql-import").addEventListener("click", async () => {
+        const button = $("ql-import");
+        $("ql-error").textContent = "";
+        button.disabled = true;
+        button.textContent = "Importing…";
+        try {
+          const response = await fetch(`/api/questlog/character?url=${encodeURIComponent($("ql-url").value.trim())}`, { cache: "no-store" });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
+          const requested = payload.buildId === null ? null : String(payload.buildId);
+          const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
+          if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
+          const sourceBuild = {
+            ...rawBuild,
+            equipment: Object.fromEntries(Object.entries(rawBuild.equipment ?? {}).map(([slot, row]) => [slot, row ? { ...row, itemLevel: row.itemLevel ?? row.enhLvl } : row])),
+          };
+          const skillBuild = payload.skillData?.builds?.find((row) => String(row.id) === String(sourceBuild.skillBuildId));
+          const masteryBuild = payload.masteryData?.builds?.find((row) => String(row.id) === String(sourceBuild.weaponSpecializationBuildId));
+          const imported = core.importQuestlogBuild({ characterData: payload.characterData, build: sourceBuild, skillBuild, masteryBuild });
+          questlog = {
+            build: imported.build,
+            attributes: { ...ZERO_ATTRS, ...(imported.attributes ?? {}) },
+            label: `${imported.profile.name} · ${sourceBuild.name ?? `Build ${sourceBuild.id}`}`,
+          };
+          for (const key of [...poolCache.keys()]) if (key.startsWith("questlog|")) poolCache.delete(key);
+          const option = $("mode-select").querySelector('option[value="questlog"]');
+          option.disabled = false;
+          option.textContent = `Imported: ${questlog.label}`;
+          $("mode-select").value = "questlog";
+          state.mode = "questlog";
+          await refresh();
+        } catch (error) {
+          $("ql-error").textContent = ` ${String(error?.message ?? error)}`;
+        } finally {
+          button.disabled = false;
+          button.textContent = "Import";
+        }
+      });
+
+      $("status").textContent = "Scoring items…";
+      bindHoverCard();
+      await refresh();
+    }
+
+    function renderTypeOptions() {
+      const types = state.category === "all"
+        ? Object.keys(TYPE_SLOT).filter((type) => SLOT_CATEGORY[TYPE_SLOT[type]] !== "support")
+        : [...(CATEGORY_TYPES[state.category] ?? [])];
+      $("type-select").innerHTML = `<option value="all">All types</option>` +
+        types.sort((a, b) => core.label(a).localeCompare(core.label(b))).map((type) => `<option value="${type}">${core.label(type)}</option>`).join("");
+      $("type-select").value = types.includes(state.type) ? state.type : "all";
+      state.type = $("type-select").value;
+    }
+
+    boot();
+  </script>
+</body>
+</html>
