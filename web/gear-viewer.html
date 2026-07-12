@@ -90,16 +90,25 @@
     .score-bar b { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 100%; padding: 0 6px; font-size: 11px; color: #ffe9b8; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
     .equipped-mark { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid rgba(127, 214, 201, 0.55); border-radius: 999px; font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: #7fd6c9; vertical-align: middle; }
     /* Item hover card (mirrors the Armory's ItemHoverCard) */
-    #hover-card { position: fixed; z-index: 80; width: min(300px, calc(100vw - 24px)); max-height: 86vh; overflow-y: auto; pointer-events: none; border: 1px solid rgba(212, 166, 94, 0.4); border-radius: 10px; background: linear-gradient(180deg, rgba(24, 18, 11, 0.99), rgba(11, 8, 5, 0.99)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.7); }
+    #hover-card { position: fixed; z-index: 80; width: min(340px, calc(100vw - 24px)); max-height: 86vh; overflow-y: auto; pointer-events: none; border: 1px solid rgba(212, 166, 94, 0.48); border-radius: 10px; background: linear-gradient(180deg, rgba(27, 20, 13, 0.995), rgba(11, 8, 5, 0.995)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.75); }
     #hover-card .hc-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
     #hover-card .hc-icon { flex: none; width: 46px; height: 46px; border-radius: 9px; background-size: cover; background-position: center; background-color: #171209; border: 1px solid transparent; }
     #hover-card .hc-name { font-size: 15px; font-weight: 700; line-height: 1.2; }
     #hover-card .hc-meta { font-size: 10.5px; color: #9d8a68; margin-top: 3px; }
-    #hover-card .hc-section { padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1); }
-    #hover-card .hc-title { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px; }
+    #hover-card .hc-section { padding: 10px 14px; border-top: 1px solid rgba(212, 166, 94, 0.16); }
+    #hover-card .hc-title { font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase; color: #cbb185; margin-bottom: 7px; }
     #hover-card .hc-title.heroic { color: #ffb765; }
     #hover-card .hc-title.resonance { color: #cf9dff; }
     #hover-card .hc-line { font-size: 11.5px; color: #d9c8a5; line-height: 1.5; }
+    #hover-card .hc-stat-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: baseline; column-gap: 5px; min-height: 19px; font-size: 12px; line-height: 1.45; }
+    #hover-card .hc-stat-row .mark { color: #76654b; text-align: center; }
+    #hover-card .hc-stat-row .stat-name { color: #cfc1a6; }
+    #hover-card .hc-stat-row .stat-value { color: #f0e1c1; font-weight: 600; font-variant-numeric: tabular-nums; padding-left: 12px; }
+    #hover-card .hc-stat-row.core .mark { visibility: hidden; }
+    #hover-card .hc-stat-row.extra .mark { color: #b8ab92; }
+    #hover-card .hc-stat-row.trait .mark { color: #d4a65e; }
+    #hover-card .hc-stat-row.resonance .mark, #hover-card .hc-stat-row.resonance .stat-name, #hover-card .hc-stat-row.resonance .stat-value { color: #cf9dff; }
+    #hover-card .hc-resonance { background: rgba(159, 86, 214, 0.055); }
     #hover-card .hc-effect { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 6px; }
     #hover-card .hc-effect:last-child { margin-bottom: 0; }
     #hover-card .hc-effect-icon { flex: none; width: 30px; height: 30px; border-radius: 999px; border: 1px solid rgba(212, 166, 94, 0.35); background-size: cover; background-position: center; background-color: #171209; }
@@ -637,18 +646,22 @@
     }
 
     function renderHoverCard(model) {
-      const lines = (rows) => rows.map((row) => `<div class="hc-line">${esc(row.text)}</div>`).join("");
+      const statRows = (rows, kind) => rows.map((row) => {
+        const rowKind = kind ?? row.kind ?? "core";
+        const mark = rowKind === "core" ? "" : rowKind === "extra" ? "•" : rowKind === "resonance" ? "✦" : "◆";
+        return `<div class="hc-stat-row ${rowKind}"><span class="mark">${mark}</span><span class="stat-name">${esc(row.name)}</span><span class="stat-value">${esc(row.formattedValue)}</span></div>`;
+      }).join("");
       const sections = [];
       sections.push(`<div class="hc-head" style="border-top:${model.headBorder};background:${model.headBg}">
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
-      if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${lines(model.stats)}</div>`);
-      if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${lines(model.traits)}</div>`);
-      if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${lines(model.unique)}</div>`);
+      if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}</div>`);
+      if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
+      if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
         `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
-      if (model.hasResonance) sections.push(`<div class="hc-section"><div class="hc-title resonance">Trait Resonance</div>${lines(model.resonance)}</div>`);
+      if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}</div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
       if (model.hasCores) sections.push(`<div class="hc-section"><div class="hc-title" style="color:#8fd0ff">Skill Cores · Potentials</div>${model.cores.map((coreRow) =>
