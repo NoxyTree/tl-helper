@@ -54,6 +54,10 @@ export async function createOptimizerAdapter(deps = {}) {
   const calculate = (wrapped, includeSetEffects = true) => core.calculateBuild(wrapped.build, wrapped.attributes ?? {}, { includeSetEffects });
 
   return {
+    async createScratchBuild() {
+      return { build: core.createInitialBuild(), attributes: {}, name: "New optimized build", sourceKind: "scratch" };
+    },
+
     async loadArmoryBuild() {
       const loaded = (deps.loadArmoryState ?? loadStateDefault)(storage, { currentGameBuild: core.data.gameBuild });
       if (!loaded?.ok) return null;
@@ -80,6 +84,7 @@ export async function createOptimizerAdapter(deps = {}) {
 
     async optimize(request, runtime = {}) {
       const source = wrap(request.build);
+      const scratch = request.sourceKind === "scratch" || request.build?.sourceKind === "scratch";
       const rules = request.rules ?? {};
       const goals = request.goals ?? { increase: [], protect: [] };
       const baseline = totalMap(calculate(source, rules.includeSetEffects !== false));
@@ -101,7 +106,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const slot = slots[slotIndex];
         const current = selectionFor(source.build, slot);
         const currentItem = core.indexes.itemById[current?.itemId];
-        const keepCurrentHeroic = rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
+        const keepCurrentHeroic = !scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
         if (lockedIndexes.has(slotIndex) || keepCurrentHeroic) {
           candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
           continue;
@@ -110,7 +115,7 @@ export async function createOptimizerAdapter(deps = {}) {
         for (const item of core.slotItems(core.slotById(slot))) {
           let selection = itemSelection(core, item);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, goals);
-          if (rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
+          if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
           if (rules.bestHeroicConfiguration && item.grade === core.HEROIC_GRADE) {
             selection = { ...selection, ...optimizeHeroicPotential(item, { frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
           }
@@ -130,8 +135,11 @@ export async function createOptimizerAdapter(deps = {}) {
         }
         const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), scoreHint: weight(contribution(slot, current)), ...candidateMeta(slot, currentItem) };
         const ranked = rows.sort((a, b) => b.scoreHint - a.scoreHint || a.id.localeCompare(b.id));
-        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup)];
-        candidatesBySlot[slot] = [currentRow, ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
+        const weaponTypeSeeds = core.WEAPON_SLOTS.includes(slot)
+          ? ranked.filter((row, index, all) => all.findIndex((other) => other.weaponType === row.weaponType && !other.heroicGroup) === index && !row.heroicGroup)
+          : [];
+        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds];
+        candidatesBySlot[slot] = [...(scratch ? [] : [currentRow]), ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
       }
 
       if (rules.artifacts?.mode && rules.artifacts.mode !== "keep") {
@@ -146,16 +154,30 @@ export async function createOptimizerAdapter(deps = {}) {
         const stats = totalMap(core.calculateBuild(build, source.attributes, { includeSetEffects: rules.includeSetEffects !== false }));
         const normalized = (goals.increase ?? []).reduce((sum, id) => sum + ((stats[id] ?? 0) - (baseline[id] ?? 0)) / Math.max(1, Math.abs(baseline[id] ?? 0)), 0);
         return { score: normalized, stats, build };
-      }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, weights: Object.fromEntries((goals.increase ?? []).map((id) => [id, 1])), protectedStats, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: 4, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + 45 * row.completedSlots / row.totalSlots : 50 + 50 * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
+        const itemId = candidate.selection?.itemId;
+        if (!itemId) return true;
+        return !Object.values(selections).some((selection) => selection?.itemId === itemId);
+      }, weights: Object.fromEntries((goals.increase ?? []).map((id) => [id, 1])), protectedStats, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: 4, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + 45 * row.completedSlots / row.totalSlots : 50 + 50 * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
       const finalStats = best.evaluation.stats;
-      const outputSlots = core.EQUIPMENT_SLOTS.map(({ id, label }) => ({ slot: label, current: { name: itemName(core, selectionFor(source.build, id)) }, recommended: { name: itemName(core, best.selections[id]) }, reason: best.selections[id]?.itemId === selectionFor(source.build, id)?.itemId ? "Kept" : "Improves the selected build goals" }));
+      const describe = (slot, selection) => {
+        const item = core.indexes.itemById[selection?.itemId];
+        return { id: slot.id, label: slot.label, name: item?.name ?? "Empty", imageUrl: item?.imageUrl ?? "", grade: item?.grade ?? 0, color: item ? core.gradeColor(item.grade) : "#8a795f", level: selection?.level ?? 0, selection: clone(selection ?? {}) };
+      };
+      const equipmentLoadout = core.EQUIPMENT_SLOTS.map((slot) => describe(slot, best.selections[slot.id]));
+      const artifactLoadout = core.ARTIFACT_SLOTS.map((slot) => describe(slot, best.evaluation.build.artifacts?.[slot.id]));
+      const outputSlots = [...core.EQUIPMENT_SLOTS, ...core.ARTIFACT_SLOTS].map((slot) => {
+        const recommendedSelection = best.selections[slot.id] ?? best.evaluation.build.artifacts?.[slot.id];
+        const currentSelection = selectionFor(source.build, slot.id);
+        return { slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason: scratch ? "Selected for the complete optimized loadout" : recommendedSelection?.itemId === currentSelection?.itemId ? "Kept" : "Improves the selected build goals" };
+      });
       return {
-        name: "Optimized full build", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots,
+        name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...(goals.increase ?? []), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (baseline[id] ?? 0) })),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included."],
-        assumptions: ["Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: [...(scratch ? ["Built from a naked level baseline with no allocated attribute points.", "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,
