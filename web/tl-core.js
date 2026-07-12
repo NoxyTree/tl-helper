@@ -736,6 +736,8 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
         return {
           required: `${req} pc`,
           active,
+          mark: active ? "✓" : "○",
+          opacity: active ? "1" : "0.58",
           color: active ? "#7ee0a6" : "#8a795f",
           text: [...stats, ...pass].filter(Boolean).join(", ") || "Set bonus",
           computedText: computed.length ? `Applied: ${computed.join(", ")}` : "",
@@ -754,44 +756,6 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
       .map((s) => ({ name: s.name, icon: s.imageUrl || "", hasIcon: Boolean(s.imageUrl) }));
   }
 
-  // Skill Cores · Potentials: the slotted perk (skill core), the selected
-  // potential stat, and the item's enchant proc effects. The large
-  // availablePerks pool is intentionally omitted — only what is actually on
-  // this piece is shown. Known Questlog-parity gaps that stay blocked on
-  // missing bundle data: active/inactive trait flags and fixed set/enchant
-  // effects — do not fake them.
-  const allCores = [];
-  const slottedPerk = values(item.availablePerks).find((p) => p.id === selection.perkId);
-  if (slottedPerk) {
-    allCores.push({
-      name: slottedPerk.passive?.name ?? slottedPerk.name,
-      text: plainInline(slottedPerk.passive?.text ?? ""),
-      icon: slottedPerk.passive?.imageUrl ?? slottedPerk.imageUrl ?? "",
-      hasIcon: Boolean(slottedPerk.passive?.imageUrl ?? slottedPerk.imageUrl),
-    });
-  }
-  if (selection.potentialId && item.itemPotential) {
-    const potential = values(item.itemPotential.stats).find((row) => (row.statId ?? row.stat_id) === selection.potentialId);
-    if (potential) {
-      allCores.push({
-        name: "Item Potential",
-        text: `${statName(selection.potentialId)} ${formatSigned(potential.value, selection.potentialId)}`,
-        icon: "",
-        hasIcon: false,
-      });
-    }
-  }
-  for (const proc of item.itemPotential?.skills ?? []) {
-    allCores.push({
-      name: proc.probability ? `${proc.name} (${trim(proc.probability)}%)` : proc.name,
-      text: plainInline(proc.description ?? ""),
-      icon: proc.imageUrl ?? "",
-      hasIcon: Boolean(proc.imageUrl),
-    });
-  }
-  const cores = allCores.slice(0, 4);
-  const coreMore = Math.max(0, allCores.length - cores.length);
-
   return {
     name: item.name, nameColor: color, icon: item.imageUrl ?? "", hasIcon: Boolean(item.imageUrl),
     meta: `${gradeName(item.grade)} · ${label(item.equipmentType)} · Lv ${level}`,
@@ -806,7 +770,6 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     effects, hasEffects: effects.length > 0,
     setInfo, hasSet: Boolean(setInfo),
     abilities, hasAbilities: abilities.length > 0,
-    cores, hasCores: cores.length > 0, coreMoreLabel: coreMore > 0 ? `+${coreMore} more skill cores` : "", hasCoreMore: coreMore > 0,
   };
 }
 
