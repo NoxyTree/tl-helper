@@ -197,7 +197,8 @@
       <label>Item level
         <select id="level-select"><option value="all">All levels</option></select>
       </label>
-      <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Max traits</label></span>
+      <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Optimize 3 traits</label></span>
+      <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
       <span class="check-inline"><input id="set-fit-toggle" type="checkbox"><label for="set-fit-toggle">Include set effects in Fit</label></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
@@ -231,6 +232,8 @@
 
   <script type="module">
     import * as core from "./tl-core.js";
+    import { STAT_EXPANSIONS } from "./tl-questlog-rules.js";
+    import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
     import { loadArmoryState } from "./tl-persistence.js";
 
     const $ = (id) => document.getElementById(id);
@@ -245,6 +248,7 @@
       itemLevel: "all",
       search: "",
       withTraits: true,
+      heroicPotential: false,
       keepHeroic: true,
       includeSetEffects: false,
       favoritesOnly: false,
@@ -302,22 +306,142 @@
       return matching[0]?.slotId ?? TYPE_SLOT[item.equipmentType];
     }
 
-    function maxTraitRows(item) {
-      return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
-        const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
-        return { statId, tier: list.length };
-      }).filter((row) => row.tier > 0);
+    function maxTierRow(statId, tiers) {
+      const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+      return { statId, tier: list.length, value: Number(list.at(-1) ?? 0) };
+    }
+
+    function addExpandedStat(target, statId, value, seen = new Set()) {
+      if (!statId || seen.has(statId)) return;
+      seen.add(statId);
+      target[statId] = (target[statId] ?? 0) + Number(value || 0);
+      for (const expandedId of STAT_EXPANSIONS[statId] ?? []) addExpandedStat(target, expandedId, value, seen);
+    }
+
+    function potentialVector(item, selection) {
+      const totals = {};
+      for (const row of selection.traits ?? []) {
+        const tiers = item.itemStats?.traits?.[row.statId];
+        addExpandedStat(totals, row.statId, maxTierRow(row.statId, tiers).value);
+      }
+      if (selection.uniqueTrait?.statId) {
+        const tiers = item.itemStats?.uniqueTraits?.[selection.uniqueTrait.statId];
+        addExpandedStat(totals, selection.uniqueTrait.statId, maxTierRow(selection.uniqueTrait.statId, tiers).value);
+      }
+      for (const row of selection.heroicEffects ?? []) addExpandedStat(totals, row.statId, row.value ?? 0);
+      return totals;
+    }
+
+    function potentialReference(item) {
+      const reference = {};
+      const record = (statId, value) => {
+        const expanded = {};
+        addExpandedStat(expanded, statId, value);
+        for (const [id, amount] of Object.entries(expanded)) reference[id] = Math.max(reference[id] ?? 0, Math.abs(amount));
+      };
+      for (const [statId, tiers] of Object.entries(item.itemStats?.traits ?? {})) record(statId, maxTierRow(statId, tiers).value);
+      for (const [statId, tiers] of Object.entries(item.itemStats?.uniqueTraits ?? {})) record(statId, maxTierRow(statId, tiers).value);
+      for (let group = 1; Array.isArray(item.itemStats?.[`random_stat_group_${group}`]); group += 1) {
+        for (const row of item.itemStats[`random_stat_group_${group}`]) {
+          const levels = row.levels ?? [];
+          record(row.stat_id ?? row.statId, Number(levels[Number(row.max_level ?? levels.length - 1)] ?? levels.at(-1) ?? row.base_value ?? 0));
+        }
+      }
+      return reference;
+    }
+
+    function potentialStatIds(item, contribution) {
+      const ids = new Set(Object.keys(contribution ?? {}));
+      const include = (statId) => {
+        const expanded = {};
+        addExpandedStat(expanded, statId, 1);
+        for (const id of Object.keys(expanded)) ids.add(id);
+      };
+      for (const statId of Object.keys(item.itemStats?.traits ?? {})) include(statId);
+      for (const statId of Object.keys(item.itemStats?.uniqueTraits ?? {})) include(statId);
+      for (let group = 1; Array.isArray(item.itemStats?.[`random_stat_group_${group}`]); group += 1) {
+        for (const row of item.itemStats[`random_stat_group_${group}`]) include(row.stat_id ?? row.statId);
+      }
+      return [...ids];
+    }
+
+    function potentialEvaluation(item, selection) {
+      const vector = potentialVector(item, selection);
+      const reference = potentialReference(item);
+      const goalIds = state.columns.length ? state.columns : [...state.protected];
+      let score = goalIds.reduce((sum, statId) => sum + Number(vector[statId] ?? 0) / Math.max(1, reference[statId] ?? 0), 0);
+      for (const statId of state.protected) score += 0.1 * Number(vector[statId] ?? 0) / Math.max(1, reference[statId] ?? 0);
+      for (const statId of ["str", "dex", "int", "per", "con"]) score += 0.0001 * Math.max(0, Number(vector[statId] ?? 0));
+      return { score, allowed: true, protectionHeadroom: 0 };
+    }
+
+    function combinations(values, count, start = 0, chosen = [], output = []) {
+      if (chosen.length === count) { output.push(chosen.slice()); return output; }
+      for (let index = start; index <= values.length - (count - chosen.length); index += 1) {
+        chosen.push(values[index]);
+        combinations(values, count, index + 1, chosen, output);
+        chosen.pop();
+      }
+      return output;
+    }
+
+    function optimizedTraitRows(item) {
+      const options = Object.entries(item.itemStats?.traits ?? {})
+        .map(([statId, tiers]) => maxTierRow(statId, tiers))
+        .filter((row) => row.tier > 0)
+        .sort((a, b) => a.statId.localeCompare(b.statId));
+      if (options.length <= core.NORMAL_TRAIT_CAP) return options.map(({ statId, tier }) => ({ statId, tier }));
+      const ranked = combinations(options, core.NORMAL_TRAIT_CAP).map((traits) => {
+        const selection = { traits, uniqueTrait: null, heroicEffects: [] };
+        return { traits, score: potentialEvaluation(item, selection).score, signature: traits.map((row) => row.statId).join("|") };
+      }).sort((a, b) => b.score - a.score || a.signature.localeCompare(b.signature));
+      return ranked[0].traits.map(({ statId, tier }) => ({ statId, tier }));
+    }
+
+    function exactHeroicPotential(item, slotId, build, attributes, level, currentTotals) {
+      const potential = optimizeHeroicPotential(item, {
+        evaluate: (selection) => potentialEvaluation(item, selection),
+        allowDuplicateEffects: true,
+        frontierLimit: 4,
+      });
+      const finalists = potential.finalists.map((candidate) => {
+        const selection = { ...core.emptyEquipmentSelection(), ...candidate.selection, itemId: item.id, level };
+        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+        return { ...candidate, selection, contribution };
+      });
+      const maxima = Object.fromEntries(state.columns.map((statId) => [statId, Math.max(0, ...finalists.map((row) => Number(row.contribution[statId] ?? 0)))]));
+      const equipped = state.mode === "bare" ? null : core.slotSelection(slotId, build);
+      const equippedContribution = equipped?.itemId
+        ? core.slotSelectionContribution(slotId, equipped, build, attributes, { includeSetEffects: state.includeSetEffects })
+        : {};
+      for (const row of finalists) {
+        row.exactScore = state.columns.length
+          ? state.columns.reduce((sum, statId) => sum + Number(row.contribution[statId] ?? 0) / Math.max(1, maxima[statId] ?? 0), 0) / state.columns.length
+          : row.evaluation.score;
+        row.protection = state.mode === "bare" ? [] : state.protected.map((statId) => {
+          const delta = Number(row.contribution[statId] ?? 0) - Number(equippedContribution[statId] ?? 0);
+          const allowedLoss = Math.abs(currentTotals[statId] ?? 0) * state.protectTolerancePct / 100;
+          return { delta, allowedLoss, pass: delta >= -allowedLoss - 1e-9 };
+        });
+        row.allowed = row.protection.every((part) => part.pass);
+        row.headroom = row.protection.reduce((sum, part) => sum + part.delta + part.allowedLoss, 0);
+      }
+      finalists.sort((a, b) => Number(b.allowed) - Number(a.allowed) || b.exactScore - a.exactScore || b.headroom - a.headroom || a.signature.localeCompare(b.signature));
+      const best = finalists[0];
+      return { selection: best.selection, contribution: best.contribution, potential, assumptions: potential.assumptions };
     }
 
     // ---------- compute pipeline (chunked, cancellable, cached) ----------
-    const poolCache = new Map(); // mode|traits -> rows
+    const poolCache = new Map();
     let computeToken = 0;
 
     async function computeRows() {
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.includeSetEffects ? "sets" : "no-sets"}`;
+      const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
+      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${state.includeSetEffects ? "sets" : "no-sets"}|${objectiveKey}`;
       if (poolCache.has(key)) return poolCache.get(key);
       const token = ++computeToken;
       const { build, attributes } = scoringContext();
+      const currentTotals = Object.fromEntries(core.calculateBuild(build, attributes, { includeSetEffects: state.includeSetEffects }).stats.map((row) => [row.id, row.total]));
       const items = core.data.items.filter((item) => TYPE_SLOT[item.equipmentType] && SLOT_CATEGORY[TYPE_SLOT[item.equipmentType]] !== "support");
       const rows = [];
       $("progress").classList.remove("hidden");
@@ -325,16 +449,25 @@
         const item = items[i];
         const slotId = candidateSlotFor(item, build);
         const level = core.itemMaxLevel(item);
-        const selection = {
+        let selection = {
           ...core.emptyEquipmentSelection(),
           itemId: item.id,
           level,
-          traits: state.withTraits ? maxTraitRows(item) : [],
+          traits: state.withTraits ? optimizedTraitRows(item) : [],
         };
-        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+        let potential = null;
+        let contribution;
+        if (state.withTraits && state.heroicPotential && isHeroic(item)) {
+          potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals);
+          selection = potential.selection;
+          contribution = potential.contribution;
+        } else {
+          contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+        }
+        const availableStatIds = potentialStatIds(item, contribution);
         rows.push({
-          item, slotId, level, contribution,
-          haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${Object.keys(contribution).map(core.statName).join(" ")}`.toLowerCase(),
+          item, slotId, level, selection, contribution, potential, availableStatIds,
+          haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
         });
         if (i % 40 === 39) {
           $("status").textContent = `Scoring items… ${i + 1} / ${items.length}`;
@@ -379,9 +512,7 @@
     function availableStats(rows) {
       const counts = new Map();
       for (const row of rows) {
-        for (const [statId, value] of Object.entries(row.contribution)) {
-          if (value > 0) counts.set(statId, (counts.get(statId) ?? 0) + 1);
-        }
+        for (const statId of row.availableStatIds ?? Object.keys(row.contribution)) counts.set(statId, (counts.get(statId) ?? 0) + 1);
       }
       return [...counts.entries()]
         .map(([statId, count]) => ({ statId, count, name: core.statName(statId) }))
@@ -654,20 +785,25 @@
     }
 
     // ---------- item hover card (same model as the Armory's ItemHoverCard) ----------
-    const hoverModelCache = new Map(); // mode|itemId|slotId -> model
+    const hoverModelCache = new Map();
+    let lastRows = [];
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     function hoverModelFor(itemId, slotId) {
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${itemId}|${slotId}`;
+      const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
+      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${state.includeSetEffects ? "sets" : "no-sets"}|${objectiveKey}|${itemId}|${slotId}`;
       if (hoverModelCache.has(key)) return hoverModelCache.get(key);
       const context = scoringContext();
-      const beforeCalc = core.calculateBuild(context.build, context.attributes);
+      const beforeCalc = core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects });
       const build = core.deepClone(context.build);
       const item = core.indexes.itemById[itemId];
-      const selection = { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(item), traits: state.withTraits ? maxTraitRows(item) : [] };
+      const candidate = lastRows.find((row) => row.item.id === itemId && row.slotId === slotId);
+      const selection = candidate?.selection ?? { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(item), traits: state.withTraits ? optimizedTraitRows(item) : [] };
       core.slotCollectionForSlot(build, slotId)[slotId] = selection;
-      const calc = core.calculateBuild(build, context.attributes);
-      const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected] });
+      const calc = core.calculateBuild(build, context.attributes, { includeSetEffects: state.includeSetEffects });
+      const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected], optionalFallback: state.withTraits });
+      model.isPotential = Boolean(candidate?.potential);
+      model.potentialAssumptions = candidate?.potential?.assumptions ?? null;
       hoverModelCache.set(key, model);
       return model;
     }
@@ -684,11 +820,12 @@
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
+      if (model.isPotential) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.22);background:rgba(255,152,45,0.045)"><div class="hc-title heroic">Best possible configuration</div><div class="hc-effect-text">Candidate ceiling for the selected Fit goals. Uses 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Your equipped item is not changed.</div></div>`);
       if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}${model.hasAttributeGains ? `<div class="hc-gain-hint">Hold <kbd>Shift</kbd> to show attribute gains</div>` : ""}</div>`);
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
-        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
+        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}${row.levelKnown ? ` · Lv ${esc(row.level)}` : " · level unknown"}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
       if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="resonance-selected"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}${model.resonanceOptions.length > model.resonance.length ? `<div class="hc-gain-hint">Hold <kbd>R</kbd> to show all possibilities</div>` : ""}</div><div class="resonance-all"><div class="hc-title resonance">Possible Trait Resonances</div>${statRows(model.resonanceOptions, "resonance")}</div></div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
@@ -760,6 +897,7 @@
     async function refresh({ recompute = true } = {}) {
       const rows = await computeRows();
       if (!rows) return; // superseded
+      lastRows = rows;
       const filtered = filteredRows(rows);
       lastStats = availableStats(filtered);
       state.columns = state.columns.filter((id) => lastStats.some((row) => row.statId === id) || rows.some((r) => (r.contribution[id] ?? 0) > 0));
@@ -791,7 +929,8 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
-      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+      const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
+      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
       writeHash();
     }
 
@@ -802,6 +941,7 @@
       if (state.protected.length) params.set("protect", state.protected.join(","));
       if (state.protected.length && state.protectTolerancePct !== 1) params.set("loss", String(state.protectTolerancePct));
       if (!state.keepHeroic) params.set("heroic", "0");
+      if (state.heroicPotential) params.set("heroicPotential", "1");
       if (state.includeSetEffects) params.set("sets", "1");
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
@@ -818,6 +958,7 @@
       if (params.get("protect")) state.protected = params.get("protect").split(",").filter(Boolean);
       if (params.has("loss")) state.protectTolerancePct = Math.max(0, Math.min(5, Number(params.get("loss")) || 0));
       if (params.get("heroic") === "0") state.keepHeroic = false;
+      if (params.get("heroicPotential") === "1") state.heroicPotential = true;
       if (params.get("sets") === "1") state.includeSetEffects = true;
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
@@ -872,6 +1013,7 @@
             if (Array.isArray(prefs.protected)) state.protected = prefs.protected;
             if (Number.isFinite(prefs.protectTolerancePct)) state.protectTolerancePct = Math.max(0, Math.min(5, prefs.protectTolerancePct));
             if (typeof prefs.keepHeroic === "boolean") state.keepHeroic = prefs.keepHeroic;
+            if (typeof prefs.heroicPotential === "boolean") state.heroicPotential = prefs.heroicPotential;
             if (typeof prefs.includeSetEffects === "boolean") state.includeSetEffects = prefs.includeSetEffects;
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
@@ -880,7 +1022,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, includeSetEffects: state.includeSetEffects, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -910,6 +1052,7 @@
       $("mode-select").value = state.mode;
       $("protect-tolerance").value = String(state.protectTolerancePct);
       $("heroic-toggle").checked = state.keepHeroic;
+      $("heroic-potential-toggle").checked = state.heroicPotential;
       $("set-fit-toggle").checked = state.includeSetEffects;
       $("set-fit-toggle").disabled = state.mode === "bare";
 
@@ -925,6 +1068,7 @@
       $("level-select").addEventListener("change", () => { state.itemLevel = $("level-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("traits-toggle").addEventListener("change", () => { state.withTraits = $("traits-toggle").checked; refresh(); });
       $("heroic-toggle").addEventListener("change", () => { state.keepHeroic = $("heroic-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("heroic-potential-toggle").addEventListener("change", () => { state.heroicPotential = $("heroic-potential-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
       $("set-fit-toggle").addEventListener("change", () => { state.includeSetEffects = $("set-fit-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
       $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
 
