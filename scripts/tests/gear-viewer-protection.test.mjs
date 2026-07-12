@@ -35,6 +35,14 @@ test("Combat Calculator explains reviewed ability coverage and attacker build wo
 
 test("build-aware weapon ranking stays within the equipped weapon families and matching slots", () => {
   assert.match(html, /function equippedWeaponSlots\(build = scoringContext\(\)\.build\)/);
-  assert.match(html, /equipped\.find\(\(row\) => row\.type === item\.equipmentType\)\?\.slotId/);
+  assert.match(html, /return matching\[0\]\?\.slotId \?\? TYPE_SLOT\[item\.equipmentType\]/);
   assert.match(html, /equippedWeaponTypes\.has\(row\.item\.equipmentType\)/);
+});
+
+test("equipped Heroic items are protected from replacement by default", () => {
+  assert.match(html, /id="heroic-toggle" type="checkbox" checked/);
+  assert.match(html, /keepHeroic: true/);
+  assert.match(html, /core\.gradeName\(item\.grade\) === "Heroic"/);
+  assert.match(html, /lockedHeroicBySlot\.get\(row\.slotId\) === row\.item\.id/);
+  assert.match(html, /equipped Heroic slot/);
 });
