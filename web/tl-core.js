@@ -247,7 +247,12 @@ export async function initCore(source) {
 export function buildIndexes(source) {
   const itemById = Object.fromEntries(source.items.map((item) => [item.id, item]));
   const runeById = Object.fromEntries(source.runes.map((rune) => [rune.id, rune]));
-  const itemSetById = Object.fromEntries(source.itemSets.map((set) => [set.id, set]));
+  const normalizedArtifactSets = (source.artifactSets ?? []).map((set) => ({
+    ...set,
+    itemSetMadeOfItems: set.itemSetMadeOfItems ?? (set.memberItemIds ?? []).map((id) => ({ id })),
+    itemSetBonus: set.itemSetBonus ?? set.bonuses ?? [],
+  }));
+  const itemSetById = Object.fromEntries([...source.itemSets, ...normalizedArtifactSets].map((set) => [set.id, set]));
   const skillById = Object.fromEntries((source.skills ?? []).map((skill) => [skill.id, skill]));
   const skillTraitById = Object.fromEntries((source.skillTraits ?? []).map((trait) => [trait.id, trait]));
   const itemsByType = {};
@@ -287,7 +292,7 @@ export function emptyEquipmentSelection() {
 }
 
 export function emptyHeroicEffect() {
-  return { statId: "" };
+  return { statId: "", level: 0, levelKnown: false };
 }
 
 // Every rune-eligible piece has exactly 3 sockets — this matches the live
@@ -409,7 +414,7 @@ export function importQuestlogBuild(payload) {
     if (!row?.id || !item) continue;
     const heroicEffects = [];
     for (const [groupNumber, statId] of Object.entries(row.heroic ?? {})) {
-      if (statId) heroicEffects[Number(groupNumber) - 1] = { statId };
+      if (statId) heroicEffects[Number(groupNumber) - 1] = { statId, level: 0, levelKnown: false };
     }
     const selection = {
       ...emptyEquipmentSelection(),
@@ -543,22 +548,37 @@ export function maxValue(value) {
   return 0;
 }
 
-// Heroic equipment exposes two independently rolled effects. Questlog stores
-// each slot as random_stat_group_1 / random_stat_group_2. The displayed value
-// is base_value; the levels array describes the underlying growth table rather
-// than a separate choice in the Heroic Effects picker.
+// Heroic equipment exposes independently rolled effect groups. Weapons have
+// two groups in the current data, while armor and accessories can have three.
 export function heroicEffectOptions(item, groupIndex) {
   if (!item || item.grade !== HEROIC_GRADE) return [];
   const index = clamp(Number(groupIndex || 0), 0, Math.max(0, heroicEffectGroupCount(item) - 1));
   const rows = item.itemStats?.[`random_stat_group_${index + 1}`];
   if (!Array.isArray(rows)) return [];
-  return rows.map((entry) => ({
-    statId: entry.stat_id ?? entry.statId ?? "",
-    value: Number(entry.base_value ?? entry.baseValue ?? entry.levels?.[0] ?? 0),
-    probability: Number(entry.probability ?? 0),
-    maxLevel: Number(entry.max_level ?? entry.maxLevel ?? Math.max(1, (entry.levels?.length ?? 1) - 1)),
-    levels: entry.levels ?? [],
-  })).filter((entry) => entry.statId);
+  return rows.map((entry) => {
+    const levels = Array.isArray(entry.levels) ? entry.levels.map(Number) : [];
+    const baseValue = Number(entry.base_value ?? entry.baseValue ?? levels[0] ?? 0);
+    const maxLevel = Math.max(0, Number(entry.max_level ?? entry.maxLevel ?? Math.max(0, levels.length - 1)));
+    const option = {
+      statId: entry.stat_id ?? entry.statId ?? "",
+      baseValue,
+      maxValue: Number(levels[clamp(maxLevel, 0, Math.max(0, levels.length - 1))] ?? levels.at(-1) ?? baseValue),
+      value: baseValue,
+      probability: Number(entry.probability ?? 0),
+      maxLevel,
+      levels,
+    };
+    return option;
+  }).filter((entry) => entry.statId);
+}
+
+// Canonical level lookup for Heroic effects. Legacy selections without a level
+// intentionally resolve to level 0, preserving existing saved-build totals.
+export function heroicEffectValue(option, level = 0) {
+  if (!option) return 0;
+  const maxLevel = Math.max(0, Number(option.maxLevel ?? Math.max(0, (option.levels?.length ?? 1) - 1)));
+  const selectedLevel = clamp(Number.isFinite(Number(level)) ? Math.trunc(Number(level)) : 0, 0, maxLevel);
+  return Number(option.levels?.[selectedLevel] ?? (selectedLevel === 0 ? option.baseValue ?? option.value : undefined) ?? option.levels?.at?.(-1) ?? option.baseValue ?? option.value ?? 0);
 }
 
 export function selectedHeroicEffects(item, selection) {
@@ -566,12 +586,17 @@ export function selectedHeroicEffects(item, selection) {
     if (!row.statId) return [];
     const option = heroicEffectOptions(item, groupIndex).find((entry) => entry.statId === row.statId);
     if (!option) return [];
+    const level = clamp(Number.isFinite(Number(row.level)) ? Math.trunc(Number(row.level)) : 0, 0, option.maxLevel);
+    const value = heroicEffectValue(option, level);
     return [{
       ...option,
+      level,
+      levelKnown: row.levelKnown === true,
+      value,
       groupIndex,
       groupNumber: groupIndex + 1,
       name: statName(option.statId),
-      formattedValue: formatSigned(option.value, option.statId),
+      formattedValue: formatSigned(value, option.statId),
     }];
   });
 }
@@ -675,10 +700,12 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
   const selTraits = normalizeSelectionRows(selection.traits);
   const traits = (selTraits.length
     ? selTraits.map((r) => tierRow(r.statId, item.itemStats?.traits?.[r.statId], r.tier))
+    : options.optionalFallback === false ? []
     : Object.entries(item.itemStats?.traits ?? {}).slice(0, NORMAL_TRAIT_CAP).map(([statId, tiers]) => tierRow(statId, tiers, maxTierVal(tiers))));
   const selReson = normalizeSelectionRows(selection.resonance);
   const resonance = (selReson.length
     ? selReson.map((r) => tierRow(r.statId, item.itemStats?.resonance?.[r.statId]?.tiers, r.tier))
+    : options.optionalFallback === false ? []
     : Object.entries(item.itemStats?.resonance ?? {}).slice(0, RESONANCE_CAP).map(([statId, row]) => tierRow(statId, row?.tiers, maxTierVal(row?.tiers))));
   const resonanceOptions = Object.entries(item.itemStats?.resonance ?? {}).map(([statId, row]) => ({
     ...tierRow(statId, row?.tiers, maxTierVal(row?.tiers)),
@@ -687,11 +714,15 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
   const uniqueEntries = Object.entries(item.itemStats?.uniqueTraits ?? {});
   const unique = selection.uniqueTrait
     ? [tierRow(selection.uniqueTrait.statId, item.itemStats?.uniqueTraits?.[selection.uniqueTrait.statId], selection.uniqueTrait.tier)]
+    : options.optionalFallback === false ? []
     : uniqueEntries.slice(0, UNIQUE_TRAIT_CAP).map(([statId, tiers]) => tierRow(statId, tiers, maxTierVal(tiers)));
   const heroicEffects = selectedHeroicEffects(item, selection).map((effect) => ({
     groupNumber: effect.groupNumber,
     name: effect.name,
     value: effect.formattedValue,
+    level: effect.level,
+    levelKnown: effect.levelKnown,
+    maxLevel: effect.maxLevel,
     text: `${effect.name} ${effect.formattedValue}`,
   }));
 
@@ -2332,15 +2363,16 @@ export function seedShowcaseBuild(name = "Showcase Build") {
         ["all_accuracy", "damage_reduction", "hp_max", "str", "dex", "int", "per", "con"],
         ["skill_cooldown_modifier", "attack_speed_modifier", "critical_damage_taken_modifier", "all_critical_attack", "hp_max", "dex", "str"],
       ];
-      selection.heroicEffects = [0, 1].map((groupIndex) => {
+      selection.heroicEffects = Array.from({ length: heroicEffectGroupCount(item) }, (_, groupIndex) => {
         const options = heroicEffectOptions(item, groupIndex);
-        const option = preferences[groupIndex]
+        const preferredIds = preferences[groupIndex] ?? preferences.flat();
+        const option = preferredIds
           .map((statId) => options.find((entry) => entry.statId === statId && !chosen.has(statId)))
           .find(Boolean)
           ?? options.find((entry) => !chosen.has(entry.statId))
           ?? options[0];
         if (option) chosen.add(option.statId);
-        return option ? { statId: option.statId } : emptyHeroicEffect();
+        return option ? { statId: option.statId, level: option.maxLevel, levelKnown: true } : emptyHeroicEffect();
       });
     }
     // Socket three matching runes for a synergy where possible.
