@@ -61,15 +61,15 @@
 .tl-app-logo,
 .tl-app-brand-mark {
   position: relative;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(212, 166, 94, 0.45);
-  background: linear-gradient(135deg, rgba(60, 42, 20, 0.8), rgba(24, 17, 9, 0.9));
-  box-shadow: 0 0 14px rgba(214, 138, 58, 0.25);
-  transform: rotate(45deg);
+  border: 0;
+  border-radius: 50%;
+  background: url("./tl-logo.png") center / contain no-repeat;
+  box-shadow: 0 0 16px rgba(214, 138, 58, 0.2);
   view-transition-name: tl-app-logo;
 }
 
@@ -81,10 +81,7 @@
 
 .tl-app-logo > span,
 .tl-app-brand-mark > span {
-  color: #f6d391;
-  font-family: Marcellus, serif;
-  font-size: 15px;
-  transform: rotate(-45deg);
+  display: none;
 }
 
 .tl-app-brand-copy {

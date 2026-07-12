@@ -85,7 +85,7 @@ test("public pages expose production discovery and accessibility metadata", asyn
     assert.match(document, /<html lang="en">/i, `${file} declares its language`);
     assert.match(document, /<meta name="description"/i, `${file} has a description`);
     assert.ok(document.includes(`<link rel="canonical" href="${canonical}">`), `${file} has its canonical URL`);
-    assert.match(document, /<link rel="icon" href="\.\/icon\.svg"/i, `${file} has a favicon`);
+    assert.match(document, /<link rel="icon" href="\.\/tl-logo\.png"/i, `${file} has a favicon`);
     assert.match(document, /class="tl-skip-link"[^>]*href="#main-content"/i, `${file} has a skip link`);
     assert.match(document, /<main[^>]*id="main-content"/i, `${file} exposes the main landmark`);
     assert.match(document, /<h1\b/i, `${file} has a primary heading`);
