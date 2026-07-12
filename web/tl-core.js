@@ -247,7 +247,12 @@ export async function initCore(source) {
 export function buildIndexes(source) {
   const itemById = Object.fromEntries(source.items.map((item) => [item.id, item]));
   const runeById = Object.fromEntries(source.runes.map((rune) => [rune.id, rune]));
-  const itemSetById = Object.fromEntries(source.itemSets.map((set) => [set.id, set]));
+  const normalizedArtifactSets = (source.artifactSets ?? []).map((set) => ({
+    ...set,
+    itemSetMadeOfItems: set.itemSetMadeOfItems ?? (set.memberItemIds ?? []).map((id) => ({ id })),
+    itemSetBonus: set.itemSetBonus ?? set.bonuses ?? [],
+  }));
+  const itemSetById = Object.fromEntries([...source.itemSets, ...normalizedArtifactSets].map((set) => [set.id, set]));
   const skillById = Object.fromEntries((source.skills ?? []).map((skill) => [skill.id, skill]));
   const skillTraitById = Object.fromEntries((source.skillTraits ?? []).map((trait) => [trait.id, trait]));
   const itemsByType = {};
