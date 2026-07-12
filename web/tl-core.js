@@ -680,6 +680,10 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
   const resonance = (selReson.length
     ? selReson.map((r) => tierRow(r.statId, item.itemStats?.resonance?.[r.statId]?.tiers, r.tier))
     : Object.entries(item.itemStats?.resonance ?? {}).slice(0, RESONANCE_CAP).map(([statId, row]) => tierRow(statId, row?.tiers, maxTierVal(row?.tiers))));
+  const resonanceOptions = Object.entries(item.itemStats?.resonance ?? {}).map(([statId, row]) => ({
+    ...tierRow(statId, row?.tiers, maxTierVal(row?.tiers)),
+    probability: Number(row?.probability ?? 0),
+  }));
   const uniqueEntries = Object.entries(item.itemStats?.uniqueTraits ?? {});
   const unique = selection.uniqueTrait
     ? [tierRow(selection.uniqueTrait.statId, item.itemStats?.uniqueTraits?.[selection.uniqueTrait.statId], selection.uniqueTrait.tier)]
@@ -760,14 +764,6 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     }
   }
 
-  let abilities = [];
-  if (slotId === "main_hand" || slotId === "off_hand") {
-    abilities = availableSkillsForWeapons([item.equipmentType])
-      .filter((s) => skillLoadoutType(s) === "active")
-      .slice(0, 8)
-      .map((s) => ({ name: s.name, icon: s.imageUrl || "", hasIcon: Boolean(s.imageUrl) }));
-  }
-
   return {
     name: item.name, nameColor: color, icon: item.imageUrl ?? "", hasIcon: Boolean(item.imageUrl),
     meta: `${gradeName(item.grade)} · ${label(item.equipmentType)} · Lv ${level}`,
@@ -777,11 +773,14 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     unique, hasUnique: unique.length > 0,
     heroicEffects, hasHeroicEffects: heroicEffects.length > 0,
     resonance, hasResonance: resonance.length > 0,
+    resonanceOptions, hasResonanceOptions: resonanceOptions.length > 0,
+    visibleResonance: resonance,
+    resonanceTitle: "Trait Resonance",
+    showResonanceHint: resonanceOptions.length > resonance.length,
     runes, hasRunes: isEquipmentSlot || runes.length > 0,
     synergyName: synergy?.name ?? "", synergyStats, hasSynergy: Boolean(synergy) && synergyStats.length > 0,
     effects, hasEffects: effects.length > 0,
     setInfo, hasSet: Boolean(setInfo),
-    abilities, hasAbilities: abilities.length > 0,
   };
 }
 

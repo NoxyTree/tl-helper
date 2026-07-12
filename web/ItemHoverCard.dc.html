@@ -56,10 +56,13 @@
 
   <sc-if value="{{ data.hasResonance }}" hint-placeholder-val="{{ false }}">
     <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.16); background: rgba(159, 86, 214, 0.055);">
-      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cf9dff; margin-bottom: 5px;">Trait Resonance</div>
-      <sc-for list="{{ data.resonance }}" as="row" hint-placeholder-count="1">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cf9dff; margin-bottom: 5px;">{{ data.resonanceTitle }}</div>
+      <sc-for list="{{ data.visibleResonance }}" as="row" hint-placeholder-count="1">
         <div style="display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 5px; min-height: 19px; align-items: baseline; font-size: 12px; line-height: 1.45;"><span style="color: #cf9dff;">✦</span><span style="color: #cf9dff;">{{ row.name }}</span><strong style="color: #cf9dff; font-variant-numeric: tabular-nums;">{{ row.formattedValue }}</strong></div>
       </sc-for>
+      <sc-if value="{{ data.showResonanceHint }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top: 7px; padding-top: 6px; border-top: 1px dotted rgba(207, 157, 255, 0.18); color: #75664f; font-size: 9.5px;">Hold <kbd style="margin: 0 3px; padding: 1px 5px; border: 1px solid rgba(207, 157, 255, 0.28); border-radius: 4px; background: rgba(159, 86, 214, 0.08); color: #cf9dff; font: inherit;">R</kbd> to show all possibilities</div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -76,17 +79,6 @@
           </div>
         </div>
       </sc-for>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ data.hasAbilities }}" hint-placeholder-val="{{ false }}">
-    <div style="padding: 9px 14px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
-      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 7px;">Weapon Abilities</div>
-      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-        <sc-for list="{{ data.abilities }}" as="ab" hint-placeholder-count="6">
-          <span title="{{ ab.name }}" style="width: 30px; height: 30px; border-radius: 7px; border: 1px solid rgba(212, 166, 94, 0.25); background: url({{ ab.icon }}) center/cover, radial-gradient(circle at 35% 30%, #241c12, #100c07); display: block;"></span>
-        </sc-for>
-      </div>
     </div>
   </sc-if>
 
