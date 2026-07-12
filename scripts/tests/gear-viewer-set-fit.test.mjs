@@ -10,5 +10,6 @@ test("set-aware Fit is an explicit build-only option", () => {
   assert.match(html, /includeSetEffects: false/);
   assert.match(html, /includeSetEffects: state\.includeSetEffects/);
   assert.match(html, /\$\("set-fit-toggle"\)\.disabled = state\.mode === "bare"/);
+  assert.match(html, /state\.mode = "questlog";\s*\$\("set-fit-toggle"\)\.disabled = false;/);
   assert.match(html, /set effects included/);
 });
