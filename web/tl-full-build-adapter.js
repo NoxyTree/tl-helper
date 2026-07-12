@@ -10,6 +10,34 @@ const scoreStats = (stats, goals) => (goals.increase ?? []).reduce((sum, id) => 
 const selectionFor = (build, slot) => build.equipment?.[slot] ?? build.artifacts?.[slot] ?? build.supportSlots?.[slot];
 const collectionFor = (build, slot) => slot.startsWith("talistone") || slot.startsWith("gemstone") ? build.artifacts : build.equipment;
 
+const OPTIMIZER_STAT_DENY = new Set([
+  "none", "probability", "set_count", "value",
+  "attack_power_main_hand", "attack_power_main_hand_min", "attack_power_main_hand_max",
+  "attack_power_off_hand", "attack_power_off_hand_min", "attack_power_off_hand_max",
+  "attack_speed_main_hand",
+]);
+
+function optimizerStatIds(core) {
+  const labels = core.data.statLabels ?? {};
+  const found = new Set(["str", "dex", "int", "per", "con"]);
+  const visit = (node) => {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== "object") return;
+    for (const [key, value] of Object.entries(node)) {
+      if (Object.hasOwn(labels, key)) found.add(key);
+      if (["stat_id", "statId", "type"].includes(key) && typeof value === "string" && Object.hasOwn(labels, value)) found.add(value);
+      visit(value);
+    }
+  };
+  visit([core.data.items, core.data.runes, core.data.runeSynergies, core.data.itemSets, core.data.artifactSets]);
+  const weaponTypes = new Set(core.WEAPON_TYPES ?? []);
+  return [...found].filter((id) => Object.hasOwn(labels, id)
+    && !OPTIMIZER_STAT_DENY.has(id)
+    && !weaponTypes.has(id)
+    && !/^adjust_/.test(id)
+    && !["earn_weapon_mastery_exp_modifier", "gathering_critical_chance", "spend_dungeon_point_modifier"].includes(id));
+}
+
 function equippedChaosIds(build, runeById) {
   const ids = new Set();
   for (const group of [build.equipment, build.artifacts, build.supportSlots]) for (const row of Object.values(group ?? {})) {
@@ -79,7 +107,7 @@ export async function createOptimizerAdapter(deps = {}) {
     },
 
     async listStats() {
-      return Object.keys(core.data.statLabels ?? {}).map((id) => ({ id, name: core.statName(id) })).sort((a, b) => a.name.localeCompare(b.name));
+      return optimizerStatIds(core).map((id) => ({ id, name: core.statName(id) })).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
     },
 
     async optimize(request, runtime = {}) {
