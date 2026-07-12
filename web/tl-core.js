@@ -595,7 +595,7 @@ export function itemTooltipEffects(item) {
 
 // Full data model for the equipped-item hover card (doll rails on Armory +
 // Tracker). Pure data — no handlers, no colors that aren't grade-derived.
-export function buildItemHoverModel(slotId, build, calc) {
+export function buildItemHoverModel(slotId, build, calc, options = {}) {
   const item = slotItem(slotId, build);
   if (!item) return null;
   const selection = slotSelection(slotId, build);
@@ -607,9 +607,49 @@ export function buildItemHoverModel(slotId, build, calc) {
     statId, value, kind, name: statName(statId), formattedValue: formatStat(statId, value),
     text: `${statName(statId)} ${formatStat(statId, value)}`,
   });
-  const stats = [...new Set([...Object.keys(mainValues), ...Object.keys(extraValues)])]
+  let stats = [...new Set([...Object.keys(mainValues), ...Object.keys(extraValues)])]
     .map((statId) => statRow(statId, Number(mainValues[statId] ?? 0) + Number(extraValues[statId] ?? 0), statId in mainValues ? "core" : "extra"))
     .filter((row) => Math.abs(Number(row.value) || 0) > 1e-9);
+  if (options.beforeCalc && calc) {
+    const derivedSourceValue = (calculation, statId, attributeId) => {
+      const row = calculation.stats.find((entry) => entry.id === statId);
+      return (row?.sources ?? [])
+        .filter((source) => ["attribute_bonus", "attribute_bracket"].includes(source.type) && String(source.sourceLabel).toLowerCase().startsWith(attributeId))
+        .reduce((sum, source) => sum + Number(source.value || 0), 0);
+    };
+    stats = stats.map((row) => {
+      if (!ATTRIBUTES.some(([attributeId]) => attributeId === row.statId)) return row;
+      const childIds = new Set([...options.beforeCalc.stats.map((entry) => entry.id), ...calc.stats.map((entry) => entry.id)]);
+      let children = [...childIds].map((statId) => {
+        const delta = derivedSourceValue(calc, statId, row.statId) - derivedSourceValue(options.beforeCalc, statId, row.statId);
+        return { statId, value: delta, name: statName(statId), formattedValue: formatSigned(delta, statId) };
+      }).filter((child) => child.statId !== row.statId && Math.abs(child.value) > 1e-9);
+      const expandedDescendants = new Set();
+      const collectExpanded = (statId) => {
+        for (const expandedId of STAT_EXPANSIONS[statId] ?? []) {
+          if (expandedDescendants.has(expandedId)) continue;
+          expandedDescendants.add(expandedId);
+          collectExpanded(expandedId);
+        }
+      };
+      for (const child of children) collectExpanded(child.statId);
+      const preferredChildren = new Set(children.filter((child) => (options.preferredStatIds ?? []).includes(child.statId)).map((child) => child.statId));
+      const expandsToPreferred = (statId) => {
+        const queue = [...(STAT_EXPANSIONS[statId] ?? [])];
+        const seen = new Set();
+        while (queue.length) {
+          const candidate = queue.shift();
+          if (preferredChildren.has(candidate)) return true;
+          if (seen.has(candidate)) continue;
+          seen.add(candidate);
+          queue.push(...(STAT_EXPANSIONS[candidate] ?? []));
+        }
+        return false;
+      };
+      children = children.filter((child) => preferredChildren.has(child.statId) || (!expandedDescendants.has(child.statId) && !expandsToPreferred(child.statId)));
+      return { ...row, children, hasChildren: children.length > 0 };
+    });
+  }
 
   const tierRow = (statId, tiersRaw, tier) => {
     const arr = Array.isArray(tiersRaw) ? tiersRaw : Object.values(tiersRaw ?? {});
