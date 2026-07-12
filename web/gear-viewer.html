@@ -196,6 +196,7 @@
       </label>
       <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Max traits</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
+      <span class="check-inline"><input id="set-fit-toggle" type="checkbox"><label for="set-fit-toggle">Include set effects in Fit</label></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -242,6 +243,7 @@
       search: "",
       withTraits: true,
       keepHeroic: true,
+      includeSetEffects: false,
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -309,7 +311,7 @@
     let computeToken = 0;
 
     async function computeRows() {
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}`;
+      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.includeSetEffects ? "sets" : "no-sets"}`;
       if (poolCache.has(key)) return poolCache.get(key);
       const token = ++computeToken;
       const { build, attributes } = scoringContext();
@@ -326,7 +328,7 @@
           level,
           traits: state.withTraits ? maxTraitRows(item) : [],
         };
-        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes);
+        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
         rows.push({
           item, slotId, level, contribution,
           haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${Object.keys(contribution).map(core.statName).join(" ")}`.toLowerCase(),
@@ -405,7 +407,7 @@
       const protectionActive = state.mode !== "bare" && state.protected.length > 0;
       const context = protectionActive ? scoringContext() : null;
       const currentTotals = context
-        ? Object.fromEntries(core.calculateBuild(context.build, context.attributes).stats.map((row) => [row.id, row.total]))
+        ? Object.fromEntries(core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects }).stats.map((row) => [row.id, row.total]))
         : {};
       const currentBySlot = new Map();
       for (const row of filtered) {
@@ -423,7 +425,7 @@
           if (!currentBySlot.has(row.slotId)) {
             const equipped = core.slotSelection(row.slotId, context.build);
             currentBySlot.set(row.slotId, equipped?.itemId
-              ? core.slotSelectionContribution(row.slotId, equipped, context.build, context.attributes)
+              ? core.slotSelectionContribution(row.slotId, equipped, context.build, context.attributes, { includeSetEffects: state.includeSetEffects })
               : {});
           }
           const equippedContribution = currentBySlot.get(row.slotId);
@@ -778,7 +780,8 @@
       const heroicLabel = heroicLockCount ? ` · ${heroicLockCount} equipped Heroic slot${heroicLockCount > 1 ? "s" : ""} locked` : "";
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
-      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${guardLabel}${heroicLabel}${pinnedLabel}`;
+      const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
+      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
       writeHash();
     }
 
@@ -789,6 +792,7 @@
       if (state.protected.length) params.set("protect", state.protected.join(","));
       if (state.protected.length && state.protectTolerancePct !== 1) params.set("loss", String(state.protectTolerancePct));
       if (!state.keepHeroic) params.set("heroic", "0");
+      if (state.includeSetEffects) params.set("sets", "1");
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
       if (state.grade !== "all") params.set("grade", state.grade);
@@ -804,6 +808,7 @@
       if (params.get("protect")) state.protected = params.get("protect").split(",").filter(Boolean);
       if (params.has("loss")) state.protectTolerancePct = Math.max(0, Math.min(5, Number(params.get("loss")) || 0));
       if (params.get("heroic") === "0") state.keepHeroic = false;
+      if (params.get("sets") === "1") state.includeSetEffects = true;
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
@@ -857,6 +862,7 @@
             if (Array.isArray(prefs.protected)) state.protected = prefs.protected;
             if (Number.isFinite(prefs.protectTolerancePct)) state.protectTolerancePct = Math.max(0, Math.min(5, prefs.protectTolerancePct));
             if (typeof prefs.keepHeroic === "boolean") state.keepHeroic = prefs.keepHeroic;
+            if (typeof prefs.includeSetEffects === "boolean") state.includeSetEffects = prefs.includeSetEffects;
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
@@ -864,7 +870,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, includeSetEffects: state.includeSetEffects, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -894,19 +900,22 @@
       $("mode-select").value = state.mode;
       $("protect-tolerance").value = String(state.protectTolerancePct);
       $("heroic-toggle").checked = state.keepHeroic;
+      $("set-fit-toggle").checked = state.includeSetEffects;
+      $("set-fit-toggle").disabled = state.mode === "bare";
 
       let searchTimer = 0;
       $("search").addEventListener("input", () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => { state.search = $("search").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); }, 120);
       });
-      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
+      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; $("set-fit-toggle").disabled = state.mode === "bare"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
       $("category-select").addEventListener("change", () => { state.category = $("category-select").value; state.type = "all"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("type-select").addEventListener("change", () => { state.type = $("type-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("grade-select").addEventListener("change", () => { state.grade = $("grade-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("level-select").addEventListener("change", () => { state.itemLevel = $("level-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("traits-toggle").addEventListener("change", () => { state.withTraits = $("traits-toggle").checked; refresh(); });
       $("heroic-toggle").addEventListener("change", () => { state.keepHeroic = $("heroic-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("set-fit-toggle").addEventListener("change", () => { state.includeSetEffects = $("set-fit-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
       $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
 
       // column picker dropdown
