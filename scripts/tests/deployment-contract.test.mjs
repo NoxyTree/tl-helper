@@ -89,6 +89,8 @@ test("public pages expose production discovery and accessibility metadata", asyn
     assert.match(document, /class="tl-skip-link"[^>]*href="#main-content"/i, `${file} has a skip link`);
     assert.match(document, /<main[^>]*id="main-content"/i, `${file} exposes the main landmark`);
     assert.match(document, /<h1\b/i, `${file} has a primary heading`);
+    assert.match(document, /html\{background:#0c0a07;color-scheme:dark\}/i, `${file} paints a dark canvas before scripts and styles load`);
+    assert.match(document, /@view-transition\{navigation:auto\}/i, `${file} opts into seamless cross-page transitions`);
   }
 });
 

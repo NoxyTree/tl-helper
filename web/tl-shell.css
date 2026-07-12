@@ -42,7 +42,12 @@
   padding: 10px clamp(16px, 2vw, 30px);
   border-bottom: 1px solid var(--tl-shell-line);
   background: linear-gradient(180deg, rgba(20, 15, 9, 0.65), rgba(12, 9, 6, 0.2));
+  view-transition-name: tl-app-header;
 }
+
+::view-transition-group(tl-app-header) { animation-duration: 120ms; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 140ms; animation-timing-function: ease-out; }
 
 .tl-app-brand {
   display: inline-flex;
@@ -266,4 +271,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation-duration: .01ms !important; }
 }
