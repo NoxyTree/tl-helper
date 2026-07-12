@@ -18,14 +18,14 @@
   <a class="tl-skip-link" href="#main-content">Skip to combat calculator</a>
   <header class="tl-app-header">
     <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Combat Calculator</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><span class="tl-app-nav-item is-active" aria-current="page">Combat Lab</span><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><span class="tl-app-nav-item is-active" aria-current="page">Combat Lab</span><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
     <div class="tl-app-header-end"><div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div></div>
   </header>
 
   <main id="main-content">
     <section class="hero">
       <div><p class="eyebrow">Combat Lab</p><h1>Combat Calculator</h1></div>
-      <p>Pick a build and ability. Your result updates immediately.</p>
+      <p>Calculate with your build, or switch to PvP Matchup to test against another build.</p>
     </section>
     <div id="fatal-error" class="alert danger hidden" role="alert"></div>
 
@@ -36,7 +36,7 @@
 
     <section class="build-picker panel" aria-label="Build selection">
       <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2 id="build-picker-heading">Choose your build</h2></div></div>
-      <label>Your build<select id="source-build"></select></label>
+      <label>Calculate using<select id="source-build"></select></label>
       <label class="opponent-control">Opponent build<select id="target-build"><option value="">Choose an opponent</option></select></label>
       <div id="source-summary" class="hidden"></div><div id="target-summary" class="hidden">No opponent selected.</div>
     </section>
@@ -47,7 +47,8 @@
           <article class="panel quick-panel">
             <div class="panel-heading"><span>2</span><div><p class="eyebrow">Ability</p><h2>What are you using?</h2></div></div>
             <div class="ability-preview"><img id="ability-icon" alt=""><div><strong id="ability-name">Judgment Lightning</strong><span id="ability-kind">Staff · Raw damage per hit</span></div></div>
-            <label>Ability<select id="ability"></select></label>
+            <label>Reviewed ability<select id="ability"></select></label>
+            <p class="field-note">Three abilities are available because only reviewed, build-scoped formulas are shown. This is not your full in-game ability list.</p>
             <div class="two-column"><label>Ability rarity<select id="tier"></select></label><label>Ability level<select id="level"></select></label></div>
             <p id="level-note" class="field-note"></p>
             <div class="calculation-note"><strong>Automatic input</strong><span>Your equipped weapon’s Base Damage is used by default.</span></div>
