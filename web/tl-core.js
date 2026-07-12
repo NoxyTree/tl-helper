@@ -1998,15 +1998,31 @@ function unmappedRuleIssues(build) {
     ...Object.entries(build.supportSlots ?? {}),
   ].map(([slotId, selection]) => ({ slotId, selection, item: indexes.itemById[selection?.itemId] }));
 
+  // Armory totals describe the character's persistent numeric state. Triggered
+  // effects, skill transformations, dispels, and other encounter behaviour do
+  // not belong in that arithmetic, so the absence of a static rule is expected.
+  const mayAffectStaticTotals = (effect) => {
+    const text = String(effect?.text ?? "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+    if (!text) return true;
+    return !(
+      /^(?:on|when|while|after|upon)\b/.test(text) ||
+      /\b(?:chance to|remove \d+ buff|deals? .* damage|heals? |recovers? |appl(?:y|ies) |can now|now attacks?|cooldown -)\b/.test(text)
+    );
+  };
+
   const itemPassives = [];
   const perkPassives = [];
   for (const { selection, item } of selections) {
     if (!item) continue;
-    if (item.passives?.id && !ITEM_PASSIVE_RULES[item.passives.id]) {
+    if (item.passives?.id && !ITEM_PASSIVE_RULES[item.passives.id] && mayAffectStaticTotals(item.passives)) {
       itemPassives.push(`${item.passives.name ?? item.passives.id} (${item.name})`);
     }
     const perk = values(item.availablePerks).find((entry) => entry.id === selection?.perkId);
-    if (perk && !PERK_PASSIVE_RULES[perk.passive?.id]) {
+    if (perk && !PERK_PASSIVE_RULES[perk.passive?.id] && mayAffectStaticTotals(perk.passive)) {
       perkPassives.push(`${perk.passive?.name ?? perk.name ?? perk.id} (${item.name})`);
     }
   }
