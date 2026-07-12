@@ -1535,7 +1535,8 @@ export function applyArtifactSet(build, setId) {
 
 // ---------- calculation engine ----------
 
-export function calculateBuild(build, attributes) {
+export function calculateBuild(build, attributes, options = {}) {
+  const includeSetEffects = options.includeSetEffects !== false;
   const totals = new Map();
   const sourceMap = new Map();
   const add = (statId, value, sourceLabel, sourceType = "source", grade = 0, icon = "") => {
@@ -1637,7 +1638,7 @@ export function calculateBuild(build, attributes) {
     for (const row of values(stats)) add(row.statId, row.value, `Weapon Mastery: ${mastery.name}`, "weapon_specialization", mastery.grade, mastery.imageUrl);
   }
 
-  const applyPhase = (phase) => applyQuestlogPhase(phase, build, selections, totalsObject, add);
+  const applyPhase = (phase) => applyQuestlogPhase(phase, build, selections, totalsObject, add, includeSetEffects);
   applyPhase(1);
 
   for (const [attributeId] of ATTRIBUTES) {
@@ -1662,11 +1663,13 @@ export function calculateBuild(build, attributes) {
   }
 
   applyPhase(2);
-  for (const { set, count } of activeSetCounts(selections)) {
-    for (const bonus of values(set.itemSetBonus)) {
-      const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
-      if (!required || count < required) continue;
-      for (const row of values(bonus.bonus_stat ?? bonus.bonusStat)) add(row.type, row.value, `${set.name} Set`, "set_bonus");
+  if (includeSetEffects) {
+    for (const { set, count } of activeSetCounts(selections)) {
+      for (const bonus of values(set.itemSetBonus)) {
+        const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
+        if (!required || count < required) continue;
+        for (const row of values(bonus.bonus_stat ?? bonus.bonusStat)) add(row.type, row.value, `${set.name} Set`, "set_bonus");
+      }
     }
   }
   applyPhase(3);
@@ -1741,7 +1744,7 @@ function activeSetCounts(selections) {
   return [...counts].map(([setId, count]) => ({ set: indexes.itemSetById[setId], count })).filter((row) => row.set);
 }
 
-function applyQuestlogPhase(phase, build, selections, totalsObject, add) {
+function applyQuestlogPhase(phase, build, selections, totalsObject, add, includeSetEffects = true) {
   for (const { slotId, selection, item } of selections) {
     const itemRule = ITEM_PASSIVE_RULES[item?.passives?.id];
     if (itemRule?.phase === phase) for (const row of itemRule.effect(totalsObject())) add(row.statId, row.value, item.passives.name, slotId, item.grade, item.passives.imageUrl);
@@ -1752,9 +1755,11 @@ function applyQuestlogPhase(phase, build, selections, totalsObject, add) {
     const alreadyAppliedAsItemPassive = itemRule && perk?.passive?.id === item?.passives?.id;
     if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
   }
-  for (const { set, count } of activeSetCounts(selections)) {
-    for (const [required, rule] of Object.entries(SET_PASSIVE_RULES[set.id] ?? {})) {
-      if (count >= Number(required) && rule.phase === phase) for (const row of rule.effect(totalsObject())) add(row.statId, row.value, set.name, "set_bonus");
+  if (includeSetEffects) {
+    for (const { set, count } of activeSetCounts(selections)) {
+      for (const [required, rule] of Object.entries(SET_PASSIVE_RULES[set.id] ?? {})) {
+        if (count >= Number(required) && rule.phase === phase) for (const row of rule.effect(totalsObject())) add(row.statId, row.value, set.name, "set_bonus");
+      }
     }
   }
   const masteryBuild = { specialization: Object.entries(build.masteries ?? {}).map(([id, row]) => ({ id, lvl: Number(row.level || 1) })) };
@@ -1893,13 +1898,13 @@ function slotDeltaCacheFor(build, attributes) {
   return entry.map;
 }
 
-function totalsWithSlotSelection(build, attributes, slotId, selection) {
+function totalsWithSlotSelection(build, attributes, slotId, selection, options = {}) {
   const clone = deepClone(build);
   slotCollectionForSlot(clone, slotId)[slotId] = selection
     ? { ...emptyEquipmentSelection(), ...deepClone(selection) }
     : emptyEquipmentSelection();
   const totals = {};
-  for (const row of calculateBuild(clone, attributes ?? {}).stats) {
+  for (const row of calculateBuild(clone, attributes ?? {}, options).stats) {
     if (row.total) totals[row.id] = row.total;
   }
   return totals;
@@ -1907,17 +1912,18 @@ function totalsWithSlotSelection(build, attributes, slotId, selection) {
 
 // Total-stat delta of placing `selection` into `slotId` versus leaving the
 // slot empty, with everything else in the build unchanged.
-export function slotSelectionContribution(slotId, selection, build, attributes) {
+export function slotSelectionContribution(slotId, selection, build, attributes, options = {}) {
   const cache = slotDeltaCacheFor(build, attributes);
-  const key = `${slotId}|${JSON.stringify(selection ?? null)}`;
+  const setMode = options.includeSetEffects === false ? "no-sets" : "sets";
+  const key = `${setMode}|${slotId}|${JSON.stringify(selection ?? null)}`;
   if (cache.has(key)) return cache.get(key);
-  const baselineKey = `${slotId}|<empty>`;
+  const baselineKey = `${setMode}|${slotId}|<empty>`;
   let baseline = cache.get(baselineKey);
   if (!baseline) {
-    baseline = totalsWithSlotSelection(build, attributes, slotId, null);
+    baseline = totalsWithSlotSelection(build, attributes, slotId, null, options);
     cache.set(baselineKey, baseline);
   }
-  const withSelection = selection?.itemId ? totalsWithSlotSelection(build, attributes, slotId, selection) : baseline;
+  const withSelection = selection?.itemId ? totalsWithSlotSelection(build, attributes, slotId, selection, options) : baseline;
   const delta = {};
   for (const id of new Set([...Object.keys(baseline), ...Object.keys(withSelection)])) {
     const value = (withSelection[id] ?? 0) - (baseline[id] ?? 0);
@@ -1928,9 +1934,9 @@ export function slotSelectionContribution(slotId, selection, build, attributes) 
 }
 
 // Contribution of equipping `item` bare (as equipItem does) at `level`.
-export function itemStatContribution(item, slotId, level, build, attributes) {
+export function itemStatContribution(item, slotId, level, build, attributes, options = {}) {
   if (!item) return {};
-  return slotSelectionContribution(slotId, { itemId: item.id, level: Number(level) || 0 }, build, attributes);
+  return slotSelectionContribution(slotId, { itemId: item.id, level: Number(level) || 0 }, build, attributes, options);
 }
 
 export function statTotal(calc, statId) {
