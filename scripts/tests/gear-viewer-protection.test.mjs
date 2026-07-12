@@ -32,3 +32,9 @@ test("Combat Calculator explains reviewed ability coverage and attacker build wo
   assert.match(source, /<label>Calculate using<select id="source-build">/);
   assert.match(source, /Three abilities are available because only reviewed, build-scoped formulas are shown/);
 });
+
+test("build-aware weapon ranking stays within the equipped weapon families and matching slots", () => {
+  assert.match(html, /function equippedWeaponSlots\(build = scoringContext\(\)\.build\)/);
+  assert.match(html, /equipped\.find\(\(row\) => row\.type === item\.equipmentType\)\?\.slotId/);
+  assert.match(html, /equippedWeaponTypes\.has\(row\.item\.equipmentType\)/);
+});

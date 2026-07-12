@@ -243,6 +243,20 @@
       return { build: core.createInitialBuild(), attributes: ZERO_ATTRS };
     }
 
+    function equippedWeaponSlots(build = scoringContext().build) {
+      return ["main_hand", "off_hand"].map((slotId) => {
+        const selection = core.slotSelection(slotId, build);
+        const item = core.indexes.itemById[selection?.itemId];
+        return item ? { slotId, type: item.equipmentType } : null;
+      }).filter(Boolean);
+    }
+
+    function candidateSlotFor(item, build) {
+      if (state.mode === "bare" || SLOT_CATEGORY[TYPE_SLOT[item.equipmentType]] !== "weapons") return TYPE_SLOT[item.equipmentType];
+      const equipped = equippedWeaponSlots(build);
+      return equipped.find((row) => row.type === item.equipmentType)?.slotId ?? TYPE_SLOT[item.equipmentType];
+    }
+
     function maxTraitRows(item) {
       return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
         const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
@@ -264,7 +278,7 @@
       $("progress").classList.remove("hidden");
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        const slotId = TYPE_SLOT[item.equipmentType];
+        const slotId = candidateSlotFor(item, build);
         const level = core.itemMaxLevel(item);
         const selection = {
           ...core.emptyEquipmentSelection(),
@@ -294,8 +308,10 @@
     function filteredRows(rows) {
       const query = state.search.trim().toLowerCase();
       const types = state.category === "all" ? null : CATEGORY_TYPES[state.category];
+      const equippedWeaponTypes = new Set(state.mode === "bare" ? [] : equippedWeaponSlots().map((row) => row.type));
       return rows.filter((row) =>
         (!types || types.has(row.item.equipmentType))
+        && (SLOT_CATEGORY[row.slotId] !== "weapons" || !equippedWeaponTypes.size || equippedWeaponTypes.has(row.item.equipmentType))
         && (state.type === "all" || row.item.equipmentType === state.type)
         && (state.grade === "all" || String(row.item.grade) === state.grade)
         && (!state.favoritesOnly || favorites.has(row.item.id))
@@ -794,7 +810,7 @@
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => { state.search = $("search").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); }, 120);
       });
-      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; state.limit = ROW_LIMIT; refresh(); });
+      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
       $("category-select").addEventListener("change", () => { state.category = $("category-select").value; state.type = "all"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("type-select").addEventListener("change", () => { state.type = $("type-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("grade-select").addEventListener("change", () => { state.grade = $("grade-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
@@ -849,6 +865,7 @@
           option.textContent = `Imported: ${questlog.label}`;
           $("mode-select").value = "questlog";
           state.mode = "questlog";
+          renderTypeOptions();
           await refresh();
         } catch (error) {
           $("ql-error").textContent = ` ${String(error?.message ?? error)}`;
@@ -864,9 +881,13 @@
     }
 
     function renderTypeOptions() {
-      const types = state.category === "all"
+      let types = state.category === "all"
         ? Object.keys(TYPE_SLOT).filter((type) => SLOT_CATEGORY[TYPE_SLOT[type]] !== "support")
         : [...(CATEGORY_TYPES[state.category] ?? [])];
+      if (state.mode !== "bare") {
+        const weaponTypes = new Set(equippedWeaponSlots().map((row) => row.type));
+        if (weaponTypes.size) types = types.filter((type) => SLOT_CATEGORY[TYPE_SLOT[type]] !== "weapons" || weaponTypes.has(type));
+      }
       $("type-select").innerHTML = `<option value="all">All types</option>` +
         types.sort((a, b) => core.label(a).localeCompare(core.label(b))).map((type) => `<option value="${type}">${core.label(type)}</option>`).join("");
       $("type-select").value = types.includes(state.type) ? state.type : "all";
