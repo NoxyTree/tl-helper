@@ -483,6 +483,18 @@ export function currentWeaponTypes(build) {
   return weapons.length ? [...new Set(weapons)] : ["bow"];
 }
 
+const WEAPON_HIT_PROFILES = {
+  bow: { key: "ranged", statId: "range_accuracy", label: "Ranged Hit Chance" },
+  crossbow: { key: "ranged", statId: "range_accuracy", label: "Ranged Hit Chance" },
+  staff: { key: "magic", statId: "magic_accuracy", label: "Magic Hit Chance" },
+  wand: { key: "magic", statId: "magic_accuracy", label: "Magic Hit Chance" },
+  orb: { key: "magic", statId: "magic_accuracy", label: "Magic Hit Chance" },
+};
+
+export function weaponHitProfile(type) {
+  return WEAPON_HIT_PROFILES[type] ?? { key: "melee", statId: "melee_accuracy", label: "Melee Hit Chance" };
+}
+
 export function heroicSlotGroupForSlot(slotId) {
   return Object.entries(HEROIC_SLOT_GROUPS).find(([, slots]) => slots.includes(slotId))?.[0] ?? "";
 }
@@ -1294,7 +1306,15 @@ export function masteryWeaponPointState(weapon, build) {
   const synergyCountByTier = {};
   for (const mastery of selectedSynergy) synergyCountByTier[mastery.grade] = (synergyCountByTier[mastery.grade] || 0) + 1;
   const epicSelected = selectedNormal.filter((m) => m.grade === 41);
-  return { tierTotals, categoryTierTotals, categoryTotals, totalPoints, selectedNormal, selectedSynergy, synergyCountByTier, epicSelected };
+  const nonEpicPoints = selectedNormal
+    .filter((mastery) => mastery.grade !== 41)
+    .reduce((total, mastery) => total + masterySelectedLevel(mastery, build), 0);
+  return { tierTotals, categoryTierTotals, categoryTotals, totalPoints, nonEpicPoints, selectedNormal, selectedSynergy, synergyCountByTier, epicSelected };
+}
+
+export function masterySynergyMatches(synergy, mastery) {
+  return masteryCategoryKeys(synergy).includes(mastery.subCategory)
+    || masteryCategoryKeys(mastery).includes(synergy.subCategory);
 }
 
 // Returns { locked, reason } for whether `mastery` could be newly selected
@@ -1315,8 +1335,8 @@ export function masteryLockInfo(mastery, weapon, build) {
     const epicCount = state.epicSelected.length;
     if (epicCount >= 2) return { locked: true, reason: "Epic limit reached — only 2 per weapon" };
     const needed = epicCount === 0 ? 80 : 120;
-    if (state.totalPoints < needed) return { locked: true, reason: `Needs ${needed} total normal-node points (have ${state.totalPoints})` };
-    const hasSynergy = state.selectedSynergy.some((s) => masteryCategoryKeys(s).includes(mastery.subCategory));
+    if (state.nonEpicPoints < needed) return { locked: true, reason: `Needs ${needed} non-Epic normal-node points (have ${state.nonEpicPoints})` };
+    const hasSynergy = state.selectedSynergy.some((synergy) => masterySynergyMatches(synergy, mastery));
     if (!hasSynergy) return { locked: true, reason: `Needs a selected ${label(mastery.subCategory)} Synergy node` };
     return { locked: false, reason: "" };
   }
@@ -1355,10 +1375,10 @@ export function reconcileMasterySelections(weapon, build) {
     const epics = selected.filter((mastery) => mastery.specializationType === "normal" && mastery.grade === 41);
     let invalid = null;
     if (epics.length > 2) invalid = epics[0];
-    if (!invalid && epics.length > 1 && state.totalPoints < 120) invalid = epics[0];
-    if (!invalid && epics.length === 1 && state.totalPoints < 80) invalid = epics[0];
+    if (!invalid && epics.length > 1 && state.nonEpicPoints < 120) invalid = epics[0];
+    if (!invalid && epics.length === 1 && state.nonEpicPoints < 80) invalid = epics[0];
     if (!invalid) {
-      invalid = epics.find((mastery) => !state.selectedSynergy.some((synergy) => synergy.subCategory === mastery.subCategory)) ?? null;
+      invalid = epics.find((mastery) => !state.selectedSynergy.some((synergy) => masterySynergyMatches(synergy, mastery))) ?? null;
     }
     if (!invalid) {
       invalid = selected.find((mastery) => {
@@ -1376,7 +1396,47 @@ export function reconcileMasterySelections(weapon, build) {
       changed = true;
     }
   }
+  // Synergy nodes are passive unlocks. Fill newly eligible slots in stable
+  // data order so imports and repeated edits always produce the same build.
+  const rows = masteryRowsForWeapon(weapon);
+  for (const grade of [...new Set(rows.map((mastery) => mastery.grade))].sort((a, b) => a - b)) {
+    let state = masteryWeaponPointState(weapon, build);
+    let available = 2 - (state.synergyCountByTier[grade] || 0);
+    if (available <= 0) continue;
+    const candidates = rows
+      .filter((mastery) => mastery.specializationType === "synergy" && mastery.grade === grade && !build.masteries?.[mastery.id])
+      .filter((mastery) => (state.categoryTierTotals[`${mastery.subCategory}-${grade}`] || 0) >= 20)
+      .sort((a, b) => masteryNodeOrder(a) - masteryNodeOrder(b) || a.id.localeCompare(b.id));
+    for (const mastery of candidates) {
+      if (available <= 0) break;
+      build.masteries[mastery.id] = { level: masteryMaxLevel(mastery) };
+      available -= 1;
+      state = masteryWeaponPointState(weapon, build);
+    }
+  }
   return removed;
+}
+
+// Mutates a build using the same transition for UI clicks, context-menu
+// decrements, and clear actions. Positive values add levels, negative values
+// remove levels, and { clear: true } removes the node entirely.
+export function adjustMasterySelection(build, masteryId, adjustment = 1, options = {}) {
+  const mastery = data.masteries.find((entry) => entry.id === masteryId);
+  if (!mastery) return { ok: false, reason: "Unknown mastery node", level: 0, removed: [] };
+  build.masteries = normalizeMasterySelections(build.masteries);
+  const current = masterySelectedLevel(mastery, build);
+  const requested = options.clear ? 0 : current + Number(adjustment || 0);
+  const target = clamp(requested, 0, masteryMaxLevel(mastery));
+  if (target > current) {
+    const lock = masteryLockInfo(mastery, mastery.mainCategory, build);
+    if (lock.locked) return { ok: false, reason: lock.reason, level: current, removed: [] };
+    const budget = masteryCanSetLevel(mastery, target, mastery.mainCategory, build);
+    if (!budget.ok) return { ok: false, reason: budget.reason, level: current, removed: [] };
+  }
+  if (target > 0) build.masteries[masteryId] = { level: target };
+  else delete build.masteries[masteryId];
+  const removed = reconcileMasterySelections(mastery.mainCategory, build);
+  return { ok: true, reason: "", level: masterySelectedLevel(mastery, build), removed };
 }
 
 // ---------- unified mastery ----------

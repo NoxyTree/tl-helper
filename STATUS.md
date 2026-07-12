@@ -3,6 +3,15 @@
 Updated 2026-07-11 after PvP formula research and modeled-operation updates. Current snapshot:
 game version `1.431.22.7761`, Steam build `24118850`, decoder `0.2.0`.
 
+Public-beta release preparation was completed locally on 2026-07-12. The
+Armory now starts new visitors with an empty native TL Helper build, exposes
+editable character identity, auto-saves the current build, and stores multiple
+independent builds through **My builds**. Questlog remains an optional import.
+Cloudflare Pages configuration, production headers, a same-origin hosted
+Questlog adapter, deployment documentation, and deployment contract tests are
+present. Actual Cloudflare project creation, DNS changes, and public deployment
+remain external release actions and have not been performed.
+
 TL-Helper now has a verified, one-command path from installed game archives to
 decoded, normalized, searchable, browser-ready data. Combat Simulator Milestone
 0 data discovery, Milestone 1 BuildSnapshot integration, and Milestone 2
@@ -90,7 +99,7 @@ coverage summary on 2026-07-10:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 190/190, collector tests
+  fixtures, all 12 edge checks passed, JavaScript tests 197/197, collector tests
   92/92.
 
 ## Combat milestones

@@ -81,6 +81,20 @@ http://127.0.0.1:8790/combat-lab.html
 Use the bundled Node server rather than a generic static server. Combat Lab's
 Questlog URL importer uses its locked-down same-origin adapter.
 
+The Armory is a native TL-Helper build editor. A new visitor starts with an
+empty local build and can select equipment, skills, masteries, runes,
+artifacts, support items, and attributes without importing anything. The
+current build auto-saves in the browser, and **My builds** stores separately
+named build snapshots. Questlog import is an optional compatibility path.
+
+## Deploy the public beta
+
+The repository includes a Cloudflare Pages configuration, production headers,
+and a Pages Function for the locked-down Questlog character adapter. See
+`docs/deployment.md` for the release gate, first deployment, custom domain, and
+rollback commands. Supabase accounts are optional and are not required for the
+anonymous local-first beta.
+
 The bundled Questlog parity build is available at:
 
 ```text

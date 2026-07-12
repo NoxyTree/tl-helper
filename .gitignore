@@ -15,6 +15,16 @@ src/TlCollector/config.local.json
 .env
 .env.local
 supabase/.temp/
+supabase/.branches/
+
+# One-off API and research captures are local working material, not application assets.
+/as.json
+/cm.json
+/pp.json
+/r2.json
+/reddit_post.json
+/post_body.md
+/post_text.txt
 
 # Never commit archive keys or bulk extracted data (see docs/storage-and-retention.md)
 /aes.txt

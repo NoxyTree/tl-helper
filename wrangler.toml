@@ -1,0 +1,6 @@
+name = "tl-helper"
+compatibility_date = "2026-07-12"
+pages_build_output_dir = "./web"
+
+[vars]
+TL_HELPER_CANONICAL_ORIGIN = "https://tlhelper.org"

@@ -59,6 +59,28 @@ test("current Armory document round-trips with schema and build provenance", () 
   assert.deepEqual(result.warnings, []);
 });
 
+test("current Armory document preserves nested rune and mastery selections", () => {
+  const state = structuredClone(legacy);
+  state.build.equipment.main_hand.runes = [
+    { runeId: "Weapon_Atk_Rune_Epic", statId: "melee_accuracy", level: 17 },
+    { runeId: "Weapon_Support_Rune_Epic_II", statId: "skill_cooldown_modifier", level: 20 },
+    { runeId: "", statId: "", level: 1 },
+  ];
+  state.build.masteries = {
+    Sword_Normal_Attack_01: { level: 6 },
+    Sword_Normal_Attack_Skill: { level: 1 },
+  };
+  state.build.unifiedMasteries = ["Unified_Attack_01", "Unified_Defense_02"];
+
+  const json = serializeArmoryState(state, { gameBuild: "24118850" });
+  const result = parseArmoryState(json, { currentGameBuild: "24118850" });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.data.build.equipment.main_hand.runes, state.build.equipment.main_hand.runes);
+  assert.deepEqual(result.data.build.masteries, state.build.masteries);
+  assert.deepEqual(result.data.build.unifiedMasteries, state.build.unifiedMasteries);
+});
+
 test("preset export and import validates and preserves entries", () => {
   const preset = { ...legacy, id: "preset-1", name: "Saved build" };
   const json = serializeArmoryPresets([preset], { gameBuild: "24118850" });

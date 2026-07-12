@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./tl-shell.css">
   <style>
     html, body { margin: 0; padding: 0; min-height: 100vh; }
     body {
@@ -44,29 +45,30 @@
 
 <div style="position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column;">
 
-  <!-- top bar -->
-  <header style="display: flex; align-items: center; gap: 22px; padding: 14px 30px 13px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: linear-gradient(180deg, rgba(20, 15, 9, 0.65), rgba(12, 9, 6, 0.2)); flex-wrap: wrap;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div style="width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(212, 166, 94, 0.45); transform: rotate(45deg); background: linear-gradient(135deg, rgba(60, 42, 20, 0.8), rgba(24, 17, 9, 0.9)); box-shadow: 0 0 14px rgba(214, 138, 58, 0.25);">
-        <span style="transform: rotate(-45deg); font-family: Marcellus, serif; font-size: 15px; color: #f6d391;">T</span>
-      </div>
-      <div>
-        <div style="font-family: Marcellus, serif; font-size: 15px; letter-spacing: 0.18em; color: #f6d391;">TL HELPER</div>
-        <div style="font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #8a795f;">Achievement Chronicle</div>
-      </div>
-    </div>
+  <!-- shared application header -->
+  <header class="tl-app-header">
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
+      <span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span>
+      <span class="tl-app-brand-copy">
+        <span class="tl-app-brand-title">TL HELPER</span>
+        <span class="tl-app-brand-subtitle">Achievement Chronicle</span>
+      </span>
+    </a>
 
-    <nav style="display: flex; gap: 4px; align-items: center;">
-      <a href="./index.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Armory</a>
-      <a href="./tracker.html" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9d8a68; padding: 6px 14px; border-radius: 999px; border: 1px solid transparent;">Tracker</a>
-      <span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f6d391; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(212, 166, 94, 0.12);">Achievements</span>
+    <nav class="tl-app-nav" aria-label="Primary navigation">
+      <a class="tl-app-nav-item" href="./index.html">Armory</a>
+      <a class="tl-app-nav-item" href="./tracker.html">Tracker</a>
+      <a class="tl-app-nav-item is-active" href="./achievements.html" aria-current="page">Achievements</a>
+      <a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a>
     </nav>
 
-    <span style="flex: 1;"></span>
-
-    <div style="text-align: right; padding: 4px 0 4px 14px; border-left: 1px solid rgba(212, 166, 94, 0.16);">
-      <div style="font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Total completion</div>
-      <div style="margin-top: 2px; font-family: Marcellus, serif; font-size: 18px; color: #f6d391; font-variant-numeric: tabular-nums;">{{ headerCompletion }}</div>
+    <div class="tl-app-header-end">
+      <div class="tl-app-status-group">
+        <div class="tl-app-status">
+          <span class="tl-app-status-label">Total completion</span>
+          <span class="tl-app-status-value">{{ headerCompletion }}</span>
+        </div>
+      </div>
     </div>
   </header>
 
