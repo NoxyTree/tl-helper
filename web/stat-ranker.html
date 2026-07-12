@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stat Ranker Lab | TL Helper</title>
+  <meta name="description" content="Experimental lab page: pick up to 3 stats and rank every item in a slot by a normalized score.">
+  <meta name="theme-color" content="#0e0a07"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <meta name="robots" content="noindex">
+  <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./tl-shell.css">
+  <style>
+    body { font-family: "Instrument Sans", system-ui, sans-serif; color: #e8dcc2; }
+    main { max-width: 1100px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 34px) 80px; }
+    h1, h2 { font-family: Marcellus, serif; font-weight: 400; margin: 0; }
+    .hero { margin: 18px 0 22px; }
+    .hero .eyebrow { margin: 0 0 4px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--tl-shell-gold); }
+    .hero h1 { font-size: clamp(26px, 4vw, 36px); }
+    .hero p { margin: 8px 0 0; max-width: 68ch; color: var(--tl-shell-muted); }
+    .panel { box-sizing: border-box; border: 1px solid var(--tl-shell-line); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 19, 11, 0.72), rgba(14, 10, 7, 0.85)); padding: 16px 18px; }
+    .lab-grid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; align-items: start; }
+    @media (max-width: 900px) { .lab-grid { grid-template-columns: 1fr; } }
+    label.field { display: block; margin: 0 0 12px; font-size: 13px; color: var(--tl-shell-muted); }
+    label.field select, label.field input[type="search"] { box-sizing: border-box; width: 100%; margin-top: 5px; padding: 9px 10px; font: inherit; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
+    .check-row { display: flex; align-items: center; gap: 8px; margin: 2px 0 14px; font-size: 13px; color: var(--tl-shell-muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; min-height: 30px; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border: 1px solid rgba(212, 166, 94, 0.5); border-radius: 999px; background: rgba(60, 42, 20, 0.45); font-size: 13px; color: #f2dfae; }
+    .chip button { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; padding: 0; opacity: 0.75; }
+    .chip button:hover { opacity: 1; }
+    .chips .placeholder { align-self: center; font-size: 13px; color: var(--tl-shell-muted); }
+    .stat-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--tl-shell-line); border-radius: 8px; background: rgba(9, 7, 4, 0.6); }
+    .stat-list button { display: flex; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box; padding: 8px 12px; border: 0; border-bottom: 1px solid rgba(212, 166, 94, 0.08); background: none; color: #ded1b2; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+    .stat-list button:hover { background: rgba(212, 166, 94, 0.1); color: #ffe9b8; }
+    .stat-list button.selected { background: rgba(212, 166, 94, 0.18); color: #ffe9b8; }
+    .stat-list button:disabled { opacity: 0.35; cursor: default; }
+    .stat-list .count { color: var(--tl-shell-muted); font-size: 12px; }
+    .hint { margin: 10px 0 0; font-size: 12px; color: var(--tl-shell-muted); }
+    .results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .results-head h2 { font-size: 20px; }
+    .results-head small { color: var(--tl-shell-muted); }
+    .status { padding: 26px 10px; text-align: center; color: var(--tl-shell-muted); }
+    table.rank { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    table.rank th { padding: 6px 10px; text-align: left; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tl-shell-muted); border-bottom: 1px solid var(--tl-shell-line); white-space: nowrap; }
+    table.rank th.num, table.rank td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.rank td { padding: 7px 10px; border-bottom: 1px solid rgba(212, 166, 94, 0.08); vertical-align: middle; }
+    td.rank-cell { color: var(--tl-shell-muted); width: 30px; }
+    .item-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .item-cell img { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--tl-shell-line); background: #14100a; flex: 0 0 32px; }
+    .item-cell .name { display: block; font-weight: 600; }
+    .item-cell .sub { display: block; font-size: 11.5px; color: var(--tl-shell-muted); }
+    td.score-cell { width: 170px; }
+    .score-bar { position: relative; height: 18px; border-radius: 5px; background: rgba(212, 166, 94, 0.1); overflow: hidden; }
+    .score-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, rgba(212, 166, 94, 0.55), rgba(246, 211, 145, 0.9)); }
+    .score-bar b { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 100%; padding: 0 7px; font-size: 11.5px; color: #120d07; mix-blend-mode: normal; font-variant-numeric: tabular-nums; color: #ffe9b8; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
+    .zero { color: rgba(220, 199, 158, 0.35); }
+    .equipped-mark { display: inline-block; margin-left: 6px; padding: 1px 7px; border: 1px solid rgba(127, 214, 201, 0.55); border-radius: 999px; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #7fd6c9; vertical-align: middle; }
+    .ql-row { display: flex; gap: 6px; margin-top: 5px; }
+    .ql-row input { flex: 1; box-sizing: border-box; min-width: 0; padding: 9px 10px; font: inherit; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
+    .ql-row button { padding: 9px 14px; font: inherit; color: #120d07; background: linear-gradient(180deg, #f6d391, #d4a65e); border: 0; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .ql-row button:disabled { opacity: 0.55; cursor: default; }
+    #ql-error { color: #ffb9a3; margin: -4px 0 12px; }
+    .note-panel { margin-top: 16px; font-size: 13px; color: var(--tl-shell-muted); line-height: 1.55; }
+    .note-panel strong { color: #f2dfae; }
+    #fatal { margin: 14px 0; padding: 12px 14px; border: 1px solid rgba(214, 88, 58, 0.55); border-radius: 10px; background: rgba(80, 26, 14, 0.35); color: #ffb9a3; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <a class="tl-skip-link" href="#main-content">Skip to stat ranker</a>
+  <header class="tl-app-header">
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Stat Ranker Lab</span></span></a>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><span class="tl-app-nav-item is-active" aria-current="page">Stat Ranker</span></nav>
+    <div class="tl-app-header-end"><div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div></div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero">
+      <p class="eyebrow">Experimental lab</p>
+      <h1>Stat Ranker</h1>
+      <p>Pick an equipment slot and up to <strong>3 stats</strong>. Every item in the slot is scored with the same stat engine the Armory uses, normalized so large-number stats (like Max HP) don't drown out small-number stats (like Critical Hit).</p>
+    </section>
+    <div id="fatal" class="hidden" role="alert"></div>
+
+    <div class="lab-grid">
+      <section class="panel" aria-label="Ranking controls">
+        <label class="field">Score against
+          <select id="mode-select">
+            <option value="bare">Item alone (empty build)</option>
+            <option value="build">My Armory build (delta if equipped)</option>
+            <option value="questlog" disabled>Imported Questlog build</option>
+          </select>
+        </label>
+        <p id="mode-note" class="hint" style="margin:-6px 0 12px"></p>
+        <label class="field">Or import a Questlog build
+          <span class="ql-row">
+            <input id="ql-url" type="url" placeholder="Paste Questlog character-builder link" autocomplete="off">
+            <button id="ql-import" type="button">Import</button>
+          </span>
+        </label>
+        <p id="ql-error" class="hint hidden"></p>
+        <label class="field">Equipment slot
+          <select id="slot-select"></select>
+        </label>
+        <div id="weapon-types" class="hidden">
+          <label class="field">Weapon type 1
+            <select id="weapon-1"></select>
+          </label>
+          <label class="field">Weapon type 2
+            <select id="weapon-2"></select>
+          </label>
+        </div>
+        <label class="field">Grade
+          <select id="grade-select"><option value="all">All grades</option></select>
+        </label>
+        <div class="check-row">
+          <input id="traits-toggle" type="checkbox" checked>
+          <label for="traits-toggle">Include traits at max tier (best-case item)</label>
+        </div>
+
+        <label class="field">Chosen stats (max 3)</label>
+        <div id="chips" class="chips"><span class="placeholder">No stats chosen yet — pick from the list below.</span></div>
+        <label class="field">Find a stat
+          <input id="stat-search" type="search" placeholder="e.g. critical, hp, evasion" autocomplete="off">
+        </label>
+        <div id="stat-list" class="stat-list" role="listbox" aria-label="Available stats"></div>
+        <p class="hint">Only stats that at least one item in this slot actually provides are listed, with the item count for each.</p>
+      </section>
+
+      <section class="panel" aria-label="Ranked items">
+        <div class="results-head">
+          <h2 id="results-title">Ranked items</h2>
+          <small id="results-meta"></small>
+        </div>
+        <div id="results"></div>
+        <div class="note-panel">
+          <strong>How the score works:</strong> for each chosen stat, an item's value is divided by the best value any item in the current pool reaches for that stat (so every stat contributes on a 0–100% scale regardless of its raw magnitude). The final score is the average across your chosen stats. Values shown per stat are the raw engine numbers at the item's max level<span id="traits-note">, with traits maxed</span>.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import * as core from "./tl-core.js";
+    import { loadArmoryState } from "./tl-persistence.js";
+
+    const $ = (id) => document.getElementById(id);
+    const state = {
+      mode: "bare",
+      slotId: "main_hand",
+      grade: "all",
+      weapon1: "all",
+      weapon2: "all",
+      withTraits: true,
+      chosen: [],           // up to 3 statIds
+      search: "",
+      scoring: false,
+    };
+    const emptyBuild = () => core.createInitialBuild();
+    const ZERO_ATTRS = { str: 0, dex: 0, int: 0, per: 0, con: 0 };
+    // Saved Armory build, if one exists on this origin.
+    let armory = null; // { build, attributes }
+    // Build imported from a Questlog link, if any.
+    let questlog = null; // { build, attributes, label }
+    // mode|slotId|withTraits -> [{ item, level, contribution }]
+    const poolCache = new Map();
+
+    function scoringContext() {
+      if (state.mode === "build" && armory) return { build: armory.build, attributes: armory.attributes };
+      if (state.mode === "questlog" && questlog) return { build: questlog.build, attributes: questlog.attributes };
+      return { build: emptyBuild(), attributes: ZERO_ATTRS };
+    }
+
+    function maxTraitRows(item) {
+      return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
+        const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+        return { statId, tier: list.length };
+      }).filter((row) => row.tier > 0);
+    }
+
+    async function contributionsForSlot(slotId, withTraits) {
+      const key = `${state.mode}|${slotId}|${withTraits ? "t" : "b"}`;
+      if (poolCache.has(key)) return poolCache.get(key);
+      const slot = core.slotById(slotId);
+      const items = core.slotItems(slot);
+      const { build, attributes } = scoringContext();
+      const rows = [];
+      const started = performance.now();
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const level = core.itemMaxLevel(item);
+        const selection = {
+          ...core.emptyEquipmentSelection(),
+          itemId: item.id,
+          level,
+          traits: withTraits ? maxTraitRows(item) : [],
+        };
+        rows.push({ item, level, contribution: core.slotSelectionContribution(slotId, selection, build, attributes) });
+        // Yield to the browser occasionally so big pools (weapons) don't freeze the page.
+        if (i % 60 === 59 && performance.now() - started > 80) {
+          renderStatus(`Scoring items… ${i + 1} / ${items.length}`);
+          await new Promise((resolve) => setTimeout(resolve));
+        }
+      }
+      poolCache.set(key, rows);
+      return rows;
+    }
+
+    function chosenWeaponTypes() {
+      return [state.weapon1, state.weapon2].filter((type) => type !== "all");
+    }
+
+    function filteredPool(rows) {
+      const types = core.slotById(state.slotId).types.length > 1 ? chosenWeaponTypes() : [];
+      return rows.filter((row) =>
+        (state.grade === "all" || String(row.item.grade) === state.grade)
+        && (!types.length || types.includes(row.item.equipmentType)));
+    }
+
+    function availableStats(rows) {
+      const counts = new Map();
+      for (const row of rows) {
+        for (const [statId, value] of Object.entries(row.contribution)) {
+          if (value > 0) counts.set(statId, (counts.get(statId) ?? 0) + 1);
+        }
+      }
+      return [...counts.entries()]
+        .map(([statId, count]) => ({ statId, count, name: core.statName(statId) }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    function rankPool(rows) {
+      const maxByStat = {};
+      for (const statId of state.chosen) {
+        maxByStat[statId] = Math.max(0, ...rows.map((row) => row.contribution[statId] ?? 0));
+      }
+      return rows.map((row) => {
+        const parts = state.chosen.map((statId) => {
+          const value = row.contribution[statId] ?? 0;
+          const max = maxByStat[statId];
+          return { statId, value, normalized: max > 0 ? Math.max(0, value) / max : 0 };
+        });
+        const score = parts.reduce((sum, part) => sum + part.normalized, 0) / (parts.length || 1);
+        return { ...row, parts, score };
+      }).sort((a, b) => b.score - a.score
+        || (b.item.grade ?? 0) - (a.item.grade ?? 0)
+        || a.item.name.localeCompare(b.item.name));
+    }
+
+    // ---------- rendering ----------
+
+    function renderStatus(message) {
+      $("results").innerHTML = `<div class="status">${message}</div>`;
+    }
+
+    function renderChips() {
+      const box = $("chips");
+      box.innerHTML = "";
+      if (!state.chosen.length) {
+        box.innerHTML = `<span class="placeholder">No stats chosen yet — pick from the list below.</span>`;
+        return;
+      }
+      for (const statId of state.chosen) {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = core.statName(statId) + " ";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.setAttribute("aria-label", `Remove ${core.statName(statId)}`);
+        remove.textContent = "✕";
+        remove.addEventListener("click", () => { state.chosen = state.chosen.filter((id) => id !== statId); refresh(); });
+        chip.appendChild(remove);
+        box.appendChild(chip);
+      }
+    }
+
+    function renderStatList(stats) {
+      const box = $("stat-list");
+      const scrollTop = box.scrollTop;
+      box.innerHTML = "";
+      const query = state.search.trim().toLowerCase();
+      const visible = stats.filter((row) => !query || row.name.toLowerCase().includes(query) || row.statId.includes(query));
+      if (!visible.length) {
+        box.innerHTML = `<div class="status">No stats match "${state.search}".</div>`;
+        return;
+      }
+      for (const row of visible) {
+        const selected = state.chosen.includes(row.statId);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = selected ? "selected" : "";
+        button.setAttribute("aria-label", `${selected ? "Remove" : "Add"} ${row.name}`);
+        button.setAttribute("aria-pressed", String(selected));
+        button.disabled = !selected && state.chosen.length >= 3;
+        button.innerHTML = `<span></span><span class="count"></span>`;
+        button.firstChild.textContent = (selected ? "✓ " : "") + row.name;
+        button.lastChild.textContent = `${row.count} items`;
+        button.addEventListener("click", () => {
+          state.chosen = selected ? state.chosen.filter((id) => id !== row.statId) : [...state.chosen, row.statId];
+          refresh();
+        });
+        box.appendChild(button);
+      }
+      box.scrollTop = scrollTop;
+    }
+
+    function renderResults(ranked) {
+      const box = $("results");
+      if (!state.chosen.length) {
+        renderStatus("Choose at least one stat to rank the items in this slot.");
+        $("results-meta").textContent = "";
+        return;
+      }
+      const withAny = ranked.filter((row) => row.score > 0);
+      $("results-meta").textContent = `${withAny.length} of ${ranked.length} items provide at least one chosen stat · top ${Math.min(50, withAny.length)} shown`;
+      if (!withAny.length) {
+        renderStatus("No item in this pool provides any of the chosen stats.");
+        return;
+      }
+      const statHeads = state.chosen.map((statId) => `<th class="num">${core.statName(statId)}</th>`).join("");
+      const contextBuild = state.mode === "build" ? armory?.build : state.mode === "questlog" ? questlog?.build : null;
+      const equippedId = contextBuild ? core.slotSelection(state.slotId, contextBuild)?.itemId : "";
+      const body = withAny.slice(0, 50).map((row, index) => {
+        const cells = row.parts.map((part) => {
+          const text = part.value > 0 ? core.formatStat(part.statId, part.value) : "—";
+          return `<td class="num ${part.value > 0 ? "" : "zero"}">${text}</td>`;
+        }).join("");
+        const percent = Math.round(row.score * 100);
+        const color = core.gradeColor(row.item.grade) ?? "#d4a65e";
+        const equippedMark = row.item.id === equippedId ? ` <span class="equipped-mark">equipped</span>` : "";
+        return `<tr>
+          <td class="rank-cell">${index + 1}</td>
+          <td><span class="item-cell">
+            <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span><span class="name" style="color:${color}">${row.item.name}${equippedMark}</span>
+            <span class="sub">${core.gradeName(row.item.grade)} · ${core.label(row.item.equipmentType)} · iLv ${row.level}</span></span>
+          </span></td>
+          ${cells}
+          <td class="score-cell"><span class="score-bar"><i style="width:${percent}%"></i><b>${percent}%</b></span></td>
+        </tr>`;
+      }).join("");
+      box.innerHTML = `<div style="overflow-x:auto"><table class="rank">
+        <thead><tr><th>#</th><th>Item</th>${statHeads}<th class="num">Score</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table></div>`;
+    }
+
+    function renderWeaponTypeOptions() {
+      const slot = core.slotById(state.slotId);
+      const isWeaponSlot = slot.types.length > 1;
+      $("weapon-types").classList.toggle("hidden", !isWeaponSlot);
+      if (!isWeaponSlot) { state.weapon1 = "all"; state.weapon2 = "all"; return; }
+      const options = `<option value="all">Any weapon</option>` + slot.types
+        .map((type) => `<option value="${type}">${core.label(type)}</option>`).join("");
+      for (const [id, key] of [["weapon-1", "weapon1"], ["weapon-2", "weapon2"]]) {
+        const select = $(id);
+        select.innerHTML = options;
+        if (!slot.types.includes(state[key])) state[key] = "all";
+        select.value = state[key];
+      }
+    }
+
+    function renderGradeOptions(rows) {
+      const select = $("grade-select");
+      const current = state.grade;
+      const grades = core.pickerGradeOptions(rows.map((row) => row.item));
+      select.innerHTML = `<option value="all">All grades</option>` +
+        grades.map((grade) => `<option value="${grade}">${core.gradeName(grade)}</option>`).join("");
+      select.value = grades.some((grade) => String(grade) === current) ? current : "all";
+      state.grade = select.value;
+    }
+
+    async function refresh() {
+      renderChips();
+      if (state.scoring) return;
+      state.scoring = true;
+      try {
+        const rows = await contributionsForSlot(state.slotId, state.withTraits);
+        renderWeaponTypeOptions();
+        renderGradeOptions(rows);
+        const pool = filteredPool(rows);
+        const stats = availableStats(pool);
+        // Drop chosen stats that no longer exist in this pool.
+        state.chosen = state.chosen.filter((id) => stats.some((row) => row.statId === id));
+        renderChips();
+        renderStatList(stats);
+        renderResults(rankPool(pool));
+        const slot = core.slotById(state.slotId);
+        $("results-title").textContent = `Ranked items · ${slot.label}`;
+        $("traits-note").classList.toggle("hidden", !state.withTraits);
+      } finally {
+        state.scoring = false;
+      }
+    }
+
+    async function boot() {
+      try {
+        await core.initCore("./data/app-data.json");
+      } catch (error) {
+        $("fatal").textContent = `Failed to load game data: ${error.message}`;
+        $("fatal").classList.remove("hidden");
+        renderStatus("Game data unavailable.");
+        return;
+      }
+      $("game-build").textContent = core.data.gameBuild ?? "Unknown";
+
+      try {
+        const saved = loadArmoryState(localStorage, { currentGameBuild: core.data.gameBuild });
+        if (saved.ok && saved.data?.build?.equipment) {
+          armory = {
+            build: saved.data.build,
+            attributes: { ...ZERO_ATTRS, ...(saved.data.attributes ?? {}) },
+          };
+        }
+      } catch { /* no saved build — bare mode only */ }
+      const modeSelect = $("mode-select");
+      if (!armory) {
+        modeSelect.querySelector('option[value="build"]').disabled = true;
+        $("mode-note").textContent = "No saved Armory build found on this browser — open the Armory and equip something first.";
+      }
+      const modeNote = () => {
+        if (state.mode === "build") return "Each item is scored as the exact stat change from equipping it into your saved Armory build (set bonuses, attribute breakpoints, and weapon scaling included).";
+        if (state.mode === "questlog" && questlog) return `Scoring against imported build: ${questlog.label}.`;
+        return "";
+      };
+      modeSelect.addEventListener("change", () => {
+        state.mode = modeSelect.value;
+        $("mode-note").textContent = modeNote();
+        refresh();
+      });
+
+      $("ql-import").addEventListener("click", async () => {
+        const button = $("ql-import");
+        const errorBox = $("ql-error");
+        errorBox.classList.add("hidden");
+        button.disabled = true;
+        button.textContent = "Importing…";
+        try {
+          const response = await fetch(`/api/questlog/character?url=${encodeURIComponent($("ql-url").value.trim())}`, { cache: "no-store" });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
+          const requested = payload.buildId === null ? null : String(payload.buildId);
+          const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
+          if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
+          const sourceBuild = {
+            ...rawBuild,
+            equipment: Object.fromEntries(Object.entries(rawBuild.equipment ?? {}).map(([slot, row]) => [slot, row ? { ...row, itemLevel: row.itemLevel ?? row.enhLvl } : row])),
+          };
+          const skillBuild = payload.skillData?.builds?.find((row) => String(row.id) === String(sourceBuild.skillBuildId));
+          const masteryBuild = payload.masteryData?.builds?.find((row) => String(row.id) === String(sourceBuild.weaponSpecializationBuildId));
+          const imported = core.importQuestlogBuild({ characterData: payload.characterData, build: sourceBuild, skillBuild, masteryBuild });
+          questlog = {
+            build: imported.build,
+            attributes: { ...ZERO_ATTRS, ...(imported.attributes ?? {}) },
+            label: `${imported.profile.name} · ${sourceBuild.name ?? `Build ${sourceBuild.id}`}`,
+          };
+          for (const key of [...poolCache.keys()]) if (key.startsWith("questlog|")) poolCache.delete(key);
+          const option = modeSelect.querySelector('option[value="questlog"]');
+          option.disabled = false;
+          option.textContent = `Imported: ${questlog.label}`;
+          modeSelect.value = "questlog";
+          state.mode = "questlog";
+          $("mode-note").textContent = modeNote();
+          await refresh();
+        } catch (error) {
+          errorBox.textContent = String(error?.message ?? error);
+          errorBox.classList.remove("hidden");
+        } finally {
+          button.disabled = false;
+          button.textContent = "Import";
+        }
+      });
+
+      const slotSelect = $("slot-select");
+      slotSelect.innerHTML = core.BUILD_SLOTS
+        .map((slot) => `<option value="${slot.id}">${slot.label}</option>`).join("");
+      slotSelect.value = state.slotId;
+      slotSelect.addEventListener("change", () => { state.slotId = slotSelect.value; refresh(); });
+
+      $("grade-select").addEventListener("change", (event) => { state.grade = event.target.value; refresh(); });
+      $("weapon-1").addEventListener("change", (event) => { state.weapon1 = event.target.value; refresh(); });
+      $("weapon-2").addEventListener("change", (event) => { state.weapon2 = event.target.value; refresh(); });
+      $("traits-toggle").addEventListener("change", (event) => { state.withTraits = event.target.checked; refresh(); });
+      $("stat-search").addEventListener("input", (event) => {
+        state.search = event.target.value;
+        contributionsForSlot(state.slotId, state.withTraits).then((rows) => renderStatList(availableStats(filteredPool(rows))));
+      });
+
+      renderStatus("Scoring items…");
+      await refresh();
+    }
+
+    boot();
+  </script>
+</body>
+</html>

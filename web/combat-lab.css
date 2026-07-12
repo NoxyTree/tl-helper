@@ -23,6 +23,7 @@ h2 { margin:2px 0 0; color:#ead8b7; font:400 20px Marcellus,serif; }
 .tool-tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
 .tool-tab { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 15px; color:#b8a589; text-align:left; border:1px solid var(--line); border-radius:10px; background:rgba(18,13,8,.72); cursor:pointer; font:16px Marcellus,serif; transition:.18s ease; }
 .tool-tab span { color:#75644d; font:10px "Instrument Sans",sans-serif; letter-spacing:.04em; }
+.tool-tab small { display:inline-grid; place-items:center; min-width:20px; height:20px; margin-left:6px; color:#c9ad78; border:1px solid rgba(242,199,119,.28); border-radius:999px; font:9px "Instrument Sans",sans-serif; }
 .tool-tab:hover { border-color:rgba(242,199,119,.42); transform:translateY(-1px); }
 .tool-tab.active { color:var(--gold); border-color:rgba(242,199,119,.55); background:linear-gradient(135deg,rgba(107,68,22,.34),rgba(32,23,13,.9)); box-shadow:inset 0 0 30px rgba(224,160,65,.06); }
 .build-picker { display:grid; grid-template-columns:220px 1fr 1fr; gap:14px; align-items:center; margin-bottom:12px; padding:14px 18px; }

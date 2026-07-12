@@ -51,6 +51,7 @@ async function boot() {
   prefillHealing();
   renderFighters();
   render();
+  selectView("matchup");
 }
 
 function collectBuilds(reference) {

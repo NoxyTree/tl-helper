@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="./tl-shell.css">
   <link rel="stylesheet" href="./combat-lab.css?v=24118850-9">
 </head>
-<body data-combat-view="ability">
+<body data-combat-view="matchup">
   <a class="tl-skip-link" href="#main-content">Skip to combat calculator</a>
   <header class="tl-app-header">
     <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Combat Calculator</span></span></a>
@@ -24,31 +24,31 @@
 
   <main id="main-content">
     <section class="hero">
-      <div><p class="eyebrow">Combat Lab</p><h1>Combat Calculator</h1></div>
-      <p>Calculate with your build, or switch to PvP Matchup to test against another build.</p>
+      <div><p class="eyebrow">Combat Lab</p><h1>PvP Matchup</h1></div>
+      <p>Compare two builds to see your Hit, Critical, Heavy Attack, and Skill Damage Boost chances against a real opponent.</p>
     </section>
     <div id="fatal-error" class="alert danger hidden" role="alert"></div>
 
     <div class="tool-tabs" role="tablist" aria-label="Combat tools">
-      <button id="ability-tab" class="tool-tab active" type="button" role="tab" aria-selected="true" data-view="ability">Ability Damage<span>Damage, healing, or shield range</span></button>
-      <button id="matchup-tab" class="tool-tab" type="button" role="tab" aria-selected="false" data-view="matchup">PvP Matchup<span>Hit, crit, Heavy, and SDB</span></button>
+      <button id="matchup-tab" class="tool-tab active" type="button" role="tab" aria-selected="true" data-view="matchup">PvP Matchup<span>Compare two complete builds</span></button>
+      <button id="ability-tab" class="tool-tab" type="button" role="tab" aria-selected="false" data-view="ability">Reviewed Ability Formulas <small>3</small><span>Limited formula previews</span></button>
     </div>
 
     <section class="build-picker panel" aria-label="Build selection">
-      <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2 id="build-picker-heading">Choose your build</h2></div></div>
+      <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2 id="build-picker-heading">Choose both builds</h2></div></div>
       <label>Calculate using<select id="source-build"></select></label>
       <label class="opponent-control">Opponent build<select id="target-build"><option value="">Choose an opponent</option></select></label>
       <div id="source-summary" class="hidden"></div><div id="target-summary" class="hidden">No opponent selected.</div>
     </section>
 
-    <section id="ability-view" class="calculator-view active" aria-labelledby="ability-tab">
+    <section id="ability-view" class="calculator-view" aria-labelledby="ability-tab">
       <div class="workspace">
         <div class="control-stack">
           <article class="panel quick-panel">
             <div class="panel-heading"><span>2</span><div><p class="eyebrow">Ability</p><h2>What are you using?</h2></div></div>
             <div class="ability-preview"><img id="ability-icon" alt=""><div><strong id="ability-name">Judgment Lightning</strong><span id="ability-kind">Staff · Raw damage per hit</span></div></div>
             <label>Reviewed ability<select id="ability"></select></label>
-            <p class="field-note">Three abilities are available because only reviewed, build-scoped formulas are shown. This is not your full in-game ability list.</p>
+            <p class="field-note"><strong>Limited preview:</strong> only three abilities have formulas reviewed closely enough to publish. This is a secondary research tool, not your full in-game ability list.</p>
             <div class="two-column"><label>Ability rarity<select id="tier"></select></label><label>Ability level<select id="level"></select></label></div>
             <p id="level-note" class="field-note"></p>
             <div class="calculation-note"><strong>Automatic input</strong><span>Your equipped weapon’s Base Damage is used by default.</span></div>
@@ -89,7 +89,7 @@
       </div>
     </section>
 
-    <section id="matchup-view" class="calculator-view" aria-labelledby="matchup-tab">
+    <section id="matchup-view" class="calculator-view active" aria-labelledby="matchup-tab">
       <div class="versus-stage">
         <article class="fighter-card player-card">
           <div class="fighter-label"><span>Your build</span><strong id="source-fighter-name">Local build</strong></div>
