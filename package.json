@@ -1,0 +1,14 @@
+{
+  "name": "tl-helper",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "node --test scripts/tests/*.test.mjs",
+    "deploy:preview": "wrangler pages deploy web --project-name tl-helper --branch public-beta",
+    "deploy:production": "wrangler pages deploy web --project-name tl-helper --branch main"
+  },
+  "devDependencies": {
+    "wrangler": "4.110.0"
+  }
+}

@@ -8,7 +8,7 @@
   Cache-Control: public, max-age=300, must-revalidate
 
 /data/projections/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=300, must-revalidate
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

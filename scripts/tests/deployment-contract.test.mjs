@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
 
 const read = (relative) => readFile(new URL(`../../${relative}`, import.meta.url), "utf8");
@@ -15,13 +16,47 @@ test("hosted Questlog adapter preserves the local adapter safety boundary", asyn
   assert.match(worker, /ALLOWED_HOSTS/);
   assert.match(worker, /url\.protocol !== "https:"/);
   assert.match(worker, /MAX_RESPONSE_BYTES = 8_000_000/);
-  assert.match(worker, /cache-control": "no-store"/);
+  assert.match(worker, /cacheControl = "no-store"/);
+  assert.match(worker, /caches\.default/);
+  assert.match(worker, /canonical\.searchParams\.set\("buildId"/);
   assert.doesNotMatch(worker, /service[_-]?role/i);
 });
 
-test("production headers protect documents and cache hashed projections", async () => {
+test("production headers protect documents without freezing stable projection names", async () => {
   const headers = await read("web/_headers");
   assert.match(headers, /X-Content-Type-Options: nosniff/);
   assert.match(headers, /\/data\/projections\/\*/);
-  assert.match(headers, /max-age=31536000, immutable/);
+  assert.match(headers, /\/data\/projections\/\*[\s\S]*max-age=300, must-revalidate/);
+});
+
+test("direct-upload artifact contains every projected icon", async () => {
+  const dataRoot = new URL("../../web/data/", import.meta.url);
+  const webRoot = new URL("../../web/", import.meta.url);
+  const queue = [dataRoot];
+  const references = new Set();
+  while (queue.length) {
+    const directory = queue.pop();
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const target = new URL(entry.name + (entry.isDirectory() ? "/" : ""), directory);
+      if (entry.isDirectory()) queue.push(target);
+      else if (entry.name.endsWith(".json")) {
+        const source = await readFile(target, "utf8");
+        for (const match of source.matchAll(/assets\/icons\/[A-Za-z0-9_./-]+\.(?:png|webp)/g)) references.add(match[0]);
+      }
+    }
+  }
+  assert.ok(references.size > 2500, `expected the complete icon inventory, got ${references.size}`);
+  const missing = [];
+  for (const reference of references) {
+    try { await access(new URL(reference, webRoot)); }
+    catch { missing.push(path.posix.normalize(reference)); }
+  }
+  assert.deepEqual(missing, []);
+});
+
+test("public privacy notice covers local storage, Questlog, and fan-site status", async () => {
+  const privacy = await read("web/privacy.html");
+  assert.match(privacy, /stored in your browser on your device/i);
+  assert.match(privacy, /Questlog/i);
+  assert.match(privacy, /unofficial community fan project/i);
 });

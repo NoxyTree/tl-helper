@@ -45,19 +45,26 @@ Then verify in a browser:
 
 ## First deployment
 
+The game icon mirror is intentionally excluded from Git but included in the
+local `web/` release artifact. Use Wrangler Direct Upload from the verified
+release machine. A Git-connected Pages build is incomplete unless a separate
+asset-fetch stage is added. Direct Upload projects cannot later be converted to
+Git integration, so keep this project on the documented Wrangler workflow.
+
 This requires a Cloudflare account authenticated on the release machine:
 
 ```powershell
+npm ci
 npx wrangler login
 npx wrangler pages project create tl-helper --production-branch main
 npx wrangler pages deploy web --project-name tl-helper
 ```
 
-Cloudflare Pages automatically includes the repository `functions/` directory
-when the project is connected to Git. For a direct CLI upload, confirm the
-deployed `/api/questlog/character` route before attaching the production
-domain. If the direct-upload workflow does not bundle Pages Functions, connect
-the repository to Pages and deploy from Git instead.
+Wrangler Direct Upload from the repository root compiles the root `functions/`
+directory and uploads the complete local `web/` artifact, including the icon
+mirror. Dashboard drag-and-drop does not deploy Pages Functions and must not be
+used. Confirm the deployed `/api/questlog/character` route before attaching the
+production domain.
 
 In the Pages dashboard, attach `tlhelper.org` as the custom domain. Do not
 change DNS until the preview URL passes the browser release gate.

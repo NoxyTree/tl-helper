@@ -10,6 +10,10 @@ export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
   try {
     const parsed = parseQuestlogCharacterUrl(requestUrl.searchParams.get("url"));
+    const cacheKey = new Request(`${requestUrl.origin}${requestUrl.pathname}?character=${encodeURIComponent(parsed.characterSlug)}&buildId=${encodeURIComponent(parsed.buildId ?? "")}`);
+    const cache = caches.default;
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
     const characterData = await trpc(PROCEDURES.character, { slug: parsed.characterSlug });
     const ownerSlug = characterData?.character?.user?.slug;
     if (!ownerSlug || !Array.isArray(characterData?.builds)) throw new Error("Questlog returned an incomplete character package.");
@@ -17,7 +21,7 @@ export async function onRequestGet(context) {
       trpc(PROCEDURES.skills, { slug: ownerSlug }),
       trpc(PROCEDURES.masteries, { slug: ownerSlug }),
     ]);
-    return json({
+    const response = json({
       schema: "tl-helper.questlog-character-import",
       schemaVersion: 1,
       fetchedAtUtc: new Date().toISOString(),
@@ -26,7 +30,9 @@ export async function onRequestGet(context) {
       characterData,
       skillData,
       masteryData,
-    }, 200);
+    }, 200, "public, max-age=300");
+    context.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
   } catch (error) {
     return json({ error: String(error?.message ?? error) }, 400);
   }
@@ -43,7 +49,9 @@ function parseQuestlogCharacterUrl(input) {
   if (!slug) throw new Error("The link does not contain a Questlog character slug.");
   const buildId = url.searchParams.get("buildId");
   if (buildId !== null && !/^\d+$/.test(buildId)) throw new Error("Questlog buildId must be numeric.");
-  return { sourceUrl: url.href, characterSlug: decodeURIComponent(slug), buildId };
+  const canonical = new URL(`https://${url.hostname.toLowerCase()}/throne-and-liberty/en/character-builder/${encodeURIComponent(decodeURIComponent(slug))}`);
+  if (buildId !== null) canonical.searchParams.set("buildId", buildId);
+  return { sourceUrl: canonical.href, characterSlug: decodeURIComponent(slug), buildId };
 }
 
 async function trpc(procedure, input) {
@@ -61,11 +69,11 @@ async function trpc(procedure, input) {
   return data;
 }
 
-function json(body, status) {
+function json(body, status, cacheControl = "no-store") {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      "cache-control": "no-store",
+      "cache-control": cacheControl,
       "content-type": "application/json; charset=utf-8",
       "x-content-type-options": "nosniff",
     },
