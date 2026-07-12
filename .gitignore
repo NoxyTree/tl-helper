@@ -16,6 +16,7 @@ src/TlCollector/config.local.json
 .env.local
 supabase/.temp/
 supabase/.branches/
+.wrangler/
 
 # One-off API and research captures are local working material, not application assets.
 /as.json
@@ -31,4 +32,3 @@ supabase/.branches/
 /Output/
 /oodle-data-shared.dll
 /zlib-ng2.dll
-web/assets/icons/

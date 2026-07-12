@@ -11,6 +11,17 @@ test("Cloudflare Pages serves the web app and production domain", async () => {
   assert.match(config, /https:\/\/tlhelper\.org/);
 });
 
+test("Vercel serves the static web directory without invoking Vite", async () => {
+  const config = JSON.parse(await read("vercel.json"));
+  assert.equal(config.framework, null);
+  assert.equal(config.buildCommand, null);
+  assert.equal(config.outputDirectory, "web");
+  const handler = await read("api/questlog/character.js");
+  assert.match(handler, /export default async function handler/);
+  assert.match(handler, /ALLOWED_HOSTS/);
+  assert.match(handler, /CACHE_TTL_MS = 300_000/);
+});
+
 test("hosted Questlog adapter preserves the local adapter safety boundary", async () => {
   const worker = await read("functions/api/questlog/character.js");
   assert.match(worker, /ALLOWED_HOSTS/);
