@@ -150,6 +150,8 @@ export const STAT_ALIASES = {
   melee_double_attack: "Melee Heavy Attack Chance",
   range_double_attack: "Ranged Heavy Attack Chance",
   magic_double_attack: "Magic Heavy Attack Chance",
+  double_damage_dealt_modifier: "Heavy Attack Damage",
+  double_damage_taken_modifier: "Heavy Attack Damage Resistance",
   collide_amplification: "Collision Chance",
   buff_given_duration_modifier: "Buff Duration",
   debuff_taken_duration_modifier: "Debuff Duration",
@@ -2171,7 +2173,12 @@ function derivedQuestlogStatName(id) {
 
 export function statName(id) {
   if (WEAPON_TYPES.includes(String(id ?? "").toLowerCase())) return `${label(id)} Bonus Attack Power`;
-  return STAT_ALIASES[id] ?? (derivedQuestlogStatName(id) || data.statLabels[id] || label(id));
+  const raw = STAT_ALIASES[id] ?? (derivedQuestlogStatName(id) || data?.statLabels?.[id] || label(id));
+  return String(raw)
+    .replace(/\bDouble Damage Dealt Modifier\b/gi, "Heavy Attack Damage")
+    .replace(/\bDouble Damage Taken Modifier\b/gi, "Heavy Attack Damage Resistance")
+    .replace(/\bDouble Attack\b/gi, "Heavy Attack Chance")
+    .replace(/\bDouble Defense\b/gi, "Heavy Attack Evasion");
 }
 
 export function gradeName(grade) {
