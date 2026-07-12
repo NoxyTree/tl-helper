@@ -460,11 +460,18 @@ class Component extends DCLogic {
     charHoverSlot: "",
     charHoverX: 0,
     charHoverY: 0,
+    resonanceKeyHeld: false,
   };
 
   BUILD_KEY = "tlhelper-builder-state-v2";
 
   componentDidMount() {
+    this._resonanceKeyDown = (event) => { if (event.key?.toLowerCase() === "r" && !event.repeat) this.setState({ resonanceKeyHeld: true }); };
+    this._resonanceKeyUp = (event) => { if (event.key?.toLowerCase() === "r") this.setState({ resonanceKeyHeld: false }); };
+    this._resonanceBlur = () => this.setState({ resonanceKeyHeld: false });
+    document.addEventListener("keydown", this._resonanceKeyDown);
+    document.addEventListener("keyup", this._resonanceKeyUp);
+    window.addEventListener("blur", this._resonanceBlur);
     this.load();
     this.checkRollover(true);
     this._timer = setInterval(() => {
@@ -580,12 +587,15 @@ class Component extends DCLogic {
     const flip = typeof window !== "undefined" && y > window.innerHeight * 0.5;
     return {
       hasCharHover: true,
-      charHover: { ...model, x: this.state.charHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
+      charHover: { ...model, visibleResonance: this.state.resonanceKeyHeld ? model.resonanceOptions : model.resonance, resonanceTitle: this.state.resonanceKeyHeld ? "Possible Trait Resonances" : "Trait Resonance", showResonanceHint: model.resonanceOptions.length > model.resonance.length && !this.state.resonanceKeyHeld, x: this.state.charHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
     };
   }
 
   componentWillUnmount() {
     if (this._timer) clearInterval(this._timer);
+    document.removeEventListener("keydown", this._resonanceKeyDown);
+    document.removeEventListener("keyup", this._resonanceKeyUp);
+    window.removeEventListener("blur", this._resonanceBlur);
   }
 
   load() {
