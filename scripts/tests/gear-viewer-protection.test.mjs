@@ -54,5 +54,7 @@ test("hover cards show inherent stats separately and gear can filter exact item 
   assert.match(hoverCard, /data\.hasStats/);
   assert.match(html, /id="level-select"/);
   assert.match(html, /String\(row\.level\) === state\.itemLevel/);
-  assert.match(html, /if \(model\.hasStats\).*Stats.*lines\(model\.stats\)/);
+  assert.match(html, /if \(model\.hasStats\).*Stats.*statRows\(model\.stats\)/);
+  assert.match(core, /name: statName\(statId\), formattedValue: formatStat\(statId, value\)/);
+  assert.match(html, /grid-template-columns: 12px minmax\(0, 1fr\) auto/);
 });

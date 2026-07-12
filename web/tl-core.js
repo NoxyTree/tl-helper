@@ -601,18 +601,20 @@ export function buildItemHoverModel(slotId, build, calc) {
   const selection = slotSelection(slotId, build);
   const color = gradeColor(item.grade);
   const level = selectedItemLevel(item, selection.level);
-  const inherentValues = {
-    ...flattenQuestlogMainStats(item.itemStats?.main?.[String(level)]),
-    ...(item.itemStats?.extra?.[String(level)] ?? {}),
-  };
-  const stats = Object.entries(inherentValues)
-    .filter(([, value]) => Math.abs(Number(value) || 0) > 1e-9)
-    .map(([statId, value]) => ({ statId, value, text: `${statName(statId)} ${formatStat(statId, value)}` }));
+  const mainValues = flattenQuestlogMainStats(item.itemStats?.main?.[String(level)]);
+  const extraValues = item.itemStats?.extra?.[String(level)] ?? {};
+  const statRow = (statId, value, kind = "core") => ({
+    statId, value, kind, name: statName(statId), formattedValue: formatStat(statId, value),
+    text: `${statName(statId)} ${formatStat(statId, value)}`,
+  });
+  const stats = [...new Set([...Object.keys(mainValues), ...Object.keys(extraValues)])]
+    .map((statId) => statRow(statId, Number(mainValues[statId] ?? 0) + Number(extraValues[statId] ?? 0), statId in mainValues ? "core" : "extra"))
+    .filter((row) => Math.abs(Number(row.value) || 0) > 1e-9);
 
-  const tierText = (statId, tiersRaw, tier) => {
+  const tierRow = (statId, tiersRaw, tier) => {
     const arr = Array.isArray(tiersRaw) ? tiersRaw : Object.values(tiersRaw ?? {});
     const v = arr[clamp(Number(tier || 1), 1, Math.max(1, arr.length)) - 1];
-    return `${statName(statId)} ${formatStat(statId, v)}`;
+    return statRow(statId, v, "trait");
   };
   // Prefer what's actually rolled on the equipped item; if the build has no
   // selection for this piece, fall back to the item's own trait lines (max tier)
@@ -620,16 +622,16 @@ export function buildItemHoverModel(slotId, build, calc) {
   const maxTierVal = (tiersRaw) => { const a = Array.isArray(tiersRaw) ? tiersRaw : Object.values(tiersRaw ?? {}); return a.length; };
   const selTraits = normalizeSelectionRows(selection.traits);
   const traits = (selTraits.length
-    ? selTraits.map((r) => ({ text: tierText(r.statId, item.itemStats?.traits?.[r.statId], r.tier) }))
-    : Object.entries(item.itemStats?.traits ?? {}).slice(0, NORMAL_TRAIT_CAP).map(([statId, tiers]) => ({ text: tierText(statId, tiers, maxTierVal(tiers)) })));
+    ? selTraits.map((r) => tierRow(r.statId, item.itemStats?.traits?.[r.statId], r.tier))
+    : Object.entries(item.itemStats?.traits ?? {}).slice(0, NORMAL_TRAIT_CAP).map(([statId, tiers]) => tierRow(statId, tiers, maxTierVal(tiers))));
   const selReson = normalizeSelectionRows(selection.resonance);
   const resonance = (selReson.length
-    ? selReson.map((r) => ({ text: tierText(r.statId, item.itemStats?.resonance?.[r.statId]?.tiers, r.tier) }))
-    : Object.entries(item.itemStats?.resonance ?? {}).slice(0, RESONANCE_CAP).map(([statId, row]) => ({ text: tierText(statId, row?.tiers, maxTierVal(row?.tiers)) })));
+    ? selReson.map((r) => tierRow(r.statId, item.itemStats?.resonance?.[r.statId]?.tiers, r.tier))
+    : Object.entries(item.itemStats?.resonance ?? {}).slice(0, RESONANCE_CAP).map(([statId, row]) => tierRow(statId, row?.tiers, maxTierVal(row?.tiers))));
   const uniqueEntries = Object.entries(item.itemStats?.uniqueTraits ?? {});
   const unique = selection.uniqueTrait
-    ? [{ text: tierText(selection.uniqueTrait.statId, item.itemStats?.uniqueTraits?.[selection.uniqueTrait.statId], selection.uniqueTrait.tier) }]
-    : uniqueEntries.slice(0, UNIQUE_TRAIT_CAP).map(([statId, tiers]) => ({ text: tierText(statId, tiers, maxTierVal(tiers)) }));
+    ? [tierRow(selection.uniqueTrait.statId, item.itemStats?.uniqueTraits?.[selection.uniqueTrait.statId], selection.uniqueTrait.tier)]
+    : uniqueEntries.slice(0, UNIQUE_TRAIT_CAP).map(([statId, tiers]) => tierRow(statId, tiers, maxTierVal(tiers)));
   const heroicEffects = selectedHeroicEffects(item, selection).map((effect) => ({
     groupNumber: effect.groupNumber,
     name: effect.name,
