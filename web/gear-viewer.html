@@ -119,6 +119,9 @@
     #hover-card .hc-gain-hint kbd { margin: 0 3px; padding: 1px 5px; border: 1px solid rgba(212, 166, 94, 0.28); border-radius: 4px; background: rgba(212, 166, 94, 0.08); color: #cbb185; font: inherit; }
     #hover-card.show-gains .hc-gain-hint { color: #a89572; }
     #hover-card .hc-resonance { background: rgba(159, 86, 214, 0.055); }
+    #hover-card .resonance-all { display: none; }
+    #hover-card.show-all-resonance .resonance-selected { display: none; }
+    #hover-card.show-all-resonance .resonance-all { display: block; }
     #hover-card .hc-effect { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 6px; }
     #hover-card .hc-effect:last-child { margin-bottom: 0; }
     #hover-card .hc-effect-icon { flex: none; width: 30px; height: 30px; border-radius: 999px; border: 1px solid rgba(212, 166, 94, 0.35); background-size: cover; background-position: center; background-color: #171209; }
@@ -823,11 +826,9 @@
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
         `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}${row.levelKnown ? ` · Lv ${esc(row.level)}` : " · level unknown"}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
-      if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}</div>`);
+      if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="resonance-selected"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}${model.resonanceOptions.length > model.resonance.length ? `<div class="hc-gain-hint">Hold <kbd>R</kbd> to show all possibilities</div>` : ""}</div><div class="resonance-all"><div class="hc-title resonance">Possible Trait Resonances</div>${statRows(model.resonanceOptions, "resonance")}</div></div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
-      if (model.hasAbilities) sections.push(`<div class="hc-section"><div class="hc-title">Weapon Abilities</div><div class="hc-abilities">${model.abilities.map((ab) =>
-        `<span class="hc-ability" title="${esc(ab.name)}" style="background-image:url('${esc(ab.icon)}')"></span>`).join("")}</div></div>`);
       if (model.hasSet) sections.push(`<div class="hc-section"><div class="hc-set-head"><span class="hc-title" style="margin:0">Set Effects</span><span class="hc-set-count">${esc(model.setInfo.countLabel)}</span></div><div class="hc-set-name">${esc(model.setInfo.name)}</div>${model.setInfo.bonuses.map((bonus) =>
         `<div class="hc-bonus ${bonus.active ? "active" : "inactive"}"><span class="req" style="color:${bonus.color}">${bonus.mark} ${esc(bonus.required)}</span><span class="txt">${esc(bonus.text)}${bonus.hasComputed ? `<i style="display:block;font-style:normal;color:${bonus.color}">${esc(bonus.computedText)}</i>` : ""}</span></div>`).join("")}</div>`);
       $("hover-card").innerHTML = sections.join("");
@@ -843,8 +844,12 @@
 
     let hoverItemId = "";
     let attributeGainKeyHeld = false;
+    let resonanceKeyHeld = false;
     function setAttributeGainsVisible(visible) {
       $("hover-card").classList.toggle("show-gains", Boolean(visible && hoverItemId));
+    }
+    function setAllResonanceVisible(visible) {
+      $("hover-card").classList.toggle("show-all-resonance", Boolean(visible && hoverItemId));
     }
     function bindHoverCard() {
       const body = $("table-body");
@@ -861,6 +866,7 @@
         $("hover-card").classList.remove("hidden");
         $("hover-card").setAttribute("aria-hidden", "false");
         setAttributeGainsVisible(attributeGainKeyHeld);
+        setAllResonanceVisible(resonanceKeyHeld);
         positionHoverCard(event);
       });
       body.addEventListener("mousemove", (event) => {
@@ -869,18 +875,22 @@
       body.addEventListener("mouseleave", () => {
         hoverItemId = "";
         setAttributeGainsVisible(false);
+        setAllResonanceVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       });
       document.addEventListener("scroll", () => {
         hoverItemId = "";
         setAttributeGainsVisible(false);
+        setAllResonanceVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       }, { passive: true });
       document.addEventListener("keydown", (event) => { if (event.key === "Shift") { attributeGainKeyHeld = true; setAttributeGainsVisible(true); } });
       document.addEventListener("keyup", (event) => { if (event.key === "Shift") { attributeGainKeyHeld = false; setAttributeGainsVisible(false); } });
-      window.addEventListener("blur", () => { attributeGainKeyHeld = false; setAttributeGainsVisible(false); });
+      document.addEventListener("keydown", (event) => { if (event.key.toLowerCase() === "r") { resonanceKeyHeld = true; setAllResonanceVisible(true); } });
+      document.addEventListener("keyup", (event) => { if (event.key.toLowerCase() === "r") { resonanceKeyHeld = false; setAllResonanceVisible(false); } });
+      window.addEventListener("blur", () => { attributeGainKeyHeld = false; resonanceKeyHeld = false; setAttributeGainsVisible(false); setAllResonanceVisible(false); });
     }
 
     let lastStats = [];
