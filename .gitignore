@@ -12,6 +12,9 @@ src/**/bin/
 src/**/obj/
 src/TlCollector/config.local.json
 *.pid
+.env
+.env.local
+supabase/.temp/
 
 # Never commit archive keys or bulk extracted data (see docs/storage-and-retention.md)
 /aes.txt
