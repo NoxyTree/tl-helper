@@ -125,8 +125,10 @@
     #hover-card .hc-abilities { display: flex; flex-wrap: wrap; gap: 5px; }
     #hover-card .hc-ability { width: 30px; height: 30px; border-radius: 7px; border: 1px solid rgba(212, 166, 94, 0.25); background-size: cover; background-position: center; background-color: #171209; }
     #hover-card .hc-set-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+    #hover-card .hc-set-name { color: #e5c88f; font-size: 12px; font-weight: 650; margin-bottom: 7px; }
     #hover-card .hc-set-count { font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums; }
     #hover-card .hc-bonus { display: flex; gap: 8px; font-size: 11px; line-height: 1.45; margin-bottom: 3px; }
+    #hover-card .hc-bonus.inactive { opacity: 0.58; }
     #hover-card .hc-bonus .req { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; }
     #hover-card .hc-bonus .txt { color: #a4906d; }
     .table-foot { display: flex; justify-content: center; padding: 12px; }
@@ -672,12 +674,10 @@
       if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}</div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
-      if (model.hasCores) sections.push(`<div class="hc-section"><div class="hc-title" style="color:#8fd0ff">Skill Cores · Potentials</div>${model.cores.map((coreRow) =>
-        `<div class="hc-effect">${coreRow.hasIcon ? `<span class="hc-effect-icon" style="border-color:rgba(143,208,255,0.35);border-radius:7px;background-image:url('${esc(coreRow.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name" style="color:#cfe6ff">${esc(coreRow.name)}</div><div class="hc-effect-text" style="color:#8ba0b5">${esc(coreRow.text)}</div></div></div>`).join("")}${model.hasCoreMore ? `<div class="hc-effect-text">${esc(model.coreMoreLabel)}</div>` : ""}</div>`);
       if (model.hasAbilities) sections.push(`<div class="hc-section"><div class="hc-title">Weapon Abilities</div><div class="hc-abilities">${model.abilities.map((ab) =>
         `<span class="hc-ability" title="${esc(ab.name)}" style="background-image:url('${esc(ab.icon)}')"></span>`).join("")}</div></div>`);
-      if (model.hasSet) sections.push(`<div class="hc-section"><div class="hc-set-head"><span class="hc-title" style="margin:0">${esc(model.setInfo.name)}</span><span class="hc-set-count">${esc(model.setInfo.countLabel)}</span></div>${model.setInfo.bonuses.map((bonus) =>
-        `<div class="hc-bonus"><span class="req" style="color:${bonus.color}">${esc(bonus.required)}</span><span class="txt">${esc(bonus.text)}${bonus.hasComputed ? `<i style="display:block;font-style:normal;color:${bonus.color}">${esc(bonus.computedText)}</i>` : ""}</span></div>`).join("")}</div>`);
+      if (model.hasSet) sections.push(`<div class="hc-section"><div class="hc-set-head"><span class="hc-title" style="margin:0">Set Effects</span><span class="hc-set-count">${esc(model.setInfo.countLabel)}</span></div><div class="hc-set-name">${esc(model.setInfo.name)}</div>${model.setInfo.bonuses.map((bonus) =>
+        `<div class="hc-bonus ${bonus.active ? "active" : "inactive"}"><span class="req" style="color:${bonus.color}">${bonus.mark} ${esc(bonus.required)}</span><span class="txt">${esc(bonus.text)}${bonus.hasComputed ? `<i style="display:block;font-style:normal;color:${bonus.color}">${esc(bonus.computedText)}</i>` : ""}</span></div>`).join("")}</div>`);
       $("hover-card").innerHTML = sections.join("");
     }
 

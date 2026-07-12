@@ -68,3 +68,14 @@ test("equipped labels do not interrupt item names and attribute effects nest ben
   assert.match(core, /return \{ \.\.\.row, children, hasChildren: children\.length > 0 \}/);
   assert.match(html, /class="hc-derived"/);
 });
+
+test("hover cards omit skill-core potentials and present set effects clearly", async () => {
+  const core = await readFile(new URL("../../web/tl-core.js", import.meta.url), "utf8");
+  const hoverCard = await readFile(new URL("../../web/ItemHoverCard.dc.html", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /Skill Cores · Potentials|model\.hasCores/);
+  assert.doesNotMatch(hoverCard, /Skill Cores · Potentials|data\.hasCores/);
+  assert.doesNotMatch(core, /cores, hasCores|coreMoreLabel/);
+  assert.match(html, />Set Effects</);
+  assert.match(hoverCard, />Set Effects</);
+  assert.match(core, /mark: active \? "✓" : "○"/);
+});
