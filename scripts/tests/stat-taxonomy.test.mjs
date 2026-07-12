@@ -77,3 +77,12 @@ test("unknown IDs are humanized but explicitly unresolved", () => {
   assert.equal(value.labelSource, "generated-fallback");
   assert.equal(value.labelStatus, "unresolved");
 });
+
+test("legacy enemy-family IDs use player-facing species names", () => {
+  assert.equal(resolveStatTaxonomy("animal_damage_reduction").displayName, "Wildkin Damage Reduction");
+  assert.equal(resolveStatTaxonomy("bonus_animal_attack_power").displayName, "Bonus Wildkin Attack Power");
+  assert.equal(resolveStatTaxonomy("creation_damage_reduction").displayName, "Construct Damage Reduction");
+  assert.equal(resolveStatTaxonomy("bonus_creation_attack_power").displayName, "Bonus Construct Attack Power");
+  assert.equal(resolveStatTaxonomy("grankus_damage_reduction").displayName, "Humanoid Damage Reduction");
+  assert.equal(resolveStatTaxonomy("bonus_grankus_attack_power").displayName, "Bonus Humanoid Attack Power");
+});
