@@ -967,6 +967,7 @@
           option.textContent = `Imported: ${questlog.label}`;
           $("mode-select").value = "questlog";
           state.mode = "questlog";
+          $("set-fit-toggle").disabled = false;
           renderTypeOptions();
           await refresh();
         } catch (error) {
