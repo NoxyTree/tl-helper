@@ -14,7 +14,7 @@ test("Gear Viewer separates increase goals from protected-stat constraints", () 
 
 test("protected stats require a real build baseline and remain visible when blocked", () => {
   assert.match(html, /state\.mode !== "bare" && state\.protected\.length > 0/);
-  assert.match(html, /class="\$\{row\.protectionPass \? "" : "protection-blocked"\}"/);
+  assert.match(html, /row\.protectionPass \? "" : "protection-blocked"/);
   assert.match(html, /protected stat[\s\S]*waiting for a build/);
 });
 
@@ -78,4 +78,13 @@ test("hover cards omit skill-core potentials and present set effects clearly", a
   assert.match(html, />Set Effects</);
   assert.match(hoverCard, />Set Effects</);
   assert.match(core, /mark: active \? "✓" : "○"/);
+});
+
+test("the currently equipped item is pinned above ranked candidates", () => {
+  assert.match(html, /row\.isPinned = Boolean\(contextBuild/);
+  assert.match(html, /row\.isPinned \|\| ordinaryMatch/);
+  assert.match(html, /Number\(b\.isPinned\) - Number\(a\.isPinned\)/);
+  assert.match(html, /row\.isPinned \|\| row\.score > 0/);
+  assert.match(html, /class="pinned-mark">● Currently equipped/);
+  assert.match(html, /tr\.equipped-row/);
 });
