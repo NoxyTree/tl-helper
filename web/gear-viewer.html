@@ -73,7 +73,7 @@
     .item-cell { display: flex; align-items: center; gap: 9px; min-width: 210px; }
     .item-cell img { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--tl-shell-line); background: #14100a; flex: 0 0 30px; }
     .item-cell .name { display: block; font-weight: 600; line-height: 1.2; white-space: normal; }
-    .item-cell .sub { display: block; font-size: 11px; color: var(--tl-shell-muted); }
+    .item-cell .sub { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 11px; color: var(--tl-shell-muted); }
     .zero { color: rgba(220, 199, 158, 0.28); }
     .neg { color: #ff9d84; }
     tr.protection-blocked { opacity: 0.62; }
@@ -108,6 +108,9 @@
     #hover-card .hc-stat-row.extra .mark { color: #b8ab92; }
     #hover-card .hc-stat-row.trait .mark { color: #d4a65e; }
     #hover-card .hc-stat-row.resonance .mark, #hover-card .hc-stat-row.resonance .stat-name, #hover-card .hc-stat-row.resonance .stat-value { color: #cf9dff; }
+    #hover-card .hc-derived { grid-column: 2 / 4; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 1px 0 3px 8px; padding-left: 8px; border-left: 1px solid rgba(212, 166, 94, 0.26); font-size: 10.5px; line-height: 1.4; }
+    #hover-card .hc-derived .derived-name { color: #8f8068; }
+    #hover-card .hc-derived .derived-value { color: #cbb185; font-variant-numeric: tabular-nums; }
     #hover-card .hc-resonance { background: rgba(159, 86, 214, 0.055); }
     #hover-card .hc-effect { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 6px; }
     #hover-card .hc-effect:last-child { margin-bottom: 0; }
@@ -506,8 +509,8 @@
           <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${row.item.id}" aria-label="Toggle favourite">★</button></td>
           <td class="item-cell-td"><span class="item-cell">
             <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <span><span class="name" style="color:${color}">${row.item.name}${equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span>
-            <span class="sub">${core.label(row.item.equipmentType)}</span></span>
+            <span><span class="name" style="color:${color}">${row.item.name}</span>
+            <span class="sub"><span>${core.label(row.item.equipmentType)}</span>${equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
           </span></td>
           <td style="color:${color}">${core.gradeName(row.item.grade)}</td>
           <td>${row.level}</td>
@@ -631,17 +634,21 @@
     }
 
     // ---------- item hover card (same model as the Armory's ItemHoverCard) ----------
-    const hoverModelCache = new Map(); // itemId -> model
+    const hoverModelCache = new Map(); // mode|itemId|slotId -> model
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     function hoverModelFor(itemId, slotId) {
-      if (hoverModelCache.has(itemId)) return hoverModelCache.get(itemId);
-      // Place the item bare into its natural slot of an empty build; the model
-      // builder then falls back to the item's own trait/resonance lines at max tier.
-      const build = core.createInitialBuild();
-      core.slotCollectionForSlot(build, slotId)[slotId] = { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(core.indexes.itemById[itemId]) };
-      const model = core.buildItemHoverModel(slotId, build, null);
-      hoverModelCache.set(itemId, model);
+      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${itemId}|${slotId}`;
+      if (hoverModelCache.has(key)) return hoverModelCache.get(key);
+      const context = scoringContext();
+      const beforeCalc = core.calculateBuild(context.build, context.attributes);
+      const build = core.deepClone(context.build);
+      const item = core.indexes.itemById[itemId];
+      const selection = { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(item), traits: state.withTraits ? maxTraitRows(item) : [] };
+      core.slotCollectionForSlot(build, slotId)[slotId] = selection;
+      const calc = core.calculateBuild(build, context.attributes);
+      const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected] });
+      hoverModelCache.set(key, model);
       return model;
     }
 
@@ -649,7 +656,8 @@
       const statRows = (rows, kind) => rows.map((row) => {
         const rowKind = kind ?? row.kind ?? "core";
         const mark = rowKind === "core" ? "" : rowKind === "extra" ? "•" : rowKind === "resonance" ? "✦" : "◆";
-        return `<div class="hc-stat-row ${rowKind}"><span class="mark">${mark}</span><span class="stat-name">${esc(row.name)}</span><span class="stat-value">${esc(row.formattedValue)}</span></div>`;
+        const children = (row.children ?? []).map((child) => `<span class="hc-derived"><span class="derived-name">↳ ${esc(child.name)}</span><span class="derived-value">${esc(child.formattedValue)}</span></span>`).join("");
+        return `<div class="hc-stat-row ${rowKind}"><span class="mark">${mark}</span><span class="stat-name">${esc(row.name)}</span><span class="stat-value">${esc(row.formattedValue)}</span>${children}</div>`;
       }).join("");
       const sections = [];
       sections.push(`<div class="hc-head" style="border-top:${model.headBorder};background:${model.headBg}">
@@ -918,6 +926,7 @@
             attributes: { ...ZERO_ATTRS, ...(imported.attributes ?? {}) },
             label: `${imported.profile.name} · ${sourceBuild.name ?? `Build ${sourceBuild.id}`}`,
           };
+          hoverModelCache.clear();
           for (const key of [...poolCache.keys()]) if (key.startsWith("questlog|")) poolCache.delete(key);
           const option = $("mode-select").querySelector('option[value="questlog"]');
           option.disabled = false;
