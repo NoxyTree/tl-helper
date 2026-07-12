@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TL Helper Achievements</title>
+<title>Achievements | TL Helper</title>
+<meta name="description" content="Track Throne and Liberty achievement progress, stages, categories, and remaining rewards locally in your browser.">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/achievements"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:title" content="Achievements | TL Helper"><meta property="og:description" content="Track your Throne and Liberty achievements."><meta property="og:url" content="https://tlhelper.org/achievements"><meta name="twitter:card" content="summary">
 <script src="./support.js"></script>
 </head>
 <body>
+<a class="tl-skip-link" href="#main-content">Skip to achievements</a>
 <x-dc>
 <helmet>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,6 +44,17 @@
     ::-webkit-scrollbar-thumb:hover { background: rgba(212, 166, 94, 0.4); }
     @keyframes tlFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes tlEmber { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+    @media (max-width: 900px) {
+      .ach-layout { grid-template-columns: 1fr !important; gap: 18px !important; }
+      .ach-filters { position: static !important; grid-template-columns: minmax(0, 1fr) minmax(220px, .7fr); }
+      .ach-filters > section { max-height: none !important; }
+    }
+    @media (max-width: 620px) {
+      .ach-page { padding: 16px 12px 36px !important; }
+      .ach-filters { grid-template-columns: 1fr; }
+      .ach-card-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      [data-screen-label="Achievement Detail"] { width: 100% !important; padding: 18px 16px 28px !important; }
+    }
   </style>
 </helmet>
 
@@ -73,7 +88,8 @@
     </div>
   </header>
 
-  <main data-screen-label="Achievements" style="flex: 1; max-width: 1460px; width: 100%; margin: 0 auto; padding: 22px 30px 48px; animation: tlFadeUp 0.35s ease;">
+  <main id="main-content" class="ach-page" data-screen-label="Achievements" style="flex: 1; max-width: 1460px; width: 100%; margin: 0 auto; padding: 22px 30px 48px; animation: tlFadeUp 0.35s ease;">
+    <h1 class="tl-visually-hidden">TL Helper achievements</h1>
 
     <sc-if value="{{ achLoaded }}" hint-placeholder-val="{{ false }}">
 
@@ -105,9 +121,9 @@
         style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.5);">Reset progress</button>
     </div>
 
-    <div style="display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 26px; align-items: start;">
+    <div class="ach-layout" style="display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 26px; align-items: start;">
       <!-- filters sidebar -->
-      <aside style="position: sticky; top: 22px; display: grid; gap: 16px;">
+      <aside class="ach-filters" style="position: sticky; top: 22px; display: grid; gap: 16px;">
         <section style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 12px; background: rgba(18, 14, 9, 0.55); padding: 16px;">
           <label style="display: block; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f; margin-bottom: 7px;">Search achievements</label>
           <input value="{{ achSearch }}" onInput="{{ onAchSearch }}" type="search" placeholder="Raid, cooking, Laslan…" spellcheck="false"
@@ -181,7 +197,7 @@
           <button type="button" onClick="{{ onAchNextPage }}" disabled="{{ achNextDisabled }}" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: {{ achNextColor }}; background: rgba(10, 8, 5, 0.6); border: 1px solid rgba(212, 166, 94, 0.25); border-radius: 8px; padding: 6px 12px; cursor: pointer;">Next</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px;">
+        <div class="ach-card-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px;">
           <sc-for list="{{ achCards }}" as="card" hint-placeholder-count="9">
             <div onClick="{{ card.onOpen }}" role="button" tabIndex="0" style="cursor: pointer; display: flex; gap: 12px; align-items: flex-start; padding: 14px 14px 12px; border-radius: 10px; border: 1px solid {{ card.border }}; background: {{ card.bg }}; transition: border-color 0.12s ease;" style-hover="border-color: rgba(232, 184, 106, 0.55);">
               <div style="flex: 1; min-width: 0;">

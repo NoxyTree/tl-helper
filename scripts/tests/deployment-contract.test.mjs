@@ -71,3 +71,33 @@ test("public privacy notice covers local storage, Questlog, and fan-site status"
   assert.match(privacy, /Questlog/i);
   assert.match(privacy, /unofficial community fan project/i);
 });
+
+test("public pages expose production discovery and accessibility metadata", async () => {
+  const pages = [
+    ["web/index.html", "https://tlhelper.org/"],
+    ["web/tracker.html", "https://tlhelper.org/tracker"],
+    ["web/achievements.html", "https://tlhelper.org/achievements"],
+    ["web/combat-lab.html", "https://tlhelper.org/combat-lab"],
+    ["web/privacy.html", "https://tlhelper.org/privacy"],
+  ];
+  for (const [file, canonical] of pages) {
+    const document = await read(file);
+    assert.match(document, /<html lang="en">/i, `${file} declares its language`);
+    assert.match(document, /<meta name="description"/i, `${file} has a description`);
+    assert.ok(document.includes(`<link rel="canonical" href="${canonical}">`), `${file} has its canonical URL`);
+    assert.match(document, /<link rel="icon" href="\.\/icon\.svg"/i, `${file} has a favicon`);
+    assert.match(document, /class="tl-skip-link"[^>]*href="#main-content"/i, `${file} has a skip link`);
+    assert.match(document, /<main[^>]*id="main-content"/i, `${file} exposes the main landmark`);
+    assert.match(document, /<h1\b/i, `${file} has a primary heading`);
+  }
+});
+
+test("search discovery files publish only the clean production pages", async () => {
+  const robots = await read("web/robots.txt");
+  const sitemap = await read("web/sitemap.xml");
+  assert.match(robots, /Sitemap: https:\/\/tlhelper\.org\/sitemap\.xml/);
+  assert.match(robots, /Disallow: \/api\//);
+  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/privacy"]) {
+    assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
+  }
+});

@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TL Helper Build Planner</title>
+<title>Build Planner | TL Helper</title>
+<meta name="description" content="Create, compare, and save Throne and Liberty builds with equipment, skills, masteries, runes, artifacts, and combat stats.">
+<meta name="theme-color" content="#0c0a07">
+<link rel="canonical" href="https://tlhelper.org/">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:title" content="Build Planner | TL Helper"><meta property="og:description" content="Build and save your Throne and Liberty loadout."><meta property="og:url" content="https://tlhelper.org/">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Build Planner | TL Helper"><meta name="twitter:description" content="Build and save your Throne and Liberty loadout.">
 <script src="./support.js"></script>
 </head>
 <body>
+<a class="tl-skip-link" href="#main-content">Skip to build editor</a>
 <x-dc>
 <helmet>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,14 +59,15 @@
       [data-screen-label="Armory Builder"] { min-width: 0 !important; }
       [data-screen-label="Hero Stats"] { overflow-x: auto; padding: 11px 14px !important; }
       [data-screen-label="Hero Stats"] > div { min-width: 132px !important; padding: 2px 13px !important; }
-      [data-screen-label="Armory Builder"] > main { grid-template-columns: minmax(0, 1fr) !important; padding: 18px !important; }
+      #main-content { grid-template-columns: minmax(0, 1fr) !important; padding: 18px !important; }
       [data-screen-label="Character Doll"] { position: relative !important; top: auto !important; width: 100%; max-width: 560px; margin: 0 auto; }
       [data-screen-label="Workspace"] { width: 100%; }
       [data-screen-label="Workspace"] > nav { overflow-x: auto; }
+      [data-screen-label="Workspace"] > div { grid-template-columns: minmax(0, 1fr) !important; }
     }
     @media (max-width: 620px) {
       [data-screen-label="Header Actions"] { justify-content: flex-start !important; }
-      [data-screen-label="Armory Builder"] > main { padding: 12px !important; gap: 16px !important; }
+      #main-content { padding: 12px !important; gap: 16px !important; }
       [data-screen-label="Character Doll"] > div { padding: 13px 9px !important; }
       [data-screen-label="Workspace"] > nav button { padding-left: 12px !important; padding-right: 12px !important; }
     }
@@ -134,7 +142,15 @@
     </div>
 
     <!-- ======================= MAIN ======================= -->
-    <main style="flex: 1; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; padding: 24px 28px 40px; align-items: start;">
+    <main id="main-content" style="flex: 1; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; padding: 24px 28px 40px; align-items: start;">
+      <h1 class="tl-visually-hidden">TL Helper build planner</h1>
+
+      <sc-if value="{{ emptyBuild }}" hint-placeholder-val="true">
+        <section class="tl-first-run" aria-labelledby="first-run-title">
+          <div><span class="tl-first-run-kicker">Start your build</span><h2 id="first-run-title">Create a loadout that belongs to you</h2><p>Choose your first weapon, tune the build below, and TL Helper will save your progress in this browser automatically.</p></div>
+          <div class="tl-first-run-actions"><button type="button" onClick="{{ chooseMainWeapon }}">Choose main weapon</button><button type="button" onClick="{{ openImport }}" class="secondary">Import from Questlog</button><small>Use <b>My builds</b> when you want a named snapshot.</small></div>
+        </section>
+      </sc-if>
 
       <!-- ===== CHARACTER DOLL ===== -->
       <section data-screen-label="Character Doll" style="position: sticky; top: 20px; animation: tlFadeUp 0.35s ease;">
@@ -2453,6 +2469,8 @@ class Component extends DCLogic {
       hasPresetError: Boolean(this.state.presetError),
       addCurrentPreset: () => this.addCurrentPreset(),
       onNewBuild: () => this.newBuild(),
+      emptyBuild: gearCount === 0,
+      chooseMainWeapon: () => this.openPicker("main_hand"),
       openImport: () => this.openImport(),
       importOpen: this.state.importOpen,
       importText: this.state.importText,

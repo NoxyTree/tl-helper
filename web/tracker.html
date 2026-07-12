@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progress Tracker | TL Helper</title>
+<meta name="description" content="Track your Throne and Liberty character progression, equipment, upgrades, and goals in one private browser workspace.">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/tracker"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:title" content="Progress Tracker | TL Helper"><meta property="og:description" content="Track your Throne and Liberty character progression."><meta property="og:url" content="https://tlhelper.org/tracker"><meta name="twitter:card" content="summary">
 <script src="./support.js"></script>
 </head>
 <body>
+<a class="tl-skip-link" href="#main-content">Skip to progress tracker</a>
 <x-dc>
 <helmet>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -88,7 +93,8 @@
     </div>
   </header>
 
-  <main style="flex: 1; width: 100%; padding: 24px 28px 40px; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; align-items: start; animation: tlFadeUp 0.35s ease;">
+  <main id="main-content" style="flex: 1; width: 100%; padding: 24px 28px 40px; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; align-items: start; animation: tlFadeUp 0.35s ease;">
+    <h1 class="tl-visually-hidden">TL Helper progress tracker</h1>
 
     <!-- character panel — a constant, personal mirror of the Armory build -->
     <aside style="position: sticky; top: 20px; align-self: start;">
