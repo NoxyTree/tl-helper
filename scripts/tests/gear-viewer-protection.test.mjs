@@ -88,3 +88,13 @@ test("the currently equipped item is pinned above ranked candidates", () => {
   assert.match(html, /class="pinned-mark">● Currently equipped/);
   assert.match(html, /tr\.equipped-row/);
 });
+
+test("attribute-derived gains expand only while Shift is held over an item", async () => {
+  const core = await readFile(new URL("../../web/tl-core.js", import.meta.url), "utf8");
+  assert.match(core, /hasAttributeGains: stats\.some\(\(row\) => row\.hasChildren\)/);
+  assert.match(html, /#hover-card \.hc-derived \{[^}]*display: none/);
+  assert.match(html, /#hover-card\.show-gains \.hc-derived \{ display: grid; \}/);
+  assert.match(html, /Hold <kbd>Shift<\/kbd> to show attribute gains/);
+  assert.match(html, /event\.key === "Shift"/);
+  assert.match(html, /window\.addEventListener\("blur"/);
+});
