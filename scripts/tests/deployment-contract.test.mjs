@@ -101,3 +101,12 @@ test("search discovery files publish only the clean production pages", async () 
     assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
   }
 });
+
+test("standalone pages use the shared application header", async () => {
+  for (const file of ["web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/privacy.html"]) {
+    const document = await read(file);
+    assert.match(document, /<header class="tl-app-header">/i, `${file} uses the shared header`);
+    assert.match(document, /<nav class="tl-app-nav"/i, `${file} uses the shared navigation`);
+    assert.match(document, /class="tl-app-brand"/i, `${file} uses the shared brand`);
+  }
+});
