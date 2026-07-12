@@ -111,9 +111,13 @@
     #hover-card .hc-stat-row.extra .mark { color: #b8ab92; }
     #hover-card .hc-stat-row.trait .mark { color: #d4a65e; }
     #hover-card .hc-stat-row.resonance .mark, #hover-card .hc-stat-row.resonance .stat-name, #hover-card .hc-stat-row.resonance .stat-value { color: #cf9dff; }
-    #hover-card .hc-derived { grid-column: 2 / 4; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 1px 0 3px 8px; padding-left: 8px; border-left: 1px solid rgba(212, 166, 94, 0.26); font-size: 10.5px; line-height: 1.4; }
+    #hover-card .hc-derived { grid-column: 2 / 4; display: none; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 1px 0 3px 8px; padding-left: 8px; border-left: 1px solid rgba(212, 166, 94, 0.26); font-size: 10.5px; line-height: 1.4; }
+    #hover-card.show-gains .hc-derived { display: grid; }
     #hover-card .hc-derived .derived-name { color: #8f8068; }
     #hover-card .hc-derived .derived-value { color: #cbb185; font-variant-numeric: tabular-nums; }
+    #hover-card .hc-gain-hint { margin-top: 7px; padding-top: 6px; border-top: 1px dotted rgba(212, 166, 94, 0.15); color: #75664f; font-size: 9.5px; letter-spacing: 0.03em; }
+    #hover-card .hc-gain-hint kbd { margin: 0 3px; padding: 1px 5px; border: 1px solid rgba(212, 166, 94, 0.28); border-radius: 4px; background: rgba(212, 166, 94, 0.08); color: #cbb185; font: inherit; }
+    #hover-card.show-gains .hc-gain-hint { color: #a89572; }
     #hover-card .hc-resonance { background: rgba(159, 86, 214, 0.055); }
     #hover-card .hc-effect { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 6px; }
     #hover-card .hc-effect:last-child { margin-bottom: 0; }
@@ -675,7 +679,7 @@
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
-      if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}</div>`);
+      if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}${model.hasAttributeGains ? `<div class="hc-gain-hint">Hold <kbd>Shift</kbd> to show attribute gains</div>` : ""}</div>`);
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
@@ -699,6 +703,10 @@
     }
 
     let hoverItemId = "";
+    let attributeGainKeyHeld = false;
+    function setAttributeGainsVisible(visible) {
+      $("hover-card").classList.toggle("show-gains", Boolean(visible && hoverItemId));
+    }
     function bindHoverCard() {
       const body = $("table-body");
       body.addEventListener("mouseover", (event) => {
@@ -713,6 +721,7 @@
         renderHoverCard(model);
         $("hover-card").classList.remove("hidden");
         $("hover-card").setAttribute("aria-hidden", "false");
+        setAttributeGainsVisible(attributeGainKeyHeld);
         positionHoverCard(event);
       });
       body.addEventListener("mousemove", (event) => {
@@ -720,14 +729,19 @@
       });
       body.addEventListener("mouseleave", () => {
         hoverItemId = "";
+        setAttributeGainsVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       });
       document.addEventListener("scroll", () => {
         hoverItemId = "";
+        setAttributeGainsVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       }, { passive: true });
+      document.addEventListener("keydown", (event) => { if (event.key === "Shift") { attributeGainKeyHeld = true; setAttributeGainsVisible(true); } });
+      document.addEventListener("keyup", (event) => { if (event.key === "Shift") { attributeGainKeyHeld = false; setAttributeGainsVisible(false); } });
+      window.addEventListener("blur", () => { attributeGainKeyHeld = false; setAttributeGainsVisible(false); });
     }
 
     let lastStats = [];

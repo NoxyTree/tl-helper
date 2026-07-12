@@ -760,7 +760,7 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     name: item.name, nameColor: color, icon: item.imageUrl ?? "", hasIcon: Boolean(item.imageUrl),
     meta: `${gradeName(item.grade)} · ${label(item.equipmentType)} · Lv ${level}`,
     headBg: `linear-gradient(180deg, ${color}26, transparent)`, headBorder: `2px solid ${color}`,
-    stats, hasStats: stats.length > 0,
+    stats, hasStats: stats.length > 0, hasAttributeGains: stats.some((row) => row.hasChildren),
     traits, hasTraits: traits.length > 0,
     unique, hasUnique: unique.length > 0,
     heroicEffects, hasHeroicEffects: heroicEffects.length > 0,
