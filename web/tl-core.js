@@ -601,6 +601,13 @@ export function buildItemHoverModel(slotId, build, calc) {
   const selection = slotSelection(slotId, build);
   const color = gradeColor(item.grade);
   const level = selectedItemLevel(item, selection.level);
+  const inherentValues = {
+    ...flattenQuestlogMainStats(item.itemStats?.main?.[String(level)]),
+    ...(item.itemStats?.extra?.[String(level)] ?? {}),
+  };
+  const stats = Object.entries(inherentValues)
+    .filter(([, value]) => Math.abs(Number(value) || 0) > 1e-9)
+    .map(([statId, value]) => ({ statId, value, text: `${statName(statId)} ${formatStat(statId, value)}` }));
 
   const tierText = (statId, tiersRaw, tier) => {
     const arr = Array.isArray(tiersRaw) ? tiersRaw : Object.values(tiersRaw ?? {});
@@ -747,6 +754,7 @@ export function buildItemHoverModel(slotId, build, calc) {
     name: item.name, nameColor: color, icon: item.imageUrl ?? "", hasIcon: Boolean(item.imageUrl),
     meta: `${gradeName(item.grade)} · ${label(item.equipmentType)} · Lv ${level}`,
     headBg: `linear-gradient(180deg, ${color}26, transparent)`, headBorder: `2px solid ${color}`,
+    stats, hasStats: stats.length > 0,
     traits, hasTraits: traits.length > 0,
     unique, hasUnique: unique.length > 0,
     heroicEffects, hasHeroicEffects: heroicEffects.length > 0,

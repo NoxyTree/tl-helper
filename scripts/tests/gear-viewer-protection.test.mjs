@@ -46,3 +46,13 @@ test("equipped Heroic items are protected from replacement by default", () => {
   assert.match(html, /lockedHeroicBySlot\.get\(row\.slotId\) === row\.item\.id/);
   assert.match(html, /equipped Heroic slot/);
 });
+
+test("hover cards show inherent stats separately and gear can filter exact item level", async () => {
+  const core = await readFile(new URL("../../web/tl-core.js", import.meta.url), "utf8");
+  const hoverCard = await readFile(new URL("../../web/ItemHoverCard.dc.html", import.meta.url), "utf8");
+  assert.match(core, /stats, hasStats: stats\.length > 0/);
+  assert.match(hoverCard, /data\.hasStats/);
+  assert.match(html, /id="level-select"/);
+  assert.match(html, /String\(row\.level\) === state\.itemLevel/);
+  assert.match(html, /if \(model\.hasStats\).*Stats.*lines\(model\.stats\)/);
+});

@@ -170,6 +170,9 @@
       <label>Grade
         <select id="grade-select"><option value="all">All grades</option></select>
       </label>
+      <label>Item level
+        <select id="level-select"><option value="all">All levels</option></select>
+      </label>
       <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Max traits</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
@@ -214,6 +217,7 @@
       category: "all",
       type: "all",
       grade: "all",
+      itemLevel: "all",
       search: "",
       withTraits: true,
       keepHeroic: true,
@@ -336,6 +340,7 @@
         && (!lockedHeroicBySlot.has(row.slotId) || lockedHeroicBySlot.get(row.slotId) === row.item.id)
         && (state.type === "all" || row.item.equipmentType === state.type)
         && (state.grade === "all" || String(row.item.grade) === state.grade)
+        && (state.itemLevel === "all" || String(row.level) === state.itemLevel)
         && (!state.favoritesOnly || favorites.has(row.item.id))
         && (!query || row.haystack.includes(query)));
     }
@@ -564,6 +569,7 @@
       if (state.category !== "all") filters.push([`Category: ${$("category-select").selectedOptions[0]?.textContent ?? state.category}`, () => { state.category = "all"; state.type = "all"; $("category-select").value = "all"; renderTypeOptions(); }]);
       if (state.type !== "all") filters.push([`Type: ${core.label(state.type)}`, () => { state.type = "all"; $("type-select").value = "all"; }]);
       if (state.grade !== "all") filters.push([`Grade: ${core.gradeName(state.grade)}`, () => { state.grade = "all"; $("grade-select").value = "all"; }]);
+      if (state.itemLevel !== "all") filters.push([`Item level: ${state.itemLevel}`, () => { state.itemLevel = "all"; $("level-select").value = "all"; }]);
       if (state.search.trim()) filters.push([`Search: "${state.search.trim()}"`, () => { state.search = ""; $("search").value = ""; }]);
       if (state.favoritesOnly) filters.push(["★ favourites only", () => { state.favoritesOnly = false; $("fav-toggle").checked = false; }]);
       if (filters.length) {
@@ -637,6 +643,7 @@
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
+      if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${lines(model.stats)}</div>`);
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${lines(model.traits)}</div>`);
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${lines(model.unique)}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
@@ -739,6 +746,7 @@
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
       if (state.grade !== "all") params.set("grade", state.grade);
+      if (state.itemLevel !== "all") params.set("ilv", state.itemLevel);
       if (state.sortKey !== "score" || state.sortDir !== "desc") params.set("sort", `${state.sortKey}:${state.sortDir}`);
       if (state.search) params.set("q", state.search);
       history.replaceState(null, "", params.size ? `#${params}` : location.pathname);
@@ -753,6 +761,7 @@
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
+      if (params.get("ilv")) state.itemLevel = params.get("ilv");
       if (params.get("q")) state.search = params.get("q");
       const sort = params.get("sort");
       if (sort) {
@@ -803,12 +812,13 @@
             if (Number.isFinite(prefs.protectTolerancePct)) state.protectTolerancePct = Math.max(0, Math.min(5, prefs.protectTolerancePct));
             if (typeof prefs.keepHeroic === "boolean") state.keepHeroic = prefs.keepHeroic;
             if (prefs.category) state.category = prefs.category;
+            if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
           }
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, category: state.category, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -828,6 +838,10 @@
       const grades = core.pickerGradeOptions(core.data.items);
       $("grade-select").innerHTML = `<option value="all">All grades</option>` + grades.map((grade) => `<option value="${grade}">${core.gradeName(grade)}</option>`).join("");
       $("grade-select").value = grades.some((g) => String(g) === state.grade) ? state.grade : "all";
+      const itemLevels = [...new Set(core.data.items.map((item) => core.itemMaxLevel(item)).filter((level) => level > 0))].sort((a, b) => b - a);
+      $("level-select").innerHTML = `<option value="all">All levels</option>` + itemLevels.map((level) => `<option value="${level}">Lv ${level}</option>`).join("");
+      $("level-select").value = itemLevels.some((level) => String(level) === state.itemLevel) ? state.itemLevel : "all";
+      state.itemLevel = $("level-select").value;
       $("category-select").value = state.category;
       renderTypeOptions();
       $("search").value = state.search;
@@ -844,6 +858,7 @@
       $("category-select").addEventListener("change", () => { state.category = $("category-select").value; state.type = "all"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("type-select").addEventListener("change", () => { state.type = $("type-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("grade-select").addEventListener("change", () => { state.grade = $("grade-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("level-select").addEventListener("change", () => { state.itemLevel = $("level-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("traits-toggle").addEventListener("change", () => { state.withTraits = $("traits-toggle").checked; refresh(); });
       $("heroic-toggle").addEventListener("change", () => { state.keepHeroic = $("heroic-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
