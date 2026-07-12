@@ -18,6 +18,15 @@
     </div>
   </div>
 
+  <sc-if value="{{ data.hasStats }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px;">Stats</div>
+      <sc-for list="{{ data.stats }}" as="row" hint-placeholder-count="2">
+        <div style="font-size: 11.5px; color: #d9c8a5; line-height: 1.5;">{{ row.text }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ data.hasTraits }}" hint-placeholder-val="{{ false }}">
     <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
       <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px;">Traits</div>
