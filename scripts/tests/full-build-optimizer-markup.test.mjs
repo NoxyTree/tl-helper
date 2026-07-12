@@ -14,12 +14,35 @@ test("full-build optimizer is a standalone shared-shell page", () => {
 test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /data-source="armory"/);
   assert.match(html, /data-source="questlog"/);
+  assert.match(html, /data-source="scratch"/);
+  assert.match(html, /Build from scratch/);
   assert.match(html, /id="increase-picker"/);
   assert.match(html, /id="protect-picker"/);
   assert.match(html, /id="slot-locks"/);
   assert.match(html, /data-value="fast"/);
   assert.match(html, /data-value="thorough"/);
   assert.match(html, /id="cancel-optimizer"/);
+});
+
+test("scratch mode has honest no-baseline defaults", () => {
+  assert.match(html, /state\.source==="scratch"/);
+  assert.match(html, /createScratchBuild\(\)/);
+  assert.match(html, /sourceKind:state\.source/);
+  assert.match(html, /Scratch builds have no equipped slots to lock/);
+  assert.match(html, /Needs an existing baseline/);
+  assert.match(html, /activateSegment\("rune-mode","normal"\)/);
+  assert.match(html, /activateSegment\("artifact-mode","sets"\)/);
+  assert.match(html, /\$\("reconsider-heroics"\)\.checked=active/);
+});
+
+test("results include an Armory-style character doll canvas", () => {
+  assert.match(html, /class="build-doll"/);
+  assert.match(html, /Recommended character equipment/);
+  assert.match(html, /result\.loadout\?\?result\.build/);
+  assert.match(html, /dollSlot\(loadout/);
+  assert.match(html, /main_hand/);
+  assert.match(html, /off_hand/);
+  assert.match(html, /loadout\.artifacts/);
 });
 
 test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
@@ -56,5 +79,6 @@ test("result contract includes comparison, deltas, explanations, warnings, and a
   assert.match(html, /result\.assumptions/);
   assert.match(html, /result\.warnings/);
   assert.match(html, /result\.alternatives/);
-  assert.match(html, /Current<\/th><th>Recommended/);
+  assert.match(html, /state\.source==="scratch"\?"Starting point":"Current"/);
+  assert.match(html, /<\/th><th>Recommended/);
 });

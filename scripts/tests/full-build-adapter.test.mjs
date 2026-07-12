@@ -4,11 +4,20 @@ import test from "node:test";
 import { createOptimizerAdapter } from "../../web/tl-full-build-adapter.js";
 
 test("adapter exposes the browser contract and reports a missing saved build", async () => {
-  const core = { data: { gameBuild: "test", statLabels: { attack: "Attack" } }, indexes: {}, statName: (id) => id };
+  const core = { data: { gameBuild: "test", statLabels: { attack: "Attack" } }, indexes: {}, statName: (id) => id, createInitialBuild: () => ({ name: "Default Build", equipment: {}, artifacts: {}, supportSlots: {} }) };
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
-  for (const method of ["loadArmoryBuild", "importQuestlogBuild", "listStats", "optimize"]) assert.equal(typeof adapter[method], "function");
+  for (const method of ["createScratchBuild", "loadArmoryBuild", "importQuestlogBuild", "listStats", "optimize"]) assert.equal(typeof adapter[method], "function");
   assert.equal(await adapter.loadArmoryBuild(), null);
   assert.deepEqual(await adapter.listStats(), [{ id: "attack", name: "attack" }]);
+});
+
+test("scratch builds start empty and are explicitly marked as scratch", async () => {
+  const core = { data: { gameBuild: "test", statLabels: {} }, indexes: {}, createInitialBuild: () => ({ name: "Default Build", equipment: { head: { itemId: "" } }, artifacts: {}, supportSlots: {} }) };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const scratch = await adapter.createScratchBuild();
+  assert.equal(scratch.sourceKind, "scratch");
+  assert.equal(scratch.name, "New optimized build");
+  assert.equal(scratch.build.equipment.head.itemId, "");
 });
 
 test("saved Armory state is returned with build and attributes", async () => {

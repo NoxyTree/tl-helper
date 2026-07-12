@@ -32,6 +32,7 @@
     label.field { display:grid; gap:6px; color:var(--muted); font-size:11.5px; }
     input[type="url"],select { width:100%; min-height:38px; padding:8px 10px; color:var(--cream); background:#0c0906; border:1px solid var(--line); border-radius:8px; }
     .source-tabs,.segmented { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .source-tabs { grid-template-columns:repeat(3,1fr); }
     .source-tabs button,.segmented button { min-height:37px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:rgba(8,6,4,.62); color:var(--muted); cursor:pointer; }
     .source-tabs button.active,.segmented button.active { border-color:rgba(212,166,94,.7); background:rgba(212,166,94,.14); color:#ffe9b8; }
     .questlog { display:flex; gap:7px; margin-top:10px; }
@@ -60,6 +61,8 @@
     .slots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
     .slot-lock { display:flex; gap:8px; align-items:center; padding:9px; border:1px solid rgba(212,166,94,.14); border-radius:8px; background:rgba(8,6,4,.36); color:#cfc1a6; font-size:11.5px; }
     .slot-lock input { accent-color:var(--gold); }
+    .is-unavailable { opacity:.42; }
+    .is-unavailable input,.is-unavailable button { cursor:not-allowed; }
     .actions { position:sticky; bottom:10px; display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(12,9,6,.95); backdrop-filter:blur(8px); z-index:4; }
     .actions .primary { flex:1; }
     .result-empty { min-height:360px; display:grid; place-items:center; padding:40px; text-align:center; }
@@ -73,6 +76,33 @@
     .progress-bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,#a87836,#f6d391); transition:width .18s; }
     .error { color:var(--bad); }
     .results { padding:16px; }
+    .result-stage { display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; align-items:start; }
+    .build-doll { position:sticky; top:18px; padding:16px 14px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:linear-gradient(180deg,rgba(26,20,12,.55),rgba(14,11,7,.75)); box-shadow:inset 0 1px 0 rgba(246,211,145,.06),0 18px 40px rgba(0,0,0,.3); }
+    .doll-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .doll-title h3 { color:#f6d391; font-size:18px; }
+    .doll-grid { display:grid; grid-template-columns:74px minmax(110px,1fr) 74px; gap:8px; align-items:stretch; }
+    .doll-rail { display:flex; flex-direction:column; justify-content:space-between; gap:5px; }
+    .doll-slot { display:grid; justify-items:center; gap:3px; min-width:0; color:#8a795f; }
+    .doll-orb { position:relative; width:48px; height:48px; display:grid; place-items:center; overflow:hidden; border:1.5px solid rgba(212,166,94,.35); border-radius:999px; background:radial-gradient(circle at 35% 30%,#251c11,#120e08 75%); box-shadow:inset 0 0 10px rgba(0,0,0,.7); }
+    .doll-orb img { width:38px; height:38px; border-radius:999px; object-fit:cover; }
+    .doll-orb span { color:rgba(212,166,94,.5); font-size:16px; }
+    .doll-slot small { max-width:72px; overflow:hidden; color:#8a795f; font-size:8px; letter-spacing:.1em; text-overflow:ellipsis; text-transform:uppercase; white-space:nowrap; }
+    .doll-portrait { position:relative; min-height:330px; overflow:hidden; border:1px solid rgba(212,166,94,.26); border-radius:8px; background:radial-gradient(ellipse at 50% 28%,rgba(212,166,94,.12),transparent 42%),linear-gradient(180deg,rgba(212,166,94,.07),rgba(8,6,4,.7)); }
+    .doll-portrait::before { content:""; position:absolute; left:50%; top:35px; width:72px; height:72px; border:1px solid rgba(212,166,94,.22); border-radius:999px; transform:translateX(-50%); box-shadow:0 80px 0 32px rgba(212,166,94,.04); }
+    .doll-portrait-copy { position:absolute; inset:auto 12px 13px; text-align:center; }
+    .doll-portrait-copy strong { display:block; color:#f6d391; font:17px Marcellus,serif; }
+    .doll-portrait-copy small { color:#8a795f; font-size:8px; letter-spacing:.15em; text-transform:uppercase; }
+    .doll-weapons { display:grid; gap:6px; margin-top:10px; }
+    .doll-weapon { display:flex; align-items:center; gap:8px; padding:7px 8px; border:1px solid rgba(212,166,94,.16); border-radius:8px; background:rgba(18,14,9,.6); }
+    .doll-weapon .doll-orb { width:38px; height:38px; flex:none; }
+    .doll-weapon .doll-orb img { width:30px; height:30px; }
+    .doll-weapon b { display:block; overflow:hidden; color:#e6d6b4; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+    .doll-weapon small { color:#8a795f; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+    .doll-artifacts { display:flex; align-items:center; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(212,166,94,.12); }
+    .doll-artifacts > small { margin-right:auto; color:#8a795f; font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
+    .doll-artifacts .doll-orb { width:30px; height:30px; }
+    .doll-artifacts .doll-orb img { width:24px; height:24px; }
+    .result-detail { min-width:0; }
     .result-summary { display:flex; align-items:start; justify-content:space-between; gap:14px; margin-bottom:14px; }
     .score { color:#f6d391; font:30px Marcellus,serif; }
     .comparison { width:100%; border-collapse:collapse; font-size:12px; }
@@ -88,6 +118,7 @@
     .explanations ul { padding-left:17px; color:#cfc1a6; font-size:11.5px; line-height:1.6; }
     .alternative { padding:10px; border:1px solid rgba(212,166,94,.14); border-radius:8px; margin-top:7px; }
     .hidden { display:none!important; }
+    @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}}
     @media(max-width:900px){.layout{grid-template-columns:1fr}.actions{position:static}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}}
   </style>
@@ -105,14 +136,14 @@
     <div class="layout">
       <div class="stack">
         <section class="panel" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Choose your build</h2></div><div class="panel-body">
-          <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
+          <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button><button type="button" data-source="scratch">Build from scratch</button></div>
           <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
           <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
         </div></section>
 
         <section class="panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
           <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Optimized equally</span></div><div id="increase-picker" class="stat-picker"><input type="search" placeholder="Add a wanted stat" aria-label="Add an Increase stat" disabled></div></div>
-          <div class="goal-block"><div class="goal-title"><span>Protect</span><span>Do not reduce</span></div><div id="protect-picker" class="stat-picker"><input type="search" placeholder="Add a protected stat" aria-label="Add a Protect stat" disabled></div></div>
+          <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker"><input type="search" placeholder="Add a protected stat" aria-label="Add a Protect stat" disabled></div></div>
           <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
         </div></section>
 
@@ -129,7 +160,7 @@
           <div class="mode-group"><span>Search depth</span><div id="search-depth" class="segmented"><button type="button" data-value="fast" class="active">Fast</button><button type="button" data-value="thorough">Thorough</button></div><p class="hint">Thorough searches a wider candidate frontier and may take longer.</p></div>
         </div></section>
 
-        <section class="panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">4. Lock slots</h2><span class="section-kicker">Optional</span></div><div class="panel-body"><div id="slot-locks" class="slots"></div><p class="hint">A locked slot keeps its current item, traits, runes, and configured effects.</p></div></section>
+        <section id="locks-panel" class="panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">4. Lock slots</h2><span class="section-kicker">Optional</span></div><div class="panel-body"><div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">A locked slot keeps its current item, traits, runes, and configured effects.</p></div></section>
         <div class="actions"><button id="run-optimizer" class="primary" type="button" disabled>Find my best build</button><button id="cancel-optimizer" class="secondary hidden" type="button">Cancel</button></div>
       </div>
 
@@ -146,7 +177,7 @@
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, increase:[], protect:[], runeMode:"keep", artifactMode:"keep", depth:"fast", controller:null, adapter:null, statOptions:[] };
+    const state = { source:"armory", build:null, increase:[], protect:[], runeMode:"keep", artifactMode:"keep", depth:"fast", controller:null, adapter:null, core:null, statOptions:[] };
     const $ = id => document.getElementById(id);
     const locks = $("slot-locks");
     SLOTS.forEach((name,index) => { const label=document.createElement("label"); label.className="slot-lock"; label.innerHTML=`<input type="checkbox" data-slot="${index}"><span>${name}</span>`; locks.append(label); });
@@ -154,17 +185,28 @@
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
     selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
-    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") loadArmory(); else { state.build=null; updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
+    function activateSegment(id,value) { const root=$(id); root.querySelectorAll("button[data-value]").forEach(node=>node.classList.toggle("active",node.dataset.value===value)); state[id==="rune-mode"?"runeMode":id==="artifact-mode"?"artifactMode":"depth"]=value; }
+    function setScratchControls(active) {
+      $("protect-block").classList.toggle("is-unavailable",active); $("protect-mode-label").textContent=active?"Needs an existing baseline":"Do not reduce";
+      $("protect-picker").querySelector("input").disabled=active; $("locks-panel").classList.toggle("is-unavailable",active);
+      document.querySelectorAll("[data-slot]").forEach(node=>{ node.checked=false; node.disabled=active; });
+      $("locks-hint").textContent=active?"Scratch builds have no equipped slots to lock.":"A locked slot keeps its current item, traits, runes, and configured effects.";
+      $("keep-heroics").disabled=active; $("keep-heroics").checked=!active; $("reconsider-heroics").checked=active;
+      if(active){ state.protect=[]; renderPicker($("protect-picker"),"protect"); activateSegment("rune-mode","normal"); activateSegment("artifact-mode","sets"); }
+      else { $("keep-heroics").disabled=false; $("keep-heroics").checked=true; $("reconsider-heroics").checked=false; activateSegment("rune-mode","keep"); activateSegment("artifact-mode","keep"); }
+      $("chaos-warning").classList.add("hidden");
+    }
+    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); setScratchControls(state.source==="scratch"); if(state.source==="armory") await loadArmory(); else if(state.source==="scratch") { state.build=await state.adapter.createScratchBuild(); $("source-status").textContent="Starting with empty slots. The optimizer may use any legal equipment under these rules."; updateReady(); } else { state.build=null; updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("empty-state").classList.add("hidden"); $("progress-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("error-state").classList.remove("hidden"); $("error-message").textContent=message; updateReady(); }
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const module = await import("./tl-full-build-adapter.js");
+        const module = await import("./tl-full-build-adapter.js"); state.core=await import("./tl-core.js");
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
-        for(const method of ["loadArmoryBuild","importQuestlogBuild","listStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
+        for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
         $("engine-status").textContent="Ready"; $("error-state").classList.add("hidden"); $("empty-state").classList.remove("hidden");
         setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory();
@@ -173,19 +215,29 @@
     async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } updateReady(); }
     $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; $("source-status").textContent=`Import failed: ${error.message}`; } finally { $("import-build").disabled=false; updateReady(); } });
 
-    function setupPicker(id,key) { const root=$(id), input=root.querySelector("input"); input.disabled=false; input.addEventListener("change",()=>{ const query=input.value.trim().toLowerCase(); const option=state.statOptions.find(row=>(row.name??row.label??"").toLowerCase()===query || row.id===query); if(option && !state[key].includes(option.id)){ state[key].push(option.id); renderPicker(root,key); } input.value=""; }); input.setAttribute("list",`${id}-options`); const list=document.createElement("datalist"); list.id=`${id}-options`; state.statOptions.forEach(row=>{ const option=document.createElement("option"); option.value=row.name??row.label??row.id; list.append(option); }); root.after(list); }
+    function setupPicker(id,key) { const root=$(id), input=root.querySelector("input"); input.disabled=false; const chooseExact=()=>{ const query=input.value.trim().toLowerCase(); const option=state.statOptions.find(row=>(row.name??row.label??"").toLowerCase()===query || row.id===query); if(option && !state[key].includes(option.id)){ state[key].push(option.id); input.value=""; renderPicker(root,key); } }; input.addEventListener("input",chooseExact); input.addEventListener("change",chooseExact); input.setAttribute("list",`${id}-options`); const list=document.createElement("datalist"); list.id=`${id}-options`; state.statOptions.forEach(row=>{ const option=document.createElement("option"); option.value=row.name??row.label??row.id; list.append(option); }); root.after(list); }
     function renderPicker(root,key) { root.querySelectorAll(".chip").forEach(node=>node.remove()); const input=root.querySelector("input"); state[key].forEach(id=>{ const row=state.statOptions.find(item=>item.id===id); const chip=document.createElement("span"); chip.className="chip"; chip.innerHTML=`${row?.name??row?.label??id}<button type="button" aria-label="Remove">×</button>`; chip.querySelector("button").onclick=()=>{ state[key]=state[key].filter(value=>value!==id); renderPicker(root,key); }; root.insertBefore(chip,input); }); updateReady(); }
     function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
-    function request() { return { build:state.build, goals:{ increase:state.increase, protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
+    function request() { return { build:state.build, sourceKind:state.source, goals:{ increase:state.increase, protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); $("empty-state").classList.add("hidden"); $("error-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("progress-state").classList.remove("hidden"); $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    function dollItem(loadout,slot) { const group=slot.startsWith("talistone")||slot.startsWith("gemstone")?loadout?.artifacts:loadout?.equipment; const row=Array.isArray(group)?group.find(item=>item.id===slot):group?.[slot]; if(row?.name)return { name:row.name, icon:row.imageUrl??row.icon??"" }; const item=state.core?.indexes?.itemById?.[row?.itemId]; return item?{ name:item.name, icon:item.imageUrl??"" }:null; }
+    function dollSlot(loadout,slot,label) { const item=dollItem(loadout,slot); return `<div class="doll-slot" title="${esc(item?.name??`Empty ${label}`)}"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><small>${esc(label)}</small></div>`; }
+    function renderDoll(result) {
+      const loadout=result.loadout??result.build??{};
+      const left=[["head","Head"],["chest","Chest"],["hands","Hands"],["legs","Legs"],["feet","Feet"],["cloak","Cloak"]];
+      const right=[["necklace","Necklace"],["bracelet","Bracelet"],["belt","Belt"],["ring_1","Ring 1"],["ring_2","Ring 2"],["brooch","Brooch"],["earring","Earring"]];
+      const weapon=slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-weapon"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><div><small>${slot==="main_hand"?"Main weapon":"Off weapon"}</small><b>${esc(item?.name??"Empty")}</b></div></div>`; };
+      const artifactSlots=Array.isArray(loadout.artifacts)?loadout.artifacts.map(row=>row.id):Object.keys(loadout.artifacts??{}); const artifacts=artifactSlots.map(slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-orb" title="${esc(item?.name??slot)}">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div>`; }).join("");
+      return `<aside class="build-doll" aria-label="Recommended character equipment"><div class="doll-title"><h3>Recommended loadout</h3><span class="section-kicker">Result</span></div><div class="doll-grid"><div class="doll-rail">${left.map(row=>dollSlot(loadout,...row)).join("")}</div><div class="doll-portrait"><div class="doll-portrait-copy"><strong>${esc(result.name??"Optimized build")}</strong><small>Best result found</small></div></div><div class="doll-rail">${right.map(row=>dollSlot(loadout,...row)).join("")}</div></div><div class="doll-weapons">${weapon("main_hand")}${weapon("off_hand")}</div><div class="doll-artifacts"><small>Artifacts</small>${artifacts||"<span class=\"hint\">Kept from source</span>"}</div></aside>`;
+    }
     function renderResult(result) {
       if(!result || !Array.isArray(result.slots) || !Array.isArray(result.statDeltas)) throw new Error("The optimizer returned an invalid result. No recommendation was displayed.");
       const rows=result.slots.map(row=>`<tr><td>${esc(row.slot)}</td><td>${esc(row.current?.name??"Empty")}</td><td><strong>${esc(row.recommended?.name??"Empty")}</strong></td><td class="reason">${esc(row.reason??"")}</td></tr>`).join("");
       const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":""}${esc(row.formattedDelta??row.delta)}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      $("results-state").innerHTML=`<div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}`;
+      $("results-state").innerHTML=`<div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>${state.source==="scratch"?"Starting point":"Current"}</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
       $("progress-state").classList.add("hidden"); $("results-state").classList.remove("hidden");
     }
     $("run-optimizer").addEventListener("click",async()=>{ state.controller=new AbortController(); $("run-optimizer").disabled=true; $("cancel-optimizer").classList.remove("hidden"); showProgress({percent:0}); try { const result=await state.adapter.optimize(request(),{ signal:state.controller.signal, onProgress:showProgress }); renderResult(result); } catch(error){ if(error.name==="AbortError"){ $("progress-state").classList.add("hidden"); $("empty-state").classList.remove("hidden"); } else setEngineError(`The search stopped without a result. ${error.message}`); } finally { state.controller=null; $("cancel-optimizer").classList.add("hidden"); updateReady(); } });
