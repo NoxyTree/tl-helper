@@ -11,6 +11,15 @@ test("composite goals preserve one goal weight across typed leaf totals", () => 
   const scale = deriveObjectiveScales({ data: { items: [{ pvp_melee_critical_defense: 90 }, { pvp_range_critical_defense: 120 }, { pvp_magic_critical_defense: 90 }] }, EQUIPMENT_SLOTS: [{}], ARTIFACT_SLOTS: [] }, [goal]);
   assert.deepEqual(scale, { pvp_all_critical_defense: 100 });
 });
+
+test("general composite goals match the calculator's direct typed totals", () => {
+  const [endurance] = expandCompositeGoals(normalizeRankedGoals({ increase: ["all_critical_defense"] }));
+  assert.deepEqual(endurance.components, ["melee_critical_defense", "range_critical_defense", "magic_critical_defense"]);
+  assert.equal(endurance.components.some((id) => id.startsWith("boss_") || id.startsWith("pvp_")), false);
+
+  const [hitChance] = expandCompositeGoals(normalizeRankedGoals({ increase: ["all_accuracy"] }));
+  assert.deepEqual(hitChance.components, ["melee_accuracy", "range_accuracy", "magic_accuracy"]);
+});
 import { allocatedAttributeValue } from "../../web/tl-questlog-rules.js";
 
 function attributeTestCore() {

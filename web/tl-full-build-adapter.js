@@ -23,16 +23,11 @@ export function normalizeRankedGoals(goals = {}) {
   return [...unique.values()].sort((a, b) => a.rank - b.rank || a.id.localeCompare(b.id));
 }
 
-function terminalStatComponents(statId, seen = new Set()) {
-  if (seen.has(statId)) return [];
-  const children = STAT_EXPANSIONS[statId] ?? [];
-  if (!children.length) return [statId];
-  const next = new Set(seen).add(statId);
-  return [...new Set(children.flatMap((id) => terminalStatComponents(id, next)))];
-}
-
 export function expandCompositeGoals(rankedGoals) {
-  return rankedGoals.map((goal) => ({ ...goal, components: terminalStatComponents(goal.id) }));
+  // The calculator applies STAT_EXPANSIONS one level at a time. For example,
+  // Endurance contributes to Melee, Ranged, and Magic Endurance; those typed
+  // totals must not be reinterpreted as boss-only and PvP-only totals here.
+  return rankedGoals.map((goal) => ({ ...goal, components: [...new Set(STAT_EXPANSIONS[goal.id] ?? [goal.id])] }));
 }
 
 function goalValue(stats, goal) {
