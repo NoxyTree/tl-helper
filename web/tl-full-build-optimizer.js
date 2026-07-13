@@ -146,20 +146,20 @@ function protectedLegal(evaluation, protectedStats) {
   });
 }
 
-function resultDominates(a, b, ids) {
+function resultDominates(a, b, ids, statCaps) {
   const left = a.evaluation?.stats ?? {};
   const right = b.evaluation?.stats ?? {};
-  return ids.every((id) => number(left[id]) >= number(right[id]))
-    && ids.some((id) => number(left[id]) > number(right[id]));
+  return ids.every((id) => capped(left[id], statCaps?.[id]) >= capped(right[id], statCaps?.[id]))
+    && ids.some((id) => capped(left[id], statCaps?.[id]) > capped(right[id], statCaps?.[id]));
 }
 
-function diverseResultFrontier(results, ids, limit) {
+function diverseResultFrontier(results, ids, limit, statCaps) {
   if (!ids.length) return results.slice(0, limit);
   const frontier = [];
   for (const result of [...results].sort((a, b) => a.key.localeCompare(b.key))) {
-    if (frontier.some((other) => resultDominates(other, result, ids))) continue;
+    if (frontier.some((other) => resultDominates(other, result, ids, statCaps))) continue;
     for (let index = frontier.length - 1; index >= 0; index -= 1) {
-      if (resultDominates(result, frontier[index], ids)) frontier.splice(index, 1);
+      if (resultDominates(result, frontier[index], ids, statCaps)) frontier.splice(index, 1);
     }
     frontier.push(result);
   }
@@ -168,7 +168,7 @@ function diverseResultFrontier(results, ids, limit) {
   const add = (row) => row && retained.set(row.key, row);
   add(frontier[0]);
   for (const id of ids) {
-    const ordered = [...frontier].sort((a, b) => number(b.evaluation?.stats?.[id]) - number(a.evaluation?.stats?.[id]) || a.key.localeCompare(b.key));
+    const ordered = [...frontier].sort((a, b) => capped(b.evaluation?.stats?.[id], statCaps?.[id]) - capped(a.evaluation?.stats?.[id], statCaps?.[id]) || a.key.localeCompare(b.key));
     for (const row of ordered.slice(0, Math.max(2, Math.ceil(limit / ids.length)))) add(row);
   }
   for (const row of frontier) {
@@ -239,6 +239,6 @@ export async function optimizeFullBuild(options) {
     || neutral(b, "neutralGrade") - neutral(a, "neutralGrade")
     || a.key.localeCompare(b.key));
   const alternatives = results.slice(0, alternativeCount);
-  const frontier = diverseResultFrontier(results, paretoStats, frontierCount);
+  const frontier = diverseResultFrontier(results, paretoStats, frontierCount, statCaps);
   return { best: alternatives[0] ?? null, alternatives, frontier, searched, finalists: beam.length };
 }

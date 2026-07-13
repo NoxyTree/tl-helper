@@ -13,11 +13,13 @@ test("Builder transforms from setup into a full character result", () => {
   for (const label of ["Summary", "Attack", "Defense", "Utility", "PvP", "Boss", "Gear", "Sets & Runes"]) assert.ok(html.includes(label));
 });
 
-test("setup uses real weapon, ranked goal, rule, minimum, and attribute contracts", () => {
+test("setup uses real weapon, ranked goal modes, rules, and attribute contracts", () => {
   assert.match(html, /aria-label="\{\{ w\.ariaLabel \}\}"/);
   assert.match(html, /aria-label="Add a priority stat"/);
   assert.match(html, /movePriority/);
-  assert.match(html, /Minimum \{\{ p\.name \}\}/);
+  assert.match(html, /Goal mode for \{\{ p\.name \}\}/);
+  assert.match(html, /mode,minimum:mode==='at_least'/);
+  assert.match(html, /target:mode==='target'/);
   assert.match(html, /statDisplayToRaw/);
   assert.match(html, /attributePointBudget:this\.ATTR_BUDGET/);
   assert.match(html, /ATTR_BUDGET = 59/);
@@ -73,7 +75,8 @@ test("result tuning links two to five real-stat sliders to retained legal builds
   assert.match(html, /paretoTuneFrontier/);
   assert.match(html, /selectLinkedTuneCandidate/);
   assert.match(html, /s\.priorities\.slice\(0,5\)/);
-  assert.match(html, /Every slider snaps and dances to the nearest real build/);
+  assert.match(html, /non-dominated legal build/);
+  assert.match(html, /tradeoff builds/);
   assert.match(html, /Hard cap/);
   assert.match(html, /General PvP diff/);
 });

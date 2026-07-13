@@ -119,14 +119,21 @@ test("weapon constraints accept ordered or slot-keyed distinct pairings and reje
   assert.throws(() => resolveWeaponTypeConstraints(core, { weaponTypes: ["staff", "future"] }), /Unknown weapon type/);
 });
 
-test("ranked goals use tied ranks, diminishing weights, and scale normalization", () => {
-  const goals = normalizeRankedGoals({ priorities: [{ id: "endurance", rank: 1 }, { id: "health", rank: 2 }, { id: "evasion", rank: 2, minimum: 80 }] });
-  assert.deepEqual(goals.map(({ id, rank, weight, minimum }) => ({ id, rank, weight, minimum })), [
-    { id: "endurance", rank: 1, weight: 1, minimum: null },
-    { id: "evasion", rank: 2, weight: 0.05, minimum: 80 },
-    { id: "health", rank: 2, weight: 0.05, minimum: null },
+test("ranked goals use tied ranks, explicit modes, and scale normalization", () => {
+  const goals = normalizeRankedGoals({ priorities: [{ id: "endurance", rank: 1 }, { id: "health", rank: 2 }, { id: "evasion", rank: 2, mode: "at_least", minimum: 80 }] });
+  assert.deepEqual(goals.map(({ id, rank, weight, mode, minimum, target }) => ({ id, rank, weight, mode, minimum, target })), [
+    { id: "endurance", rank: 1, weight: 1, mode: "maximize", minimum: null, target: null },
+    { id: "evasion", rank: 2, weight: 0.05, mode: "at_least", minimum: 80, target: null },
+    { id: "health", rank: 2, weight: 0.05, mode: "maximize", minimum: null, target: null },
   ]);
   assert.equal(scoreRankedGoals({ endurance: 10, health: 1000 }, {}, { endurance: 10, health: 1000 }, goals), 1.05);
+});
+
+test("target goals enforce their value but stop rewarding excess", () => {
+  const goals = normalizeRankedGoals({ priorities: [{ id: "cooldown", rank: 1, mode: "target", target: 80 }] });
+  assert.deepEqual(goals.map(({ mode, minimum, target }) => ({ mode, minimum, target })), [{ mode: "target", minimum: 80, target: 80 }]);
+  assert.equal(scoreRankedGoals({ cooldown: 80 }, {}, { cooldown: 100 }, goals), 0.8);
+  assert.equal(scoreRankedGoals({ cooldown: 92.9 }, {}, { cooldown: 100 }, goals), 0.8);
 });
 
 test("rune refinement values synergy attributes through their exact breakpoint effects", () => {

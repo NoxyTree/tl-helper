@@ -151,7 +151,14 @@
                   </div>
                 </sc-if>
               </div>
-              <label style="display:flex;align-items:center;gap:6px;color:#8a795f;font-size:9px;">Minimum <input type="number" min="0" step="any" value="{{ p.minimum }}" onInput="{{ p.setMinimum }}" aria-label="Minimum {{ p.name }}" style="width:82px;padding:5px 7px;border:1px solid rgba(212,166,94,.22);border-radius:7px;background:#0b0806;color:#e6d6b4;font-size:10px;"></label>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <select value="{{ p.goalMode }}" onChange="{{ p.setGoalMode }}" aria-label="Goal mode for {{ p.name }}" style="width:86px;padding:5px 6px;border:1px solid rgba(212,166,94,.22);border-radius:7px;background:#0b0806;color:#e6d6b4;font-size:9px;">
+                  <sc-for list="{{ p.goalModeOptions }}" as="option" hint-placeholder-count="3"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
+                </select>
+                <sc-if value="{{ p.hasGoalValue }}" hint-placeholder-val="{{ false }}">
+                  <label style="display:flex;align-items:center;gap:5px;color:#8a795f;font-size:9px;">{{ p.valueLabel }} <input type="number" min="0" step="any" value="{{ p.goalValue }}" onInput="{{ p.setGoalValue }}" aria-label="{{ p.valueLabel }} {{ p.name }}" style="width:76px;padding:5px 7px;border:1px solid rgba(212,166,94,.22);border-radius:7px;background:#0b0806;color:#e6d6b4;font-size:10px;"></label>
+                </sc-if>
+              </div>
               <div style="display:flex;align-items:center;gap:4px;">
                 <span role="button" tabindex="0" draggable="true" onDragStart="{{ p.dragStart }}" onDragEnd="{{ endPriorityDrag }}" onKeyDown="{{ p.reorderKey }}" aria-label="Drag to reorder {{ p.name }}. Use arrow keys for keyboard reordering." title="Drag to reorder" style="width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(0,0,0,.24);cursor:grab;" style-hover="border-color:rgba(242,199,119,.6);background:rgba(107,68,22,.18);">
                   <span aria-hidden="true" style="display:grid;grid-template-columns:repeat(2,3px);grid-template-rows:repeat(3,3px);gap:3px;"><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span></span>
@@ -249,18 +256,14 @@
         </div>
       </section>
 
-      <!-- Attribute budget + minimums -->
+      <!-- Attribute budget -->
       <section style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(31,23,14,.7), rgba(20,15,10,.82));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
           <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">4</span>
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Attribute Budget</h2>
           <span style="margin-left:auto;color:#f2c777;font:400 20px Marcellus,serif;">{{ attrBudget }}<span style="color:#6f5f49;font-family:'Instrument Sans';font-size:11px;"> pts</span></span>
         </div>
-        <p style="margin:0 0 12px;color:#8a795f;font-size:11.5px;line-height:1.5;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals.</p>
-        <label style="display:flex;align-items:center;gap:11px;padding:12px 13px;border:1px solid {{ minBorder }};border-radius:11px;background:{{ minBg }};cursor:pointer;">
-          <input type="checkbox" checked="{{ minimums }}" onChange="{{ toggleMinimums }}" style="width:18px;height:18px;accent-color:#f2c777;">
-          <span><span style="display:block;color:#e6d6b4;font-size:12.5px;font-weight:600;">Enforce priority minimums</span><span style="display:block;margin-top:1px;color:#8a795f;font-size:10.5px;">Reject generated builds that miss any minimum entered beside a ranked stat.</span></span>
-        </label>
+        <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached.</p>
       </section>
     </div>
 
@@ -780,8 +783,8 @@
         <div style="margin-bottom:13px;padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
             <span style="flex:none;width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(185,140,240,.55);border-radius:9px;background:rgba(185,140,240,.12);color:#d8b8ff;font-size:14px;">✦</span>
-            <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 15px Marcellus,serif;">Tune the tradeoff</div><div style="margin-top:2px;color:#8f7e9f;font-size:9.5px;line-height:1.45;">Drag any stat. Every slider snaps and dances to the nearest real build retained from this Forge.</div></div>
-            <span style="flex:none;padding:4px 7px;border:1px solid rgba(126,224,166,.25);border-radius:999px;color:#8fd6aa;background:rgba(31,76,47,.1);font-size:8px;letter-spacing:.08em;text-transform:uppercase;">{{ tuningCount }} builds</span>
+            <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 15px Marcellus,serif;">Tune the tradeoff</div><div style="margin-top:2px;color:#8f7e9f;font-size:9.5px;line-height:1.45;">Drag any stat. Each slider snaps to a non-dominated legal build retained from this Forge.</div></div>
+            <span style="flex:none;padding:4px 7px;border:1px solid rgba(126,224,166,.25);border-radius:999px;color:#8fd6aa;background:rgba(31,76,47,.1);font-size:8px;letter-spacing:.08em;text-transform:uppercase;">{{ tuningCount }} tradeoff builds</span>
           </div>
           <div style="display:grid;gap:9px;">
             <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
@@ -933,7 +936,8 @@ class Component extends DCLogic {
     hover: null,
     openAttr: null,
     priorities: [],
-    minimumValues: {},
+    goalModes: {},
+    goalValues: {},
     statOptions: [],
     priorityPickerOpen: false,
     prioritySearch: '',
@@ -949,7 +953,6 @@ class Component extends DCLogic {
     engineReady: false,
     engineError: '',
     progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
-    minimums: true,
     rules: { endgame: true, heroic: false, traits: true, sets: true, runes: true, artifacts: true },
     openTip: null,
     heroicsEngaged: false,
@@ -1395,7 +1398,13 @@ class Component extends DCLogic {
       lockedSlotIds.push(item.slotId);
     }
     for (const [slot,locked] of Object.entries(this.state.locked)) if (locked && !lockedSlotIds.includes(slot)) lockedSlotIds.push(slot);
-    const priorities=this.state.priorities.map((id,index)=>({id,rank:index+1,minimum:this.state.minimums&&this.state.minimumValues[id]!=null?this.core.statDisplayToRaw(id,this.state.minimumValues[id]):null}));
+    const priorities=this.state.priorities.map((id,index)=>{
+      const mode=this.state.goalModes[id]||'maximize';
+      const displayValue=this.state.goalValues[id];
+      if(mode!=='maximize' && !Number.isFinite(Number(displayValue))) throw new Error(`Enter a value for ${this.statLabel(id)} or switch it back to Maximize.`);
+      const value=mode==='maximize'?null:this.core.statDisplayToRaw(id,Number(displayValue));
+      return{id,rank:index+1,mode,minimum:mode==='at_least'?value:null,target:mode==='target'?value:null};
+    });
     return {
       build:source, sourceKind:'scratch', weaponTypes:[this.state.weaponTypes.main,this.state.weaponTypes.off],
       attributePointBudget:this.ATTR_BUDGET, goals:{priorities,protect:[]}, lockedSlotIds,
@@ -1441,7 +1450,8 @@ class Component extends DCLogic {
   editGoals = () => this.setState({ phase:'setup' });
   refit = () => { this.forge(); };
   tuneStat(id,event) {
-    const result=this.state.result,frontier=this.tuner?.paretoTuneFrontier(result?.tuningFrontier||[],this.state.priorities,48)||[];
+    const result=this.state.result,targetCaps=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.target!=null).map(goal=>[goal.id,goal.target]));
+    const frontier=this.tuner?.paretoTuneFrontier(result?.tuningFrontier||[],this.state.priorities,48,targetCaps)||[];
     const floors=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.minimum!=null).map(goal=>[goal.id,goal.minimum]));
     const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,Number(event.target.value),floors);
     if(!candidate)return;
@@ -1521,7 +1531,8 @@ class Component extends DCLogic {
       || /^(max health|damage reduction|cooldown speed|buff duration|attack speed|block chance|pvp endurance|pvp evasion|pvp hit chance|pvp heavy attack)/i.test(row.name);
   }
   toggleRule(k) { const value=!this.state.rules[k]; this.setState({ rules: { ...this.state.rules, [k]: value }, ...(k==='heroic'?{heroicMode:value?'theoretical':'owned'}:{}) }); }
-  toggleMinimums = () => this.setState({ minimums: !this.state.minimums });
+  setGoalMode(id,event) { this.setState({goalModes:{...this.state.goalModes,[id]:event.target.value}}); }
+  setGoalValue(id,event) { const value=event.target.value;this.setState({goalValues:{...this.state.goalValues,[id]:value===''?null:Number(value)}}); }
   setWeaponType(role,event) {
     const value=event.target.value;
     const weaponTypes={...this.state.weaponTypes,[role]:value};
@@ -1603,7 +1614,9 @@ class Component extends DCLogic {
         dropBefore:dropTarget&&!s.dragInsertAfter,dropAfter:dropTarget&&s.dragInsertAfter,
         rank_color: top ? '#0b0805' : '#f2c777', rank_bg: top ? '#f2c777' : 'rgba(0,0,0,.3)',
         rank_border: top ? '#f2c777' : 'rgba(242,199,119,.4)',
-        minimum:s.minimumValues[id]??'',setMinimum:(event)=>{const value=event.target.value;this.setState({minimumValues:{...this.state.minimumValues,[id]:value===''?null:Number(value)}});},
+        goalMode:s.goalModes[id]||'maximize',goalModeOptions:[{id:'maximize',label:'Maximize'},{id:'at_least',label:'At least'},{id:'target',label:'Target'}],
+        hasGoalValue:(s.goalModes[id]||'maximize')!=='maximize',goalValue:s.goalValues[id]??'',valueLabel:(s.goalModes[id]||'maximize')==='target'?'Reach':'Floor',
+        setGoalMode:(event)=>this.setGoalMode(id,event),setGoalValue:(event)=>this.setGoalValue(id,event),
         dragStart:(event)=>this.startPriorityDrag(id,event),dragOver:(event)=>this.dragOverPriority(id,event),drop:(event)=>this.dropPriority(id,event),reorderKey:(event)=>this.priorityReorderKey(id,event),remove: () => this.removePriority(id) };
     });
     const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:(this.rulesData?.STAT_EXPANSIONS?.[row.id]||[]).length>1}));
@@ -1721,12 +1734,13 @@ class Component extends DCLogic {
       {name:'Damage Reduction',value:'—'},{name:'Attack Speed',value:'—'},{name:'Range',value:'—'},{name:'Block Chance',value:'—'},
     ];
 
-    const tuningFrontier=s.result&&this.tuner?this.tuner.paretoTuneFrontier(s.result.tuningFrontier||[],s.priorities,48):[];
+    const tuningCaps=Object.fromEntries((s.result?.goalResults||[]).filter(goal=>goal.target!=null).map(goal=>[goal.id,goal.target]));
+    const tuningFrontier=s.result&&this.tuner?this.tuner.paretoTuneFrontier(s.result.tuningFrontier||[],s.priorities,48,tuningCaps):[];
     const tuningRanges=tuningFrontier.length?this.tuner.tuneRanges(tuningFrontier,s.priorities):{};
     const tuningRows=s.priorities.slice(0,5).map((id,index)=>{
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{},range=tuningRanges[id]||{minimum:Number(goal.value)||0,maximum:Number(goal.value)||0};
       const rawValue=Number(goal.value)||0,span=Math.max(0,Number(range.maximum)-Number(range.minimum));
-      const capLabel=goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP diff 4,500 / -3,000':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC diff 1,800 / -1,200':'';
+      const capLabel=goal.formattedTarget?`Target ${goal.formattedTarget}`:goal.formattedMinimum?`Floor ${goal.formattedMinimum}`:goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP diff 4,500 / -3,000':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC diff 1,800 / -1,200':'';
       return{id,name:goal.name||this.statLabel(id),capLabel,value:goal.formattedValue||this.core.formatStat(id,rawValue),rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event)};
     });
 
@@ -1734,7 +1748,7 @@ class Component extends DCLogic {
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{};
       const stat=s.statOptions.find(row=>row.id===id);
       const parts=(goal.components||[]).map(component=>({name:component.name,value:component.formattedValue,weak:Number(component.value)===Number(goal.value),color:Number(component.value)===Number(goal.value)?'#e57c72':'#e5c88f',dot:Number(component.value)===Number(goal.value)?'#e57c72':'#b98cf0'}));
-      const capLabel=goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP difference cap':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC difference cap':'';
+      const capLabel=goal.formattedTarget?`Target ${goal.formattedTarget}`:goal.formattedMinimum?`Floor ${goal.formattedMinimum}`:goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP difference cap':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC difference cap':'';
       return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),capLabel,value:goal.formattedValue||'Queued',composite:parts.length>1,parts};
     });
 
@@ -1977,9 +1991,6 @@ class Component extends DCLogic {
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
       priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',
       togglePriorityPicker:this.togglePriorityPicker,closePriorityPicker:this.closePriorityPicker,setPrioritySearch:this.setPrioritySearch,clearPrioritySearch:this.clearPrioritySearch,priorityPickerKeyDown:this.priorityPickerKeyDown,endPriorityDrag:this.endPriorityDrag,
-      minimums: s.minimums, toggleMinimums: this.toggleMinimums,
-      minBorder: s.minimums ? 'rgba(242,199,119,.4)' : 'rgba(212,166,94,.16)',
-      minBg: s.minimums ? 'rgba(107,68,22,.14)' : 'rgba(0,0,0,.2)',
       ghostSlots, forge: this.forge,
 
       progress: s.progress, progressMsg: s.progressMsg, progressPhase: s.progressPhase, candidates: s.candidates.toLocaleString(),

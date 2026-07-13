@@ -21,7 +21,13 @@ export function normalizeRankedGoals(goals = {}) {
     if (!id || unique.has(id)) continue;
     const rank = Math.max(1, Math.floor(Number(row.rank) || 1));
     const minimum = row.minimum == null || row.minimum === "" ? null : Number(row.minimum);
-    unique.set(id, { id, rank, weight: RANK_DECAY ** (rank - 1), minimum: Number.isFinite(minimum) ? minimum : null });
+    const target = row.target == null || row.target === "" ? null : Number(row.target);
+    const mode = row.mode === "target" && Number.isFinite(target) ? "target"
+      : row.mode === "at_least" || Number.isFinite(minimum) ? "at_least"
+        : "maximize";
+    const normalizedTarget = mode === "target" ? target : null;
+    const normalizedMinimum = mode === "target" ? target : Number.isFinite(minimum) ? minimum : null;
+    unique.set(id, { id, rank, weight: RANK_DECAY ** (rank - 1), mode, minimum: normalizedMinimum, target: normalizedTarget });
   }
   return [...unique.values()].sort((a, b) => a.rank - b.rank || a.id.localeCompare(b.id));
 }
@@ -42,16 +48,29 @@ function goalValue(stats, goal) {
 function goalScoringValue(stats, goal) {
   const components = goal.components?.length ? goal.components : [goal.id];
   const values = components.map((id) => Math.min(Number(stats[id] ?? 0), Number(STAT_HARD_CAPS[id] ?? Infinity)));
-  if (components.length === 1) return values[0];
+  if (components.length === 1) return goal.target == null ? values[0] : Math.min(values[0], Number(goal.target));
   const minimum = Math.min(...values);
   const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-  return minimum * 0.95 + average * 0.05;
+  const value = minimum * 0.95 + average * 0.05;
+  return goal.target == null ? value : Math.min(value, Number(goal.target));
 }
 
 export function scoreRankedGoals(stats, baseline, scales, rankedGoals) {
   return rankedGoals.reduce((sum, goal) => sum + goal.weight
-    * (goalScoringValue(stats, goal) - Number(baseline[goal.id] ?? 0))
+    * (goalScoringValue(stats, goal) - (goal.target == null ? Number(baseline[goal.id] ?? 0) : Math.min(Number(baseline[goal.id] ?? 0), Number(goal.target))))
     / Math.max(1, Math.abs(Number(scales[goal.id] ?? 0))), 0);
+}
+
+function objectiveStatCaps(rankedGoals) {
+  const caps = { ...STAT_HARD_CAPS };
+  for (const goal of rankedGoals) {
+    if (goal.target == null) continue;
+    for (const id of goal.components?.length ? goal.components : [goal.id]) {
+      caps[id] = Math.min(Number(caps[id] ?? Infinity), Number(goal.target));
+    }
+    caps[goal.id] = Math.min(Number(caps[goal.id] ?? Infinity), Number(goal.target));
+  }
+  return caps;
 }
 
 function largestNumeric(value) {
@@ -507,6 +526,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
       const beamWeights = Object.fromEntries(componentWeightMap(rankedGoals, objectiveScales));
       const beamGoalStats = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
+      const beamStatCaps = objectiveStatCaps(rankedGoals);
       let search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
         const build = applySelections(source.build, selections);
         const calc = core.calculateBuild(build, provisionalAttributes, { includeSetEffects: rules.includeSetEffects !== false });
@@ -516,7 +536,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         return !Object.values(selections).some((selection) => selection?.itemId === itemId);
-      }, weights: beamWeights, statCaps: STAT_HARD_CAPS, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (attributePointBudget != null) {
         const exact = [];
         const preliminaryFrontier = search.frontier?.length ? search.frontier : search.alternatives;
@@ -559,7 +579,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const normalizedContribution = goal.weight * delta / objectiveScales[goal.id];
         const components = goal.components.map((id) => ({ id, name: core.statName(id), value: Number(finalStats[id] ?? 0), formattedValue: core.formatStat(id, Number(finalStats[id] ?? 0)) }));
         const hardCap = core.statHardCap?.(goal.id) ?? null;
-        return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), hardCap, formattedHardCap: hardCap == null ? null : core.formatStat(goal.id, hardCap), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), minimumMet: goal.minimum == null ? null : value >= goal.minimum, components };
+        return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), hardCap, formattedHardCap: hardCap == null ? null : core.formatStat(goal.id, hardCap), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), formattedTarget: goal.target == null ? null : core.formatStat(goal.id, goal.target), minimumMet: goal.minimum == null ? null : value >= goal.minimum, components };
       });
       const tradeoffs = goalResults.filter((goal) => goal.delta < 0).map((goal) => ({ id: goal.id, name: goal.name, delta: goal.delta, rank: goal.rank, text: `${goal.name} is ${Math.abs(goal.delta)} below the fixed objective baseline.` }));
       const allStats = Object.entries(finalStats).map(([id, value]) => ({ id, name: core.statName(id), value, formattedValue: core.formatStat(id, value), group: core.statPageFor(id) }))
@@ -592,7 +612,7 @@ export async function createOptimizerAdapter(deps = {}) {
       return {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (objectiveBaseline[id] ?? 0) })),
-        explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; minimum ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
+        explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
         assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),

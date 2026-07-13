@@ -23,7 +23,7 @@ test("stat picker exposes every adapter stat through searchable categories witho
   assert.doesNotMatch(html, /<select[^>]+aria-label="Add a priority stat"/);
 });
 
-test("selected priorities are reorderable, removable, and support display-unit minimums", () => {
+test("selected priorities are reorderable, removable, and support explicit goal modes", () => {
   assert.match(html, /movePriority/);
   assert.match(html, /draggable="true"/);
   assert.match(html, /startPriorityDrag/);
@@ -33,7 +33,12 @@ test("selected priorities are reorderable, removable, and support display-unit m
   assert.doesNotMatch(html, /aria-label="Move up"/);
   assert.doesNotMatch(html, /aria-label="Move down"/);
   assert.match(html, /removePriority/);
-  assert.match(html, /Minimum \{\{ p\.name \}\}/);
+  assert.match(html, /Goal mode for \{\{ p\.name \}\}/);
+  assert.match(html, /Maximize/);
+  assert.match(html, /At least/);
+  assert.match(html, /Target/);
+  assert.match(html, /p\.setGoalMode/);
+  assert.match(html, /p\.setGoalValue/);
   assert.match(html, /statDisplayToRaw/);
   assert.match(html, /rank:index\+1/);
 });

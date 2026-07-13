@@ -1,21 +1,23 @@
 const numeric = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
 
-function dominates(left, right, statIds) {
-  return statIds.every((id) => numeric(left.goalValues?.[id]) >= numeric(right.goalValues?.[id]))
-    && statIds.some((id) => numeric(left.goalValues?.[id]) > numeric(right.goalValues?.[id]));
+const capped = (value, cap) => Number.isFinite(Number(cap)) ? Math.min(numeric(value), Number(cap)) : numeric(value);
+
+function dominates(left, right, statIds, caps) {
+  return statIds.every((id) => capped(left.goalValues?.[id], caps?.[id]) >= capped(right.goalValues?.[id], caps?.[id]))
+    && statIds.some((id) => capped(left.goalValues?.[id], caps?.[id]) > capped(right.goalValues?.[id], caps?.[id]));
 }
 
-export function paretoTuneFrontier(candidates = [], statIds = [], limit = 48) {
+export function paretoTuneFrontier(candidates = [], statIds = [], limit = 48, caps = {}) {
   const ids = [...new Set(statIds)].slice(0, 5);
   const frontier = [];
   const seenVectors = new Set();
   for (const candidate of [...candidates].sort((a, b) => numeric(b.score) - numeric(a.score) || String(a.id).localeCompare(String(b.id)))) {
-    const vector = ids.map((id) => numeric(candidate.goalValues?.[id])).join("|");
+    const vector = ids.map((id) => capped(candidate.goalValues?.[id], caps?.[id])).join("|");
     if (seenVectors.has(vector)) continue;
     seenVectors.add(vector);
-    if (frontier.some((other) => dominates(other, candidate, ids))) continue;
+    if (frontier.some((other) => dominates(other, candidate, ids, caps))) continue;
     for (let index = frontier.length - 1; index >= 0; index -= 1) {
-      if (dominates(candidate, frontier[index], ids)) frontier.splice(index, 1);
+      if (dominates(candidate, frontier[index], ids, caps)) frontier.splice(index, 1);
     }
     frontier.push(candidate);
   }
