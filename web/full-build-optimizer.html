@@ -134,13 +134,6 @@
     .result-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; padding:12px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:rgba(20,15,10,.72); }
     .result-toolbar strong { color:#f2c777; font:18px Marcellus,serif; }
     .result-toolbar-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
-    .cost-card { min-width:190px; padding:8px 11px; border:1px solid rgba(126,224,166,.22); border-radius:8px; background:rgba(38,105,66,.08); }
-    .cost-card small { display:block; color:#89a98f; font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
-    .cost-card strong { display:block; margin-top:2px; color:#9af0b8; font-size:19px; }
-    .cost-card span { display:block; margin-top:2px; color:#78907e; font-size:9px; }
-    .market-field { margin-top:12px; }
-    .market-field select { margin-top:1px; }
-    .market-note { color:#75664f; font-size:9px; line-height:1.45; }
     .result-stage { display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; align-items:start; }
     .build-doll { position:sticky; top:18px; padding:16px 14px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:linear-gradient(180deg,rgba(26,20,12,.55),rgba(14,11,7,.75)); box-shadow:inset 0 1px 0 rgba(246,211,145,.06),0 18px 40px rgba(0,0,0,.3); }
     .doll-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:12px; }
@@ -194,10 +187,6 @@
     #result-hover .hc-title.heroic { color:#ffb765; }
     #result-hover .hc-stat-row,#result-hover .hc-rune-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; min-height:19px; color:#cfc1a6; font-size:11.5px; line-height:1.5; }
     #result-hover .hc-stat-row strong,#result-hover .hc-rune-row strong { color:#f0e1c1; font-weight:600; }
-    #result-hover .hc-price { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-    #result-hover .hc-price strong { color:#9af0b8; font:20px Marcellus,serif; }
-    #result-hover .hc-price small { display:block; color:#78907e; font-size:9px; line-height:1.4; }
-    #result-hover .hc-missing { color:#b99f76; font-size:11px; }
     .result-status { flex-basis:100%; margin:2px 0 0; color:#9af0b8; font-size:10px; text-align:right; }
     .hidden { display:none!important; }
     @keyframes tlPulse { 50%{transform:rotate(45deg) scale(1.08);box-shadow:0 0 38px rgba(242,199,119,.24)} }
@@ -207,7 +196,7 @@
     @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     @keyframes tlFade { from{opacity:0} to{opacity:1} }
     @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
-    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}.result-toolbar{align-items:stretch;flex-direction:column}.result-toolbar-actions{justify-content:stretch}.result-toolbar-actions button,.cost-card{flex:1}.result-status{text-align:left}}
+    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}.result-toolbar{align-items:stretch;flex-direction:column}.result-toolbar-actions{justify-content:stretch}.result-toolbar-actions button{flex:1}.result-status{text-align:left}}
   </style>
 </head>
 <body>
@@ -226,7 +215,6 @@
           <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
           <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
           <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
-          <label class="field market-field">Auction House region<select id="market-region"><option value="eu">Europe</option><option value="na">Americas</option><option value="jp">Japan and Oceania</option></select><span id="market-status" class="market-note">TLDB prices load when available.</span></label>
         </div></section>
 
         <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
@@ -262,7 +250,7 @@
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, marketTools:null, marketRegion:"eu", marketPayload:null, marketByItemKey:new Map(), statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
     function renderLocks() {
       const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
@@ -283,34 +271,19 @@
       if(changed) window.scrollTo({top:0,behavior:"smooth"});
     }
     function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("error-message").textContent=message; setView("error"); updateReady(); }
-    async function loadMarket(region=state.marketRegion) {
-      state.marketRegion=region; $("market-status").textContent="Loading TLDB market snapshot...";
-      try {
-        const response=await fetch(`/api/market/prices?region=${encodeURIComponent(region)}`,{cache:"no-store"});
-        const payload=await response.json();
-        if(!response.ok) throw new Error(payload?.error??`Market request failed (${response.status}).`);
-        state.marketPayload=payload; state.marketByItemKey=state.marketTools.indexMarketItems(payload);
-        const time=new Date(payload.snapshotGeneratedAtUtc); const stamp=Number.isNaN(time.valueOf())?"latest snapshot":time.toLocaleString([], {dateStyle:"medium",timeStyle:"short"});
-        $("market-status").textContent=`${payload.regionName} prices from TLDB · ${stamp}${payload.stale?" · last known":""}`;
-      } catch(error) {
-        state.marketPayload=null; state.marketByItemKey=new Map(); $("market-status").textContent="TLDB prices are unavailable right now. Builds can still be optimized.";
-      }
-      if(state.result) renderResult(state.result);
-    }
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const [module,core,rulesData,persistence,marketTools] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-build-market.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.marketTools=marketTools;
+        const [module,core,rulesData,persistence] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence;
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
         for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","currentStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
         $("engine-status").textContent="Ready"; setView("setup");
-        setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory(); loadMarket().catch(()=>{});
+        setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory();
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
     }
-    $("market-region").addEventListener("change",event=>loadMarket(event.target.value));
     async function refreshCurrentStats() {
       state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:$("include-sets").checked}) : {};
       for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key);
@@ -389,23 +362,15 @@
       const artifactSlots=Array.isArray(loadout.artifacts)?loadout.artifacts.map(row=>row.id):Object.keys(loadout.artifacts??{}); const artifacts=artifactSlots.map(slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-orb" data-result-slot="${esc(slot)}" aria-label="Inspect ${esc(item?.name??slot)}">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div>`; }).join("");
       return `<aside class="build-doll" aria-label="Recommended character equipment"><div class="doll-title"><h3>Recommended loadout</h3><span class="section-kicker">Result</span></div><div class="doll-grid"><div class="doll-rail">${left.map(row=>dollSlot(loadout,...row)).join("")}</div><div class="doll-portrait"><div class="doll-portrait-copy"><strong>${esc(result.name??"Optimized build")}</strong><small>Best result found</small></div></div><div class="doll-rail">${right.map(row=>dollSlot(loadout,...row)).join("")}</div></div><div class="doll-weapons">${weapon("main_hand")}${weapon("off_hand")}</div><div class="doll-artifacts"><small>Artifacts</small>${artifacts||"<span class=\"hint\">Kept from source</span>"}</div></aside>`;
     }
-    const formatLucent=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(Number(value)||0);
-    function costForResult(result) { return state.marketTools.estimateBuildCost(result.build,state.build?.build,state.marketByItemKey); }
-    function marketRowFor(result,slotId) { return costForResult(result).rows.find(row=>row.slotId===slotId)??null; }
-    function renderResultHover(model,costRow) {
+    function renderResultHover(model) {
       const stats=rows=>(rows??[]).map(row=>`<div class="hc-stat-row"><span>${esc(row.name)}</span><strong>${esc(row.formattedValue)}</strong></div>`).join("");
-      const price=costRow?.owned
-        ? `<div class="hc-price"><div><strong>Owned</strong><small>Unchanged from your source build</small></div><span>0 Lucent</span></div>`
-        : costRow?.priced
-          ? `<div class="hc-price"><div><strong>${formatLucent(costRow.price)} Lucent</strong><small>Minimum ${esc(state.marketPayload?.regionName??"")} base-item listing from TLDB</small></div><span>${esc(costRow.market?.quantity??"")} listed</span></div>`
-          : `<div class="hc-missing">No matching TLDB listing was available for this item. It is excluded from the known cost.</div>`;
       const runes=(model.runes??[]).filter(row=>row.filled).map(row=>`<div class="hc-rune-row"><span>${esc(`${row.typeLabel} ${row.gradeName}`)}</span><strong>${esc(`${row.contribution} · Lv ${row.level}`)}</strong></div>`).join("");
-      $("result-hover").innerHTML=`<div class="hc-head" style="border-top:${model.headBorder};background:${model.headBg}">${model.hasIcon?`<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>`:""}<div><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div></div><div class="hc-section"><div class="hc-title">Auction House estimate</div>${price}</div>${model.hasStats?`<div class="hc-section"><div class="hc-title">Stats</div>${stats(model.stats)}</div>`:""}${model.hasTraits?`<div class="hc-section"><div class="hc-title">Traits</div>${stats(model.traits)}</div>`:""}${model.hasUnique?`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${stats(model.unique)}</div>`:""}${model.hasHeroicEffects?`<div class="hc-section"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map(row=>`<div class="hc-stat-row"><span>${esc(`${row.groupNumber}. ${row.name} · Lv ${row.level}`)}</span><strong>${esc(row.value)}</strong></div>`).join("")}</div>`:""}${runes?`<div class="hc-section"><div class="hc-title">Runes</div>${runes}${model.hasSynergy?`<div class="hc-rune-row"><span>${esc(model.synergyName)}</span><strong>${esc(model.synergyStats.join(", "))}</strong></div>`:""}</div>`:""}`;
+      $("result-hover").innerHTML=`<div class="hc-head" style="border-top:${model.headBorder};background:${model.headBg}">${model.hasIcon?`<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>`:""}<div><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div></div>${model.hasStats?`<div class="hc-section"><div class="hc-title">Stats</div>${stats(model.stats)}</div>`:""}${model.hasTraits?`<div class="hc-section"><div class="hc-title">Traits</div>${stats(model.traits)}</div>`:""}${model.hasUnique?`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${stats(model.unique)}</div>`:""}${model.hasHeroicEffects?`<div class="hc-section"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map(row=>`<div class="hc-stat-row"><span>${esc(`${row.groupNumber}. ${row.name} · Lv ${row.level}`)}</span><strong>${esc(row.value)}</strong></div>`).join("")}</div>`:""}${runes?`<div class="hc-section"><div class="hc-title">Runes</div>${runes}${model.hasSynergy?`<div class="hc-rune-row"><span>${esc(model.synergyName)}</span><strong>${esc(model.synergyStats.join(", "))}</strong></div>`:""}</div>`:""}`;
     }
     function positionResultHover(event) { const card=$("result-hover"),x=Math.max(12,Math.min(event.clientX+18,window.innerWidth-card.offsetWidth-12)),flip=event.clientY>window.innerHeight*.55; card.style.left=`${x}px`; card.style.top=flip?"":`${Math.max(12,event.clientY-12)}px`; card.style.bottom=flip?`${Math.max(12,window.innerHeight-event.clientY-12)}px`:""; }
     function bindResultHover(result) {
       const root=$("results-state"); let active="";
-      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:$("include-sets").checked}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false}); if(!model){active="";return;} renderResultHover(model,marketRowFor(result,active)); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
+      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:$("include-sets").checked}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false}); if(!model){active="";return;} renderResultHover(model); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
       root.onmousemove=event=>{if(active)positionResultHover(event);}; root.onmouseleave=()=>{active="";$("result-hover").classList.add("hidden");$("result-hover").setAttribute("aria-hidden","true");};
     }
     function resultSnapshot(result) {
@@ -419,13 +384,12 @@
     }
     function renderResult(result) {
       if(!result || !Array.isArray(result.slots) || !Array.isArray(result.statDeltas)) throw new Error("The optimizer returned an invalid result. No recommendation was displayed.");
-      state.result=result; const cost=costForResult(result);
+      state.result=result;
       const rows=result.slots.map(row=>`<tr><td>${esc(row.slot)}</td><td>${esc(row.current?.name??"Empty")}</td><td data-result-slot="${esc(row.slotId)}"><strong>${esc(row.recommended?.name??"Empty")}</strong></td><td class="reason">${esc(row.reason??"")}</td></tr>`).join("");
       const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":Number(row.delta)<0?"−":""}${esc(row.formattedDelta??Math.abs(Number(row.delta)))}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      const costLabel=cost.complete?"Total cost":"Known cost",coverage=cost.changedCount?`${cost.pricedCount}/${cost.changedCount} changed pieces priced${cost.missingCount?` · ${cost.missingCount} unavailable`:""}`:"No changed equipment to buy";
-      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><div class="result-toolbar-actions"><div class="cost-card"><small>${costLabel}</small><strong>${formatLucent(cost.knownCost)} Lucent</strong><span>${coverage}</span></div><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Base-item minimum listings only. Traits, runes, Heroic configuration, and taxes are not included.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
       $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
       $("save-result-preset").onclick=()=>{ try{saveResultAsPreset(result);$("result-status").textContent="Saved as a new Armory preset.";}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
       $("use-result-build").onclick=()=>{ try{state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };

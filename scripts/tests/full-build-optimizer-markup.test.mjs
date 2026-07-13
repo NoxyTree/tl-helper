@@ -110,15 +110,11 @@ test("result contract includes comparison, deltas, explanations, warnings, and a
   assert.match(html, /Current<\/th><th>Recommended/);
 });
 
-test("results expose regional TLDB pricing, honest cost coverage, hover cards, and Armory handoff", () => {
-  assert.match(html, /id="market-region"/);
-  assert.match(html, /\/api\/market\/prices\?region=/);
-  assert.match(html, /Total cost/);
-  assert.match(html, /Known cost/);
-  assert.match(html, /minimum listings from TLDB|Minimum .* base-item listing from TLDB/);
+test("results expose configured-item hover cards and Armory handoff", () => {
   assert.match(html, /id="result-hover"/);
   assert.match(html, /buildItemHoverModel/);
   assert.match(html, /id="save-result-preset"/);
   assert.match(html, /id="use-result-build"/);
   assert.match(html, /saveArmoryState/);
+  assert.doesNotMatch(html, /TLDB|\/api\/market\/prices|Lucent/);
 });
