@@ -46,8 +46,10 @@ test("Vanguard Leader 2-piece steps Endurance per complete 10 Perception", () =>
 });
 
 test("Vanguard Leader 4-piece amount stays 30 with the >=50 Fortitude gate", () => {
-  // Item_Passive_Set_plate_aa_T2_003_2_Talland_4Set: min=max=30. Threshold
-  // operator remains unverified in-game; the rule keeps >= until tested.
+  // Item_Passive_Set_plate_aa_T2_003_2_Talland_4Set: min=max=30. The >=
+  // operator is confirmed by the Korean source string "불굴이 50 이상일 때"
+  // ("when Fortitude is 50 or more", Game.locres ko); English "over 50" was a
+  // loose translation.
   assert.equal(only(rows("set_aa_T2_plate_005", 4, { con: 50 }), "bonus_attack_power_main_hand"), 30);
   assert.equal(rows("set_aa_T2_plate_005", 4, { con: 49 }).reduce((sum, row) => sum + row.value, 0), 0);
 });
@@ -80,11 +82,27 @@ test("Plains Ravager 4-piece is Critical Damage +6%, not Bonus Attack Power", ()
   assert.equal(result.some((row) => row.statId === "bonus_attack_power_main_hand"), false);
 });
 
-test("Admiral self components apply exactly once, without the party aura", () => {
+test("Admiral applies each decoded component twice: personal plus self-inclusive aura", () => {
   // Item_Passive_Set_leather_ab_T2_002_1_Talland: min=max=-300 tooltip1=-3.
   // Item_Passive_Set_leather_ab_T2_002_2_Talland: min=max=600 tooltip1=6.
-  assert.equal(only(rows("set_aa_T2_leather_005", 2), "debuff_taken_duration_modifier"), -300);
-  assert.equal(only(rows("set_aa_T2_leather_005", 4), "attack_speed_modifier"), 600);
+  // The client set description (Game.locres leather_ab_T2_002_2_Talland_UIOptions)
+  // binds the SAME tooltip to a personal line and a "self and all party members
+  // within 18m" line, matching the other Talland aura sets.
+  const two = rows("set_aa_T2_leather_005", 2).filter((row) => row.statId === "debuff_taken_duration_modifier");
+  assert.deepEqual(two.map((row) => row.value), [-300, -300]);
+  const four = rows("set_aa_T2_leather_005", 4).filter((row) => row.statId === "attack_speed_modifier");
+  assert.deepEqual(four.map((row) => row.value), [600, 600]);
+});
+
+test("Skilled Veteran uses the decoded per-application values in both breakpoints", () => {
+  // Item_Passive_Set_plate_aa_T2_002_1_Talland: min=max=1200 tooltip1=120.
+  // Item_Passive_Set_plate_aa_T2_002_2_Talland: min=max=24 tooltip1=24.
+  // Each is bound twice by the client set description (personal + self-inclusive
+  // aura). Questlog's 12+12 for the 4-piece halved the decoded 24.
+  const endurance = rows("set_aa_T2_plate_003", 2).filter((row) => row.statId === "all_critical_defense");
+  assert.deepEqual(endurance.map((row) => row.value), [1200, 1200]);
+  const reduction = rows("set_aa_T2_plate_003", 4).filter((row) => row.statId === "damage_reduction");
+  assert.deepEqual(reduction.map((row) => row.value), [24, 24]);
 });
 
 test("Demonic Beast Hunter 4-piece applies only the persistent Bonus Damage 40", () => {
