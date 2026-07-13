@@ -34,14 +34,16 @@
 .tl-app-header {
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(190px, auto) minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: clamp(22px, 3vw, 54px);
-  min-height: 58px;
+  column-gap: clamp(16px, 2.4vw, 42px);
+  min-height: 64px;
   width: 100%;
-  padding: 10px clamp(16px, 2vw, 30px);
+  padding: 10px clamp(16px, 2.2vw, 34px);
   border-bottom: 1px solid var(--tl-shell-line);
-  background: linear-gradient(180deg, rgba(20, 15, 9, 0.65), rgba(12, 9, 6, 0.2));
+  background: linear-gradient(180deg, rgba(20, 15, 9, 0.9), rgba(12, 9, 6, 0.72));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px);
   view-transition-name: tl-app-header;
 }
 
@@ -58,18 +60,25 @@
   text-decoration: none;
 }
 
+.tl-app-brand:hover,
+.tl-app-brand:focus-visible {
+  color: inherit;
+  outline: none;
+  text-decoration: none !important;
+}
+
 .tl-app-logo,
 .tl-app-brand-mark {
   position: relative;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(212, 166, 94, 0.45);
-  background: linear-gradient(135deg, rgba(60, 42, 20, 0.8), rgba(24, 17, 9, 0.9));
-  box-shadow: 0 0 14px rgba(214, 138, 58, 0.25);
-  transform: rotate(45deg);
+  border: 0;
+  border-radius: 50%;
+  background: url("./tl-logo.png") center / contain no-repeat;
+  box-shadow: 0 0 18px rgba(214, 138, 58, 0.22);
   view-transition-name: tl-app-logo;
 }
 
@@ -81,10 +90,7 @@
 
 .tl-app-logo > span,
 .tl-app-brand-mark > span {
-  color: #f6d391;
-  font-family: Marcellus, serif;
-  font-size: 15px;
-  transform: rotate(-45deg);
+  display: none;
 }
 
 .tl-app-brand-copy {
@@ -94,6 +100,7 @@
 
 .tl-app-title,
 .tl-app-brand-title {
+  display: block;
   color: #d8b878;
   font-size: 13px;
   font-weight: 700;
@@ -103,6 +110,7 @@
 
 .tl-app-subtitle,
 .tl-app-brand-subtitle {
+  display: block;
   margin-top: 4px;
   color: var(--tl-shell-muted);
   font-size: 8px;
@@ -115,6 +123,7 @@
 .tl-app-nav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   min-width: 0;
 }
@@ -161,6 +170,7 @@
   color: #d8b878;
   border-color: rgba(212, 166, 94, 0.24);
   outline: none;
+  text-decoration: none !important;
 }
 
 .tl-app-nav-item.is-active {
@@ -173,6 +183,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  min-width: 0;
+}
+
+.tl-armory-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -198,6 +215,7 @@
 }
 
 .tl-app-status-value {
+  display: block;
   margin-top: 3px;
   color: #d8b878;
   font-family: Marcellus, serif;
@@ -218,7 +236,7 @@
 /* Armory carries editable build identity plus creation actions. Keep those
    controls on a deliberate second row instead of allowing them to overflow. */
 .tl-armory-header {
-  grid-template-columns: 200px minmax(330px, 1fr) auto;
+  grid-template-columns: minmax(190px, auto) minmax(330px, 1fr) auto;
   row-gap: 8px;
 }
 
@@ -228,20 +246,39 @@
   flex-wrap: wrap;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1400px) {
+  .tl-app-header { column-gap: 14px; }
+  .tl-app-nav { gap: 3px; }
+  .tl-app-nav-item { padding-inline: 9px; font-size: 9px; }
+}
+
+@media (max-width: 1000px) {
   .tl-app-header {
     grid-template-columns: auto minmax(0, 1fr);
     row-gap: 8px;
   }
 
-  .tl-app-nav { justify-content: flex-end; }
+  .tl-app-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .tl-app-nav::-webkit-scrollbar { display: none; }
 
   .tl-app-header-end {
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 1;
     justify-content: flex-end;
   }
 
   .tl-armory-header { grid-template-columns: auto minmax(0, 1fr); }
+  .tl-armory-header .tl-armory-identity { grid-column: 2; grid-row: 1; justify-content: flex-end; }
+  .tl-armory-header .tl-app-nav { grid-row: 2; }
+  .tl-armory-header .tl-toolbar-actions { grid-row: 3; }
 
   .tl-toolbar-actions { flex: 0 0 auto; flex-wrap: wrap; }
   .tl-first-run { grid-template-columns: 1fr; gap: 16px; }
@@ -260,18 +297,17 @@
     padding-inline: 14px;
   }
 
-  .tl-app-nav {
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .tl-app-nav::-webkit-scrollbar { display: none; }
-  .tl-app-header-end { grid-column: auto; justify-content: flex-start; }
+  .tl-app-brand-mark { width: 38px; height: 38px; flex-basis: 38px; }
+  .tl-app-header-end { grid-column: 1; grid-row: 2; justify-content: flex-start; }
+  .tl-app-nav { grid-column: 1; grid-row: 3; }
+  .tl-armory-header .tl-armory-identity { grid-column: 1; grid-row: 2; justify-content: flex-start; }
+  .tl-armory-header .tl-app-nav { grid-row: 3; }
+  .tl-armory-header .tl-toolbar-actions { grid-row: 4; }
   .tl-app-status:first-child { padding-left: 0; border-left: 0; }
 
   .tl-toolbar-actions { justify-content: flex-start; white-space: normal; }
   .tl-app-nav-item { min-height: 42px; padding-inline: 14px; font-size: 11px; }
+  .tl-app-nav-item.is-active { order: -1; }
   .tl-first-run { padding: 18px 16px; }
   [data-screen-label="Item Picker"] { padding: 8px !important; }
 }
