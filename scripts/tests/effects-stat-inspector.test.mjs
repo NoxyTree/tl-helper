@@ -12,6 +12,14 @@ test("Effects tab provides a searchable click-to-inspect stat breakdown", () => 
   assert.match(html, /onToggle: \(\) => this\.setState\(\{ expandedStatId: row\.id, statSourcesExpanded: false \}\)/);
 });
 
+test("Effects totals use the compact two-column grouped workspace", () => {
+  assert.match(html, /statGroups/);
+  assert.match(html, /grid-template-columns: 1fr 1fr/);
+  for (const label of ["Attack", "Protection", "Recovery & Utility", "Other"]) assert.match(html, new RegExp(`"${label}"`));
+  assert.match(html, /favoriteOpacity/);
+  assert.match(html, /border-bottom: 1px dotted/);
+});
+
 test("stat breakdown limits large source lists and expands into a bounded scroller", () => {
   assert.match(html, /selectedSources\.slice\(0, 5\)/);
   assert.match(html, /sourceListMaxHeight: this\.state\.statSourcesExpanded \? "360px" : "none"/);

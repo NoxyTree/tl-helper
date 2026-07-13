@@ -366,19 +366,27 @@
                 </div>
                 <span style="font-size: 11px; color: #8a795f; white-space: nowrap;">{{ statRowCount }} totals</span>
               </div>
-              <div style="border: 1px solid rgba(212, 166, 94, 0.14); border-radius: 10px; overflow: hidden; background: rgba(14, 11, 7, 0.45);">
-                <sc-for list="{{ statRows }}" as="row" hint-placeholder-count="10">
-                  <div style="border-bottom: 1px solid rgba(212, 166, 94, 0.08);">
-                    <div style="display: flex; align-items: stretch; background: {{ row.bg }}; border-left: 2px solid {{ row.activeBorder }}; transition: background 0.12s ease, border-color 0.12s ease;">
-                      <button type="button" onClick="{{ row.onFavorite }}" aria-label="{{ row.favoriteLabel }}" title="{{ row.favoriteLabel }}" style="flex: none; width: 34px; border: none; border-right: 1px solid rgba(212, 166, 94, 0.08); background: transparent; color: {{ row.favoriteColor }}; cursor: pointer; font-size: 14px;">{{ row.favoriteGlyph }}</button>
-                      <button type="button" onClick="{{ row.onToggle }}"
-                      style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 9px 12px; background: transparent; border: none; cursor: pointer; text-align: left; transition: background 0.12s ease;"
-                      style-hover="background: rgba(212, 166, 94, 0.07);">
-                      <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ row.dot }}; flex: none;"></span>
-                      <span style="flex: 1; min-width: 0;"><span style="display: block; font-size: 12.5px; color: #d9c8a5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><span style="display: block; margin-top: 3px; font-size: 9px; color: #74644d;">{{ row.sourceLabel }}</span></span>
-                      <span style="font-size: 14px; font-weight: 650; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</span>
-                      <span style="font-size: 12px; color: {{ row.chevronColor }}; width: 12px; text-align: center;">›</span>
-                      </button>
+              <div style="animation: tlFadeUp 0.3s ease;">
+                <sc-for list="{{ statGroups }}" as="group" hint-placeholder-count="2">
+                  <div style="margin-bottom: 17px;">
+                    <div style="display: flex; align-items: center; gap: 11px; margin: 0 2px 7px;">
+                      <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(232, 184, 106, 0.42));"></span>
+                      <span style="font-family: Marcellus, serif; font-size: 12.5px; letter-spacing: 0.12em; color: #e8c78c;">{{ group.label }}</span>
+                      <span style="font-size: 8.5px; color: #75654d; font-variant-numeric: tabular-nums;">{{ group.count }}</span>
+                      <span style="flex: 1; height: 1px; background: linear-gradient(90deg, rgba(232, 184, 106, 0.42), transparent);"></span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px;">
+                      <sc-for list="{{ group.rows }}" as="row" hint-placeholder-count="6">
+                        <div style="display: flex; align-items: center; border-radius: 6px; background: {{ row.bg }}; border-left: 2px solid {{ row.activeBorder }}; transition: background 0.12s ease, border-color 0.12s ease;" style-hover="background: rgba(212, 166, 94, 0.08);">
+                          <button type="button" onClick="{{ row.onFavorite }}" aria-label="{{ row.favoriteLabel }}" title="{{ row.favoriteLabel }}" style="flex: none; width: 20px; border: none; background: transparent; color: {{ row.favoriteColor }}; cursor: pointer; font-size: 10px; opacity: {{ row.favoriteOpacity }}; transition: opacity 0.12s ease;">{{ row.favoriteGlyph }}</button>
+                          <button type="button" onClick="{{ row.onToggle }}" title="{{ row.name }}" aria-label="Inspect {{ row.name }}" style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0; padding: 6px 8px 6px 2px; min-height: 30px; background: transparent; border: none; cursor: pointer; text-align: left;">
+                            <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ row.dot }}; flex: none; align-self: center;"></span>
+                            <span style="flex: none; max-width: 62%; font-size: 12px; color: {{ row.nameColor }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span>
+                            <span style="flex: 1; min-width: 6px; border-bottom: 1px dotted rgba(212, 166, 94, 0.2); transform: translateY(-3px);"></span>
+                            <span style="font-size: 12.5px; font-weight: 650; color: {{ row.valueColor }}; font-variant-numeric: tabular-nums; white-space: nowrap;">{{ row.value }}</span>
+                          </button>
+                        </div>
+                      </sc-for>
                     </div>
                   </div>
                 </sc-for>
@@ -2409,6 +2417,9 @@ class Component extends DCLogic {
         favoriteGlyph: favorite ? "★" : "☆",
         favoriteColor: favorite ? "#f6d391" : "#6e5f49",
         favoriteLabel: `${favorite ? "Remove" : "Add"} ${core.statName(row.id)} ${favorite ? "from" : "to"} favourites`,
+        favoriteOpacity: favorite ? 1 : (expanded ? 0.9 : 0.3),
+        nameColor: expanded ? "#f6d391" : "#d0bf9d",
+        valueColor: expanded ? "#f6d391" : "#f3e9d4",
         expanded,
         sources: expanded
           ? row.sources.map((source) => ({
@@ -2421,6 +2432,17 @@ class Component extends DCLogic {
         onFavorite: () => this.toggleFavoriteStat(row.id),
       };
     });
+    const STAT_GROUP_DEFS = [["attack", "Attack"], ["protection", "Protection"], ["utility", "Recovery & Utility"], ["other", "Other"]];
+    const statGroupFor = (name) => {
+      const n = String(name).toLowerCase();
+      if (/(defen|evasion|endurance|resist|reduction|block|absorb|tenacity)/.test(n)) return "protection";
+      if (/(regen|cooldown|mov|mana|speed|range|buff|potion|heal|recover|duration|stamina|gather|luck|efficien)/.test(n)) return "utility";
+      if (/(hit|critical|heavy|attack|damage|power|rating|penetration|bonus|boost|threat|aggro)/.test(n)) return "attack";
+      return "other";
+    };
+    const statGroupBuckets = { attack: [], protection: [], utility: [], other: [] };
+    statRows.forEach((r) => { statGroupBuckets[statGroupFor(r.name)].push(r); });
+    const statGroups = STAT_GROUP_DEFS.map(([key, label]) => ({ key, label, count: statGroupBuckets[key].length, rows: statGroupBuckets[key] })).filter((g) => g.rows.length);
     const statPageNames = Object.fromEntries(core.STAT_PAGE_DEFINITIONS.map(([id, name]) => [id, name]));
     const selectedSourceRow = pageRows.find((row) => row.id === this.state.expandedStatId) ?? pageRows[0] ?? null;
     const selectedSourceMax = Math.max(1, ...(selectedSourceRow?.sources ?? []).map((source) => Math.abs(Number(source.value) || 0)));
@@ -2595,6 +2617,7 @@ class Component extends DCLogic {
       statPageDesc: pageDef[2],
       statRowCount: core.formatNumber(pageRows.length),
       statRows,
+      statGroups,
       statRowsEmpty: pageRows.length === 0,
       selectedStat,
       favoriteStatRows,
