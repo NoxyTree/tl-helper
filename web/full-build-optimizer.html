@@ -48,10 +48,37 @@
     .warning { padding:9px 10px; border:1px solid rgba(255,183,101,.28); border-radius:8px; background:rgba(255,152,45,.06); color:#d8b483; }
     .goal-block + .goal-block { margin-top:16px; }
     .goal-title { display:flex; justify-content:space-between; margin-bottom:7px; font-size:12px; color:#decaa2; }
-    .stat-picker { display:flex; flex-wrap:wrap; gap:6px; min-height:34px; padding:6px; border:1px solid var(--line); border-radius:8px; background:#0c0906; }
-    .chip { display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border-radius:999px; background:rgba(212,166,94,.14); border:1px solid rgba(212,166,94,.42); color:#f2dfae; font-size:11.5px; }
-    .chip button { border:0; padding:0; background:none; color:inherit; cursor:pointer; }
-    .stat-picker input { flex:1; min-width:145px; border:0; outline:0; background:transparent; color:var(--cream); }
+    .stat-picker { display:grid; gap:8px; }
+    .goal-selected { display:grid; gap:7px; }
+    .goal-empty { padding:10px 12px; border:1px dashed rgba(212,166,94,.18); border-radius:9px; color:#74664f; font-size:10.5px; line-height:1.45; }
+    .goal-chip { display:flex; align-items:center; gap:10px; min-width:0; padding:9px 10px; border:1px solid rgba(212,166,94,.2); border-radius:9px; background:linear-gradient(135deg,rgba(107,68,22,.16),rgba(10,8,6,.72)); animation:tlRise .16s ease; }
+    .goal-chip-mark { flex:none; width:24px; height:24px; display:grid; place-items:center; border:1px solid rgba(242,199,119,.34); border-radius:7px; color:#f2c777; font:13px Marcellus,serif; }
+    .goal-chip-copy { min-width:0; flex:1; }
+    .goal-chip-copy strong { display:block; overflow:hidden; color:#eadab9; font-size:11.5px; text-overflow:ellipsis; white-space:nowrap; }
+    .goal-chip-copy small { display:block; margin-top:2px; color:#7d6b51; font-size:9px; }
+    .goal-chip button { flex:none; width:26px; height:26px; border:1px solid rgba(224,129,104,.2); border-radius:7px; background:rgba(70,27,21,.12); color:#d99582; cursor:pointer; }
+    .goal-chip button:hover { border-color:rgba(224,129,104,.48); background:rgba(104,39,29,.22); }
+    .picker-trigger { width:100%; min-height:43px; display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid rgba(212,166,94,.28); border-radius:9px; background:#0b0806; color:#e6d6b4; cursor:pointer; text-align:left; }
+    .picker-trigger:hover,.picker-trigger[aria-expanded="true"] { border-color:rgba(242,199,119,.62); background:rgba(107,68,22,.16); }
+    .picker-trigger-plus { width:22px; height:22px; display:grid; place-items:center; border:1px solid rgba(242,199,119,.35); border-radius:6px; color:#f2c777; font-size:15px; }
+    .picker-trigger-label { flex:1; font-size:11.5px; font-weight:600; }
+    .picker-trigger-count,.picker-trigger-caret { color:#88775d; font-size:9px; }
+    .picker-menu { padding:11px; border:1px solid rgba(242,199,119,.38); border-radius:12px; background:linear-gradient(180deg,rgba(24,18,12,.98),rgba(10,8,7,.99)); box-shadow:0 18px 45px rgba(0,0,0,.42); animation:tlRise .16s ease; }
+    .picker-search { width:100%; height:39px; padding:8px 10px; border:1px solid rgba(212,166,94,.28); border-radius:8px; outline:0; background:#090705; color:#f3e9d4; font-size:11.5px; }
+    .picker-search:focus { border-color:rgba(242,199,119,.65); box-shadow:0 0 0 3px rgba(242,199,119,.07); }
+    .picker-categories { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:9px; }
+    .picker-category { min-width:0; padding:7px 8px; border:1px solid rgba(212,166,94,.15); border-radius:7px; background:rgba(0,0,0,.2); color:#9c8b70; cursor:pointer; font-size:9.5px; }
+    .picker-category:hover,.picker-category.active { border-color:rgba(242,199,119,.5); background:rgba(107,68,22,.17); color:#efd9aa; }
+    .picker-result-head { display:flex; justify-content:space-between; gap:10px; margin:11px 2px 7px; color:#e5c88f; font-size:10.5px; }
+    .picker-result-head span:last-child { color:#75664f; font-size:9px; }
+    .picker-results { max-height:270px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; overflow:auto; padding-right:3px; }
+    .picker-option { min-width:0; display:flex; align-items:center; gap:8px; padding:8px 9px; border:1px solid rgba(212,166,94,.15); border-radius:8px; background:rgba(0,0,0,.2); color:#dfd0b2; cursor:pointer; text-align:left; }
+    .picker-option:hover { border-color:rgba(242,199,119,.52); background:rgba(107,68,22,.18); }
+    .picker-option span:first-child { flex:none; width:20px; height:20px; display:grid; place-items:center; border-radius:6px; background:rgba(242,199,119,.08); color:#f2c777; font-size:13px; }
+    .picker-option span:last-child { min-width:0; overflow:hidden; font-size:10.5px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+    .picker-no-results { grid-column:1/-1; padding:25px 10px; color:#85745a; font-size:10.5px; text-align:center; }
+    .picker-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; padding-top:9px; border-top:1px dotted rgba(212,166,94,.18); color:#75664f; font-size:9px; }
+    .picker-done { padding:6px 12px; border:1px solid rgba(242,199,119,.4); border-radius:7px; background:rgba(107,68,22,.2); color:#e5c88f; cursor:pointer; font-size:10px; font-weight:700; }
     .toggle-list { display:grid; gap:0; }
     .toggle-row { display:grid; grid-template-columns:20px minmax(0,1fr); gap:8px; align-items:start; padding:10px 0; border-bottom:1px solid rgba(212,166,94,.1); cursor:pointer; }
     .toggle-row:last-child { border-bottom:0; }
@@ -67,6 +94,7 @@
     .is-unavailable { opacity:.42; }
     .is-unavailable input,.is-unavailable button { cursor:not-allowed; }
     .actions { position:sticky; bottom:10px; display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(12,9,6,.95); backdrop-filter:blur(8px); z-index:4; }
+    .stack:has(.picker-menu:not(.hidden)) .actions { position:static; }
     .actions .primary { flex:1; }
     .result-empty { min-height:360px; display:grid; place-items:center; padding:40px; text-align:center; }
     .result-empty .sigil { width:54px; height:54px; display:grid; place-items:center; margin:0 auto 15px; border:1px solid var(--line); transform:rotate(45deg); color:var(--gold); }
@@ -123,7 +151,9 @@
     .hidden { display:none!important; }
     @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}}
     @media(max-width:900px){.layout{grid-template-columns:1fr}.actions{position:static}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}}
+    @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
+    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}}
   </style>
 </head>
 <body>
@@ -146,8 +176,8 @@
         </div></section>
 
         <section class="panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
-          <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Optimized equally</span></div><div id="increase-picker" class="stat-picker"><input type="search" placeholder="Add a wanted stat" aria-label="Add an Increase stat" disabled></div></div>
-          <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker"><input type="search" placeholder="Add a protected stat" aria-label="Add a Protect stat" disabled></div></div>
+          <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Optimized equally</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
+          <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
           <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
         </div></section>
 
@@ -208,8 +238,47 @@
     async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } updateReady(); }
     $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; $("source-status").textContent=`Import failed: ${error.message}`; } finally { $("import-build").disabled=false; updateReady(); } });
 
-    function setupPicker(id,key) { const root=$(id), input=root.querySelector("input"); input.disabled=false; const chooseExact=()=>{ const query=input.value.trim().toLowerCase(); const option=state.statOptions.find(row=>(row.name??row.label??"").toLowerCase()===query || row.id===query); if(option && !state[key].includes(option.id)){ state[key].push(option.id); input.value=""; renderPicker(root,key); } }; input.addEventListener("input",chooseExact); input.addEventListener("change",chooseExact); input.setAttribute("list",`${id}-options`); const list=document.createElement("datalist"); list.id=`${id}-options`; state.statOptions.forEach(row=>{ const option=document.createElement("option"); option.value=row.name??row.label??row.id; list.append(option); }); root.after(list); }
-    function renderPicker(root,key) { root.querySelectorAll(".chip").forEach(node=>node.remove()); const input=root.querySelector("input"); state[key].forEach(id=>{ const row=state.statOptions.find(item=>item.id===id); const chip=document.createElement("span"); chip.className="chip"; chip.innerHTML=`${row?.name??row?.label??id}<button type="button" aria-label="Remove">×</button>`; chip.querySelector("button").onclick=()=>{ state[key]=state[key].filter(value=>value!==id); renderPicker(root,key); }; root.insertBefore(chip,input); }); updateReady(); }
+    const STAT_CATEGORIES = [
+      ["featured","Featured"],["offense","Offense"],["defense","Defense"],["control","Control"],["recovery","Recovery"],["utility","Utility"],["pvp","PvP"]
+    ];
+    const FEATURED_STATS = /hit_chance|critical_hit|heavy_attack|attack_speed|cooldown|buff_duration|endurance|evasion|max_health|collision/i;
+    function statCategory(row) {
+      const text=`${row.id} ${row.name??row.label??""}`.toLowerCase();
+      if(/pvp/.test(text)) return "pvp";
+      if(/stun|bind|sleep|silence|collision|weaken|fear|petrif|control|resistance/.test(text)) return "control";
+      if(/heal|health|mana|regen|recovery|cost|duration|cooldown/.test(text)) return "recovery";
+      if(/defen|endurance|evasion|reduction|block|shield|taken/.test(text)) return "defense";
+      if(/attack|damage|hit|critical|range|speed|penetration/.test(text)) return "offense";
+      return "utility";
+    }
+    function setupPicker(id,key) {
+      const root=$(id); root.dataset.key=key; root.dataset.open="false"; root.dataset.category="featured";
+      root.innerHTML=`<div class="goal-selected" aria-live="polite"></div><button class="picker-trigger" type="button" aria-expanded="false"><span class="picker-trigger-plus">+</span><span class="picker-trigger-label">Add a ${key==="increase"?"wanted":"protected"} stat</span><span class="picker-trigger-count"></span><span class="picker-trigger-caret">▼</span></button><div class="picker-menu hidden" role="dialog" aria-label="Choose a ${key==="increase"?"wanted":"protected"} stat"><input class="picker-search" type="search" aria-label="Search all calculated stats" placeholder="Search all calculated stats"><div class="picker-categories"></div><div class="picker-result-head"><strong>Featured</strong><span></span></div><div class="picker-results"></div><div class="picker-footer"><span>Select as many stats as matter to this build.</span><button class="picker-done" type="button">Done</button></div></div>`;
+      const trigger=root.querySelector(".picker-trigger"), menu=root.querySelector(".picker-menu"), search=root.querySelector(".picker-search");
+      const toggle=open=>{ root.dataset.open=String(open); trigger.setAttribute("aria-expanded",String(open)); trigger.querySelector(".picker-trigger-caret").textContent=open?"▲":"▼"; menu.classList.toggle("hidden",!open); if(open) requestAnimationFrame(()=>search.focus()); };
+      trigger.onclick=()=>toggle(root.dataset.open!=="true"); root.querySelector(".picker-done").onclick=()=>toggle(false);
+      search.oninput=()=>renderPickerOptions(root,key); search.onkeydown=event=>{ if(event.key==="Escape")toggle(false); };
+      root.querySelector(".picker-categories").onclick=event=>{ const button=event.target.closest("button[data-category]"); if(!button)return; root.dataset.category=button.dataset.category; search.value=""; renderPickerOptions(root,key); };
+      root.querySelector(".picker-results").onclick=event=>{ const button=event.target.closest("button[data-stat]"); if(!button)return; state[key].push(button.dataset.stat); renderPicker(root,key); };
+      renderPicker(root,key);
+    }
+    function availableStats(key) { return state.statOptions.filter(row=>!state[key].includes(row.id)); }
+    function renderPickerOptions(root,key) {
+      const search=root.querySelector(".picker-search").value.trim().toLowerCase(), category=root.dataset.category;
+      const available=availableStats(key), visible=available.filter(row=>{ const matches=!search||`${row.name??row.label??row.id} ${row.id}`.toLowerCase().includes(search); return matches&&(search?true:category==="featured"?FEATURED_STATS.test(`${row.id} ${row.name??""}`):statCategory(row)===category); });
+      const counts=Object.fromEntries(STAT_CATEGORIES.map(([id])=>[id,available.filter(row=>id==="featured"?FEATURED_STATS.test(`${row.id} ${row.name??""}`):statCategory(row)===id).length]));
+      root.querySelector(".picker-categories").innerHTML=STAT_CATEGORIES.map(([id,label])=>`<button type="button" class="picker-category ${!search&&category===id?"active":""}" data-category="${id}">${label} <span>${counts[id]}</span></button>`).join("");
+      root.querySelector(".picker-result-head strong").textContent=search?"Search results":STAT_CATEGORIES.find(row=>row[0]===category)?.[1]??"Stats";
+      root.querySelector(".picker-result-head span").textContent=`${visible.length} results`;
+      root.querySelector(".picker-results").innerHTML=visible.length?visible.map(row=>`<button type="button" class="picker-option" data-stat="${esc(row.id)}" title="Add ${esc(row.name??row.label??row.id)}"><span>+</span><span>${esc(row.name??row.label??row.id)}</span></button>`).join(""):`<div class="picker-no-results">No available stats match this view.</div>`;
+    }
+    function renderPicker(root,key) {
+      const selected=root.querySelector(".goal-selected");
+      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id; return `<div class="goal-chip"><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}</strong><small>${key==="increase"?"Included equally in the objective":"Current value is a hard floor"}</small></span><button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
+      selected.querySelectorAll("button[data-remove]").forEach(button=>button.onclick=()=>{ state[key]=state[key].filter(value=>value!==button.dataset.remove); renderPicker(root,key); });
+      root.querySelector(".picker-trigger-count").textContent=`${availableStats(key).length} available`;
+      renderPickerOptions(root,key); updateReady();
+    }
     function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
     function request() { return { build:state.build, sourceKind:state.source, goals:{ increase:state.increase, protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); $("empty-state").classList.add("hidden"); $("error-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("progress-state").classList.remove("hidden"); $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; }

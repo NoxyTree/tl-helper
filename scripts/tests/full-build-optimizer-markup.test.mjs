@@ -24,6 +24,16 @@ test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /id="cancel-optimizer"/);
 });
 
+test("goal selection uses the structured Build from Scratch picker pattern", () => {
+  assert.match(html, /class="picker-trigger"/);
+  assert.match(html, /class="picker-menu hidden" role="dialog"/);
+  assert.match(html, /Search all calculated stats/);
+  assert.match(html, /STAT_CATEGORIES/);
+  assert.match(html, /class="picker-results"/);
+  assert.match(html, /class="goal-chip"/);
+  assert.doesNotMatch(html, /createElement\("datalist"\)/);
+});
+
 test("results include an Armory-style character doll canvas", () => {
   assert.match(html, /class="build-doll"/);
   assert.match(html, /Recommended character equipment/);
