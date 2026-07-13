@@ -25,6 +25,13 @@ test("stat picker exposes every adapter stat through searchable categories witho
 
 test("selected priorities are reorderable, removable, and support display-unit minimums", () => {
   assert.match(html, /movePriority/);
+  assert.match(html, /draggable="true"/);
+  assert.match(html, /startPriorityDrag/);
+  assert.match(html, /dragOverPriority/);
+  assert.match(html, /dropPriority/);
+  assert.match(html, /Drag to reorder \{\{ p\.name \}\}/);
+  assert.doesNotMatch(html, /aria-label="Move up"/);
+  assert.doesNotMatch(html, /aria-label="Move down"/);
   assert.match(html, /removePriority/);
   assert.match(html, /Minimum \{\{ p\.name \}\}/);
   assert.match(html, /statDisplayToRaw/);
