@@ -123,10 +123,17 @@ test("ranked goals use tied ranks, diminishing weights, and scale normalization"
   const goals = normalizeRankedGoals({ priorities: [{ id: "endurance", rank: 1 }, { id: "health", rank: 2 }, { id: "evasion", rank: 2, minimum: 80 }] });
   assert.deepEqual(goals.map(({ id, rank, weight, minimum }) => ({ id, rank, weight, minimum })), [
     { id: "endurance", rank: 1, weight: 1, minimum: null },
-    { id: "evasion", rank: 2, weight: 0.6, minimum: 80 },
-    { id: "health", rank: 2, weight: 0.6, minimum: null },
+    { id: "evasion", rank: 2, weight: 0.05, minimum: 80 },
+    { id: "health", rank: 2, weight: 0.05, minimum: null },
   ]);
-  assert.equal(scoreRankedGoals({ endurance: 10, health: 1000 }, {}, { endurance: 10, health: 1000 }, goals), 1.6);
+  assert.equal(scoreRankedGoals({ endurance: 10, health: 1000 }, {}, { endurance: 10, health: 1000 }, goals), 1.05);
+});
+
+test("a meaningful gain in priority one outweighs a complete lower-priority objective", () => {
+  const goals = normalizeRankedGoals({ priorities: [{ id: "endurance", rank: 1 }, { id: "hit", rank: 2 }] });
+  const scales = { endurance: 100, hit: 100 };
+  assert.ok(scoreRankedGoals({ endurance: 10, hit: 0 }, {}, scales, goals)
+    > scoreRankedGoals({ endurance: 0, hit: 100 }, {}, scales, goals));
 });
 
 test("legacy increase arrays remain equally weighted", () => {

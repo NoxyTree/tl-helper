@@ -7,7 +7,10 @@ import { ATTRIBUTE_BREAKPOINTS, STAT_EXPANSIONS, allocatedAttributeValue } from 
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
-const RANK_DECAY = 0.6;
+// Ranked goals are intentionally near-lexicographic. A lower-ranked objective
+// should refine a build, not erase the stat named as the player's first
+// priority during candidate pruning or final scoring.
+const RANK_DECAY = 0.05;
 
 export function normalizeRankedGoals(goals = {}) {
   const source = Array.isArray(goals.priorities) && goals.priorities.length ? goals.priorities : (goals.increase ?? []);
