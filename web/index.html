@@ -124,7 +124,7 @@
           style-hover="color: #fff2ce; border-color: rgba(232, 184, 106, 0.72); background: rgba(212, 166, 94, 0.18);">My builds ({{ presetCount }})</button>
         <button type="button" onClick="{{ onNewBuild }}" title="Start a new build directly in TL Helper"
           style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #dce9ff; background: rgba(114, 169, 255, 0.1); border: 1px solid rgba(114, 169, 255, 0.42); border-radius: 999px; padding: 6px 14px; cursor: pointer;">New build</button>
-        <button type="button" onClick="{{ openImport }}" title="Import a Questlog character build JSON package"
+        <button type="button" onClick="{{ openImport }}" title="Import from a Questlog character-builder link"
           style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #cbb185; background: rgba(114, 169, 255, 0.08); border: 1px solid rgba(114, 169, 255, 0.32); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
           style-hover="color: #dce9ff; border-color: rgba(114, 169, 255, 0.65); background: rgba(114, 169, 255, 0.14);">Import Questlog</button>
         <button type="button" onClick="{{ onAutoFill }}" title="Fill the build with showcase gear"
@@ -286,36 +286,30 @@
 
         <!-- ============ STATS TAB ============ -->
         <sc-if value="{{ tabStats }}" hint-placeholder-val="{{ true }}">
-          <div style="display: grid; grid-template-columns: minmax(300px, 1fr) 390px; gap: 20px; align-items: start; animation: tlFadeUp 0.3s ease;">
+          <div style="display: grid; grid-template-columns: minmax(480px, 1fr) 330px; gap: 20px; align-items: start; animation: tlFadeUp 0.3s ease;">
             <!-- attributes -->
-            <aside style="display: grid; gap: 16px; align-self: start;">
-              <section style="position: relative; overflow: hidden; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 12px; background: linear-gradient(145deg, rgba(38, 28, 16, 0.72), rgba(14, 11, 7, 0.7)); padding: 18px;">
-                <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(420px 160px at 80% 0%, rgba(232, 184, 106, 0.11), transparent 70%);"></div>
-                <div style="position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
-                  <div>
-                    <div style="font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Build Overview</div>
-                    <h2 style="margin: 5px 0 0; font-family: Marcellus, serif; font-size: 22px; font-weight: 400; color: #f6d391;">{{ weaponPairLabel }}</h2>
-                    <div style="font-size: 11px; color: #9d8a68; margin-top: 3px;">{{ artifactSetSummary }}</div>
-                  </div>
-                  <div style="text-align: right;"><div style="font-family: Marcellus, serif; font-size: 24px; color: {{ overviewStatusColor }}; line-height: 1;">{{ overviewStatus }}</div><div style="font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; margin-top: 4px;">Build health</div></div>
-                </div>
-                <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px;">
-                  <sc-for list="{{ overviewRows }}" as="row" hint-placeholder-count="6">
-                    <div style="padding: 10px; border-radius: 8px; border: 1px solid rgba(212, 166, 94, 0.12); background: rgba(8, 6, 4, 0.42);"><div style="font-size: 9px; letter-spacing: 0.13em; text-transform: uppercase; color: #8a795f;">{{ row.label }}</div><div style="margin-top: 3px; font-size: 14px; font-weight: 650; color: {{ row.color }}; font-variant-numeric: tabular-nums;">{{ row.value }}</div></div>
-                  </sc-for>
+            <aside style="display: grid; gap: 16px; align-self: start; order: 2; position: sticky; top: 20px;">
+              <section data-testid="stat-breakdown-panel" style="order: 2; position: relative; overflow: hidden; border: 1px solid rgba(232, 184, 106, 0.34); border-radius: 12px; background: linear-gradient(145deg, rgba(38, 28, 16, 0.78), rgba(12, 9, 6, 0.86)); padding: 18px; box-shadow: 0 18px 48px rgba(0,0,0,0.2);">
+                <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(360px 180px at 80% 0%, rgba(232, 184, 106, 0.12), transparent 72%);"></div>
+                <div style="position: relative;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;"><span style="font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase; color: #a38c67;">Stat breakdown</span><button type="button" onClick="{{ selectedStat.onFavorite }}" aria-label="{{ selectedStat.favoriteLabel }}" title="{{ selectedStat.favoriteLabel }}" style="width: 30px; height: 30px; border: 1px solid rgba(232, 184, 106, 0.2); border-radius: 7px; background: rgba(8,6,4,0.4); color: {{ selectedStat.favoriteColor }}; cursor: pointer; font-size: 15px;">{{ selectedStat.favoriteGlyph }}</button></div>
+                  <h2 style="margin: 12px 0 0; font-family: Marcellus, serif; font-size: 21px; font-weight: 400; color: #f6d391; line-height: 1.15;">{{ selectedStat.name }}</h2>
+                  <div style="display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,166,94,0.14);"><div><div style="font-family: Marcellus, serif; font-size: 34px; line-height: 1; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ selectedStat.value }}</div><div style="margin-top: 5px; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: {{ selectedStat.color }};">{{ selectedStat.page }}</div></div><span style="font-size: 10px; color: #8a795f;">{{ selectedStat.sourceLabel }}</span></div>
+                  <div style="display: grid; gap: 11px; margin-top: 15px; max-height: {{ selectedStat.sourceListMaxHeight }}; overflow-y: {{ selectedStat.sourceListOverflow }}; padding-right: 3px;"><sc-for list="{{ selectedStat.sources }}" as="src" hint-placeholder-count="4"><div><div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: baseline;"><span style="font-size: 11px; color: #c4ae89; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ src.label }}</span><strong style="font-size: 11px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ src.value }}</strong></div><div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;"><span style="font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #75654d;">{{ src.type }}</span><span style="flex: 1; height: 2px; border-radius: 2px; background: rgba(212,166,94,.1); overflow: hidden;"><span style="display: block; width: {{ src.pct }}; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b87b32, #f0c473);"></span></span></div></div></sc-for></div>
+                  <sc-if value="{{ selectedStat.hasMoreSources }}" hint-placeholder-val="false"><button type="button" onClick="{{ selectedStat.onToggleSources }}" style="width: 100%; margin-top: 13px; padding: 8px 10px; border: 1px solid rgba(232,184,106,.18); border-radius: 7px; background: rgba(232,184,106,.05); color: #cbb185; cursor: pointer; font-size: 10px; letter-spacing: .04em;">{{ selectedStat.sourcesToggleLabel }}</button></sc-if>
+                  <sc-if value="{{ selectedStat.noSources }}" hint-placeholder-val="false"><p style="margin: 14px 0 0; color: #7d6c52; font-size: 11px; line-height: 1.5;">This total has no separate contribution rows in the current build snapshot.</p></sc-if>
                 </div>
               </section>
-
-              <section data-testid="favorite-stats-panel" style="border: 1px solid rgba(232, 184, 106, 0.22); border-radius: 12px; background: linear-gradient(145deg, rgba(28, 21, 12, 0.62), rgba(14, 11, 7, 0.55)); padding: 16px;">
+              <section data-testid="favorite-stats-panel" style="order: 3; display: {{ favoritePanelDisplay }}; border: 1px solid rgba(232, 184, 106, 0.22); border-radius: 12px; background: linear-gradient(145deg, rgba(28, 21, 12, 0.62), rgba(14, 11, 7, 0.55)); padding: 12px;">
                 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
-                  <div><h2 style="margin: 0; font-family: Marcellus, serif; font-size: 16px; font-weight: 400; color: #f6d391;">Favourite Stats</h2><p style="margin: 3px 0 0; font-size: 10px; color: #8a795f;">Star any effect in the detail panel to keep it here.</p></div>
+                  <div><h2 style="margin: 0; font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f6d391;">Favourite Stats</h2><p style="margin: 2px 0 0; font-size: 9px; color: #8a795f;">Pinned for quick comparison.</p></div>
                   <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ favoriteStatCount }}</span>
                 </div>
                 <sc-if value="{{ hasFavoriteStats }}" hint-placeholder-val="{{ false }}">
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px;">
+                  <div style="display: grid; gap: 5px;">
                     <sc-for list="{{ favoriteStatRows }}" as="row" hint-placeholder-count="4">
-                      <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border: 1px solid rgba(232, 184, 106, 0.2); border-radius: 9px; background: rgba(8, 6, 4, 0.48); overflow: hidden;">
-                        <button type="button" onClick="{{ row.onOpen }}" aria-label="Open {{ row.name }} details" style="min-width: 0; padding: 10px 11px; text-align: left; border: none; background: transparent; cursor: pointer;"><span style="display: block; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: {{ row.color }};">{{ row.page }}</span><span style="display: block; margin-top: 2px; font-size: 11px; color: #c4ae89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><span style="display: block; margin-top: 3px; font-family: Marcellus, serif; font-size: 18px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</span></button>
+                      <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border: 1px solid rgba(232, 184, 106, 0.16); border-radius: 7px; background: rgba(8, 6, 4, 0.42); overflow: hidden;">
+                        <button type="button" onClick="{{ row.onOpen }}" aria-label="Open {{ row.name }} details" style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 8px 9px; text-align: left; border: none; background: transparent; cursor: pointer;"><span style="font-size: 10.5px; color: #c4ae89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><strong style="font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</strong></button>
                         <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove {{ row.name }} from favourites" title="Remove from favourites" style="width: 34px; border: none; border-left: 1px solid rgba(232, 184, 106, 0.12); background: rgba(232, 184, 106, 0.04); color: #f6d391; cursor: pointer; font-size: 15px;">★</button>
                       </div>
                     </sc-for>
@@ -326,7 +320,7 @@
                 </sc-if>
               </section>
 
-              <section style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 10px; background: rgba(18, 14, 9, 0.55); padding: 16px;">
+              <section data-testid="attributes-panel" style="order: 1; border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 10px; background: rgba(18, 14, 9, 0.55); padding: 16px;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;">
                 <h2 style="margin: 0; font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f6d391; letter-spacing: 0.06em;">Attributes</h2>
                 <span style="font-size: 10px; color: #8a795f; letter-spacing: 0.1em; text-transform: uppercase;">{{ attrTotal }} pts</span>
@@ -352,7 +346,11 @@
             </aside>
 
             <!-- stat pages -->
-            <div style="min-width: 0; position: sticky; top: 20px; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(14, 11, 7, 0.58); padding: 14px;">
+            <div style="min-width: 0; order: 1; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(14, 11, 7, 0.58); padding: 16px;">
+              <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; margin-bottom: 13px;">
+                <label style="position: relative; display: block;"><span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8a795f; font-size: 13px;">⌕</span><input type="search" value="{{ statSearch }}" onInput="{{ onStatSearch }}" placeholder="Search effects" aria-label="Search effects" style="width: 100%; min-height: 38px; padding: 9px 12px 9px 34px; border: 1px solid rgba(212,166,94,.2); border-radius: 8px; background: rgba(8,6,4,.58); color: #f3e9d4; font-size: 12px; outline: none;"></label>
+                <span style="font-size: 10px; color: #8a795f; white-space: nowrap;">Click a stat to inspect its sources</span>
+              </div>
               <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px;">
                 <sc-for list="{{ statPages }}" as="page" hint-placeholder-count="8">
                   <button type="button" onClick="{{ page.onClick }}"
@@ -367,32 +365,20 @@
                 </div>
                 <span style="font-size: 11px; color: #8a795f; white-space: nowrap;">{{ statRowCount }} totals</span>
               </div>
-              <div style="border: 1px solid rgba(212, 166, 94, 0.14); border-radius: 10px; overflow-y: auto; max-height: calc(100vh - 255px); background: rgba(14, 11, 7, 0.45);">
+              <div style="border: 1px solid rgba(212, 166, 94, 0.14); border-radius: 10px; overflow: hidden; background: rgba(14, 11, 7, 0.45);">
                 <sc-for list="{{ statRows }}" as="row" hint-placeholder-count="10">
                   <div style="border-bottom: 1px solid rgba(212, 166, 94, 0.08);">
-                    <div style="display: flex; align-items: stretch; background: {{ row.bg }}; transition: background 0.12s ease;">
+                    <div style="display: flex; align-items: stretch; background: {{ row.bg }}; border-left: 2px solid {{ row.activeBorder }}; transition: background 0.12s ease, border-color 0.12s ease;">
                       <button type="button" onClick="{{ row.onFavorite }}" aria-label="{{ row.favoriteLabel }}" title="{{ row.favoriteLabel }}" style="flex: none; width: 34px; border: none; border-right: 1px solid rgba(212, 166, 94, 0.08); background: transparent; color: {{ row.favoriteColor }}; cursor: pointer; font-size: 14px;">{{ row.favoriteGlyph }}</button>
                       <button type="button" onClick="{{ row.onToggle }}"
                       style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 9px 12px; background: transparent; border: none; cursor: pointer; text-align: left; transition: background 0.12s ease;"
                       style-hover="background: rgba(212, 166, 94, 0.07);">
                       <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ row.dot }}; flex: none;"></span>
-                      <span style="flex: 1; font-size: 12.5px; color: #d9c8a5;">{{ row.name }}</span>
-                      <span style="font-size: 13.5px; font-weight: 650; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</span>
-                      <span style="font-size: 9px; color: #8a795f; width: 10px; text-align: center;">{{ row.chevron }}</span>
+                      <span style="flex: 1; min-width: 0;"><span style="display: block; font-size: 12.5px; color: #d9c8a5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><span style="display: block; margin-top: 3px; font-size: 9px; color: #74644d;">{{ row.sourceLabel }}</span></span>
+                      <span style="font-size: 14px; font-weight: 650; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</span>
+                      <span style="font-size: 12px; color: {{ row.chevronColor }}; width: 12px; text-align: center;">›</span>
                       </button>
                     </div>
-                    <sc-if value="{{ row.expanded }}" hint-placeholder-val="{{ false }}">
-                      <div style="padding: 4px 16px 12px 31px; display: grid; gap: 4px; animation: tlFadeIn 0.2s ease;">
-                        <sc-for list="{{ row.sources }}" as="src" hint-placeholder-count="3">
-                          <div style="display: flex; align-items: baseline; gap: 8px; font-size: 11px;">
-                            <span style="color: #a4906d;">{{ src.label }}</span>
-                            <span style="font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #6e5f49; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 4px; padding: 0 5px;">{{ src.type }}</span>
-                            <span style="flex: 1; border-bottom: 1px dotted rgba(212, 166, 94, 0.15); transform: translateY(-3px);"></span>
-                            <span style="color: #d9c8a5; font-variant-numeric: tabular-nums;">{{ src.value }}</span>
-                          </div>
-                        </sc-for>
-                      </div>
-                    </sc-if>
                   </div>
                 </sc-for>
                 <sc-if value="{{ statRowsEmpty }}" hint-placeholder-val="{{ false }}">
@@ -1136,13 +1122,13 @@
       <div data-screen-label="Questlog Import" style="position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; padding: 32px; background: rgba(5, 4, 3, 0.82); backdrop-filter: blur(8px);">
         <div style="width: min(760px, 92vw); border: 1px solid rgba(114, 169, 255, 0.38); border-radius: 14px; background: linear-gradient(180deg, #17130d, #0e0b07); padding: 22px; box-shadow: 0 28px 80px rgba(0,0,0,0.65);">
           <div style="font-family: Marcellus, serif; font-size: 21px; color: #f6d391;">Import Questlog Build</div>
-          <p style="margin: 7px 0 14px; color: #9d8a68; font-size: 11px; line-height: 1.55;">Paste a JSON object containing <b style="color:#cbb185;">characterData</b>, <b style="color:#cbb185;">build</b>, <b style="color:#cbb185;">skillBuild</b>, and <b style="color:#cbb185;">masteryBuild</b>. The imported build replaces the current local build only after you confirm.</p>
-          <textarea value="{{ importText }}" onChange="{{ onImportText }}" aria-label="Questlog build JSON" spellcheck="false" placeholder="Paste Questlog build JSON here"
-            style="width: 100%; min-height: 310px; resize: vertical; border-radius: 9px; border: 1px solid rgba(212, 166, 94, 0.22); background: rgba(7,5,3,0.8); color: #e6d6b4; padding: 12px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.45;"></textarea>
+          <p style="margin: 7px 0 14px; color: #9d8a68; font-size: 11px; line-height: 1.55;">Paste a Questlog character-builder link. If the link includes a build ID, that build is imported. Otherwise, TL Helper imports the first build on the character.</p>
+          <input type="url" value="{{ importText }}" onInput="{{ onImportText }}" aria-label="Questlog character-builder link" spellcheck="false" placeholder="https://questlog.gg/throne-and-liberty/en/character-builder/..."
+            style="width: 100%; min-height: 46px; border-radius: 9px; border: 1px solid rgba(212, 166, 94, 0.22); background: rgba(7,5,3,0.8); color: #e6d6b4; padding: 12px; font-size: 12px; line-height: 1.45;">
           <sc-if value="{{ hasImportError }}" hint-placeholder-val="{{ false }}"><div style="margin-top: 10px; color: #e56a6a; font-size: 11px;">{{ importError }}</div></sc-if>
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
             <button type="button" onClick="{{ closeImport }}" style="padding:8px 15px; border-radius:8px; border:1px solid rgba(212,166,94,0.2); background:transparent; color:#9d8a68; cursor:pointer;">Cancel</button>
-            <button type="button" onClick="{{ applyImport }}" style="padding:8px 15px; border-radius:8px; border:1px solid rgba(114,169,255,0.58); background:rgba(114,169,255,0.14); color:#dce9ff; cursor:pointer;">Import Build</button>
+            <button type="button" onClick="{{ applyImport }}" disabled="{{ importLoading }}" style="padding:8px 15px; border-radius:8px; border:1px solid rgba(114,169,255,0.58); background:rgba(114,169,255,0.14); color:#dce9ff; cursor:pointer; opacity:{{ importButtonOpacity }};">{{ importButtonLabel }}</button>
           </div>
         </div>
       </div>
@@ -1510,7 +1496,9 @@ class Component extends DCLogic {
     build: null,
     tab: "stats",
     statPage: "combat",
+    statSearch: "",
     expandedStatId: "",
+    statSourcesExpanded: false,
     favoriteStatIds: [],
     skillFocusId: "",
     skillHoverId: "",
@@ -1529,6 +1517,7 @@ class Component extends DCLogic {
     pickerHoverId: "",
     importOpen: false,
     importText: "",
+    importLoading: false,
     importError: "",
     presetsOpen: false,
     presets: [],
@@ -1801,12 +1790,30 @@ class Component extends DCLogic {
   }
 
   closeImport() {
-    this.setState({ importOpen: false, importError: "" });
+    this.setState({ importOpen: false, importError: "", importLoading: false });
   }
 
-  applyImport() {
+  async applyImport() {
+    const url = String(this.state.importText ?? "").trim();
+    if (!url) {
+      this.setState({ importError: "Paste a Questlog character-builder link first." });
+      return;
+    }
+    this.setState({ importLoading: true, importError: "" });
     try {
-      const imported = this.core.importQuestlogBuild(JSON.parse(this.state.importText));
+      const response = await fetch(`/api/questlog/character?url=${encodeURIComponent(url)}`, { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
+      const requested = payload.buildId === null ? null : String(payload.buildId);
+      const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
+      if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
+      const sourceBuild = {
+        ...rawBuild,
+        equipment: Object.fromEntries(Object.entries(rawBuild.equipment ?? {}).map(([slot, row]) => [slot, row ? { ...row, itemLevel: row.itemLevel ?? row.enhLvl } : row])),
+      };
+      const skillBuild = payload.skillData?.builds?.find((row) => String(row.id) === String(sourceBuild.skillBuildId));
+      const masteryBuild = payload.masteryData?.builds?.find((row) => String(row.id) === String(sourceBuild.weaponSpecializationBuildId));
+      const imported = this.core.importQuestlogBuild({ characterData: payload.characterData, build: sourceBuild, skillBuild, masteryBuild });
       imported.build.skills = this.core.normalizeSkillSelections(imported.build.skills);
       imported.build.masteries = this.core.normalizeMasterySelections(imported.build.masteries);
       this.setState({
@@ -1816,10 +1823,11 @@ class Component extends DCLogic {
         masteryWeapon: this.core.currentWeaponTypes(imported.build)[0] ?? "sword",
         importOpen: false,
         importText: "",
+        importLoading: false,
         importError: "",
       }, () => this.save());
     } catch (error) {
-      this.setState({ importError: String(error?.message ?? error) });
+      this.setState({ importError: String(error?.message ?? error), importLoading: false });
     }
   }
 
@@ -2374,11 +2382,13 @@ class Component extends DCLogic {
         border: active ? "rgba(232, 184, 106, 0.65)" : "rgba(212, 166, 94, 0.2)",
         bg: active ? "rgba(212, 166, 94, 0.14)" : "transparent",
         color: active ? "#f6d391" : "#9d8a68",
-        onClick: () => this.setState({ statPage: id, expandedStatId: "" }),
+        onClick: () => this.setState({ statPage: id, expandedStatId: "", statSourcesExpanded: false }),
       };
     });
     const pageDef = core.STAT_PAGE_DEFINITIONS.find(([id]) => id === this.state.statPage) ?? core.STAT_PAGE_DEFINITIONS[0];
-    const pageRows = core.statPageRows(calc, this.state.statPage, build);
+    const statSearch = String(this.state.statSearch ?? "").trim().toLowerCase();
+    const pageRows = core.statPageRows(calc, this.state.statPage, build)
+      .filter((row) => !statSearch || core.statName(row.id).toLowerCase().includes(statSearch) || row.sources.some((source) => String(source.sourceLabel ?? "").toLowerCase().includes(statSearch)));
     const dotColors = { combat: "#e8b86a", utility: "#72a9ff", control: "#b873ff", species: "#55d58a", directional: "#e5a06a", boss: "#e56a6a", pvp: "#d977b8" };
     const favoriteIds = new Set(this.state.favoriteStatIds ?? []);
     const statRows = pageRows.map((row) => {
@@ -2389,7 +2399,11 @@ class Component extends DCLogic {
         name: core.statName(row.id),
         value: core.formatStat(row.id, row.total),
         dot: dotColors[core.statPageFor(row.id)] ?? "#8a795f",
-        bg: expanded ? "rgba(212, 166, 94, 0.06)" : "transparent",
+        bg: expanded ? "linear-gradient(90deg, rgba(212,166,94,.11), rgba(212,166,94,.025))" : "transparent",
+        activeBorder: expanded ? "#e8b86a" : "transparent",
+        chevronColor: expanded ? "#f6d391" : "#75654d",
+        sourceCount: core.formatNumber(row.sources.length),
+        sourceLabel: `${core.formatNumber(row.sources.length)} ${row.sources.length === 1 ? "source" : "sources"}`,
         chevron: expanded ? "▾" : "▸",
         favoriteGlyph: favorite ? "★" : "☆",
         favoriteColor: favorite ? "#f6d391" : "#6e5f49",
@@ -2402,11 +2416,61 @@ class Component extends DCLogic {
               value: core.formatSigned(source.value, row.id),
             }))
           : [],
-        onToggle: () => this.setState({ expandedStatId: expanded ? "" : row.id }),
+        onToggle: () => this.setState({ expandedStatId: row.id, statSourcesExpanded: false }),
         onFavorite: () => this.toggleFavoriteStat(row.id),
       };
     });
     const statPageNames = Object.fromEntries(core.STAT_PAGE_DEFINITIONS.map(([id, name]) => [id, name]));
+    const selectedSourceRow = pageRows.find((row) => row.id === this.state.expandedStatId) ?? pageRows[0] ?? null;
+    const selectedSourceMax = Math.max(1, ...(selectedSourceRow?.sources ?? []).map((source) => Math.abs(Number(source.value) || 0)));
+    const selectedFavorite = selectedSourceRow ? favoriteIds.has(selectedSourceRow.id) : false;
+    const selectedPage = selectedSourceRow ? core.statPageFor(selectedSourceRow.id) : this.state.statPage;
+    const selectedSources = [...(selectedSourceRow?.sources ?? [])]
+      .sort((a, b) => Math.abs(Number(b.value) || 0) - Math.abs(Number(a.value) || 0))
+      .map((source) => ({
+        label: source.sourceLabel || "Source",
+        type: core.sourceTypeLabel(source.type),
+        value: core.formatSigned(source.value, selectedSourceRow.id),
+        pct: `${Math.max(3, Math.abs(Number(source.value) || 0) / selectedSourceMax * 100)}%`,
+      }));
+    const visibleSelectedSources = this.state.statSourcesExpanded ? selectedSources : selectedSources.slice(0, 5);
+    const selectedStat = selectedSourceRow ? {
+      name: core.statName(selectedSourceRow.id),
+      value: core.formatStat(selectedSourceRow.id, selectedSourceRow.total),
+      page: statPageNames[selectedPage] ?? "Effects",
+      color: dotColors[selectedPage] ?? "#cbb185",
+      sourceCount: core.formatNumber(selectedSourceRow.sources.length),
+      sourceLabel: `${core.formatNumber(selectedSourceRow.sources.length)} ${selectedSourceRow.sources.length === 1 ? "source" : "sources"}`,
+      sources: visibleSelectedSources,
+      sourceListMaxHeight: this.state.statSourcesExpanded ? "360px" : "none",
+      sourceListOverflow: this.state.statSourcesExpanded ? "auto" : "visible",
+      hasMoreSources: selectedSources.length > 5,
+      sourcesToggleLabel: this.state.statSourcesExpanded ? "Show fewer" : `Show all ${selectedSources.length} sources`,
+      onToggleSources: () => this.setState({ statSourcesExpanded: !this.state.statSourcesExpanded }),
+      noSources: selectedSourceRow.sources.length === 0,
+      favoriteGlyph: selectedFavorite ? "★" : "☆",
+      favoriteColor: selectedFavorite ? "#f6d391" : "#6e5f49",
+      favoriteLabel: `${selectedFavorite ? "Remove" : "Add"} ${core.statName(selectedSourceRow.id)} ${selectedFavorite ? "from" : "to"} favourites`,
+      onFavorite: () => this.toggleFavoriteStat(selectedSourceRow.id),
+    } : {
+      name: "No matching stat",
+      value: "None",
+      page: statPageNames[this.state.statPage] ?? "Effects",
+      color: "#8a795f",
+      sourceCount: "0",
+      sourceLabel: "0 sources",
+      sources: [],
+      sourceListMaxHeight: "none",
+      sourceListOverflow: "visible",
+      hasMoreSources: false,
+      sourcesToggleLabel: "",
+      onToggleSources: () => {},
+      noSources: true,
+      favoriteGlyph: "☆",
+      favoriteColor: "#6e5f49",
+      favoriteLabel: "No stat selected",
+      onFavorite: () => {},
+    };
     const favoriteStatRows = [...favoriteIds].map((id) => {
       const page = core.statPageFor(id);
       return {
@@ -2415,7 +2479,7 @@ class Component extends DCLogic {
         value: core.formatStat(id, core.statTotal(calc, id)),
         page: statPageNames[page] ?? "Effects",
         color: dotColors[page] ?? "#cbb185",
-        onOpen: () => this.setState({ statPage: page, expandedStatId: id }),
+        onOpen: () => this.setState({ statPage: page, expandedStatId: id, statSourcesExpanded: false }),
         onRemove: () => this.toggleFavoriteStat(id),
       };
     });
@@ -2484,6 +2548,9 @@ class Component extends DCLogic {
       importOpen: this.state.importOpen,
       importText: this.state.importText,
       onImportText: (event) => this.setState({ importText: event.target.value, importError: "" }),
+      importLoading: this.state.importLoading,
+      importButtonLabel: this.state.importLoading ? "Importing..." : "Import Build",
+      importButtonOpacity: this.state.importLoading ? "0.55" : "1",
       importError: this.state.importError,
       hasImportError: Boolean(this.state.importError),
       closeImport: () => this.closeImport(),
@@ -2521,12 +2588,16 @@ class Component extends DCLogic {
       attrRows,
       attrTotal,
       statPages,
+      statSearch: this.state.statSearch,
+      onStatSearch: (event) => this.setState({ statSearch: event.target.value, expandedStatId: "", statSourcesExpanded: false }),
       statPageTitle: pageDef[1],
       statPageDesc: pageDef[2],
       statRowCount: core.formatNumber(pageRows.length),
       statRows,
       statRowsEmpty: pageRows.length === 0,
+      selectedStat,
       favoriteStatRows,
+      favoritePanelDisplay: favoriteStatRows.length ? "block" : "none",
       favoriteStatCount: core.formatNumber(favoriteStatRows.length),
       hasFavoriteStats: favoriteStatRows.length > 0,
       noFavoriteStats: favoriteStatRows.length === 0,
