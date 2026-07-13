@@ -128,9 +128,6 @@
         <button type="button" onClick="{{ openImport }}" title="Import from a Questlog character-builder link"
           style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #cbb185; background: rgba(114, 169, 255, 0.08); border: 1px solid rgba(114, 169, 255, 0.32); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
           style-hover="color: #dce9ff; border-color: rgba(114, 169, 255, 0.65); background: rgba(114, 169, 255, 0.14);">Import Questlog</button>
-        <button type="button" onClick="{{ onAutoFill }}" title="Fill the build with showcase gear"
-          style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #cbb185; background: rgba(212, 166, 94, 0.1); border: 1px solid rgba(212, 166, 94, 0.3); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
-          style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.6); background: rgba(212, 166, 94, 0.16);">Auto-fill</button>
       </div>
     </header>
 
@@ -2578,10 +2575,6 @@ class Component extends DCLogic {
       hasImportError: Boolean(this.state.importError),
       closeImport: () => this.closeImport(),
       applyImport: () => this.applyImport(),
-      onAutoFill: () => {
-        const seeded = core.seedShowcaseBuild(`${this.state.profile.name}'s Build`);
-        this.setState({ build: seeded, masteryWeapon: core.currentWeaponTypes(seeded)[0], skillFocusId: "", masteryFocusId: "" }, () => this.save());
-      },
       onClearBuild: () => {
         const cleared = core.createInitialBuild();
         this.setState({ build: cleared, skillFocusId: "", masteryFocusId: "" }, () => this.save());

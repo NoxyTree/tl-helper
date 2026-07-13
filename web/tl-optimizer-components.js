@@ -10,7 +10,7 @@ function stableScore(score, tie) {
 }
 
 function ranked(rows, limit) {
-  return rows.sort((a, b) => b.score - a.score || a.key.localeCompare(b.key)).slice(0, limit);
+  return rows.sort((a, b) => b.score - a.score || Number(b.tierScore ?? 0) - Number(a.tierScore ?? 0) || a.key.localeCompare(b.key)).slice(0, limit);
 }
 
 function diverseRuneCandidates(rows, limit) {
@@ -87,7 +87,15 @@ export function generateRuneCandidates({
     if (rune.equipmentCategory !== category || !chaosAllowed(rune, policy)) continue;
     for (const option of runeOptions(rune).filter((row) => allowStat(row.statId))) {
       const key = `${rune.runeType}|${rune.id}|${option.statId}|${option.level}`;
-      variants.push({ rune, option, key, score: stableScore(scoreStat(option.statId, option.value), key).value });
+      variants.push({
+        rune,
+        option,
+        key,
+        score: stableScore(scoreStat(option.statId, option.value), key).value,
+        // Rune level is not comparable to a build stat, so it must never add to
+        // the objective. It is only the tie-breaker for otherwise equal choices.
+        tierScore: option.level * 1000 + Number(rune.grade ?? 0),
+      });
     }
   }
   const byType = Object.groupBy ? Object.groupBy(variants, (row) => row.rune.runeType) : variants.reduce((map, row) => {
@@ -106,6 +114,7 @@ export function generateRuneCandidates({
       selection,
       synergy,
       score: rows.reduce((sum, row) => sum + row.score, 0) + Number(scoreSynergy(synergy) || 0),
+      tierScore: rows.reduce((sum, row) => sum + row.tierScore, 0),
       key,
       assumptions: ["Three rune sockets", "Normal rune selections may repeat", `Chaos availability: ${policy.mode}`, "At most one Chaos rune per item"],
       explanation: synergy ? `Activates ${synergy.name}` : "No matching rune synergy",

@@ -44,6 +44,7 @@ test("TL Helper creation and saving are primary while Questlog remains optional"
   assert.match(header, />My builds \(\{\{ presetCount \}\}\)<\/button>/);
   assert.match(header, />New build<\/button>/);
   assert.match(header, />Import Questlog<\/button>/);
+  assert.doesNotMatch(header, /Auto-fill|onAutoFill/);
   assert.match(header, /aria-label="Character name"/);
   assert.match(header, /aria-label="Build role"/);
   assert.match(header, /aria-label="Server"/);
@@ -66,4 +67,5 @@ test("Questlog import accepts a character-builder link instead of raw JSON", () 
 test("a first visit starts with an editable empty TL Helper build", () => {
   assert.match(markup, /const build = saved\?\.build \?\? core\.createInitialBuild\(\)/);
   assert.doesNotMatch(markup, /const build = saved\?\.build \?\? core\.seedShowcaseBuild/);
+  assert.doesNotMatch(markup, /onAutoFill|seedShowcaseBuild\(/);
 });

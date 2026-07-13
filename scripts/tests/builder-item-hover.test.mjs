@@ -9,7 +9,7 @@ const model = {
   hasUnique: true, unique: [{ name: "Heavy Attack", formattedValue: "80" }],
   hasHeroicEffects: true, heroicEffects: [{ groupNumber: 1, name: "Evasion", value: "220", level: 12, levelKnown: true }],
   hasResonance: true, resonance: [{ name: "Cooldown Speed", formattedValue: "4%" }],
-  hasRunes: true, runes: [{ empty: false, hasIcon: false, typeColor: "#f00", typeLabel: "ATTACK", gradeName: "Epic", level: 60, contribution: "+80 Hit" }],
+  hasRunes: true, runes: [{ empty: false, hasIcon: false, typeColor: "#f00", typeLabel: "ATTACK", gradeName: "Rare", level: 60, maxLevel: 60, maxLevelLabel: "Max Lv 60", contribution: "+80 Hit" }],
   hasSynergy: true, synergyName: "Attack Support Defense", synergyStats: ["Max Health +100"],
   hasSet: true, setInfo: { name: "Overture", countLabel: "2/4", bonuses: [{ active: true, color: "#7e0", mark: "✓", required: "2 pc", text: "All Evasion 110", hasComputed: false }] },
   effects: [{ label: "Skill Core:", name: "Excluded", text: "Never render", hasIcon: false }, { label: "Passive:", name: "Kept", text: "Inherent item passive", hasIcon: false }],
@@ -21,6 +21,7 @@ test("renders the complete selected item configuration without skill-core potent
   assert.match(html, /Evasion/);
   assert.match(html, /220/);
   assert.match(html, /\+80 Hit/);
+  assert.match(html, /Rare · Max Lv 60/);
   assert.doesNotMatch(html, /Excluded|Never render|Skill Core/);
 });
 

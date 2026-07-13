@@ -776,6 +776,8 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
       typeColor: rune ? (typeColors[rune.runeType] ?? "#cbb185") : "#cbb185",
       gradeName: rune ? runeTierLabel(rune) : "",
       level: lvl,
+      maxLevel,
+      maxLevelLabel: `Max Lv ${maxLevel}`,
       contribution: r.statId ? `+${formatStat(r.statId, val)} ${statName(r.statId)}` : "",
     };
   });

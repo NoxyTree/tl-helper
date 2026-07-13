@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { generateArtifactCandidates, generateRuneCandidates } from "../../web/tl-optimizer-components.js";
 
-const rune = (id, type, stat, value = 10) => ({ id, name: id, runeType: type, equipmentCategory: "weapon", itemStats: { random_stat_group_1: [{ stat_id: stat, max_level: 1, levels: [0, value] }] } });
+const rune = (id, type, stat, value = 10, maxLevel = 1, grade = 31) => ({
+  id, name: id, runeType: type, equipmentCategory: "weapon", grade,
+  itemStats: { random_stat_group_1: [{ stat_id: stat, max_level: maxLevel, levels: Array.from({ length: maxLevel + 1 }, (_, level) => value * level / maxLevel) }] },
+});
 const synergy = { id: "aaa", name: "Triple Attack", equipmentCategory: "weapon", combination: ["attack", "attack", "attack"], stats: { power: 50 } };
 
 test("rune candidates permit three duplicate normal runes and retain exact synergy", () => {
@@ -37,6 +40,22 @@ test("rune candidates exclude non-combat metadata stats when requested", () => {
   const rows = generateRuneCandidates({ category: "weapon", runes, allowStat: (id) => !id.startsWith("adjust_") });
   assert.ok(rows.length > 0);
   assert.ok(rows.every((candidate) => candidate.selection.every((row) => row.runeId !== "craft")));
+});
+
+test("equal-score rune filler prefers the highest available rune tier", () => {
+  const rare = rune("rare", "attack", "front_all_critical_attack", 36, 60, 31);
+  const epic = rune("epic", "attack", "melee_accuracy", 30, 120, 42);
+  const [best] = generateRuneCandidates({ category: "weapon", runes: [rare, epic] });
+  assert.deepEqual(best.selection.map((row) => row.level), [120, 120, 120]);
+  assert.deepEqual(best.selection.map((row) => row.runeId), ["epic", "epic", "epic"]);
+});
+
+test("a lower-tier rune still wins when its stat scores better", () => {
+  const rare = rune("rare", "attack", "wanted", 36, 60, 31);
+  const epic = rune("epic", "attack", "filler", 300, 120, 42);
+  const [best] = generateRuneCandidates({ category: "weapon", runes: [rare, epic], scoreStat: (id, value) => id === "wanted" ? value : 0 });
+  assert.deepEqual(best.selection.map((row) => row.level), [60, 60, 60]);
+  assert.deepEqual(best.selection.map((row) => row.runeId), ["rare", "rare", "rare"]);
 });
 
 const artifact = (set, type, index) => ({ id: `${set}-${type}`, name: `${set} ${type}`, equipmentType: type, setId: set, itemStats: { artifact: { 0: { power: index } } } });

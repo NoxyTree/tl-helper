@@ -15,7 +15,7 @@ function statRows(rows, kind) {
 function runeRows(rows) {
   return (rows ?? []).map((rune) => rune.empty
     ? `<div class="tlb-hc-rune is-empty"><i></i><span>Empty socket</span></div>`
-    : `<div class="tlb-hc-rune"><i style="border-color:${esc(rune.typeColor)}">${rune.hasIcon ? `<img src="${esc(rune.icon)}" alt="">` : ""}<b>${esc(rune.level)}</b></i><span><em style="color:${esc(rune.typeColor)}">${esc(rune.typeLabel)}</em><small>${esc(rune.gradeName)}</small><strong>${esc(rune.contribution)}</strong></span></div>`).join("");
+    : `<div class="tlb-hc-rune"><i style="border-color:${esc(rune.typeColor)}">${rune.hasIcon ? `<img src="${esc(rune.icon)}" alt="">` : ""}<b>${esc(rune.level)}</b></i><span><em style="color:${esc(rune.typeColor)}">${esc(rune.typeLabel)}</em><small>${esc(rune.gradeName)}${rune.maxLevelLabel ? ` · ${esc(rune.maxLevelLabel)}` : ""}</small><strong>${esc(rune.contribution)}</strong></span></div>`).join("");
 }
 
 export function renderBuilderItemHover(model) {
