@@ -126,6 +126,38 @@ function protectedLegal(evaluation, protectedStats) {
   });
 }
 
+function resultDominates(a, b, ids) {
+  const left = a.evaluation?.stats ?? {};
+  const right = b.evaluation?.stats ?? {};
+  return ids.every((id) => number(left[id]) >= number(right[id]))
+    && ids.some((id) => number(left[id]) > number(right[id]));
+}
+
+function diverseResultFrontier(results, ids, limit) {
+  if (!ids.length) return results.slice(0, limit);
+  const frontier = [];
+  for (const result of [...results].sort((a, b) => a.key.localeCompare(b.key))) {
+    if (frontier.some((other) => resultDominates(other, result, ids))) continue;
+    for (let index = frontier.length - 1; index >= 0; index -= 1) {
+      if (resultDominates(result, frontier[index], ids)) frontier.splice(index, 1);
+    }
+    frontier.push(result);
+  }
+  if (frontier.length <= limit) return frontier;
+  const retained = new Map();
+  const add = (row) => row && retained.set(row.key, row);
+  add(frontier[0]);
+  for (const id of ids) {
+    const ordered = [...frontier].sort((a, b) => number(b.evaluation?.stats?.[id]) - number(a.evaluation?.stats?.[id]) || a.key.localeCompare(b.key));
+    for (const row of ordered.slice(0, Math.max(2, Math.ceil(limit / ids.length)))) add(row);
+  }
+  for (const row of frontier) {
+    if (retained.size >= limit) break;
+    add(row);
+  }
+  return [...retained.values()].slice(0, limit);
+}
+
 /**
  * @param {object} options
  * @param {Record<string, Array<object>>} options.candidatesBySlot
@@ -139,6 +171,7 @@ export async function optimizeFullBuild(options) {
   const beamWidth = Math.max(1, number(options.beamWidth) || 500);
   const paretoWidth = Math.max(1, number(options.paretoWidth) || 24);
   const alternativeCount = Math.max(1, number(options.alternativeCount) || 5);
+  const frontierCount = Math.max(alternativeCount, number(options.frontierCount) || 48);
   const weights = options.weights ?? {};
   const paretoStats = [...new Set([...(options.paretoStats ?? Object.keys(weights)), ...Object.keys(options.protectedStats ?? {})])].sort();
   let searched = 0;
@@ -185,5 +218,6 @@ export async function optimizeFullBuild(options) {
     || neutral(b, "neutralGrade") - neutral(a, "neutralGrade")
     || a.key.localeCompare(b.key));
   const alternatives = results.slice(0, alternativeCount);
-  return { best: alternatives[0] ?? null, alternatives, searched, finalists: beam.length };
+  const frontier = diverseResultFrontier(results, paretoStats, frontierCount);
+  return { best: alternatives[0] ?? null, alternatives, frontier, searched, finalists: beam.length };
 }

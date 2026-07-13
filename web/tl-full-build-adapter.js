@@ -441,15 +441,16 @@ export async function createOptimizerAdapter(deps = {}) {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         return !Object.values(selections).some((selection) => selection?.itemId === itemId);
-      }, weights: beamWeights, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (attributePointBudget != null) {
         const exact = [];
-        for (let index = 0; index < search.alternatives.length; index += 1) {
+        const preliminaryFrontier = search.frontier?.length ? search.frontier : search.alternatives;
+        for (let index = 0; index < preliminaryFrontier.length; index += 1) {
           if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
-          const candidate = search.alternatives[index];
+          const candidate = preliminaryFrontier[index];
           const optimized = runAttributeOptimizer({ core, build: candidate.evaluation.build, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, includeSetEffects: rules.includeSetEffects !== false, minimums: attributeMinimums });
           if (satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints } });
-          runtime.onProgress?.({ percent: 60 + 40 * (index + 1) / search.alternatives.length, label: "Optimizing attribute points", detail: `${index + 1} of ${search.alternatives.length} shortlisted loadouts` });
+          runtime.onProgress?.({ percent: 60 + 40 * (index + 1) / preliminaryFrontier.length, label: "Optimizing attribute points", detail: `${index + 1} of ${preliminaryFrontier.length} frontier loadouts` });
           if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
         }
         const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
@@ -458,7 +459,7 @@ export async function createOptimizerAdapter(deps = {}) {
           || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")
           || neutralTotal(b, "neutralGrade") - neutralTotal(a, "neutralGrade")
           || a.key.localeCompare(b.key));
-        search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), attributeFinalistsEvaluated: search.alternatives.length };
+        search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), frontier: exact.slice(0, attributePoolSize), attributeFinalistsEvaluated: preliminaryFrontier.length };
       }
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
@@ -490,6 +491,14 @@ export async function createOptimizerAdapter(deps = {}) {
               : "Neutral fallback: conserves Heroic allowances, then prefers item level and grade";
         return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason, neutralFallback: !directGoals.length && !candidate?.setKeys?.length };
       });
+      const tuningFrontier = (search.frontier?.length ? search.frontier : [best]).map((row) => ({
+        id: row.key,
+        score: Number(row.evaluation.score) || 0,
+        build: clone(row.evaluation.build),
+        optimizedAttributes: clone(row.evaluation.attributes ?? source.attributes ?? {}),
+        activeAttributeBreakpoints: clone(row.evaluation.activeAttributeBreakpoints ?? []),
+        goalValues: Object.fromEntries(rankedGoals.map((goal) => [goal.id, goalValue(row.evaluation.stats, goal)])),
+      }));
       return {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (objectiveBaseline[id] ?? 0) })),
@@ -506,6 +515,7 @@ export async function createOptimizerAdapter(deps = {}) {
         objectiveBaseline: clone(objectiveBaseline),
         objectiveScales: clone(objectiveScales),
         goalResults,
+        tuningFrontier,
         tradeoffs,
         allStats,
       };

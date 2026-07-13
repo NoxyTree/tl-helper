@@ -214,6 +214,9 @@ test("stable slot locks preserve complete selections and a fixed objective basel
   assert.deepEqual(result.goalResults.map(({ id, rank, value, normalizedContribution, minimumMet }) => ({ id, rank, value, normalizedContribution, minimumMet })), [
     { id: "attack", rank: 1, value: 10, normalizedContribution: 0.5, minimumMet: null },
   ]);
+  assert.equal(result.tuningFrontier.length, 1);
+  assert.deepEqual(result.tuningFrontier[0].goalValues, { attack: 10 });
+  assert.deepEqual(result.tuningFrontier[0].build.equipment.head, current);
   await assert.rejects(() => adapter.optimize({
     build: { build: { equipment: { head: structuredClone(current) }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
     sourceKind: "scratch", goals: { priorities: [{ id: "attack", rank: 1, minimum: 15 }] }, lockedSlotIds: ["head"], objectiveBaseline: { attack: 5 }, objectiveScales: result.objectiveScales, rules: {},

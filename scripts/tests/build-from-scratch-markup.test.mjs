@@ -59,6 +59,15 @@ test("result is calculated and inspectable rather than mocked", () => {
   assert.doesNotMatch(html, /<table/);
 });
 
+test("result tuning links two to five real-stat sliders to retained legal builds", () => {
+  assert.match(html, /Tune the tradeoff/);
+  assert.match(html, /class="tl-tune-range"/);
+  assert.match(html, /paretoTuneFrontier/);
+  assert.match(html, /selectLinkedTuneCandidate/);
+  assert.match(html, /s\.priorities\.slice\(0,5\)/);
+  assert.match(html, /Every slider snaps and dances to the nearest real build/);
+});
+
 test("attribute shortcomings are hidden behind hover tracks", () => {
   assert.match(html, /hover a track for breakpoint rewards/);
   assert.match(html, /onMouseEnter="\{\{ at\.open \}\}"/);

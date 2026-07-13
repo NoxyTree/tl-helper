@@ -60,6 +60,20 @@ test("returns deterministic alternatives and carries opaque rune and artifact co
   assert.deepEqual(runs[0].best.selections.rune_board.runes, ["hit", "hit", "hit"]);
 });
 
+test("retains a bounded Pareto frontier for linked result tuning", async () => {
+  const result = await optimizeFullBuild({
+    candidatesBySlot: { head: [
+      { id: "guard", selection: { id: "guard" }, stats: { endurance: 100, hit: 10 } },
+      { id: "balanced", selection: { id: "balanced" }, stats: { endurance: 70, hit: 70 } },
+      { id: "striker", selection: { id: "striker" }, stats: { endurance: 10, hit: 100 } },
+      { id: "dominated", selection: { id: "dominated" }, stats: { endurance: 5, hit: 5 } },
+    ] },
+    weights: { endurance: 1, hit: 0.05 }, paretoStats: ["endurance", "hit"], frontierCount: 8,
+    evaluate: (build) => ({ score: build.head.id === "guard" ? 1 : 0, stats: build.head.id === "guard" ? { endurance: 100, hit: 10 } : build.head.id === "balanced" ? { endurance: 70, hit: 70 } : build.head.id === "striker" ? { endurance: 10, hit: 100 } : { endurance: 5, hit: 5 } }),
+  });
+  assert.deepEqual(result.frontier.map((row) => row.selections.head.id).sort(), ["balanced", "guard", "striker"]);
+});
+
 test("supports progress and cancellation", async () => {
   const controller = new AbortController();
   const progress = [];
