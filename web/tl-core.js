@@ -268,8 +268,32 @@ export const GRADE_COLORS = {
 export let data = null;
 export let indexes = null;
 
+function materializeItemPotentials(source) {
+  if (!Array.isArray(source?.itemPotentialPool)) return source;
+  const items = (source.items ?? []).map((item) => {
+    if (item.itemPotentialRef === undefined) return item;
+    const ref = item.itemPotentialRef;
+    const potential = source.itemPotentialPool[ref];
+    if (!Number.isInteger(ref) || !potential || typeof potential !== "object") {
+      throw new Error(`Invalid itemPotentialRef ${String(ref)} for item ${item.id ?? "unknown"}`);
+    }
+    const { itemPotentialRef, ...rest } = item;
+    return {
+      ...rest,
+      itemPotential: {
+        ...potential,
+        stats: (potential.stats ?? []).map((row) => ({ ...row })),
+        skills: (potential.skills ?? []).map((row) => ({ ...row })),
+      },
+    };
+  });
+  const { itemPotentialPool, ...runtimeSource } = source;
+  return { ...runtimeSource, items };
+}
+
 export async function initCore(source) {
   source = await loadWebData(source);
+  source = materializeItemPotentials(source);
   data = source;
   indexes = buildIndexes(source);
   return { data, indexes };

@@ -40,6 +40,13 @@ test("production headers protect documents without freezing stable projection na
   assert.match(headers, /\/data\/projections\/\*[\s\S]*max-age=300, must-revalidate/);
 });
 
+test("Combat Lab data requests honor the production data cache policy", async () => {
+  const source = await read("web/combat-lab.js");
+  assert.match(source, /fetch\("\.\/data\/combat-abilities\.json"\)/);
+  assert.match(source, /fetch\("\.\/data\/reference-build\.json"\)/);
+  assert.doesNotMatch(source, /fetch\("\.\/data\/(?:combat-abilities|reference-build)\.json",\s*\{\s*cache:\s*"no-store"/);
+});
+
 test("direct-upload artifact contains every projected icon", async () => {
   const dataRoot = new URL("../../web/data/", import.meta.url);
   const webRoot = new URL("../../web/", import.meta.url);

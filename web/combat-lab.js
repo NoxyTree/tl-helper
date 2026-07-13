@@ -28,8 +28,8 @@ boot().catch(showFatal);
 
 async function boot() {
   const [abilityResponse, referenceResponse] = await Promise.all([
-    fetch("./data/combat-abilities.json", { cache: "no-store" }),
-    fetch("./data/reference-build.json", { cache: "no-store" }),
+    fetch("./data/combat-abilities.json"),
+    fetch("./data/reference-build.json"),
     initCore("./data/app-data.json"),
   ]);
   if (!abilityResponse.ok) throw new Error(`Combat ability data failed to load (${abilityResponse.status}). Run the combat ability data build first.`);

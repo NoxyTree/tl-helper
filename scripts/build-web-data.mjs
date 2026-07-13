@@ -263,6 +263,43 @@ const [
   readTrpcRecords("skillBuilder.getSkillTraits.json"),
 ]);
 
+function normalizeItemPotential(itemPotential) {
+  if (!itemPotential) return null;
+  return {
+    groupId: itemPotential.group_id ?? itemPotential.groupId ?? "",
+    stats: values(itemPotential.stats).map((row) => ({
+      statId: row.stat_id ?? row.statId,
+      value: row.value,
+      probability: row.probability,
+    })),
+    skills: values(itemPotential.skills).map((row) => ({
+      id: row.id,
+      name: row.name,
+      description: plainText(row.description),
+      probability: row.probability ?? 0,
+      imageUrl: imageUrl(row.icon),
+    })),
+  };
+}
+
+// Potential tables repeat verbatim across many items. Keep one copy of each
+// normalized table in the projection and restore item.itemPotential in
+// tl-core.initCore. Integer references keep the wire representation compact.
+const itemPotentialPool = [];
+const itemPotentialRefs = new Map();
+function internItemPotential(itemPotential) {
+  const normalized = normalizeItemPotential(itemPotential);
+  if (!normalized) return null;
+  const fingerprint = JSON.stringify(normalized);
+  let ref = itemPotentialRefs.get(fingerprint);
+  if (ref === undefined) {
+    ref = itemPotentialPool.length;
+    itemPotentialPool.push(normalized);
+    itemPotentialRefs.set(fingerprint, ref);
+  }
+  return ref;
+}
+
 const items = values(equipmentItemsRaw).map((item) => ({
   id: item.id,
   name: item.name,
@@ -294,21 +331,9 @@ const items = values(equipmentItemsRaw).map((item) => ({
       imageUrl: imageUrl(perk.passive.icon),
     } : null,
   })),
-  itemPotential: item.itemPotential ? {
-    groupId: item.itemPotential.group_id ?? item.itemPotential.groupId ?? "",
-    stats: values(item.itemPotential.stats).map((row) => ({
-      statId: row.stat_id ?? row.statId,
-      value: row.value,
-      probability: row.probability,
-    })),
-    skills: values(item.itemPotential.skills).map((row) => ({
-      id: row.id,
-      name: row.name,
-      description: plainText(row.description),
-      probability: row.probability ?? 0,
-      imageUrl: imageUrl(row.icon),
-    })),
-  } : null,
+  ...(item.itemPotential
+    ? { itemPotentialRef: internItemPotential(item.itemPotential) }
+    : { itemPotential: null }),
   itemStats: item.itemStats ?? {},
 }));
 
@@ -473,7 +498,9 @@ assert(/^\d+$/.test(gameBuild), "TL_STEAM_BUILD must be a numeric Steam build. R
 const generatedAtUtc = new Date().toISOString();
 const appData = {
   schema: "tl-helper.web-data",
-  schemaVersion: 1,
+  // Version 2 interns repeated itemPotential tables in the equipment wire
+  // projection. tl-core restores the version 1 runtime item API at startup.
+  schemaVersion: 2,
   gameBuild,
   generatedAtUtc,
   sources: {
@@ -514,6 +541,8 @@ assert(artifactSets.length >= 1, `Expected at least 1 artifact set, got ${artifa
 assertImageUrls(skills, "skills");
 assertImageUrls(skillTraits, "skillTraits");
 assert(items.every((item) => item.grade !== undefined && item.grade !== null), "Every item must have an explicit grade");
+assert(items.every((item) => item.itemPotentialRef === undefined
+  || (Number.isInteger(item.itemPotentialRef) && itemPotentialPool[item.itemPotentialRef])), "Every itemPotentialRef must resolve within itemPotentialPool");
 {
   const danglingSpecIds = skills.flatMap((skill) => skill.specializationIds.filter((id) => !skill.specializations.some((spec) => spec.id === id)));
   assert(!danglingSpecIds.length, `Dangling specializationIds: ${danglingSpecIds.slice(0, 3).join(", ")}`);
@@ -521,7 +550,7 @@ assert(items.every((item) => item.grade !== undefined && item.grade !== null), "
 
 await mkdir(webDataDir, { recursive: true });
 const projectionGroups = [
-  ["equipment", { items, itemSets, artifactSets, slotDefinitions }],
+  ["equipment", { items, itemSets, artifactSets, slotDefinitions, itemPotentialPool }],
   ["runes", { runes, runeSynergies }],
   ["progression", { attributeStats: attributeStatsRaw, masteries }],
   ["skills", { skills, skillTraits, traitsBySkillId, skillsByWeapon }],
