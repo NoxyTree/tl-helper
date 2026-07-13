@@ -70,3 +70,24 @@ test("supports progress and cancellation", async () => {
   }), { name: "AbortError" });
   assert.equal(progress[0].phase, "search");
 });
+
+test("exact selected-goal score always beats the neutral fallback", async () => {
+  const result = await optimizeFullBuild({
+    candidatesBySlot: { head: [
+      { id: "meaningful", selection: { id: "meaningful" }, stats: { goal: 1 }, scoreHint: 1, neutralItemLevel: 1, neutralGrade: 1 },
+      { id: "neutral-high", selection: { id: "neutral-high" }, stats: {}, scoreHint: 0, neutralItemLevel: 99, neutralGrade: 99 },
+    ] }, weights: { goal: 1 }, evaluate: (build) => ({ score: build.head.id === "meaningful" ? 1 : 0, stats: {} }),
+  });
+  assert.equal(result.best.selections.head.id, "meaningful");
+});
+
+test("neutral fallback conserves Heroics then prefers level, grade, and deterministic ID", async () => {
+  const candidatesBySlot = { head: [
+    { id: "heroic", selection: { id: "heroic" }, stats: {}, heroicGroup: "armor", neutralHeroicCost: 1, neutralItemLevel: 100, neutralGrade: 51 },
+    { id: "low", selection: { id: "low" }, stats: {}, neutralItemLevel: 10, neutralGrade: 41 },
+    { id: "z-best", selection: { id: "z-best" }, stats: {}, neutralItemLevel: 80, neutralGrade: 41 },
+    { id: "a-best", selection: { id: "a-best" }, stats: {}, neutralItemLevel: 80, neutralGrade: 41 },
+  ] };
+  const runs = await Promise.all(Array.from({ length: 3 }, () => optimizeFullBuild({ candidatesBySlot, evaluate: () => ({ score: 0, stats: {} }) })));
+  assert.deepEqual(runs.map((row) => row.best.selections.head.id), ["a-best", "a-best", "a-best"]);
+});

@@ -183,6 +183,9 @@ export async function createOptimizerAdapter(deps = {}) {
         heroicGroup: item?.grade === core.HEROIC_GRADE ? core.heroicSlotGroupForSlot(slot) : "",
         weaponType: core.WEAPON_SLOTS.includes(slot) ? item?.equipmentType ?? "" : "",
         setKeys: item?.setId ? [item.setId] : [],
+        neutralHeroicCost: item?.grade === core.HEROIC_GRADE ? 1 : 0,
+        neutralItemLevel: item ? core.itemMaxLevel(item) : 0,
+        neutralGrade: Number(item?.grade ?? 0),
       });
       const runeCandidatesByCategory = new Map();
 
@@ -219,7 +222,11 @@ export async function createOptimizerAdapter(deps = {}) {
           rows.push({ id: item.id, selection, stats, scoreHint: weight(stats), ...candidateMeta(slot, item) });
         }
         const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), scoreHint: weight(contribution(slot, current)), ...candidateMeta(slot, currentItem) };
-        const ranked = rows.sort((a, b) => b.scoreHint - a.scoreHint || a.id.localeCompare(b.id));
+        const ranked = rows.sort((a, b) => b.scoreHint - a.scoreHint
+          || a.neutralHeroicCost - b.neutralHeroicCost
+          || b.neutralItemLevel - a.neutralItemLevel
+          || b.neutralGrade - a.neutralGrade
+          || a.id.localeCompare(b.id));
         const weaponTypeSeeds = core.WEAPON_SLOTS.includes(slot)
           ? ranked.filter((row, index, all) => all.findIndex((other) => other.weaponType === row.weaponType && !other.heroicGroup) === index && !row.heroicGroup)
           : [];
@@ -270,7 +277,13 @@ export async function createOptimizerAdapter(deps = {}) {
       const outputSlots = [...core.EQUIPMENT_SLOTS, ...core.ARTIFACT_SLOTS].map((slot) => {
         const recommendedSelection = best.selections[slot.id] ?? best.evaluation.build.artifacts?.[slot.id];
         const currentSelection = selectionFor(source.build, slot.id);
-        return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason: scratch ? "Selected for the complete optimized loadout" : recommendedSelection?.itemId === currentSelection?.itemId ? "Kept" : "Improves the selected build goals" };
+        const candidate = best.candidates[slot.id];
+        const directGoals = rankedGoals.filter(({ id }) => Math.abs(Number(candidate?.stats?.[id] ?? 0)) > 1e-9);
+        const reason = recommendedSelection?.itemId === currentSelection?.itemId && !scratch ? "Kept"
+          : directGoals.length ? `Directly contributes to ${directGoals.map((goal) => core.statName(goal.id)).join(", ")}`
+            : candidate?.setKeys?.length ? "Selected for its set-aware contribution"
+              : "Neutral fallback: conserves Heroic allowances, then prefers item level and grade";
+        return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason, neutralFallback: !directGoals.length && !candidate?.setKeys?.length };
       });
       return {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
