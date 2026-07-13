@@ -419,6 +419,18 @@ export async function createOptimizerAdapter(deps = {}) {
       return optimizerStatIds(core).map((id) => ({ id, name: core.statName(id) })).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
     },
 
+    async currentStats(payload, { includeSetEffects = true } = {}) {
+      if (!payload) return {};
+      const source = wrap(payload);
+      const statIds = optimizerStatIds(core);
+      const goals = expandCompositeGoals(statIds.map((id) => ({ id, rank: 1, weight: 1, mode: "maximize", minimum: null, target: null })));
+      const totals = withCompositeTotals(totalMap(calculate(source, includeSetEffects)), goals);
+      return Object.fromEntries(statIds.map((id) => [id, {
+        value: Number(totals[id] ?? 0),
+        formattedValue: core.formatStat(id, Number(totals[id] ?? 0)),
+      }]));
+    },
+
     async optimize(request, runtime = {}) {
       const source = wrap(request.build);
       const scratch = request.sourceKind === "scratch" || request.build?.sourceKind === "scratch";

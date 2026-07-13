@@ -193,9 +193,20 @@ test("objective scales are independent of priority order and ties", () => {
 test("adapter exposes the browser contract and reports a missing saved build", async () => {
   const core = { data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: [{ itemStats: { attack: 1 } }] }, indexes: {}, statName: (id) => id, createInitialBuild: () => ({ name: "Default Build", equipment: {}, artifacts: {}, supportSlots: {} }) };
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
-  for (const method of ["createScratchBuild", "loadArmoryBuild", "importQuestlogBuild", "listStats", "optimize"]) assert.equal(typeof adapter[method], "function");
+  for (const method of ["createScratchBuild", "loadArmoryBuild", "importQuestlogBuild", "listStats", "currentStats", "optimize"]) assert.equal(typeof adapter[method], "function");
   assert.equal(await adapter.loadArmoryBuild(), null);
   assert.deepEqual(await adapter.listStats(), [{ id: "attack", name: "attack" }]);
+});
+
+test("adapter reports formatted current source-build stats", async () => {
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: [{ itemStats: { attack: 1 } }], runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: {}, statName: (id) => id, formatStat: (_id, value) => `${value} power`,
+    calculateBuild: () => ({ stats: [{ id: "attack", total: 123 }] }),
+    createInitialBuild: () => ({ equipment: {}, artifacts: {}, supportSlots: {} }),
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  assert.deepEqual(await adapter.currentStats({ build: { equipment: {} }, attributes: {} }), { attack: { value: 123, formattedValue: "123 power" } });
 });
 
 test("optimizer stat catalog keeps source-backed combat goals and removes internal metadata", async () => {

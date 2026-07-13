@@ -23,7 +23,8 @@
     h1 { margin-top:5px; font-size:clamp(30px,4vw,46px); }
     .lede { max-width:630px; margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55; }
     .step { color:var(--muted); font-size:12px; }
-    .layout { display:grid; grid-template-columns:minmax(310px,430px) minmax(0,1fr); gap:14px; align-items:start; }
+    .layout { display:grid; grid-template-columns:minmax(310px,430px) minmax(0,1fr); gap:14px; align-items:start; transition:grid-template-columns .24s ease; }
+    .layout:has(.picker-menu:not(.hidden)) { grid-template-columns:minmax(480px,720px) minmax(280px,1fr); }
     .stack { display:grid; gap:14px; }
     .panel { border:1px solid var(--line); border-radius:13px; background:linear-gradient(180deg,var(--panel),var(--panel-2)); box-shadow:0 15px 40px rgba(0,0,0,.15); }
     .panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 17px; border-bottom:1px solid rgba(212,166,94,.13); }
@@ -56,6 +57,7 @@
     .goal-chip-copy { min-width:0; flex:1; }
     .goal-chip-copy strong { display:block; overflow:hidden; color:#eadab9; font-size:11.5px; text-overflow:ellipsis; white-space:nowrap; }
     .goal-chip-copy small { display:block; margin-top:2px; color:#7d6b51; font-size:9px; }
+    .goal-chip-value { flex:none; color:#f2c777; font:17px Marcellus,serif; }
     .goal-chip button { flex:none; width:26px; height:26px; border:1px solid rgba(224,129,104,.2); border-radius:7px; background:rgba(70,27,21,.12); color:#d99582; cursor:pointer; }
     .goal-chip button:hover { border-color:rgba(224,129,104,.48); background:rgba(104,39,29,.22); }
     .picker-trigger { width:100%; min-height:43px; display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid rgba(212,166,94,.28); border-radius:9px; background:#0b0806; color:#e6d6b4; cursor:pointer; text-align:left; }
@@ -74,8 +76,9 @@
     .picker-results { max-height:270px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; overflow:auto; padding-right:3px; }
     .picker-option { min-width:0; display:flex; align-items:center; gap:8px; padding:8px 9px; border:1px solid rgba(212,166,94,.15); border-radius:8px; background:rgba(0,0,0,.2); color:#dfd0b2; cursor:pointer; text-align:left; }
     .picker-option:hover { border-color:rgba(242,199,119,.52); background:rgba(107,68,22,.18); }
-    .picker-option span:first-child { flex:none; width:20px; height:20px; display:grid; place-items:center; border-radius:6px; background:rgba(242,199,119,.08); color:#f2c777; font-size:13px; }
-    .picker-option span:last-child { min-width:0; overflow:hidden; font-size:10.5px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+    .picker-option-plus { flex:none; width:20px; height:20px; display:grid; place-items:center; border-radius:6px; background:rgba(242,199,119,.08); color:#f2c777; font-size:13px; }
+    .picker-option-name { min-width:0; flex:1; overflow:hidden; font-size:10.5px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+    .picker-option-value { flex:none; color:#e5c88f; font:13px Marcellus,serif; }
     .picker-no-results { grid-column:1/-1; padding:25px 10px; color:#85745a; font-size:10.5px; text-align:center; }
     .picker-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; padding-top:9px; border-top:1px dotted rgba(212,166,94,.18); color:#75664f; font-size:9px; }
     .picker-done { padding:6px 12px; border:1px solid rgba(242,199,119,.4); border-radius:7px; background:rgba(107,68,22,.2); color:#e5c88f; cursor:pointer; font-size:10px; font-weight:700; }
@@ -150,7 +153,8 @@
     .alternative { padding:10px; border:1px solid rgba(212,166,94,.14); border-radius:8px; margin-top:7px; }
     .hidden { display:none!important; }
     @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}}
-    @media(max-width:900px){.layout{grid-template-columns:1fr}.actions{position:static}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
+    @media(min-width:901px){.layout:has(.picker-menu:not(.hidden)) .picker-results{grid-template-columns:repeat(3,minmax(0,1fr))}.layout:has(.picker-menu:not(.hidden)) .picker-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(max-width:900px){.layout,.layout:has(.picker-menu:not(.hidden)){grid-template-columns:1fr}.actions{position:static}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
     @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
     @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}}
@@ -211,7 +215,7 @@
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, increase:[], protect:[], runeMode:"keep", artifactMode:"keep", depth:"fast", controller:null, adapter:null, core:null, statOptions:[] };
+    const state = { source:"armory", build:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", controller:null, adapter:null, core:null, statOptions:[] };
     const $ = id => document.getElementById(id);
     const locks = $("slot-locks");
     SLOTS.forEach((name,index) => { const label=document.createElement("label"); label.className="slot-lock"; label.innerHTML=`<input type="checkbox" data-slot="${index}"><span>${name}</span>`; locks.append(label); });
@@ -219,7 +223,7 @@
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
     selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
-    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
+    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; await refreshCurrentStats(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("empty-state").classList.add("hidden"); $("progress-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("error-state").classList.remove("hidden"); $("error-message").textContent=message; updateReady(); }
     async function connectEngine() {
@@ -229,14 +233,19 @@
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
-        for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
+        for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","currentStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
         $("engine-status").textContent="Ready"; $("error-state").classList.add("hidden"); $("empty-state").classList.remove("hidden");
         setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory();
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
     }
-    async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } updateReady(); }
-    $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; $("source-status").textContent=`Import failed: ${error.message}`; } finally { $("import-build").disabled=false; updateReady(); } });
+    async function refreshCurrentStats() {
+      state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:$("include-sets").checked}) : {};
+      for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key);
+    }
+    async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } updateReady(); }
+    $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); await refreshCurrentStats(); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Import failed: ${error.message}`; } finally { $("import-build").disabled=false; updateReady(); } });
+    $("include-sets").addEventListener("change",()=>refreshCurrentStats().catch(error=>{ $("source-status").textContent=`Current stats could not be refreshed: ${error.message}`; }));
 
     const STAT_CATEGORIES = [
       ["featured","Featured"],["offense","Offense"],["defense","Defense"],["control","Control"],["recovery","Recovery"],["utility","Utility"],["pvp","PvP"]
@@ -270,11 +279,11 @@
       root.querySelector(".picker-categories").innerHTML=STAT_CATEGORIES.map(([id,label])=>`<button type="button" class="picker-category ${!search&&category===id?"active":""}" data-category="${id}">${label} <span>${counts[id]}</span></button>`).join("");
       root.querySelector(".picker-result-head strong").textContent=search?"Search results":STAT_CATEGORIES.find(row=>row[0]===category)?.[1]??"Stats";
       root.querySelector(".picker-result-head span").textContent=`${visible.length} results`;
-      root.querySelector(".picker-results").innerHTML=visible.length?visible.map(row=>`<button type="button" class="picker-option" data-stat="${esc(row.id)}" title="Add ${esc(row.name??row.label??row.id)}"><span>+</span><span>${esc(row.name??row.label??row.id)}</span></button>`).join(""):`<div class="picker-no-results">No available stats match this view.</div>`;
+      root.querySelector(".picker-results").innerHTML=visible.length?visible.map(row=>{ const current=state.currentStats[row.id]; return `<button type="button" class="picker-option" data-stat="${esc(row.id)}" title="Add ${esc(row.name??row.label??row.id)}"><span class="picker-option-plus">+</span><span class="picker-option-name">${esc(row.name??row.label??row.id)}</span>${key==="protect"?`<span class="picker-option-value" title="Current value">${esc(current?.formattedValue??"0")}</span>`:""}</button>`; }).join(""):`<div class="picker-no-results">No available stats match this view.</div>`;
     }
     function renderPicker(root,key) {
       const selected=root.querySelector(".goal-selected");
-      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id; return `<div class="goal-chip"><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}</strong><small>${key==="increase"?"Included equally in the objective":"Current value is a hard floor"}</small></span><button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
+      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id,current=state.currentStats[id]; return `<div class="goal-chip"><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}</strong><small>${key==="increase"?"Included equally in the objective":"Protected at current value"}</small></span>${key==="protect"?`<strong class="goal-chip-value" title="Current protected floor">${esc(current?.formattedValue??"0")}</strong>`:""}<button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
       selected.querySelectorAll("button[data-remove]").forEach(button=>button.onclick=()=>{ state[key]=state[key].filter(value=>value!==button.dataset.remove); renderPicker(root,key); });
       root.querySelector(".picker-trigger-count").textContent=`${availableStats(key).length} available`;
       renderPickerOptions(root,key); updateReady();

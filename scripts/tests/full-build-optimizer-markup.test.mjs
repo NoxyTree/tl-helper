@@ -34,6 +34,14 @@ test("goal selection uses the structured Build from Scratch picker pattern", () 
   assert.doesNotMatch(html, /createElement\("datalist"\)/);
 });
 
+test("protected goals show current calculated floors and widen the workspace", () => {
+  assert.match(html, /adapter\.currentStats/);
+  assert.match(html, /class="picker-option-value" title="Current value"/);
+  assert.match(html, /class="goal-chip-value" title="Current protected floor"/);
+  assert.match(html, /\.layout:has\(\.picker-menu:not\(\.hidden\)\)/);
+  assert.match(html, /repeat\(3,minmax\(0,1fr\)\)/);
+});
+
 test("results include an Armory-style character doll canvas", () => {
   assert.match(html, /class="build-doll"/);
   assert.match(html, /Recommended character equipment/);
