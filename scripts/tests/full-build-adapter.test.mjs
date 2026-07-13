@@ -1,7 +1,96 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, normalizeRankedGoals, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { allocatedAttributeValue } from "../../web/tl-questlog-rules.js";
+
+function attributeTestCore() {
+  return {
+    statName: (id) => id, formatStat: (_id, value) => String(value),
+    calculateBuild(build, attributes) {
+      const str = 20 + Number(build.gearStr ?? 0) + allocatedAttributeValue(attributes.str ?? 0);
+      const dex = 20 + allocatedAttributeValue(attributes.dex ?? 0);
+      const stats = [
+        { id: "str", total: str, sources: [] }, { id: "dex", total: dex, sources: [] },
+        { id: "hp_max", total: str >= 30 ? 100 : 0, sources: str >= 30 ? [{ type: "attribute_bracket", sourceLabel: "STR (30): Bonus", value: 100 }] : [] },
+        { id: "all_double_attack", total: str >= 50 ? 1000 : 0, sources: str >= 50 ? [{ type: "attribute_bracket", sourceLabel: "STR (50): Bonus", value: 1000 }] : [] },
+        { id: "all_critical_attack", total: dex >= 30 ? 100 : 0, sources: dex >= 30 ? [{ type: "attribute_bracket", sourceLabel: "DEX (30): Bonus", value: 100 }] : [] },
+      ];
+      return { stats };
+    },
+  };
+}
+
+test("attribute breakpoint inversion uses the diminishing raw-point curve", () => {
+  assert.equal(rawPointsForAttributeGain(20, 100), 20);
+  assert.equal(rawPointsForAttributeGain(30, 100), 40);
+  assert.equal(rawPointsForAttributeGain(32.5, 100), 50);
+});
+
+test("a level-50 breakpoint consumes forty raw points after diminishing conversion", () => {
+  const core = attributeTestCore();
+  const result = optimizeAttributeAllocation({ core, build: {}, budget: 40, rankedGoals: normalizeRankedGoals({ increase: ["all_double_attack"] }), baseline: {}, scales: { all_double_attack: 1000 } });
+  assert.equal(result.attributes.str, 40);
+  assert.equal(result.stats.all_double_attack, 1000);
+  assert.equal(result.activeAttributeBreakpoints.some((row) => row.attributeId === "str" && row.threshold === 50), true);
+});
+
+test("attribute optimization conserves budget, follows the objective, and is deterministic", () => {
+  const core = attributeTestCore();
+  const hpGoals = normalizeRankedGoals({ increase: ["hp_max"] });
+  const critGoals = normalizeRankedGoals({ increase: ["all_critical_attack"] });
+  const hpRuns = Array.from({ length: 3 }, () => optimizeAttributeAllocation({ core, build: {}, budget: 10, rankedGoals: hpGoals, baseline: {}, scales: { hp_max: 100 } }));
+  assert.deepEqual(hpRuns.map((row) => row.attributes), [hpRuns[0].attributes, hpRuns[0].attributes, hpRuns[0].attributes]);
+  assert.equal(Object.values(hpRuns[0].attributes).reduce((sum, value) => sum + value, 0), 10);
+  assert.equal(hpRuns[0].attributes.str, 10);
+  const crit = optimizeAttributeAllocation({ core, build: {}, budget: 10, rankedGoals: critGoals, baseline: {}, scales: { all_critical_attack: 100 } });
+  assert.equal(crit.attributes.dex, 10);
+});
+
+test("gear-provided attributes reduce the allocation needed for a breakpoint", () => {
+  const core = attributeTestCore();
+  const result = optimizeAttributeAllocation({ core, build: { gearStr: 9 }, budget: 1, rankedGoals: normalizeRankedGoals({ increase: ["hp_max"] }), baseline: {}, scales: { hp_max: 100 } });
+  assert.equal(result.attributes.str, 1);
+  assert.deepEqual(result.activeAttributeBreakpoints, [{ attributeId: "str", attributeName: "str", threshold: 30, bonuses: [{ statId: "hp_max", name: "hp_max", value: 100, formattedValue: "100" }] }]);
+});
+
+test("bounded paired-breakpoint seeds beat either single-stat extreme", () => {
+  const core = attributeTestCore();
+  const result = optimizeAttributeAllocation({
+    core, build: {}, budget: 20,
+    rankedGoals: normalizeRankedGoals({ increase: ["hp_max", "all_critical_attack"] }), baseline: {}, scales: { hp_max: 100, all_critical_attack: 100 },
+  });
+  assert.equal(result.attributes.str, 10);
+  assert.equal(result.attributes.dex, 10);
+  assert.equal(result.score, 2);
+});
+
+test("attribute seed retention keeps gear that only wins after a breakpoint", async () => {
+  const directItems = Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`direct${index}`, { id: `direct${index}`, name: `Direct ${index}`, grade: 41, equipmentType: "head", directHp: 10 + index * 5 }]));
+  const items = { ...directItems, gear: { id: "gear", name: "Breakpoint Gear", grade: 41, equipmentType: "head", gearStr: 9 } };
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const core = {
+    data: { gameBuild: "test", statLabels: { hp_max: "Health", str: "Strength" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] }, indexes: { itemById: items, runeById: {} },
+    EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build, attributes) {
+      const item = items[build.equipment.head.itemId];
+      const str = 20 + Number(item?.gearStr ?? 0) + allocatedAttributeValue(attributes.str ?? 0);
+      const bracket = str >= 30 ? 100 : 0;
+      return { stats: [{ id: "str", total: str, sources: [] }, { id: "hp_max", total: Number(item?.directHp ?? 0) + bracket, sources: bracket ? [{ type: "attribute_bracket", sourceLabel: "STR (30): Bonus", value: 100 }] : [] }] };
+    },
+    slotSelectionContribution(_slot, selection) { const item = items[selection?.itemId]; return { hp_max: Number(item?.directHp ?? 0), str: Number(item?.gearStr ?? 0) }; },
+    slotItems: () => Object.values(items), slotById: () => ({ id: "head", label: "Head", types: ["head"] }), emptyEquipmentSelection: empty, itemMaxLevel: () => 12, heroicSlotGroupForSlot: () => "",
+    statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff",
+  };
+  let allocationRuns = 0;
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }), optimizeAttributeAllocation(args) { allocationRuns += 1; return optimizeAttributeAllocation(args); } });
+  const result = await adapter.optimize({ build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" }, sourceKind: "scratch", attributePointBudget: 1, goals: { increase: ["hp_max"] }, rules: {} });
+  assert.equal(result.build.equipment.head.itemId, "gear");
+  assert.equal(result.optimizedAttributes.str, 1);
+  assert.ok(result.assumptions.some((text) => text.includes("1 available attribute point was redistributed")));
+  assert.equal(allocationRuns, result.attributeFinalistsEvaluated);
+  assert.ok(allocationRuns > 0 && allocationRuns <= 48);
+});
 
 test("weapon constraints accept ordered or slot-keyed distinct pairings and reject invalid pairs", () => {
   const core = { WEAPON_SLOTS: ["main_hand", "off_hand"], WEAPON_TYPES: ["staff", "dagger", "bow"] };
