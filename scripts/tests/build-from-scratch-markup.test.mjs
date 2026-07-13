@@ -57,7 +57,7 @@ test("custom stat picker is compact, categorized, and keyboard accessible", () =
   assert.match(html, /Defense/);
   assert.match(html, /Utility/);
   assert.match(html, /PvP/);
-  assert.match(html, /\.slice\(0,10\)/);
+  assert.doesNotMatch(html, /\.slice\(0,10\)/);
   assert.match(html, /event\.key==="ArrowDown"/);
   assert.match(html, /event\.key==="ArrowUp"/);
   assert.match(html, /event\.key==="Enter"/);

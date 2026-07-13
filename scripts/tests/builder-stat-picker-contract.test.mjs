@@ -13,8 +13,8 @@ test("stat picker exposes a complete ARIA combobox contract", () => {
   assert.match(html, /setAttribute\("aria-expanded","false"\)/);
 });
 
-test("stat picker bounds results and supports keyboard and pointer selection", () => {
-  assert.match(html, /\.slice\(0,10\)/);
+test("stat picker shows every category match and supports keyboard and pointer selection", () => {
+  assert.doesNotMatch(html, /\.slice\(0,10\)/);
   for (const key of ["ArrowDown", "ArrowUp", "Enter", "Escape"]) assert.ok(html.includes(`event.key===\"${key}\"`));
   assert.match(html, /node\.onclick=\(\)=>selectStatResult/);
   assert.match(html, /document\.addEventListener\("pointerdown"/);
