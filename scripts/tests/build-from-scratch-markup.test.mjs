@@ -82,6 +82,9 @@ test("attribute shortcomings are hidden behind hover tracks", () => {
 });
 
 test("availability rules have accessible information controls", () => {
+  assert.match(html, /endgame: true/);
+  assert.match(html, /minimumItemLevel:this\.state\.rules\.endgame\?50:0/);
+  assert.match(html, /Endgame equipment/);
   assert.match(html, /aria-label="About \{\{ r\.name \}\}"/);
   assert.match(html, /onMouseEnter="\{\{ r\.showTip \}\}"/);
   assert.match(html, /onFocus="\{\{ r\.showTip \}\}"/);

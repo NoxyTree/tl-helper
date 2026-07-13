@@ -950,7 +950,7 @@ class Component extends DCLogic {
     engineError: '',
     progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
     minimums: true,
-    rules: { heroic: false, traits: true, sets: true, runes: true, artifacts: true },
+    rules: { endgame: true, heroic: false, traits: true, sets: true, runes: true, artifacts: true },
     openTip: null,
     heroicsEngaged: false,
     heroicMode: 'owned',
@@ -1399,7 +1399,7 @@ class Component extends DCLogic {
     return {
       build:source, sourceKind:'scratch', weaponTypes:[this.state.weaponTypes.main,this.state.weaponTypes.off],
       attributePointBudget:this.ATTR_BUDGET, goals:{priorities,protect:[]}, lockedSlotIds,
-      rules:{ keepCurrentHeroics:false, reconsiderHeroics:this.state.heroicMode==='theoretical',
+      rules:{ minimumItemLevel:this.state.rules.endgame?50:0, keepCurrentHeroics:false, reconsiderHeroics:this.state.heroicMode==='theoretical',
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
         bestHeroicConfiguration:this.state.heroicMode==='theoretical',
         runes:{mode:this.state.rules.runes?'normal':'keep',chaosOwnershipRequired:true,normalDuplicateCap:3,chaosDuplicateCap:1},
@@ -1636,6 +1636,7 @@ class Component extends DCLogic {
     const priorityResultHint=query?'Matches are grouped by combat category.':activeCategory[2];
 
     const ruleMeta = {
+      endgame: ['Endgame equipment', 'Level 50+ catalogue only', 'Excludes levelling and starter equipment below level 50. Disable this only when you deliberately want the optimizer to consider the full progression catalogue.'],
       heroic: ['Theoretical Heroics', 'Best theoretical configuration', 'Allows the optimizer to configure Heroic equipment using its best Heroic trait and effect levels. Disable this to exclude theoretical Heroic configurations. Heroics you mark as owned and locked are preserved separately.'],
       traits: ['Traits', 'Three max-tier traits', 'Selects exactly three legal normal traits for every recommended item and uses their maximum available tier. Disable this to score items without optional traits.'],
       sets: ['Set effects', 'Evaluate complete sets', 'Includes bonuses activated by wearing the required number of pieces from an equipment set. The optimizer may choose a slightly weaker individual item when it completes a stronger set bonus.'],

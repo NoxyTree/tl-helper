@@ -72,6 +72,21 @@ function stateOrder(a, b, weights) {
     || a.key.localeCompare(b.key);
 }
 
+function diverseStates(states, statIds, limit, weights) {
+  const ordered = [...states].sort((a, b) => stateOrder(a, b, weights));
+  if (ordered.length <= limit) return ordered;
+  const retained = new Map();
+  const add = (row) => { if (row) retained.set(row.key, row); };
+  const byStat = statIds.map((id) => [...states].sort((a, b) => number(b.stats?.[id]) - number(a.stats?.[id]) || stateOrder(a, b, weights)));
+  for (const rows of byStat) add(rows[0]);
+  for (const rows of byStat) add(rows[1]);
+  for (const row of ordered) {
+    if (retained.size >= limit) break;
+    add(row);
+  }
+  return [...retained.values()].slice(0, limit);
+}
+
 function prune(states, { beamWidth, paretoWidth, paretoStats, weights }) {
   const frontiers = new Map();
   for (const state of states.sort((a, b) => a.key.localeCompare(b.key))) {
@@ -81,9 +96,9 @@ function prune(states, { beamWidth, paretoWidth, paretoStats, weights }) {
     const next = frontier.filter((other) => !dominates(state, other, paretoStats)).concat(state);
     // Equivalent set/rule states can still have a large Pareto frontier. This
     // local bound keeps worst-case work predictable while retaining diversity.
-    frontiers.set(sig, next.length > paretoWidth ? next.sort((a, b) => stateOrder(a, b, weights)).slice(0, paretoWidth) : next);
+    frontiers.set(sig, next.length > paretoWidth ? diverseStates(next, paretoStats, paretoWidth, weights) : next);
   }
-  return [...frontiers.values()].flat().sort((a, b) => stateOrder(a, b, weights)).slice(0, beamWidth);
+  return diverseStates([...frontiers.values()].flat(), paretoStats, beamWidth, weights);
 }
 
 function canAdd(state, candidate, options) {

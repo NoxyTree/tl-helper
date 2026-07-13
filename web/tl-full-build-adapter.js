@@ -345,6 +345,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
       const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
       const lockedSlotIds = new Set(request.lockedSlotIds ?? []);
+      const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};
       const cap = request.depth === "thorough" ? 18 : 8;
       const contribution = (slot, selection) => core.slotSelectionContribution(slot, selection, source.build, source.attributes, { includeSetEffects: false });
@@ -378,6 +379,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const rows = [];
         for (const item of core.slotItems(core.slotById(slot))) {
           if (requiredWeaponType && item.equipmentType !== requiredWeaponType) continue;
+          if (minimumItemLevel && core.itemMaxLevel(item) < minimumItemLevel) continue;
           let selection = itemSelection(core, item);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
@@ -410,7 +412,9 @@ export async function createOptimizerAdapter(deps = {}) {
           : [];
         const attributeSeeds = attributePointBudget == null ? [] : ATTRIBUTE_IDS.flatMap((attributeId) => [...ranked]
           .sort((a, b) => Number(b.stats?.[attributeId] ?? 0) - Number(a.stats?.[attributeId] ?? 0) || a.id.localeCompare(b.id)).slice(0, 2));
-        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds, ...attributeSeeds];
+        const goalSeeds = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))].flatMap((statId) => [...ranked]
+          .sort((a, b) => Number(b.stats?.[statId] ?? 0) - Number(a.stats?.[statId] ?? 0) || a.id.localeCompare(b.id)).slice(0, 2));
+        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds, ...attributeSeeds, ...goalSeeds];
         candidatesBySlot[slot] = [...(scratch ? [] : [currentRow]), ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
       }
 
@@ -504,7 +508,7 @@ export async function createOptimizerAdapter(deps = {}) {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (objectiveBaseline[id] ?? 0) })),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; minimum ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,

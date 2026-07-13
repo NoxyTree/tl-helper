@@ -223,6 +223,29 @@ test("stable slot locks preserve complete selections and a fixed objective basel
   }), /No build satisfies/);
 });
 
+test("minimum item level excludes progression gear from scratch candidates", async () => {
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const items = {
+    starter: { id: "starter", name: "Starter", grade: 41, equipmentType: "head", level: 21 },
+    endgame: { id: "endgame", name: "Endgame", grade: 41, equipmentType: "head", level: 50 },
+  };
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} }, EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) { return { stats: [{ id: "attack", total: build.equipment.head.itemId === "starter" ? 100 : 10 }] }; },
+    slotSelectionContribution(_slot, selection) { return { attack: selection?.itemId === "starter" ? 100 : selection?.itemId === "endgame" ? 10 : 0 }; },
+    slotItems: () => Object.values(items), slotById: () => ({ id: "head", types: ["head"] }), emptyEquipmentSelection: empty,
+    itemMaxLevel: (item) => item.level, heroicSlotGroupForSlot: () => "", statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff",
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"] }, rules: { minimumItemLevel: 50 },
+  });
+  assert.equal(result.build.equipment.head.itemId, "endgame");
+  assert.ok(result.assumptions.includes("Equipment below level 50 was excluded."));
+});
+
 test("chosen main and off-hand weapon types are enforced during candidate generation", async () => {
   const items = {
     staff: { id: "staff", name: "Staff", grade: 41, equipmentType: "staff" }, bow: { id: "bow", name: "Bow", grade: 41, equipmentType: "bow" },

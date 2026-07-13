@@ -74,6 +74,19 @@ test("retains a bounded Pareto frontier for linked result tuning", async () => {
   assert.deepEqual(result.frontier.map((row) => row.selections.head.id).sort(), ["balanced", "guard", "striker"]);
 });
 
+test("beam pruning preserves the strongest candidate for every tuning stat", async () => {
+  const result = await optimizeFullBuild({
+    candidatesBySlot: { head: [
+      { id: "guard", selection: { id: "guard" }, stats: { endurance: 100, cooldown: 0 } },
+      { id: "balanced", selection: { id: "balanced" }, stats: { endurance: 99, cooldown: 50 } },
+      { id: "haste", selection: { id: "haste" }, stats: { endurance: 0, cooldown: 100 } },
+    ] },
+    weights: { endurance: 1, cooldown: 0.0001 }, paretoStats: ["endurance", "cooldown"], beamWidth: 2, paretoWidth: 2,
+    evaluate: (build) => ({ score: build.head.id === "guard" ? 1 : 0, stats: build.head.id === "guard" ? { endurance: 100, cooldown: 0 } : { endurance: 0, cooldown: 100 } }),
+  });
+  assert.deepEqual(result.frontier.map((row) => row.selections.head.id).sort(), ["guard", "haste"]);
+});
+
 test("supports progress and cancellation", async () => {
   const controller = new AbortController();
   const progress = [];
