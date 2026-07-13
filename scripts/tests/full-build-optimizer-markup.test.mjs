@@ -8,7 +8,7 @@ test("full-build optimizer is a standalone shared-shell page", () => {
   assert.match(html, /<link[^>]+tl-shell\.css/);
   assert.match(html, /class="tl-app-header"/);
   assert.match(html, /Build Optimizer/);
-  assert.match(html, /Best result found under your settings/);
+  assert.match(html, /Configure everything, then improve/);
 });
 
 test("optimizer exposes source, goal, lock, and search controls", () => {
@@ -38,8 +38,20 @@ test("protected goals show current calculated floors and widen the workspace", (
   assert.match(html, /adapter\.currentStats/);
   assert.match(html, /class="picker-option-value" title="Current value"/);
   assert.match(html, /class="goal-chip-value" title="Current protected floor"/);
-  assert.match(html, /\.layout:has\(\.picker-menu:not\(\.hidden\)\)/);
+  assert.match(html, /\.setup-workspace:has\(\.picker-menu:not\(\.hidden\)\)/);
   assert.match(html, /repeat\(3,minmax\(0,1fr\)\)/);
+});
+
+test("optimizer uses full-screen setup, loading, and result phases", () => {
+  assert.match(html, /id="setup-state" class="setup-workspace"/);
+  assert.match(html, /grid-template-areas:"source goals" "locks rules" "actions actions"/);
+  assert.match(html, /class="progress-card"/);
+  assert.match(html, /Improving your build/);
+  assert.match(html, /function setView\(view\)/);
+  assert.match(html, /setView\("progress"\)/);
+  assert.match(html, /setView\("result"\)/);
+  assert.match(html, /id="edit-build-goals"/);
+  assert.doesNotMatch(html, /id="empty-state"/);
 });
 
 test("results include an Armory-style character doll canvas", () => {

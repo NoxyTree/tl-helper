@@ -23,9 +23,13 @@
     h1 { margin-top:5px; font-size:clamp(30px,4vw,46px); }
     .lede { max-width:630px; margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55; }
     .step { color:var(--muted); font-size:12px; }
-    .layout { display:grid; grid-template-columns:minmax(310px,430px) minmax(0,1fr); gap:14px; align-items:start; transition:grid-template-columns .24s ease; }
-    .layout:has(.picker-menu:not(.hidden)) { grid-template-columns:minmax(480px,720px) minmax(280px,1fr); }
-    .stack { display:grid; gap:14px; }
+    .setup-workspace { display:grid; grid-template-columns:minmax(300px,.75fr) minmax(0,1.65fr); grid-template-areas:"source goals" "locks rules" "actions actions"; gap:14px; align-items:start; transition:grid-template-columns .24s ease; animation:tlFade .24s ease; }
+    .setup-workspace:has(.picker-menu:not(.hidden)) { grid-template-columns:minmax(270px,.58fr) minmax(0,1.82fr); }
+    .source-panel { grid-area:source; }
+    .goals-panel { grid-area:goals; }
+    .rules-panel { grid-area:rules; }
+    .locks-panel { grid-area:locks; }
+    .setup-actions { grid-area:actions; }
     .panel { border:1px solid var(--line); border-radius:13px; background:linear-gradient(180deg,var(--panel),var(--panel-2)); box-shadow:0 15px 40px rgba(0,0,0,.15); }
     .panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 17px; border-bottom:1px solid rgba(212,166,94,.13); }
     .panel-head h2 { font-size:19px; }
@@ -96,20 +100,30 @@
     .slot-lock input { accent-color:var(--gold); }
     .is-unavailable { opacity:.42; }
     .is-unavailable input,.is-unavailable button { cursor:not-allowed; }
-    .actions { position:sticky; bottom:10px; display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(12,9,6,.95); backdrop-filter:blur(8px); z-index:4; }
-    .stack:has(.picker-menu:not(.hidden)) .actions { position:static; }
+    .actions { display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(90deg,rgba(33,24,13,.96),rgba(13,10,7,.96)); backdrop-filter:blur(8px); z-index:4; }
     .actions .primary { flex:1; }
     .result-empty { min-height:360px; display:grid; place-items:center; padding:40px; text-align:center; }
     .result-empty .sigil { width:54px; height:54px; display:grid; place-items:center; margin:0 auto 15px; border:1px solid var(--line); transform:rotate(45deg); color:var(--gold); }
     .result-empty .sigil span { transform:rotate(-45deg); font-family:Marcellus,serif; font-size:25px; }
     .result-empty h2 { font-size:24px; }
     .result-empty p { max-width:500px; color:var(--muted); font-size:12.5px; line-height:1.55; }
-    .progress-wrap { padding:18px; }
-    .progress-head { display:flex; justify-content:space-between; font-size:12px; }
-    .progress-bar { height:7px; margin:10px 0; overflow:hidden; border-radius:999px; background:rgba(212,166,94,.12); }
+    .output-stage { animation:tlFade .25s ease; }
+    .progress-wrap { min-height:calc(100vh - 165px); display:grid; place-items:center; padding:32px; background:radial-gradient(circle at 50% 30%,rgba(212,166,94,.09),transparent 34%); }
+    .progress-card { width:min(680px,100%); padding:30px; border:1px solid rgba(242,199,119,.34); border-radius:16px; background:linear-gradient(180deg,rgba(28,20,12,.96),rgba(10,8,6,.98)); box-shadow:0 26px 80px rgba(0,0,0,.42); text-align:center; }
+    .progress-sigil { width:62px; height:62px; display:grid; place-items:center; margin:0 auto 18px; border:1px solid rgba(242,199,119,.48); transform:rotate(45deg); color:#f2c777; box-shadow:0 0 28px rgba(242,199,119,.12); animation:tlPulse 1.4s ease-in-out infinite; }
+    .progress-sigil span { transform:rotate(-45deg); font:26px Marcellus,serif; }
+    .progress-card h2 { color:#f6d391; font-size:28px; }
+    .progress-card > p { min-height:20px; color:#a99778; font-size:12px; }
+    .progress-head { display:flex; justify-content:space-between; margin-top:22px; color:#cdbb98; font-size:11px; }
+    .progress-bar { height:8px; margin:10px 0; overflow:hidden; border:1px solid rgba(242,199,119,.18); border-radius:999px; background:rgba(212,166,94,.08); }
     .progress-bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,#a87836,#f6d391); transition:width .18s; }
+    .progress-steps { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:20px 0; }
+    .progress-step { padding:8px 5px; border:1px solid rgba(212,166,94,.12); border-radius:8px; color:#75664f; font-size:9px; }
+    .progress-step.active { border-color:rgba(242,199,119,.45); background:rgba(107,68,22,.16); color:#e5c88f; }
     .error { color:var(--bad); }
-    .results { padding:16px; }
+    .results { padding:16px; animation:tlRise .28s ease; }
+    .result-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; padding:12px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:rgba(20,15,10,.72); }
+    .result-toolbar strong { color:#f2c777; font:18px Marcellus,serif; }
     .result-stage { display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; align-items:start; }
     .build-doll { position:sticky; top:18px; padding:16px 14px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:linear-gradient(180deg,rgba(26,20,12,.55),rgba(14,11,7,.75)); box-shadow:inset 0 1px 0 rgba(246,211,145,.06),0 18px 40px rgba(0,0,0,.3); }
     .doll-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:12px; }
@@ -152,10 +166,12 @@
     .explanations ul { padding-left:17px; color:#cfc1a6; font-size:11.5px; line-height:1.6; }
     .alternative { padding:10px; border:1px solid rgba(212,166,94,.14); border-radius:8px; margin-top:7px; }
     .hidden { display:none!important; }
-    @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}}
-    @media(min-width:901px){.layout:has(.picker-menu:not(.hidden)) .picker-results{grid-template-columns:repeat(3,minmax(0,1fr))}.layout:has(.picker-menu:not(.hidden)) .picker-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}
-    @media(max-width:900px){.layout,.layout:has(.picker-menu:not(.hidden)){grid-template-columns:1fr}.actions{position:static}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
+    @keyframes tlPulse { 50%{transform:rotate(45deg) scale(1.08);box-shadow:0 0 38px rgba(242,199,119,.24)} }
+    @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:minmax(270px,.8fr) minmax(0,1.4fr)}}
+    @media(min-width:901px){.goals-panel .picker-results{grid-template-columns:repeat(3,minmax(0,1fr))}.goals-panel .picker-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(max-width:900px){.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:1fr;grid-template-areas:"source" "goals" "rules" "locks" "actions"}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
     @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    @keyframes tlFade { from{opacity:0} to{opacity:1} }
     @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
     @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}}
   </style>
@@ -169,23 +185,22 @@
   </header>
 
   <main id="main-content">
-    <div class="page-head"><div><div class="eyebrow">Full build lab</div><h1>Build around what matters</h1><p class="lede">Search complete loadouts, including sets, Heroics, runes, and artifacts, while locking expensive equipment and protecting the stats you cannot afford to lose.</p></div><div class="step">Best result found under your settings</div></div>
-    <div class="layout">
-      <div class="stack">
-        <section class="panel" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Choose your build</h2></div><div class="panel-body">
+    <div id="page-head" class="page-head"><div><div class="eyebrow">Full build lab</div><h1>Build around what matters</h1><p class="lede">Search complete loadouts, including sets, Heroics, runes, and artifacts, while locking expensive equipment and protecting the stats you cannot afford to lose.</p></div><div class="step">Configure everything, then improve</div></div>
+    <div id="setup-state" class="setup-workspace">
+        <section class="panel source-panel" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Choose your build</h2></div><div class="panel-body">
           <div class="experience-switch" aria-label="Optimizer experience"><span class="active">Improve my build</span><a href="./build-from-scratch.html">Build from scratch</a></div>
           <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
           <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
           <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
         </div></section>
 
-        <section class="panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
+        <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
           <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Optimized equally</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
           <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
           <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
         </div></section>
 
-        <section class="panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">3. Search rules</h2></div><div class="panel-body">
+        <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">3. Search rules</h2></div><div class="panel-body">
           <div class="toggle-list">
             <label class="toggle-row"><input id="keep-heroics" type="checkbox" checked><span><strong>Keep current Heroics</strong><small>Locks equipped Heroics by default because replacing them is expensive.</small></span></label>
             <label class="toggle-row"><input id="reconsider-heroics" type="checkbox"><span><strong>Reconsider Heroics</strong><small>Suggest the best legal Heroic in each equipment group.</small></span></label>
@@ -198,19 +213,14 @@
           <div class="mode-group"><span>Search depth</span><div id="search-depth" class="segmented"><button type="button" data-value="fast" class="active">Fast</button><button type="button" data-value="thorough">Thorough</button></div><p class="hint">Thorough searches a wider candidate frontier and may take longer.</p></div>
         </div></section>
 
-        <section id="locks-panel" class="panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">4. Lock slots</h2><span class="section-kicker">Optional</span></div><div class="panel-body"><div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">A locked slot keeps its current item, traits, runes, and configured effects.</p></div></section>
-        <div class="actions"><button id="run-optimizer" class="primary" type="button" disabled>Find my best build</button><button id="cancel-optimizer" class="secondary hidden" type="button">Cancel</button></div>
-      </div>
-
-      <div class="stack">
-        <section id="output" class="panel" aria-live="polite">
-          <div id="empty-state" class="result-empty"><div><div class="sigil"><span>+</span></div><h2>Your recommendation will appear here</h2><p>Choose a source build, add at least one stat to increase, then run the search. The page will never invent results if the calculation engine is unavailable.</p></div></div>
-          <div id="progress-state" class="progress-wrap hidden"><div class="progress-head"><strong id="progress-label">Preparing candidates</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><p id="progress-detail" class="hint">Building legal slot candidates.</p></div>
-          <div id="error-state" class="result-empty hidden"><div><h2>Optimizer unavailable</h2><p id="error-message" class="error"></p><button id="retry-engine" class="secondary" type="button">Retry connection</button></div></div>
-          <div id="results-state" class="results hidden"></div>
-        </section>
-      </div>
+        <section id="locks-panel" class="panel locks-panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">4. Lock slots</h2><span class="section-kicker">Optional</span></div><div class="panel-body"><div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">A locked slot keeps its current item, traits, runes, and configured effects.</p></div></section>
+        <div class="actions setup-actions"><span class="hint" style="margin:auto 8px auto 0;">Results only come from the calculation engine. The page will never invent results.</span><button id="run-optimizer" class="primary" type="button" disabled>Improve my build</button></div>
     </div>
+    <section id="output" class="panel output-stage hidden" aria-live="polite">
+      <div id="progress-state" class="progress-wrap hidden"><div class="progress-card"><div class="progress-sigil"><span>✦</span></div><div class="section-kicker">Improving your build</div><h2 id="progress-label">Preparing candidates</h2><p id="progress-detail">Building legal slot candidates.</p><div class="progress-head"><strong>Complete loadout search</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><div class="progress-steps"><span class="progress-step active">Catalogue</span><span class="progress-step">Constraints</span><span class="progress-step">Attributes</span><span class="progress-step">Assemble</span></div><button id="cancel-optimizer" class="secondary" type="button">Cancel and return</button></div></div>
+      <div id="error-state" class="result-empty hidden"><div><h2>Optimizer unavailable</h2><p id="error-message" class="error"></p><button id="retry-engine" class="secondary" type="button">Retry connection</button></div></div>
+      <div id="results-state" class="results hidden"></div>
+    </section>
   </main>
 
   <script type="module">
@@ -225,7 +235,13 @@
     selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
     document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; await refreshCurrentStats(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
-    function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("empty-state").classList.add("hidden"); $("progress-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("error-state").classList.remove("hidden"); $("error-message").textContent=message; updateReady(); }
+    function setView(view) {
+      const changed=document.body.dataset.optimizerView!==view; document.body.dataset.optimizerView=view;
+      $("setup-state").classList.toggle("hidden",view!=="setup"); $("page-head").classList.toggle("hidden",view!=="setup"); $("output").classList.toggle("hidden",view==="setup");
+      $("progress-state").classList.toggle("hidden",view!=="progress"); $("results-state").classList.toggle("hidden",view!=="result"); $("error-state").classList.toggle("hidden",view!=="error");
+      if(changed) window.scrollTo({top:0,behavior:"smooth"});
+    }
+    function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("error-message").textContent=message; setView("error"); updateReady(); }
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
@@ -235,7 +251,7 @@
         const adapter = await factory();
         for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","currentStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
-        $("engine-status").textContent="Ready"; $("error-state").classList.add("hidden"); $("empty-state").classList.remove("hidden");
+        $("engine-status").textContent="Ready"; setView("setup");
         setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory();
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
     }
@@ -290,7 +306,7 @@
     }
     function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
     function request() { return { build:state.build, sourceKind:state.source, goals:{ increase:state.increase, protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
-    function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); $("empty-state").classList.add("hidden"); $("error-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("progress-state").classList.remove("hidden"); $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; }
+    function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     function dollItem(loadout,slot) { const group=slot.startsWith("talistone")||slot.startsWith("gemstone")?loadout?.artifacts:loadout?.equipment; const row=Array.isArray(group)?group.find(item=>item.id===slot):group?.[slot]; if(row?.name)return { name:row.name, icon:row.imageUrl??row.icon??"" }; const item=state.core?.indexes?.itemById?.[row?.itemId]; return item?{ name:item.name, icon:item.imageUrl??"" }:null; }
     function dollSlot(loadout,slot,label) { const item=dollItem(loadout,slot); return `<div class="doll-slot" title="${esc(item?.name??`Empty ${label}`)}"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><small>${esc(label)}</small></div>`; }
@@ -308,10 +324,10 @@
       const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":""}${esc(row.formattedDelta??row.delta)}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      $("results-state").innerHTML=`<div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
-      $("progress-state").classList.add("hidden"); $("results-state").classList.remove("hidden");
+      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><button id="edit-build-goals" class="secondary" type="button">Edit build goals</button></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); }; $("engine-status").textContent="Complete"; setView("result");
     }
-    $("run-optimizer").addEventListener("click",async()=>{ state.controller=new AbortController(); $("run-optimizer").disabled=true; $("cancel-optimizer").classList.remove("hidden"); showProgress({percent:0}); try { const result=await state.adapter.optimize(request(),{ signal:state.controller.signal, onProgress:showProgress }); renderResult(result); } catch(error){ if(error.name==="AbortError"){ $("progress-state").classList.add("hidden"); $("empty-state").classList.remove("hidden"); } else setEngineError(`The search stopped without a result. ${error.message}`); } finally { state.controller=null; $("cancel-optimizer").classList.add("hidden"); updateReady(); } });
+    $("run-optimizer").addEventListener("click",async()=>{ state.controller=new AbortController(); $("run-optimizer").disabled=true; showProgress({percent:0,label:"Preparing your build",detail:"Loading legal equipment candidates."}); try { const result=await state.adapter.optimize(request(),{ signal:state.controller.signal, onProgress:showProgress }); renderResult(result); } catch(error){ if(error.name==="AbortError"){ $("engine-status").textContent="Ready"; setView("setup"); } else setEngineError(`The search stopped without a result. ${error.message}`); } finally { state.controller=null; updateReady(); } });
     $("cancel-optimizer").addEventListener("click",()=>state.controller?.abort()); $("retry-engine").addEventListener("click",connectEngine);
     connectEngine();
   </script>
