@@ -72,6 +72,8 @@ test("result tuning links two to five real-stat sliders to retained legal builds
   assert.match(html, /selectLinkedTuneCandidate/);
   assert.match(html, /s\.priorities\.slice\(0,5\)/);
   assert.match(html, /Every slider snaps and dances to the nearest real build/);
+  assert.match(html, /Hard cap/);
+  assert.match(html, /General PvP diff/);
 });
 
 test("attribute shortcomings are hidden behind hover tracks", () => {

@@ -87,6 +87,18 @@ test("beam pruning preserves the strongest candidate for every tuning stat", asy
   assert.deepEqual(result.frontier.map((row) => row.selections.head.id).sort(), ["guard", "haste"]);
 });
 
+test("beam scoring does not reward stats beyond an absolute hard cap", async () => {
+  const result = await optimizeFullBuild({
+    candidatesBySlot: { head: [
+      { id: "wasteful", selection: { id: "wasteful" }, stats: { cooldown: 250 }, neutralItemLevel: 1 },
+      { id: "capped", selection: { id: "capped" }, stats: { cooldown: 200 }, neutralItemLevel: 80 },
+    ] },
+    weights: { cooldown: 1 }, statCaps: { cooldown: 200 }, paretoStats: ["cooldown"], beamWidth: 1,
+    evaluate: () => ({ score: 200, stats: { cooldown: 200 } }),
+  });
+  assert.equal(result.best.selections.head.id, "capped");
+});
+
 test("supports progress and cancellation", async () => {
   const controller = new AbortController();
   const progress = [];

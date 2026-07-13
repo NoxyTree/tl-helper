@@ -3,7 +3,7 @@ import { loadArmoryState as loadStateDefault } from "./tl-persistence.js";
 import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
 import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimizer-components.js";
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
-import { ATTRIBUTE_BREAKPOINTS, STAT_EXPANSIONS, allocatedAttributeValue } from "./tl-questlog-rules.js";
+import { ATTRIBUTE_BREAKPOINTS, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue } from "./tl-questlog-rules.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
@@ -35,13 +35,13 @@ export function expandCompositeGoals(rankedGoals) {
 
 function goalValue(stats, goal) {
   const components = goal.components?.length ? goal.components : [goal.id];
-  const values = components.map((id) => Number(stats[id] ?? 0));
+  const values = components.map((id) => Math.min(Number(stats[id] ?? 0), Number(STAT_HARD_CAPS[id] ?? Infinity)));
   return components.length > 1 ? Math.min(...values) : values[0];
 }
 
 function goalScoringValue(stats, goal) {
   const components = goal.components?.length ? goal.components : [goal.id];
-  const values = components.map((id) => Number(stats[id] ?? 0));
+  const values = components.map((id) => Math.min(Number(stats[id] ?? 0), Number(STAT_HARD_CAPS[id] ?? Infinity)));
   if (components.length === 1) return values[0];
   const minimum = Math.min(...values);
   const average = values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -446,7 +446,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         return !Object.values(selections).some((selection) => selection?.itemId === itemId);
-      }, weights: beamWeights, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, statCaps: STAT_HARD_CAPS, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (attributePointBudget != null) {
         const exact = [];
         const preliminaryFrontier = search.frontier?.length ? search.frontier : search.alternatives;
@@ -474,7 +474,8 @@ export async function createOptimizerAdapter(deps = {}) {
         const delta = value - Number(objectiveBaseline[goal.id] ?? 0);
         const normalizedContribution = goal.weight * delta / objectiveScales[goal.id];
         const components = goal.components.map((id) => ({ id, name: core.statName(id), value: Number(finalStats[id] ?? 0), formattedValue: core.formatStat(id, Number(finalStats[id] ?? 0)) }));
-        return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), minimumMet: goal.minimum == null ? null : value >= goal.minimum, components };
+        const hardCap = core.statHardCap?.(goal.id) ?? null;
+        return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), hardCap, formattedHardCap: hardCap == null ? null : core.formatStat(goal.id, hardCap), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), minimumMet: goal.minimum == null ? null : value >= goal.minimum, components };
       });
       const tradeoffs = goalResults.filter((goal) => goal.delta < 0).map((goal) => ({ id: goal.id, name: goal.name, delta: goal.delta, rank: goal.rank, text: `${goal.name} is ${Math.abs(goal.delta)} below the fixed objective baseline.` }));
       const allStats = Object.entries(finalStats).map(([id, value]) => ({ id, name: core.statName(id), value, formattedValue: core.formatStat(id, value), group: core.statPageFor(id) }))

@@ -17,6 +17,7 @@ import {
   PERK_PASSIVE_RULES,
   SET_PASSIVE_RULES,
   STAT_EXPANSIONS,
+  STAT_HARD_CAPS,
   STAT_UNIT_MODIFIERS,
   STELLAR_JOURNEY_ATTRIBUTES,
   UNIFIED_MASTERY_RULES,
@@ -1613,7 +1614,7 @@ export function calculateBuild(build, attributes, options = {}) {
     if (!sourceMap.has(statId)) sourceMap.set(statId, []);
     sourceMap.get(statId).push({ sourceLabel, name: sourceLabel, value: numeric, type: sourceType, grade, icon });
   };
-  const totalsObject = () => Object.fromEntries([...totals].map(([statId, total]) => [statId, { statId, total, sources: sourceMap.get(statId) ?? [] }]));
+  const totalsObject = () => Object.fromEntries([...totals].map(([statId, total]) => [statId, { statId, total: effectiveStatValue(statId, total), sources: sourceMap.get(statId) ?? [] }]));
   const selections = allBuildSelectionEntries(build);
   const mainWeapon = indexes.itemById[build.equipment?.main_hand?.itemId];
   const offWeapon = indexes.itemById[build.equipment?.off_hand?.itemId];
@@ -1717,7 +1718,7 @@ export function calculateBuild(build, attributes, options = {}) {
     }
   }
   for (const [attributeId, breakpoints] of Object.entries(ATTRIBUTE_BREAKPOINTS)) {
-    const attributeTotal = totals.get(attributeId) ?? 0;
+    const attributeTotal = effectiveStatValue(attributeId, totals.get(attributeId) ?? 0);
     for (const [threshold, bonuses] of Object.entries(breakpoints)) {
       if (attributeTotal < Number(threshold)) continue;
       for (const [statId, value] of Object.entries(bonuses)) {
@@ -1743,10 +1744,10 @@ export function calculateBuild(build, attributes, options = {}) {
   applyPhase(6);
 
   const range = totals.get("attack_range_main_hand") ?? 0;
-  const rangeModifier = totals.get("attack_range_modifier") ?? 0;
+  const rangeModifier = effectiveStatValue("attack_range_modifier", totals.get("attack_range_modifier") ?? 0);
   if (range && rangeModifier) add("attack_range_main_hand", range * (rangeModifier / 10000), "Range Increase", "range");
   const speed = totals.get("attack_speed_main_hand") ?? 0;
-  const speedModifier = totals.get("attack_speed_modifier") ?? 0;
+  const speedModifier = effectiveStatValue("attack_speed_modifier", totals.get("attack_speed_modifier") ?? 0);
   if (speed && speedModifier) {
     const ratio = speedModifier / 10000;
     const adjusted = speed * (1 - ratio / (1 + ratio));
@@ -1765,9 +1766,16 @@ export function calculateBuild(build, attributes, options = {}) {
   addDerivedTotal("attack_power_main_hand_max", totals.get("attack_power_main_hand") ?? 0, totals, sourceMap);
   addDerivedTotal("attack_power_off_hand_min", totals.get("bonus_attack_power_off_hand") ?? 0, totals, sourceMap);
   addDerivedTotal("attack_power_off_hand_max", totals.get("attack_power_off_hand") ?? 0, totals, sourceMap);
+  const capOverflow = new Map();
+  for (const [statId, maximum] of Object.entries(STAT_HARD_CAPS)) {
+    const rawTotal = totals.get(statId) ?? 0;
+    if (rawTotal <= maximum) continue;
+    capOverflow.set(statId, rawTotal - maximum);
+    add(statId, maximum - rawTotal, `Hard cap: ${formatStat(statId, maximum)}`, "hard_cap");
+  }
   const runeSynergies = calculateRuneSynergies(build);
   return {
-    stats: [...totals.entries()].map(([id, total]) => ({ id, total, sources: sourceMap.get(id) ?? [] })),
+    stats: [...totals.entries()].map(([id, total]) => ({ id, total, uncappedTotal: total + (capOverflow.get(id) ?? 0), overflow: capOverflow.get(id) ?? 0, hardCap: statHardCap(id), sources: sourceMap.get(id) ?? [] })),
     runeSynergies,
     validation: validateBuild(runeSynergies, build),
   };
@@ -2337,6 +2345,17 @@ export function formatStat(id, value) {
   }
   if (STAT_UNIT_MODIFIERS[id] !== undefined) return trim(numeric * STAT_UNIT_MODIFIERS[id]);
   return trim(numeric);
+}
+
+export function statHardCap(id) {
+  const cap = Number(STAT_HARD_CAPS[id]);
+  return Number.isFinite(cap) ? cap : null;
+}
+
+export function effectiveStatValue(id, value) {
+  const numeric = Number(value || 0);
+  const maximum = statHardCap(id);
+  return maximum == null ? numeric : Math.min(numeric, maximum);
 }
 
 export function statDisplayToRaw(id, value) {

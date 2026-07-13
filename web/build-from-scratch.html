@@ -786,7 +786,7 @@
           <div style="display:grid;gap:9px;">
             <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
               <label style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:8px 10px;border:1px solid {{ row.border }};border-radius:10px;background:{{ row.bg }};transition:border-color .22s ease,background .22s ease,transform .22s ease;">
-                <span style="min-width:0;color:#d8c9ab;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.name }}</span>
+                <span style="min-width:0;color:#d8c9ab;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.name }} <small style="color:#8f7e9f;font-size:8px;font-weight:500;letter-spacing:.04em;">{{ row.capLabel }}</small></span>
                 <strong style="color:#f2c777;font:400 15px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
                 <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
                 <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.minimumLabel }}</span><span style="text-align:right;color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.maximumLabel }}</span>
@@ -807,7 +807,7 @@
             <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:10px 12px;box-shadow:inset 0 0 24px rgba(242,199,119,.05);">
               <div style="display:flex;align-items:center;gap:9px;">
                 <span style="flex:0 0 auto;width:20px;height:20px;display:grid;place-items:center;color:#0b0805;background:#f2c777;border-radius:6px;font-size:10px;font-weight:800;">{{ f.rank }}</span>
-                <span style="color:#f6e6c3;font-size:12.5px;font-weight:600;">{{ f.name }}</span>
+                <span style="color:#f6e6c3;font-size:12.5px;font-weight:600;">{{ f.name }}</span><small style="color:#8f7e9f;font-size:8px;">{{ f.capLabel }}</small>
                 <span style="flex:1;"></span>
                 <span style="color:#f2c777;font:400 18px Marcellus,serif;font-variant-numeric:tabular-nums;">{{ f.value }}</span>
               </div>
@@ -1726,14 +1726,16 @@ class Component extends DCLogic {
     const tuningRows=s.priorities.slice(0,5).map((id,index)=>{
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{},range=tuningRanges[id]||{minimum:Number(goal.value)||0,maximum:Number(goal.value)||0};
       const rawValue=Number(goal.value)||0,span=Math.max(0,Number(range.maximum)-Number(range.minimum));
-      return{id,name:goal.name||this.statLabel(id),value:goal.formattedValue||this.core.formatStat(id,rawValue),rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event)};
+      const capLabel=goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP diff 4,500 / -3,000':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC diff 1,800 / -1,200':'';
+      return{id,name:goal.name||this.statLabel(id),capLabel,value:goal.formattedValue||this.core.formatStat(id,rawValue),rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event)};
     });
 
     const favourites = s.priorities.map((id, i) => {
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{};
       const stat=s.statOptions.find(row=>row.id===id);
       const parts=(goal.components||[]).map(component=>({name:component.name,value:component.formattedValue,weak:Number(component.value)===Number(goal.value),color:Number(component.value)===Number(goal.value)?'#e57c72':'#e5c88f',dot:Number(component.value)===Number(goal.value)?'#e57c72':'#b98cf0'}));
-      return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),value:goal.formattedValue||'Queued',composite:parts.length>1,parts};
+      const capLabel=goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP difference cap':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC difference cap':'';
+      return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),capLabel,value:goal.formattedValue||'Queued',composite:parts.length>1,parts};
     });
 
     const statTabs = this.STAT_TABS.map(t => {

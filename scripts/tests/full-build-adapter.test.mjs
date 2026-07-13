@@ -136,6 +136,11 @@ test("a meaningful gain in priority one outweighs a complete lower-priority obje
     > scoreRankedGoals({ endurance: 0, hit: 100 }, {}, scales, goals));
 });
 
+test("ranked objective scoring stops at official absolute stat caps", () => {
+  const goals = expandCompositeGoals(normalizeRankedGoals({ increase: ["skill_cooldown_modifier"] }));
+  assert.equal(scoreRankedGoals({ skill_cooldown_modifier: 25000 }, {}, { skill_cooldown_modifier: 10000 }, goals), 2);
+});
+
 test("legacy increase arrays remain equally weighted", () => {
   assert.deepEqual(normalizeRankedGoals({ increase: ["health", "endurance"] }).map(({ rank, weight }) => ({ rank, weight })), [{ rank: 1, weight: 1 }, { rank: 1, weight: 1 }]);
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatStat, statDisplayToRaw } from "../../web/tl-core.js";
+import { effectiveStatValue, formatStat, statDisplayToRaw, statHardCap } from "../../web/tl-core.js";
 
 test("player-entered minimums round-trip through displayed stat units", () => {
   for (const [id, display, expected] of [
@@ -14,4 +14,14 @@ test("player-entered minimums round-trip through displayed stat units", () => {
     const raw = statDisplayToRaw(id, display);
     assert.equal(formatStat(id, raw), expected);
   }
+});
+
+test("official absolute caps use calculator raw units", () => {
+  assert.equal(statHardCap("skill_cooldown_modifier"), 20000);
+  assert.equal(statHardCap("buff_given_duration_modifier"), 15000);
+  assert.equal(statHardCap("attack_speed_modifier"), 15000);
+  assert.equal(statHardCap("attack_range_modifier"), 10000);
+  assert.equal(statHardCap("con"), 130);
+  assert.equal(statHardCap("pvp_melee_accuracy"), null);
+  assert.equal(effectiveStatValue("skill_cooldown_modifier", 25000), 20000);
 });

@@ -48,36 +48,41 @@ function signature(state) {
   });
 }
 
-function objectiveVector(state, ids) {
-  return ids.map((id) => number(state.stats[id]));
+function capped(value, cap) {
+  const maximum = Number(cap);
+  return Number.isFinite(maximum) ? Math.min(number(value), maximum) : number(value);
 }
 
-function dominates(a, b, ids) {
-  const av = objectiveVector(a, ids);
-  const bv = objectiveVector(b, ids);
+function objectiveVector(state, ids, statCaps) {
+  return ids.map((id) => capped(state.stats[id], statCaps?.[id]));
+}
+
+function dominates(a, b, ids, statCaps) {
+  const av = objectiveVector(a, ids, statCaps);
+  const bv = objectiveVector(b, ids, statCaps);
   return av.every((value, index) => value >= bv[index]) && av.some((value, index) => value > bv[index]);
 }
 
-function heuristic(state, weights) {
+function heuristic(state, weights, statCaps) {
   let score = number(state.hint);
-  for (const [id, weight] of Object.entries(weights ?? {})) score += number(state.stats[id]) * number(weight);
+  for (const [id, weight] of Object.entries(weights ?? {})) score += capped(state.stats[id], statCaps?.[id]) * number(weight);
   return score;
 }
 
-function stateOrder(a, b, weights) {
-  return heuristic(b, weights) - heuristic(a, weights)
+function stateOrder(a, b, weights, statCaps) {
+  return heuristic(b, weights, statCaps) - heuristic(a, weights, statCaps)
     || number(a.neutralHeroics) - number(b.neutralHeroics)
     || number(b.neutralLevel) - number(a.neutralLevel)
     || number(b.neutralGrade) - number(a.neutralGrade)
     || a.key.localeCompare(b.key);
 }
 
-function diverseStates(states, statIds, limit, weights) {
-  const ordered = [...states].sort((a, b) => stateOrder(a, b, weights));
+function diverseStates(states, statIds, limit, weights, statCaps) {
+  const ordered = [...states].sort((a, b) => stateOrder(a, b, weights, statCaps));
   if (ordered.length <= limit) return ordered;
   const retained = new Map();
   const add = (row) => { if (row) retained.set(row.key, row); };
-  const byStat = statIds.map((id) => [...states].sort((a, b) => number(b.stats?.[id]) - number(a.stats?.[id]) || stateOrder(a, b, weights)));
+  const byStat = statIds.map((id) => [...states].sort((a, b) => capped(b.stats?.[id], statCaps?.[id]) - capped(a.stats?.[id], statCaps?.[id]) || stateOrder(a, b, weights, statCaps)));
   for (const rows of byStat) add(rows[0]);
   for (const rows of byStat) add(rows[1]);
   for (const row of ordered) {
@@ -87,18 +92,18 @@ function diverseStates(states, statIds, limit, weights) {
   return [...retained.values()].slice(0, limit);
 }
 
-function prune(states, { beamWidth, paretoWidth, paretoStats, weights }) {
+function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps }) {
   const frontiers = new Map();
   for (const state of states.sort((a, b) => a.key.localeCompare(b.key))) {
     const sig = signature(state);
     const frontier = frontiers.get(sig) ?? [];
-    if (frontier.some((other) => dominates(other, state, paretoStats))) continue;
-    const next = frontier.filter((other) => !dominates(state, other, paretoStats)).concat(state);
+    if (frontier.some((other) => dominates(other, state, paretoStats, statCaps))) continue;
+    const next = frontier.filter((other) => !dominates(state, other, paretoStats, statCaps)).concat(state);
     // Equivalent set/rule states can still have a large Pareto frontier. This
     // local bound keeps worst-case work predictable while retaining diversity.
-    frontiers.set(sig, next.length > paretoWidth ? diverseStates(next, paretoStats, paretoWidth, weights) : next);
+    frontiers.set(sig, next.length > paretoWidth ? diverseStates(next, paretoStats, paretoWidth, weights, statCaps) : next);
   }
-  return diverseStates([...frontiers.values()].flat(), paretoStats, beamWidth, weights);
+  return diverseStates([...frontiers.values()].flat(), paretoStats, beamWidth, weights, statCaps);
 }
 
 function canAdd(state, candidate, options) {
@@ -188,6 +193,7 @@ export async function optimizeFullBuild(options) {
   const alternativeCount = Math.max(1, number(options.alternativeCount) || 5);
   const frontierCount = Math.max(alternativeCount, number(options.frontierCount) || 48);
   const weights = options.weights ?? {};
+  const statCaps = options.statCaps ?? {};
   const paretoStats = [...new Set([...(options.paretoStats ?? Object.keys(weights)), ...Object.keys(options.protectedStats ?? {})])].sort();
   let searched = 0;
   let beam = [{ selections: {}, candidates: {}, stats: {}, heroic: {}, weapons: [], sets: {}, custom: [], hint: 0, neutralHeroics: 0, neutralLevel: 0, neutralGrade: 0, key: "" }];
@@ -203,7 +209,7 @@ export async function optimizeFullBuild(options) {
         if (canAdd(state, candidate, options)) expanded.push(addCandidate(state, slot, candidate));
       }
     }
-    beam = prune(expanded, { beamWidth, paretoWidth, paretoStats, weights });
+    beam = prune(expanded, { beamWidth, paretoWidth, paretoStats, weights, statCaps });
     options.onProgress?.({ phase: "search", completedSlots: index + 1, totalSlots: slots.length, frontierSize: beam.length, searched });
     if (!beam.length) break;
     await Promise.resolve();
