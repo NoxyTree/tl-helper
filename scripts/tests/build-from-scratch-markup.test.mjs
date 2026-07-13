@@ -101,7 +101,8 @@ test("builder requires a weapon pair and supplies an optimizable attribute budge
   assert.match(html, /weaponTypes:\[state\.weaponTypes\.main,state\.weaponTypes\.off\]/);
   assert.match(html, /id="attribute-point-budget"/);
   assert.match(html, /attributePointBudget:state\.attributePointBudget/);
-  assert.match(html, /0 points available/);
+  assert.match(html, /value="59"/);
+  assert.match(html, /attributePointBudget:59/);
   assert.match(html, /Gear stats also contribute/);
   assert.doesNotMatch(html, /data-attribute=/);
 });
