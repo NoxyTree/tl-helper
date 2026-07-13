@@ -24,7 +24,8 @@ test("character doll is the primary scratch result canvas", () => {
 });
 
 test("scratch controls are compact and have honest defaults", () => {
-  assert.match(html, /id="goal-picker"/);
+  assert.match(html, /id="goal-input"/);
+  assert.match(html, /id="priority-list"/);
   assert.doesNotMatch(html, /Protect/);
   assert.match(html, /id="allow-heroics"[^>]+checked/);
   assert.match(html, /id="include-sets"[^>]+checked/);
@@ -32,6 +33,18 @@ test("scratch controls are compact and have honest defaults", () => {
   assert.match(html, /data-value="normal" class="active"/);
   assert.match(html, /data-value="sets" class="active"/);
   assert.match(html, /data-value="fast" class="active"/);
+});
+
+test("gamer priorities are ranked, reorderable, and sent to the adapter", () => {
+  assert.match(html, /Add a stat to maximize/);
+  assert.match(html, /draggable="true"/);
+  assert.match(html, /data-up=/);
+  assert.match(html, /data-down=/);
+  assert.match(html, /data-minimum=/);
+  assert.match(html, /goalPriorities/);
+  assert.match(html, /rank:index\+1/);
+  assert.match(html, /id="preset-select"/);
+  assert.match(html, /Save preset/);
 });
 
 test("scratch builder uses the adapter and stable lock identifiers", () => {
@@ -48,6 +61,9 @@ test("results remain compact and inspectable", () => {
   assert.match(html, /Lock this result/);
   assert.match(html, /Rerun/);
   assert.match(html, /Assumptions and warnings/);
+  assert.match(html, /result\.goalResults/);
+  assert.match(html, /class="goal-result"/);
+  assert.match(html, /Forge best loadout/);
   assert.match(html, /Heroic effects:/);
   assert.match(html, /Runes configured:/);
   assert.doesNotMatch(html, /<table/);

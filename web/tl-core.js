@@ -2335,6 +2335,19 @@ export function formatStat(id, value) {
   return trim(numeric);
 }
 
+export function statDisplayToRaw(id, value) {
+  const numeric = Number(value || 0);
+  if (id === "attack_speed" || id === "attack_speed_main_hand" || id === "attack_speed_off_hand") return numeric * 1000;
+  if (id === "attack_range" || id === "attack_range_main_hand" || id === "attack_range_off_hand") return numeric * 100;
+  if (id === "shield_block_chance" || id === "block_chance" || id === "shield_block_chance_penetration") return numeric * 100;
+  if (id === "cost_regen" || id === "hp_regen" || id === "stamina_regen") return numeric * 1000;
+  if (["bind_accuracy","bind_tolerance","blind_accuracy","blind_tolerance","collide_amplification","collide_resistance","collision_resistance","petrification_accuracy","petrification_tolerance","silence_accuracy","silence_tolerance","sleep_accuracy","sleep_tolerance","stun_accuracy","stun_tolerance","weaken_accuracy","weaken_tolerance"].includes(id)) return numeric * 40;
+  if (/(?:^|_)(?:accuracy|critical_attack|critical_defense|double_attack|double_defense)$/.test(id) || id === "all_species_damage_amplification") return numeric * 10;
+  if (id.endsWith("_modifier") || id.includes("duration_modifier")) return numeric * 100;
+  if (STAT_UNIT_MODIFIERS[id] !== undefined) return numeric / STAT_UNIT_MODIFIERS[id];
+  return numeric;
+}
+
 export function trim(value) {
   const numeric = Number(value || 0);
   const truncated = Math.trunc((numeric + Number.EPSILON * Math.sign(numeric)) * 100) / 100;
