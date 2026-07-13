@@ -13,6 +13,18 @@ test("Builder transforms from setup into a full character result", () => {
   for (const label of ["Summary", "Attack", "Defense", "Utility", "PvP", "Boss", "Gear", "Sets & Runes"]) assert.ok(html.includes(label));
 });
 
+test("Improve my build opens the exact Builder result with kept equipment context", () => {
+  assert.match(html, /loadImprovedResult\(sessionStorage\)/);
+  assert.match(html, /resultOrigin:'improved'/);
+  assert.match(html, /Your improved build/);
+  assert.match(html, /· KEPT/);
+  assert.match(html, /Items marked KEPT were carried forward/);
+  assert.match(html, /Save as preset/);
+  assert.match(html, /Use in Armory/);
+  assert.match(html, /saveArmoryPresets/);
+  assert.match(html, /saveArmoryState/);
+});
+
 test("setup uses real weapon, ranked goal modes, rules, and attribute contracts", () => {
   assert.match(html, /aria-label="\{\{ w\.ariaLabel \}\}"/);
   assert.match(html, /aria-label="Add a priority stat"/);

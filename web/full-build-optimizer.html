@@ -250,7 +250,7 @@
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
     function renderLocks() {
       const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
@@ -274,7 +274,7 @@
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const [module,core,rulesData,persistence] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence;
+        const [module,core,rulesData,persistence,handoff] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-optimizer-result-handoff.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff;
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
@@ -351,6 +351,10 @@
     function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
     function request() { return { build:state.build, sourceKind:state.source, goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
+    function openSharedResult(result) {
+      state.handoff.storeImprovedResult(sessionStorage,{result,priorities:state.increase,includeSetEffects:$("include-sets").checked,returnUrl:"./full-build-optimizer.html"});
+      location.href="./build-from-scratch.html?result=improved";
+    }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     function dollItem(loadout,slot) { const group=slot.startsWith("talistone")||slot.startsWith("gemstone")?loadout?.artifacts:loadout?.equipment; const row=Array.isArray(group)?group.find(item=>item.id===slot):group?.[slot]; if(row?.name)return { name:row.name, icon:row.imageUrl??row.icon??"" }; const item=state.core?.indexes?.itemById?.[row?.itemId]; return item?{ name:item.name, icon:item.imageUrl??"" }:null; }
     function dollSlot(loadout,slot,label) { const item=dollItem(loadout,slot); return `<div class="doll-slot" data-result-slot="${esc(slot)}" aria-label="Inspect ${esc(item?.name??`empty ${label}`)}"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><small>${esc(label)}</small></div>`; }
@@ -398,7 +402,7 @@
     $("run-optimizer").addEventListener("click",()=>{
       state.worker?.terminate(); $("run-optimizer").disabled=true; showProgress({percent:0,label:"Preparing your build",detail:"Starting the optimizer worker."});
       const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
-      worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;renderResult(message.result);updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
+      worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;try{openSharedResult(message.result);}catch(error){setEngineError(`The result could not be opened. ${error.message}`);}updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
       worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
       worker.postMessage({type:"optimize",request:request()});
     });

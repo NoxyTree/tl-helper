@@ -88,9 +88,12 @@
       <p style="margin:9px 0 0;max-width:560px;color:#b3a488;font-size:13px;line-height:1.5;">{{ subtitle }}</p>
     </div>
     <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
-      <button onClick="{{ editGoals }}" style="display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';letter-spacing:.06em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">
-        <span style="font-size:15px;">⚙</span> Edit build goals
-      </button>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+        <button onClick="{{ editGoals }}" style="display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';letter-spacing:.06em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;"><span style="font-size:15px;">⚙</span> Edit build goals</button>
+        <button onClick="{{ saveResult }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">Save as preset</button>
+        <button onClick="{{ useResult }}" style="min-height:44px;padding:0 18px;color:#0b0805;border:1px solid #f2c777;border-radius:10px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 12px 'Instrument Sans';">Use in Armory</button>
+        <sc-if value="{{ resultActionMessage }}" hint-placeholder-val="{{ false }}"><span role="status" style="flex-basis:100%;color:#7ee0a6;font-size:10px;text-align:right;">{{ resultActionMessage }}</span></sc-if>
+      </div>
     </sc-if>
   </div>
 
@@ -668,7 +671,7 @@
             </span>
           </sc-for>
         </div>
-        <button onClick="{{ refit }}" style="margin-left:auto;min-height:36px;padding:0 13px;color:#e6d6b4;border:1px solid rgba(212,166,94,.35);border-radius:9px;background:rgba(28,21,13,.6);cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.05em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">↻ Re-forge unlocked</button>
+        <button onClick="{{ refit }}" style="margin-left:auto;min-height:36px;padding:0 13px;color:#e6d6b4;border:1px solid rgba(212,166,94,.35);border-radius:9px;background:rgba(28,21,13,.6);cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.05em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">↻ {{ refitLabel }}</button>
       </div>
     </section>
 
@@ -950,6 +953,10 @@ class Component extends DCLogic {
     source: null,
     result: null,
     resultCalc: null,
+    resultOrigin: 'scratch',
+    resultReturnUrl: './full-build-optimizer.html',
+    resultActionMessage: '',
+    kept: {},
     engineReady: false,
     engineError: '',
     progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
@@ -967,16 +974,29 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js')]).then(async ([core, adapterModule, rulesData, tuner]) => {
+    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff]) => {
       this.core = core;
       this.rulesData = rulesData;
       this.tuner = tuner;
+      this.persistence = persistence;
       const factory = adapterModule.createOptimizerAdapter || adapterModule.default;
       this.adapter = await factory();
       const source = await this.adapter.createScratchBuild();
       const statOptions = await this.adapter.listStats();
       let saved={};try{saved=JSON.parse(localStorage.getItem('tlhelper.builder.heroics.v1')||'{}')}catch{}
       const heroics=saved.heroics||this.state.heroics,heroicMode=saved.heroicMode||this.state.heroicMode;
+      const improved=new URLSearchParams(location.search).get('result')==='improved' ? handoff.loadImprovedResult(sessionStorage) : null;
+      if(improved){
+        const result=improved.result,attributes=result.optimizedAttributes||result.attributes||{};
+        const resultCalc=this.core.calculateBuild(result.build,attributes,{includeSetEffects:improved.includeSetEffects,optionalFallback:false});
+        const itemType=slotId=>this.core.indexes.itemById[result.build?.equipment?.[slotId]?.itemId]?.equipmentType||'';
+        const kept=Object.fromEntries(improved.keptSlotIds.map(id=>[id,true]));
+        if(kept.main_hand)kept.main=true;if(kept.off_hand)kept.off=true;
+        this.setState({source:{build:structuredClone(result.build),attributes:{...attributes},sourceKind:'existing',name:result.name},statOptions,engineReady:true,heroics,heroicMode,heroicsEngaged:Boolean(saved.heroics),
+          result,resultCalc,phase:'result',resultOrigin:'improved',resultReturnUrl:improved.returnUrl||'./full-build-optimizer.html',priorities:improved.priorities,kept,locked:{...kept},
+          weaponTypes:{main:itemType('main_hand'),off:itemType('off_hand')},rules:{...this.state.rules,sets:improved.includeSetEffects}});
+        return;
+      }
       this.setState({ source, statOptions, engineReady:true, heroics, heroicMode, heroicsEngaged:Boolean(saved.heroics) });
     }).catch(error => this.setState({ engineError:String(error && error.message || error) }));
   }
@@ -1447,8 +1467,34 @@ class Component extends DCLogic {
     this._worker.postMessage({type:'optimize',request});
   };
   cancelForge = () => { this._worker?.postMessage({type:'cancel'}); this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'}); };
-  editGoals = () => this.setState({ phase:'setup' });
-  refit = () => { this.forge(); };
+  editGoals = () => {
+    if(this.state.resultOrigin==='improved'){
+      if(history.length>1){history.back();return;}
+      location.href=this.state.resultReturnUrl||'./full-build-optimizer.html';
+      return;
+    }
+    this.setState({ phase:'setup' });
+  };
+  refit = () => { if(this.state.resultOrigin==='improved')this.editGoals();else this.forge(); };
+  resultSnapshot() {
+    const gameBuild=this.core.data?.gameBuild??'unversioned';
+    const loaded=this.persistence.loadArmoryState(localStorage,{currentGameBuild:gameBuild});
+    return {profile:loaded.ok?loaded.data.profile:{name:this.state.result?.name??'Optimized build',role:'Adventurer',server:''},attributes:{...(this.state.result?.optimizedAttributes||this.state.result?.attributes||{})},favoriteStatIds:[...this.state.priorities],build:this.core.deepClone(this.state.result.build)};
+  }
+  saveResult = () => {
+    try{
+      const gameBuild=this.core.data?.gameBuild??'unversioned',snapshot={...this.resultSnapshot(),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name:this.state.result?.name??'Optimized build',createdAt:new Date().toISOString()};
+      const loaded=this.persistence.loadArmoryPresets(localStorage,{currentGameBuild:gameBuild});
+      this.persistence.saveArmoryPresets(localStorage,[...(loaded.ok?loaded.data:[]),snapshot],{gameBuild});
+      this.setState({resultActionMessage:'Saved as a new Armory preset.'});
+    }catch{this.setState({resultActionMessage:'The preset could not be saved in this browser.'});}
+  };
+  useResult = () => {
+    try{
+      this.persistence.saveArmoryState(localStorage,this.resultSnapshot(),{gameBuild:this.core.data?.gameBuild??'unversioned'});
+      location.href='./index.html';
+    }catch{this.setState({resultActionMessage:'The build could not be saved in this browser.'});}
+  };
   tuneStat(id,event) {
     const result=this.state.result,targetCaps=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.target!=null).map(goal=>[goal.id,goal.target]));
     const frontier=this.tuner?.paretoTuneFrontier(result?.tuningFrontier||[],this.state.priorities,48,targetCaps)||[];
@@ -1678,8 +1724,9 @@ class Component extends DCLogic {
       const rar = this.RARITY[it.rarity]||this.RARITY.epic;
       const ownedGroup = ownedSlotMap[it.slot];
       const owned = !!(ownedGroup && s.heroics[ownedGroup]);
+      const kept = !!s.kept[it.slot];
       const locked = !!s.locked[it.slot] || owned;
-      return { slotLabel: it.slotLabel + (owned ? ' · OWNED' : ''), name: it.name, topStat: it.topStat, level: it.level, icon: it.imageUrl?`url(${it.imageUrl}) center/contain no-repeat`:rar.icon,
+      return { slotLabel: it.slotLabel + (kept ? ' · KEPT' : owned ? ' · OWNED' : ''), name: it.name, topStat: it.topStat, level: it.level, icon: it.imageUrl?`url(${it.imageUrl}) center/contain no-repeat`:rar.icon,
         nameColor: rar.color, ring: locked ? '#f2c777' : rar.ring, glow: locked ? 'rgba(242,199,119,.4)' : rar.glow, locked,
         cardBorder: locked ? 'rgba(242,199,119,.5)' : 'rgba(212,166,94,.14)', cardBg: locked ? 'rgba(107,68,22,.16)' : 'rgba(0,0,0,.2)',
         enter: (e) => this.setHover(it, e), lock: () => this.toggleLock(it.slot) };
@@ -1688,15 +1735,16 @@ class Component extends DCLogic {
     const weapons = weaponSource.map(w => {
       const rar = this.RARITY[w.rarity];
       const owned = w.slot==='main' && !!s.heroics.weapon;
+      const kept = !!s.kept[w.slot];
       const locked = !!s.locked[w.slot] || owned;
-      return { role: w.role + (owned ? ' · OWNED' : ''), name: w.name, name_color: rar.color, dmg: w.dmg, level: w.level,
+      return { role: w.role + (kept ? ' · KEPT' : owned ? ' · OWNED' : ''), name: w.name, name_color: rar.color, dmg: w.dmg, level: w.level,
         ring: locked ? '#f2c777' : rar.ring, icon: w.imageUrl?`url(${w.imageUrl}) center/contain no-repeat`:rar.icon, glow: locked ? 'rgba(242,199,119,.4)' : rar.glow, locked,
         enter: (e) => this.setHover(w, e), lock: () => this.toggleLock(w.slot) };
     });
     const artifactSource=s.result&&this.core?this.core.ARTIFACT_SLOTS.map(row=>this.resultItem(row.id)).filter(Boolean):this.ARTIFACTS;
     const artifacts = artifactSource.map(a => {
-      const rar = this.RARITY.artifact; const locked = !!s.locked[a.slot];
-      return { name: a.name, icon: a.imageUrl?`url(${a.imageUrl}) center/contain no-repeat`:rar.icon, ring: locked ? '#f2c777' : rar.ring, glow: rar.glow, locked,
+      const rar = this.RARITY.artifact; const locked = !!s.locked[a.slot],kept=!!s.kept[a.slot];
+      return { name: a.name+(kept?' · KEPT':''), icon: a.imageUrl?`url(${a.imageUrl}) center/contain no-repeat`:rar.icon, ring: locked ? '#f2c777' : rar.ring, glow: rar.glow, locked,
         enter: (e) => this.setHover(a, e), lock: () => this.toggleLock(a.slot) };
     });
 
@@ -1978,10 +2026,12 @@ class Component extends DCLogic {
 
     return {
       isSetup, isForging, isResult,
-      kicker: isResult ? 'Optimized character' : 'Full-build optimizer',
-      title: isResult ? 'The build you created' : 'Build from Scratch',
+      kicker: isResult ? (s.resultOrigin==='improved'?'Improved character':'Optimized character') : 'Full-build optimizer',
+      title: isResult ? (s.resultOrigin==='improved'?'Your improved build':'The build you created') : 'Build from Scratch',
       subtitle: isResult
-        ? ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build assembled from your ranked goals. Hover any item for its full card; click to lock and re-forge the rest.')
+        ? (s.resultOrigin==='improved'
+          ? ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build improved from your current character. Items marked KEPT were carried forward; hover any item for its complete configuration.')
+          : ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build assembled from your ranked goals. Hover any item for its full card; click to lock and re-forge the rest.'))
         : 'Pick two weapon families, rank the stats you care about, set your rules, then forge a complete character from the equipment catalogue.',
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       setupCols, resultCols, statsSpan, weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
@@ -1994,7 +2044,8 @@ class Component extends DCLogic {
       ghostSlots, forge: this.forge,
 
       progress: s.progress, progressMsg: s.progressMsg, progressPhase: s.progressPhase, candidates: s.candidates.toLocaleString(),
-      forgeSteps, cancelForge: this.cancelForge, editGoals: this.editGoals, refit: this.refit,
+      forgeSteps, cancelForge: this.cancelForge, editGoals: this.editGoals, refit: this.refit, refitLabel:s.resultOrigin==='improved'?'Edit improve rules':'Re-forge unlocked',
+      saveResult:this.saveResult,useResult:this.useResult,resultActionMessage:s.resultActionMessage,
 
       gearAll, weapons, artifacts,
       moveHover: this.moveHover, leaveHover: this.leaveHover, closeAttr: () => this.setState({ openAttr: null }),

@@ -48,28 +48,25 @@ test("protected goals show current calculated floors and widen the workspace", (
   assert.match(html, /repeat\(3,minmax\(0,1fr\)\)/);
 });
 
-test("optimizer uses full-screen setup, loading, and result phases", () => {
+test("optimizer uses full-screen setup and loading before opening the shared result screen", () => {
   assert.match(html, /id="setup-state" class="setup-workspace"/);
   assert.match(html, /grid-template-areas:"source goals" "locks rules" "actions actions"/);
   assert.match(html, /class="progress-card"/);
   assert.match(html, /Improving your build/);
   assert.match(html, /function setView\(view\)/);
   assert.match(html, /setView\("progress"\)/);
-  assert.match(html, /setView\("result"\)/);
-  assert.match(html, /id="edit-build-goals"/);
+  assert.match(html, /openSharedResult/);
+  assert.match(html, /storeImprovedResult/);
+  assert.match(html, /build-from-scratch\.html\?result=improved/);
   assert.doesNotMatch(html, /id="empty-state"/);
   assert.match(html, /new Worker\("\.\/tl-builder-worker\.js"/);
   assert.match(html, /message\.type==="progress"/);
 });
 
-test("results include an Armory-style character doll canvas", () => {
-  assert.match(html, /class="build-doll"/);
-  assert.match(html, /Recommended character equipment/);
-  assert.match(html, /result\.loadout\?\?result\.build/);
-  assert.match(html, /dollSlot\(loadout/);
-  assert.match(html, /main_hand/);
-  assert.match(html, /off_hand/);
-  assert.match(html, /loadout\.artifacts/);
+test("improved results reuse the Build from Scratch result experience", () => {
+  assert.match(html, /import\("\.\/tl-optimizer-result-handoff\.js"\)/);
+  assert.match(html, /location\.href="\.\/build-from-scratch\.html\?result=improved"/);
+  assert.doesNotMatch(html, /renderResult\(message\.result\)/);
 });
 
 test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
@@ -110,11 +107,8 @@ test("result contract includes comparison, deltas, explanations, warnings, and a
   assert.match(html, /Current<\/th><th>Recommended/);
 });
 
-test("results expose configured-item hover cards and Armory handoff", () => {
-  assert.match(html, /id="result-hover"/);
-  assert.match(html, /buildItemHoverModel/);
-  assert.match(html, /id="save-result-preset"/);
-  assert.match(html, /id="use-result-build"/);
-  assert.match(html, /saveArmoryState/);
+test("result handoff remains independent of unlicensed market data", () => {
+  assert.match(html, /priorities:state\.increase/);
+  assert.match(html, /includeSetEffects:\$\("include-sets"\)\.checked/);
   assert.doesNotMatch(html, /TLDB|\/api\/market\/prices|Lucent/);
 });
