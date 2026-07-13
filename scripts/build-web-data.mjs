@@ -341,12 +341,35 @@ const items = values(equipmentItemsRaw).map((item) => ({
   itemStats: item.itemStats ?? {},
 }));
 
+// Questlog's localized set projection has a small number of known text/join
+// errors. Keep these corrections at projection assembly so every consumer,
+// including inactive hover states, sees the decoded-confirmed description.
+const SET_PASSIVE_TEXT_OVERRIDES = Object.freeze({
+  "set_aa_t4_fabric_001:2": "Skill Healing +20%\nSkill Healing over Time +20%",
+  "set_aa_t4_fabric_001:4": "Max Health +2200\nOn recovery skill use, Damage Reduction +35 and all Debuff Resistance +150 for 1.5s",
+  "set_a_Magic_Nudge_001:3": "When attacking enemies with less than 50% Health, for 3s, Critical Hit Chance +140",
+  "set_a_Melee_Nudge_001:3": "When attacking enemies with less than 50% Health, for 3s, Critical Hit Chance +140",
+  "set_a_Range_Nudge_001:3": "When attacking enemies with less than 50% Health, for 3s, Critical Hit Chance +140",
+});
+
+function correctedSetBonuses(set) {
+  return values(set.itemSetBonus).map((bonus) => {
+    const key = `${set.id}:${Number(bonus.set_count ?? bonus.setCount ?? 0)}`;
+    const text = SET_PASSIVE_TEXT_OVERRIDES[key];
+    if (!text) return bonus;
+    return {
+      ...bonus,
+      bonus_passive: values(bonus.bonus_passive ?? bonus.bonusPassive).map((passive) => ({ ...passive, text })),
+    };
+  });
+}
+
 const itemSets = values(itemSetsRaw).map((set) => ({
   id: set.id,
   name: set.name,
   grade: set.grade,
   itemSetMadeOfItems: set.itemSetMadeOfItems ?? [],
-  itemSetBonus: set.itemSetBonus ?? [],
+  itemSetBonus: correctedSetBonuses(set),
 }));
 
 function titleCaseIfShouty(name) {

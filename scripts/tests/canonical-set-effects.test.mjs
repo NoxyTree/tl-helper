@@ -42,7 +42,7 @@ test("all projected breakpoints have exactly one machine-checkable classificatio
   assert.equal(classifications.length, 151);
   assert.deepEqual(
     Object.fromEntries(["structured", "mapped", "unsupported"].map((kind) => [kind, classifications.filter((row) => row.kind === kind).length])),
-    { structured: 40, mapped: 101, unsupported: 10 },
+    { structured: 40, mapped: 102, unsupported: 9 },
   );
   assert.equal(classifications.filter((row) => ["conflict", "unclassified"].includes(row.kind)).length, 0);
   assert.deepEqual(
@@ -134,4 +134,45 @@ test("excluded set effects retain topology without claiming applied values", asy
   assert.equal(effect.status, "excluded");
   assert.deepEqual(effect.appliedStats, []);
   assert.equal(result.stats.find((row) => row.id === "critical_damage_taken_modifier"), undefined);
+});
+
+test("set-effect summaries sum repeated owner and self-aura rows", () => {
+  assert.equal(setEffectBreakpointSummary({
+    status: "applied",
+    appliedStats: [
+      { statId: "all_critical_defense", value: 1200 },
+      { statId: "all_critical_defense", value: 1200 },
+    ],
+  }), "Endurance +240");
+  assert.equal(setEffectBreakpointSummary({
+    status: "applied",
+    appliedStats: [
+      { statId: "damage_reduction", value: 24 },
+      { statId: "damage_reduction", value: 24 },
+    ],
+  }), "Damage Reduction +48");
+});
+
+test("conflicting set-effect contracts are skipped and surface a validation error", async () => {
+  const pieces = [item("conflict-head", "head", "set_aa_t4_Plate_003"), item("conflict-chest", "chest", "set_aa_t4_Plate_003")];
+  const conflictingBonus = {
+    ...passiveBonus(2),
+    bonus_stat: [{ type: "hp_max", value: 9999 }],
+  };
+  await initCore(dataFor(pieces, [{
+    id: "set_aa_t4_Plate_003",
+    name: "Conflicting Nine Lives Set",
+    itemSetMadeOfItems: pieces,
+    itemSetBonus: [conflictingBonus],
+  }]));
+  const build = createInitialBuild();
+  equip(build, pieces);
+  const result = calculateBuild(build, {});
+  const effect = result.setEffects.sets[0].breakpoints[0];
+  assert.equal(effect.classification, "conflict");
+  assert.equal(effect.status, "unsupported");
+  assert.equal(effect.appliedStats.length, 0);
+  assert.equal(result.stats.some((row) => row.sources.some((source) => source.type === "set_bonus")), false);
+  assert.equal(result.validation.setEffectContracts.length, 1);
+  assert.match(result.validation.setEffectContracts[0].message, /invalid set-effect contract.*No effect was applied/);
 });

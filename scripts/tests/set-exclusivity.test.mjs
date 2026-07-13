@@ -19,6 +19,7 @@ const armorItem = (id, equipmentType, setId, extraStats) => ({
   ...(setId ? { setId } : {}),
   ...(extraStats ? { itemStats: { extra: { 0: extraStats } } } : {}),
 });
+const passiveBonus = (setCount) => ({ set_count: setCount, bonus_stat: [], bonus_passive: [{ name: "Synthetic passive" }] });
 
 const items = [
   armorItem("fa_head", "head", FA),
@@ -40,12 +41,12 @@ const items = [
 await initCore({
   items,
   itemSets: [
-    { id: FA, name: "Forgotten Assassin Set", itemSetBonus: [] },
-    { id: LS, name: "Lightning Strike Set", itemSetBonus: [] },
-    { id: DM, name: "Dawn Mist Set", itemSetBonus: [] },
-    { id: DEATH, name: "Death Set", itemSetBonus: [] },
-    { id: IMPERIAL, name: "Imperial Seeker Set", itemSetBonus: [] },
-    { id: SECRET, name: "Secret Order Set", itemSetBonus: [] },
+    { id: FA, name: "Forgotten Assassin Set", itemSetBonus: [passiveBonus(2)] },
+    { id: LS, name: "Lightning Strike Set", itemSetBonus: [passiveBonus(2)] },
+    { id: DM, name: "Dawn Mist Set", itemSetBonus: [passiveBonus(2), passiveBonus(4)] },
+    { id: DEATH, name: "Death Set", itemSetBonus: [passiveBonus(2)] },
+    { id: IMPERIAL, name: "Imperial Seeker Set", itemSetBonus: [passiveBonus(2)] },
+    { id: SECRET, name: "Secret Order Set", itemSetBonus: [passiveBonus(2)] },
   ],
   artifactSets: [],
   runes: [],
@@ -65,10 +66,12 @@ const total = (calc, id) => statRow(calc, id)?.uncappedTotal ?? statRow(calc, id
 const baseline = calculateBuild(equipBuild({}), {});
 const delta = (calc, id) => total(calc, id) - total(baseline, id);
 
-test("exclusive set groups name valid breakpoints and deterministic precedence", () => {
+test("exclusive set groups preserve decoded priorities and temporary modeled precedence", () => {
   assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[FA].pieces, 2);
   assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[LS].pieces, 2);
   assert.ok(SET_EXCLUSIVITY_GROUPS.evasion[FA].precedence > SET_EXCLUSIVITY_GROUPS.evasion[LS].precedence);
+  assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[FA].decodedPriority, 2);
+  assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[LS].decodedPriority, 1);
   assert.ok(SET_PASSIVE_RULES[FA]?.[2]);
   assert.ok(SET_PASSIVE_RULES[LS]?.[2]);
   for (const [setId, row] of Object.entries(SET_EXCLUSIVITY_GROUPS.damage_over_time)) {

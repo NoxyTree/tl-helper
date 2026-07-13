@@ -112,3 +112,47 @@ test("Demonic Beast Hunter 4-piece applies only the persistent Bonus Damage 40",
   assert.equal(only(result, "damage_reduction_penetration"), 40);
   assert.equal(result.length, 1);
 });
+
+test("Prayer of Salvation breakpoints follow the decoded passive join", () => {
+  // TLItemSetBonus joins 2pc to _1_Passive and 4pc to _2_Passive.
+  const two = rows("set_aa_t4_fabric_001", 2);
+  assert.equal(only(two, "heal_modifier"), 2000);
+  assert.equal(only(two, "continuous_heal_modifier"), 2000);
+  assert.equal(two.some((row) => row.statId === "hp_max"), false);
+  const four = rows("set_aa_t4_fabric_001", 4);
+  assert.equal(only(four, "hp_max"), 2200);
+  assert.equal(four.some((row) => row.statId === "heal_modifier"), false);
+});
+
+test("Blizzard Overture 2-piece includes decoded Melee Damage Dealt", () => {
+  const result = rows("set_aa_t4_Plate_002", 2);
+  assert.equal(only(result, "all_critical_defense"), 1000);
+  assert.equal(only(result, "all_double_defense"), 1000);
+  assert.equal(only(result, "melee_damage_dealt_modifier"), 300);
+});
+
+test("Dimensional Chaos 2-piece applies the localized persistent Stamina Regen penalty", () => {
+  assert.equal(only(rows("set_aa_PartyDungeon_Ring_001", 2), "stamina_regen"), -10000);
+});
+
+test("decoded dynamic attribute bounds clamp before whole-ten steps", () => {
+  const bounded99 = [
+    ["set_aa_T2_plate_005", "per", "all_critical_defense", 4050],
+    ["set_aa_leather_003", "con", "attack_speed_modifier", 1800],
+    ["set_aa_t3_plate_002", "str", "all_double_attack", 2700],
+  ];
+  for (const [setId, attributeId, statId, expected] of bounded99) {
+    assert.equal(only(rows(setId, setId === "set_aa_leather_003" ? 4 : 2, { [attributeId]: 99 }), statId), expected);
+    assert.equal(only(rows(setId, setId === "set_aa_leather_003" ? 4 : 2, { [attributeId]: 100 }), statId), expected);
+  }
+  const bounded130 = [
+    ["set_aa_t4_fabric_004", "int", "pvp_magic_double_attack"],
+    ["set_aa_t4_leather_003", "con", "pvp_melee_critical_attack"],
+    ["set_aa_t4_leather_005", "dex", "pvp_range_critical_attack"],
+    ["set_aa_t4_Plate_004", "per", "pvp_melee_double_attack"],
+  ];
+  for (const [setId, attributeId, statId] of bounded130) {
+    assert.equal(only(rows(setId, 2, { [attributeId]: 130 }), statId), 3900);
+    assert.equal(only(rows(setId, 2, { [attributeId]: 131 }), statId), 3900);
+  }
+});

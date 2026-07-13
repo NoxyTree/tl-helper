@@ -88,16 +88,15 @@ export const DISPLAY_LABELS = { sword2h: "Greatsword" };
 // prevents a newly added or renamed game-data breakpoint from silently
 // disappearing from calculated totals.
 export const UNSUPPORTED_SET_BREAKPOINTS = Object.freeze({
-  "set_aa_fabric_001:2": Object.freeze({ stage: "unsupported_static", reason: "Persistent Weaken Duration has no supported calculator stat mapping." }),
-  "set_aa_PartyDungeon_Ring_001:2": Object.freeze({ stage: "unsupported_static", reason: "Persistent Stamina Regen penalty is not mapped to a verified raw stat value." }),
+  "set_aa_fabric_001:2": Object.freeze({ stage: "unsupported_scoped", reason: "Weaken Duration +7.5% is a scoped dynamic stat not represented in sheet totals." }),
   "set_aa_plate_002:4": Object.freeze({ stage: "unsupported_scoped", reason: "Mobility-skill move range is scoped behavior, not a global sheet stat." }),
   "set_aa_T2_fabric_002:2": Object.freeze({ stage: "unsupported_combat", reason: "Skill damage-over-time and its exclusivity require a combat-stage model." }),
   "set_aa_T2_fabric_004:2": Object.freeze({ stage: "unsupported_combat", reason: "Base and triggered skill damage-over-time require a combat-stage model." }),
   "set_aa_t3_lether_003:4": Object.freeze({ stage: "unsupported_combat", reason: "Enemy Endurance reduction and movement-triggered Evasion are conditional combat effects." }),
   "set_aa_t4_fabric_005:2": Object.freeze({ stage: "unsupported_combat", reason: "Skill damage-over-time and the triggered resistance debuff require a combat-stage model." }),
-  "set_a_Magic_Nudge_001:3": Object.freeze({ stage: "unsupported_combat", reason: "Target-health-conditional Critical Damage requires target state and duration modeling." }),
-  "set_a_Melee_Nudge_001:3": Object.freeze({ stage: "unsupported_combat", reason: "Target-health-conditional Critical Damage requires target state and duration modeling." }),
-  "set_a_Range_Nudge_001:3": Object.freeze({ stage: "unsupported_combat", reason: "Target-health-conditional Critical Damage requires target state and duration modeling." }),
+  "set_a_Magic_Nudge_001:3": Object.freeze({ stage: "unsupported_combat", reason: "Target-health-conditional Critical Hit Chance requires target state and duration modeling." }),
+  "set_a_Melee_Nudge_001:3": Object.freeze({ stage: "unsupported_combat", reason: "Target-health-conditional Critical Hit Chance requires target state and duration modeling." }),
+  "set_a_Range_Nudge_001:3": Object.freeze({ stage: "unsupported_combat", reason: "Target-health-conditional Critical Hit Chance requires target state and duration modeling." }),
 });
 
 const MODELED_SET_BREAKPOINTS = new Set([
@@ -108,6 +107,9 @@ const MODELED_SET_BREAKPOINTS = new Set([
 ]);
 
 const DERIVED_SET_BREAKPOINTS = new Set([
+  // Persistent Adjust_Stat plus the localized -10 Stamina Regen literal. The
+  // value has no formula row, so the mapping is localization-derived.
+  "set_aa_PartyDungeon_Ring_001:2",
   // Both localized descriptions say Main Weapon Base Damage +30. The current
   // representation raises both displayed range ends through the bonus-attack
   // power expansion, but the underlying stat identity is not directly bound.
@@ -1830,6 +1832,8 @@ export function calculateBuild(build, attributes, options = {}) {
       for (const bonus of values(set.itemSetBonus)) {
         const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
         if (!required || count < required) continue;
+        const classification = classifySetBreakpoint(set.id, bonus);
+        if (classification.kind !== "structured") continue;
         for (const row of values(bonus.bonus_stat ?? bonus.bonusStat)) {
           const key = setBreakpointKey(set.id, required);
           const isSuppressed = setStatIsSuppressed(suppressed, set.id, required, row.type);
@@ -1926,7 +1930,8 @@ function activeSetCounts(selections) {
 }
 
 // Returns breakpoint-specific stat suppression for active members that lose
-// to a stronger decoded cross-set exclusivity member. Some breakpoints contain
+// under the temporary modeled precedence rule. Decoded PriorityInGroup values
+// exist, but their direction is unresolved. Some breakpoints contain
 // unrelated stats which must remain active, so suppression cannot be modeled
 // as an all-or-nothing breakpoint flag.
 export function suppressedSetStats(activeSets) {
@@ -1941,6 +1946,7 @@ export function suppressedSetStats(activeSets) {
         groupId,
         winnerSetId: contenders[0]?.set.id ?? "",
         provenance: "modeled",
+        reason: "Decoded PriorityInGroup direction is unresolved; temporary modeled precedence is applied.",
         all: rule.suppressAll === true,
         statIds: new Set(rule.statIds ?? []),
       });
@@ -1970,7 +1976,14 @@ function createSetEffectTrace(selections, includeSetEffects) {
     for (const [index, { set }] of contenders.entries()) {
       const key = setBreakpointKey(set.id, group[set.id].pieces);
       if (!exclusivity.has(key)) exclusivity.set(key, []);
-      exclusivity.get(key).push({ groupId, role: index === 0 ? "winner" : "suppressed", winnerSetId: contenders[0].set.id, provenance: "modeled" });
+      exclusivity.get(key).push({
+        groupId,
+        role: index === 0 ? "winner" : "suppressed",
+        winnerSetId: contenders[0].set.id,
+        provenance: "modeled",
+        decodedPriority: group[set.id].decodedPriority,
+        reason: "Decoded PriorityInGroup direction is unresolved; temporary modeled precedence is applied.",
+      });
     }
   }
   const byKey = new Map();
@@ -2004,6 +2017,7 @@ function createSetEffectTrace(selections, includeSetEffects) {
           all: suppression.all,
           statIds: [...suppression.statIds],
           provenance: suppression.provenance,
+          reason: suppression.reason,
         } : null,
         exclusivity: exclusivity.get(key) ?? [],
       };
@@ -2074,17 +2088,16 @@ function finalizeSetEffectTrace(trace, sourceMap, includeSetEffects) {
 // suppression decisions from raw projection descriptions.
 export function setEffectBreakpointSummary(breakpoint) {
   if (!breakpoint) return "Set bonus unavailable";
-  const uniqueStats = (rows, { applied = false } = {}) => {
-    const seen = new Set();
-    return values(rows).filter((row) => !applied || !row.expandedFrom).flatMap((row) => {
-      const key = `${row.statId}:${Number(row.value) || 0}`;
-      if (!row.statId || seen.has(key)) return [];
-      seen.add(key);
-      return [`${statName(row.statId)} ${formatSigned(Number(row.value) || 0, row.statId)}`];
-    });
+  const summedStats = (rows, { applied = false } = {}) => {
+    const totals = new Map();
+    for (const row of values(rows)) {
+      if (!row.statId || (applied && row.expandedFrom)) continue;
+      totals.set(row.statId, (totals.get(row.statId) ?? 0) + (Number(row.value) || 0));
+    }
+    return [...totals].map(([statId, value]) => `${statName(statId)} ${formatSigned(value, statId)}`);
   };
-  const applied = uniqueStats(breakpoint.appliedStats, { applied: true });
-  const suppressed = uniqueStats(breakpoint.suppressedStats);
+  const applied = summedStats(breakpoint.appliedStats, { applied: true });
+  const suppressed = summedStats(breakpoint.suppressedStats);
   const description = values(breakpoint.descriptions).filter(Boolean).join("; ");
   const winnerName = indexes.itemSetById[breakpoint.suppression?.winnerSetId]?.name ?? breakpoint.suppression?.winnerSetId ?? "a stronger exclusive set effect";
   const suppressedText = suppressed.length ? `Not applied: ${suppressed.join(", ")} is replaced by ${winnerName}` : "";
@@ -2115,6 +2128,8 @@ function applyQuestlogPhase(phase, build, selections, totalsObject, add, include
     for (const { set, count } of active) {
       for (const [required, rule] of Object.entries(SET_PASSIVE_RULES[set.id] ?? {})) {
         if (count >= Number(required) && rule.phase === phase) {
+          const bonus = values(set.itemSetBonus).find((row) => Number(row.set_count ?? row.setCount ?? 0) === Number(required));
+          if (classifySetBreakpoint(set.id, bonus).kind !== "mapped") continue;
           for (const row of rule.effect(totalsObject())) {
             const key = setBreakpointKey(set.id, required);
             const isSuppressed = setStatIsSuppressed(suppressed, set.id, required, row.statId);
@@ -2384,10 +2399,29 @@ export function validateBuild(runeSynergies, build) {
   }
 
   const unmapped = unmappedRuleIssues(build);
+  const setEffectContracts = setEffectContractIssues(build);
+  dataBacked.push(...setEffectContracts);
   const issues = [...dataBacked, ...assumed, ...unmapped];
   const severityRank = { error: 0, warning: 1, info: 2 };
   issues.sort((a, b) => (severityRank[a.severity] ?? 3) - (severityRank[b.severity] ?? 3));
-  return { dataBacked, assumed, unmapped, issues };
+  return { dataBacked, assumed, unmapped, setEffectContracts, issues };
+}
+
+function setEffectContractIssues(build) {
+  const issues = [];
+  const selections = allBuildSelectionEntries(build);
+  for (const { set, count } of activeSetCounts(selections)) {
+    for (const bonus of values(set.itemSetBonus)) {
+      const classification = classifySetBreakpoint(set.id, bonus);
+      if (!classification.required || count < classification.required) continue;
+      if (!["conflict", "unclassified"].includes(classification.kind)) continue;
+      issues.push({
+        severity: "error",
+        message: `${set.name} (${classification.required} pc) has an invalid set-effect contract: ${classification.reason} No effect was applied.`,
+      });
+    }
+  }
+  return issues;
 }
 
 // Rule tables are allowlists: any selected passive/set/perk/mastery effect

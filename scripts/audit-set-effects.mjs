@@ -25,6 +25,7 @@ const KEY_LABELS = {
   all_evasion: "All Evasion",
   attack_power_main_hand: "Main Weapon Base Damage",
   attack_speed_modifier: "Attack Speed",
+  melee_damage_dealt_modifier: "Melee Damage Dealt",
   bonus_attack_power_main_hand: "Main Weapon Bonus Attack Power",
   critical_damage_dealt_modifier: "Critical Damage",
   critical_damage_taken_modifier: "Critical Damage Resistance",
@@ -43,19 +44,19 @@ const KEY_LABELS = {
 
 const DYNAMIC_FORMULAS = {
   "set_aa_leather_003:2": "If final Dexterity >= 30, Cooldown Speed +8%.",
-  "set_aa_leather_003:4": "floor(final Fortitude / 10) * 2% Attack Speed.",
+  "set_aa_leather_003:4": "floor(min(final Fortitude, 99) / 10) * 2% Attack Speed.",
   "set_a_artifact_set_006:6": "floor(pre-effect Max Health * 7%).",
   "set_a_artifact_set_007:6": "floor(each pre-effect Defense value * 7%).",
   "set_aa_T2_fabric_001:4": "min(20, floor(final Max Mana / 1,000))% Cooldown Speed.",
   "set_aa_T2_plate_001:4": "min(240, floor(final Max Health / 1,000) * 12) Melee Heavy Attack Chance.",
-  "set_aa_T2_plate_005:2": "floor(final Perception / 10) * 45 Endurance.",
+  "set_aa_T2_plate_005:2": "floor(min(final Perception, 99) / 10) * 45 Endurance.",
   "set_aa_T2_plate_005:4": "If final Fortitude >= 50, Main Weapon Base Damage +30.",
   "set_aa_t3_plate_001:4": "Endurance +250 each; min(24, floor(final Max Health / 1,000) * 0.6)% Heavy Attack Damage Resistance.",
-  "set_aa_t3_plate_002:2": "floor(final Strength / 10) * 30 Heavy Attack Chance.",
-  "set_aa_t4_fabric_004:2": "Heavy Attack Damage +20%; floor(final Wisdom / 10) * 30 PvP Magic Heavy Attack Chance.",
-  "set_aa_t4_leather_003:2": "Critical Damage +15%; floor(final Fortitude / 10) * 30 PvP Melee Critical Hit Chance.",
-  "set_aa_t4_leather_005:2": "Critical Damage +15%; floor(final Dexterity / 10) * 30 PvP Ranged Critical Hit Chance.",
-  "set_aa_t4_Plate_004:2": "Heavy Attack Damage +20%; floor(final Perception / 10) * 30 PvP Melee Heavy Attack Chance.",
+  "set_aa_t3_plate_002:2": "floor(min(final Strength, 99) / 10) * 30 Heavy Attack Chance.",
+  "set_aa_t4_fabric_004:2": "Heavy Attack Damage +20%; floor(min(final Wisdom, 130) / 10) * 30 PvP Magic Heavy Attack Chance.",
+  "set_aa_t4_leather_003:2": "Critical Damage +15%; floor(min(final Fortitude, 130) / 10) * 30 PvP Melee Critical Hit Chance.",
+  "set_aa_t4_leather_005:2": "Critical Damage +15%; floor(min(final Dexterity, 130) / 10) * 30 PvP Ranged Critical Hit Chance.",
+  "set_aa_t4_Plate_004:2": "Heavy Attack Damage +20%; floor(min(final Perception, 130) / 10) * 30 PvP Melee Heavy Attack Chance.",
   "set_b_artifact_set_003:6": "floor(each pre-effect Defense value * 4%).",
   "set_b_artifact_set_004:6": "floor(pre-effect Max Health * 4%).",
   "set_c_artifact_set_002:6": "floor(each pre-effect Defense value * 2%).",
@@ -76,6 +77,20 @@ const STATUS_OVERRIDES = {
   "set_aa_T2_leather_004:4": "MODELED STACKING: personal + self-inclusive aura, decoded per-application 110.",
   "set_aa_T2_plate_003:2": "MODELED STACKING: personal + self-inclusive aura, decoded per-application 120.",
   "set_aa_T2_plate_003:4": "CORRECTED 2026-07-13: decoded per-application Damage Reduction is 24, bound twice by the client string; Questlog's 12+12 halved it.",
+  "set_aa_t4_fabric_001:2": "CORRECTED 2026-07-14: TLItemSetBonus joins 2pc to _1_Passive, which contains Healing and Healing over Time +20%.",
+  "set_aa_t4_fabric_001:4": "CORRECTED 2026-07-14: TLItemSetBonus joins 4pc to _2_Passive, which contains Max Health +2200 plus a conditional recovery proc.",
+  "set_aa_t4_Plate_002:2": "CORRECTED 2026-07-14: decoded _1_Passive also contains Melee Damage Dealt +3% (raw 300).",
+  "set_aa_PartyDungeon_Ring_001:2": "DERIVED 2026-07-14: persistent Adjust_Stat and the localized -10 Stamina Regen literal map to raw -10000.",
+};
+
+const DESCRIPTION_OVERRIDES = {
+  "set_aa_t4_fabric_001:2": "Skill Healing +20%; Skill Healing over Time +20%.",
+  "set_aa_t4_fabric_001:4": "Max Health +2200. Recovery-skill Damage Reduction and Debuff Resistance proc is combat-conditional.",
+  "set_aa_t4_Plate_002:2": "Endurance +100; Heavy Attack Evasion +100; Melee Damage Dealt +3%.",
+  "set_aa_PartyDungeon_Ring_001:2": "Stamina Regen -10.",
+  "set_a_Magic_Nudge_001:3": "When attacking an enemy below 50% Health, Critical Hit Chance +140 for 3s.",
+  "set_a_Melee_Nudge_001:3": "When attacking an enemy below 50% Health, Critical Hit Chance +140 for 3s.",
+  "set_a_Range_Nudge_001:3": "When attacking an enemy below 50% Health, Critical Hit Chance +140 for 3s.",
 };
 
 const SEMANTIC_EXPECTATIONS = [
@@ -97,8 +112,7 @@ const SEMANTIC_EXPECTATIONS = [
 ];
 
 const UNMAPPED_CLASSIFICATION = {
-  "set_aa_fabric_001:2": "Persistent static component; missing supported stat mapping.",
-  "set_aa_PartyDungeon_Ring_001:2": "Persistent static component; should be representable.",
+  "set_aa_fabric_001:2": "Weaken Duration +7.5% is a scoped dynamic stat not represented in sheet totals.",
   "set_aa_plate_002:4": "Scoped mobility-skill effect; not a global sheet stat.",
   "set_aa_T2_fabric_002:2": "Scoped damage-over-time effect; requires combat modeling.",
   "set_aa_T2_fabric_004:2": "Mixed base and triggered damage-over-time effect.",
@@ -195,8 +209,9 @@ for (const set of data.itemSets) {
     const key = `${set.id}:${count}`;
     const staticRows = bonus.bonus_stat ?? [];
     const passives = bonus.bonus_passive ?? [];
-    const description = passives.map((passive) => passive.text || passive.name).filter(Boolean).join(" / ")
-      || structuredCalculation(staticRows);
+    const description = DESCRIPTION_OVERRIDES[key]
+      ?? (passives.map((passive) => passive.text || passive.name).filter(Boolean).join(" / ")
+        || structuredCalculation(staticRows));
     const rule = SET_PASSIVE_RULES[set.id]?.[count];
     let classification;
     let calculation;
@@ -217,7 +232,7 @@ for (const set of data.itemSets) {
       classification = "Dynamic or thresholded";
       calculation = DYNAMIC_FORMULAS[key] ?? String(rule.effect);
       status = STATUS_OVERRIDES[key] ?? "Formula structure matches description; game-file and boundary verification still required.";
-      provenance = "Questlog compatibility rule";
+      provenance = DESCRIPTION_OVERRIDES[key] ? "Decoded join and localized description" : "Questlog compatibility rule";
     } else {
       classification = "Mapped constant";
       calculation = constantCalculation(rule);
@@ -230,7 +245,7 @@ for (const set of data.itemSets) {
           : constantNumericMismatch(rule, description)
           ? "REVIEW: implemented value does not directly match a number in the description."
           : "Implemented values align numerically with the description.");
-      provenance = "Questlog compatibility rule";
+      provenance = DESCRIPTION_OVERRIDES[key] ? "Decoded join and localized description" : "Questlog compatibility rule";
     }
 
     rows.push({
@@ -264,7 +279,7 @@ const unmapped = rows.filter((row) => row.classification === "Unmapped passive")
 const lines = [];
 lines.push("# Set-effect calculation audit");
 lines.push("");
-lines.push(`- Audit date: 2026-07-13`);
+lines.push(`- Audit date: 2026-07-14`);
 lines.push(`- Game build: \`${projection.gameBuild}\``);
 lines.push(`- Data generated: \`${projection.generatedAtUtc}\``);
 lines.push(`- Unique sets: **${data.itemSets.length}** (${artifactIds.size} artifact sets, ${data.itemSets.length - artifactIds.size} equipment/accessory sets)`);
@@ -309,7 +324,7 @@ lines.push("## Provenance and confidence rules");
 lines.push("");
 lines.push("1. Decoded game records and linked formula/effect rows are the preferred source for client-visible mechanics.");
 lines.push("2. The warehouse is the durable interface to decoded records, but not every set description currently has a complete effect-property to abnormal-state linkage.");
-lines.push("3. Questlog projection descriptions identify set membership and user-facing behavior.");
+lines.push("3. Questlog projection descriptions identify set membership and user-facing behavior, but are not authoritative for breakpoint joins or stat identity. Decoded overrides are required when projection text conflicts with TLItemSetBonus or formula rows.");
 lines.push("4. Questlog compatibility rules reproduce its static calculator, but parity is not proof of in-game correctness. Auric demonstrates this directly.");
 lines.push("5. Conditional combat effects must remain separate from persistent sheet totals. They should be labeled modeled or unsupported until their trigger, duration, stacking, and uptime are represented explicitly.");
 lines.push("");
@@ -328,8 +343,8 @@ lines.push("- `D:/TL_Data/decoded/24118850/tables`: decoded set joins and abnorm
 lines.push("");
 lines.push("## Release state and remaining work");
 lines.push("");
-lines.push("1. Keep the ten combat/scoped or unverified persistent breakpoints explicitly unsupported until a verified stat mapping or combat-stage model exists.");
-lines.push("2. Validate the modeled highest-value precedence for mutually exclusive set effects if client or server execution-order evidence becomes available.");
+lines.push("1. Keep the nine combat or scoped breakpoints explicitly unsupported until a verified sheet-stat mapping or combat-stage model exists.");
+lines.push("2. Resolve whether lower or higher decoded PriorityInGroup wins for mutually exclusive set effects. Current magnitude-based precedence is temporary and explicitly modeled, not decoded truth.");
 lines.push("3. Improve bounded optimizer coverage for attribute-activated dynamic sets, partial artifact-set hybrids, Heroic configuration, weapon-material interactions, and rune refinement. These affect search completeness, not finalist arithmetic.");
 lines.push("4. Continue using `calculateBuild` as the only final sheet-stat authority and require every new projected breakpoint to pass the structured/mapped/unsupported classification test.");
 lines.push("");
