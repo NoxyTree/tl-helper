@@ -32,7 +32,9 @@ test("scratch controls are compact and have honest defaults", () => {
   assert.match(html, /id="optimize-traits"[^>]+checked/);
   assert.match(html, /data-value="normal" class="active"/);
   assert.match(html, /data-value="sets" class="active"/);
-  assert.match(html, /data-value="fast" class="active"/);
+  assert.doesNotMatch(html, /data-value="fast"/);
+  assert.doesNotMatch(html, /data-value="thorough"/);
+  assert.match(html, /depth:"thorough"/);
 });
 
 test("gamer priorities are ranked, reorderable, and sent to the adapter", () => {
@@ -89,4 +91,33 @@ test("results remain compact and inspectable", () => {
   assert.match(html, /Runes configured:/);
   assert.doesNotMatch(html, /<table/);
   assert.match(html, /id="cancel"/);
+});
+
+test("builder requires a weapon pair and includes starting attributes", () => {
+  assert.match(html, /id="main-weapon"/);
+  assert.match(html, /id="off-weapon"/);
+  assert.match(html, /slotById\("main_hand"\)\.types/);
+  assert.match(html, /slotById\("off_hand"\)\.types/);
+  assert.match(html, /weaponTypes:\[state\.weaponTypes\.main,state\.weaponTypes\.off\]/);
+  for (const id of ["str", "dex", "int", "per", "con"]) assert.match(html, new RegExp(`data-attribute="${id}"`));
+  assert.match(html, /0 allocated points currently/);
+  assert.match(html, /source\.attributes=\{\.\.\.state\.startingAttributes\}/);
+});
+
+test("result experience uses readable tabs instead of a dominant Fit table", () => {
+  for (const label of ["Overview", "All Stats", "Gear", "Sets &amp; Runes"]) assert.ok(html.includes(label));
+  assert.match(html, /result\.allStats/);
+  assert.match(html, /row\.group\?\?row\.category/);
+  assert.match(html, /class="stat-groups"/);
+  assert.match(html, /class="gear-overview"/);
+  assert.doesNotMatch(html, /<table/);
+});
+
+test("doll and gear results use the shared item hover", () => {
+  assert.match(html, /import\("\.\/tl-builder-item-hover\.js"\)/);
+  assert.match(html, /installBuilderItemHover/);
+  assert.match(html, /data-builder-item-hover/);
+  assert.match(html, /data-slot-id/);
+  assert.match(html, /buildItemHoverModel/);
+  assert.match(html, /optionalFallback:false/);
 });

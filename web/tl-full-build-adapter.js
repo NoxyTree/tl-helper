@@ -120,6 +120,21 @@ function itemName(core, selection) {
   return core.indexes.itemById[selection?.itemId]?.name ?? "Empty";
 }
 
+export function resolveWeaponTypeConstraints(core, request = {}) {
+  const raw = request.weaponTypes ?? request.rules?.weaponTypes
+    ?? ((request.mainWeaponType || request.offWeaponType) ? { main_hand: request.mainWeaponType, off_hand: request.offWeaponType } : null);
+  if (raw == null) return {};
+  const slots = core.WEAPON_SLOTS ?? ["main_hand", "off_hand"];
+  const constraints = Array.isArray(raw) ? { [slots[0]]: raw[0], [slots[1]]: raw[1] } : { [slots[0]]: raw[slots[0]] ?? raw.main, [slots[1]]: raw[slots[1]] ?? raw.off };
+  const main = String(constraints[slots[0]] ?? "").trim();
+  const off = String(constraints[slots[1]] ?? "").trim();
+  if (!main || !off) throw new Error("Choose both a main-hand and an off-hand weapon type.");
+  const legal = new Set(core.WEAPON_TYPES ?? []);
+  if (!legal.has(main) || !legal.has(off)) throw new Error(`Unknown weapon type pairing: ${main || "missing"} / ${off || "missing"}.`);
+  if (main === off) throw new Error("Main-hand and off-hand weapon types must be different.");
+  return { [slots[0]]: main, [slots[1]]: off };
+}
+
 /** Browser adapter. Dependencies are injectable to keep the boundary testable. */
 export async function createOptimizerAdapter(deps = {}) {
   const core = deps.core ?? coreDefault;
@@ -131,6 +146,10 @@ export async function createOptimizerAdapter(deps = {}) {
   const calculate = (wrapped, includeSetEffects = true) => core.calculateBuild(wrapped.build, wrapped.attributes ?? {}, { includeSetEffects });
 
   return {
+    async listWeaponTypes() {
+      return (core.WEAPON_TYPES ?? []).map((id) => ({ id, name: core.label?.(id) ?? id })).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+    },
+
     async createScratchBuild({ name = "New optimized build", attributes = {} } = {}) {
       const build = core.createInitialBuild();
       build.name = name;
@@ -167,6 +186,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const rules = request.rules ?? {};
       const goals = request.goals ?? { increase: [], protect: [] };
       const rankedGoals = normalizeRankedGoals(goals);
+      const weaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
       const baseline = totalMap(calculate(source, rules.includeSetEffects !== false));
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
       const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
@@ -193,13 +213,16 @@ export async function createOptimizerAdapter(deps = {}) {
         const slot = slots[slotIndex];
         const current = selectionFor(source.build, slot);
         const currentItem = core.indexes.itemById[current?.itemId];
+        const requiredWeaponType = weaponTypeConstraints[slot];
         const keepCurrentHeroic = !scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
         if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic) {
+          if (requiredWeaponType && currentItem?.equipmentType !== requiredWeaponType) throw new Error(`Locked ${core.slotById(slot).label ?? slot} does not match the chosen ${requiredWeaponType} weapon type.`);
           candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
           continue;
         }
         const rows = [];
         for (const item of core.slotItems(core.slotById(slot))) {
+          if (requiredWeaponType && item.equipmentType !== requiredWeaponType) continue;
           let selection = itemSelection(core, item);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
@@ -268,6 +291,8 @@ export async function createOptimizerAdapter(deps = {}) {
         return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), minimumMet: goal.minimum == null ? null : value >= goal.minimum };
       });
       const tradeoffs = goalResults.filter((goal) => goal.delta < 0).map((goal) => ({ id: goal.id, name: goal.name, delta: goal.delta, rank: goal.rank, text: `${goal.name} is ${Math.abs(goal.delta)} below the fixed objective baseline.` }));
+      const allStats = Object.entries(finalStats).map(([id, value]) => ({ id, name: core.statName(id), value, formattedValue: core.formatStat(id, value), group: core.statPageFor(id) }))
+        .sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
       const describe = (slot, selection) => {
         const item = core.indexes.itemById[selection?.itemId];
         return { id: slot.id, label: slot.label, name: item?.name ?? "Empty", imageUrl: item?.imageUrl ?? "", grade: item?.grade ?? 0, color: item ? core.gradeColor(item.grade) : "#8a795f", level: selection?.level ?? 0, selection: clone(selection ?? {}) };
@@ -298,6 +323,7 @@ export async function createOptimizerAdapter(deps = {}) {
         objectiveScales: clone(objectiveScales),
         goalResults,
         tradeoffs,
+        allStats,
       };
     },
   };
