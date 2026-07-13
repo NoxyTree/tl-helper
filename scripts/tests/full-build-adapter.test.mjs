@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
 
 test("composite goals preserve one goal weight across typed leaf totals", () => {
   const [goal] = expandCompositeGoals(normalizeRankedGoals({ increase: ["pvp_all_critical_defense"] }));
@@ -127,6 +127,33 @@ test("ranked goals use tied ranks, diminishing weights, and scale normalization"
     { id: "health", rank: 2, weight: 0.05, minimum: null },
   ]);
   assert.equal(scoreRankedGoals({ endurance: 10, health: 1000 }, {}, { endurance: 10, health: 1000 }, goals), 1.05);
+});
+
+test("rune refinement values synergy attributes through their exact breakpoint effects", () => {
+  const core = {
+    EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }],
+    runeCategoryForSlot: () => "head", slotById: () => ({ id: "head", label: "Head" }), statName: (id) => id, formatStat: (_id, value) => String(value),
+    calculateBuild(build) {
+      const synergy = build.equipment.head.runes?.[0]?.runeId === "synergy";
+      const str = synergy ? 30 : 27;
+      return { stats: [
+        { id: "str", total: str, sources: synergy ? [{ type: "head_rune_synergy", sourceLabel: "Head: Rune Synergy", value: 3 }] : [] },
+        { id: "hp_max", total: str >= 30 ? 100 : 10, sources: str >= 30 ? [{ type: "attribute_bracket", sourceLabel: "STR (30): Bonus", value: 100 }] : [] },
+      ], runeSynergies: synergy ? { head: { name: "Strength Link", stats: { str: 3 } } } : {} };
+    },
+  };
+  const build = { equipment: { head: { itemId: "hat", runes: [{ runeId: "direct" }] } } };
+  const result = refineRuneConfiguration({
+    core, build, attributes: { str: 0, dex: 0, int: 0, per: 0, con: 0 }, budget: 0,
+    rankedGoals: normalizeRankedGoals({ increase: ["hp_max"] }), baseline: {}, scales: { hp_max: 100 },
+    runeCandidatesByCategory: new Map([["head", [
+      { key: "direct", selection: [{ runeId: "direct" }] },
+      { key: "synergy", selection: [{ runeId: "synergy" }] },
+    ]]]),
+  });
+  assert.equal(result.build.equipment.head.runes[0].runeId, "synergy");
+  assert.equal(result.stats.hp_max, 100);
+  assert.match(result.runeInsights[0].text, /\+3 str toward attribute milestones/);
 });
 
 test("a meaningful gain in priority one outweighs a complete lower-priority objective", () => {

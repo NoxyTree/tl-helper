@@ -22,6 +22,16 @@ test("rune candidates cap Chaos at one and respect availability", () => {
   assert.ok(owned.every((candidate) => candidate.selection.filter((row) => row.runeId === "c").length <= 1));
 });
 
+test("bounded rune candidates retain attribute synergies beside the direct-score winner", () => {
+  const runes = [rune("a", "attack", "power", 10), rune("d", "defense", "guard", 1), rune("s", "assist", "support", 1)];
+  const synergies = [
+    { id: "damage", name: "Damage", equipmentCategory: "weapon", combination: ["attack", "attack", "attack"], stats: { power: 50 } },
+    { id: "strength", name: "Strength", equipmentCategory: "weapon", combination: ["defense", "assist", "attack"], stats: { str: 3 } },
+  ];
+  const rows = generateRuneCandidates({ category: "weapon", runes, runeSynergies: synergies, scoreStat: (id, value) => id === "power" ? value : 0, limit: 2 });
+  assert.deepEqual(rows.map((row) => row.synergy?.id), ["damage", "strength"]);
+});
+
 test("rune candidates exclude non-combat metadata stats when requested", () => {
   const runes = [rune("combat", "attack", "hit"), rune("craft", "assist", "adjust_cooking_exp")];
   const rows = generateRuneCandidates({ category: "weapon", runes, allowStat: (id) => !id.startsWith("adjust_") });

@@ -1770,7 +1770,7 @@ class Component extends DCLogic {
     }).filter(Boolean) : this.SET_SUMMARY;
     const runeSynergies=s.resultCalc?.runeSynergies||{};
     const runeChips=s.result ? Object.entries(runeSynergies).filter(([,synergy])=>Boolean(synergy)).map(([slotId,synergy],index)=>({
-      label:(this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId)+': '+(synergy.name||'Rune synergy'),
+      label:(this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId)+': '+(synergy.name||'Rune synergy')+Object.entries(synergy.stats||{}).map(([id,value])=>' · '+this.core.formatSigned(value,id)+' '+this.core.statName(id)).join(''),
       dot:['#87acef','#c984f1','#f2c777','#7ee0a6'][index%4],
       border:['rgba(135,172,239,.4)','rgba(201,132,241,.4)','rgba(242,199,119,.4)','rgba(126,224,166,.4)'][index%4],
     })) : this.RUNE_CHIPS;

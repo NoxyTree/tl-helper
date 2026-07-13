@@ -13,6 +13,23 @@ function ranked(rows, limit) {
   return rows.sort((a, b) => b.score - a.score || a.key.localeCompare(b.key)).slice(0, limit);
 }
 
+function diverseRuneCandidates(rows, limit) {
+  const ordered = ranked(rows, rows.length);
+  const retained = new Map();
+  const add = (row) => { if (row) retained.set(row.key, row); };
+  add(ordered[0]);
+  for (const attributeId of ["str", "dex", "int", "per", "con"]) add(ordered.find((row) => Number(row.synergy?.stats?.[attributeId] ?? 0) > 0));
+  const seenSynergies = new Set();
+  for (const row of ordered) {
+    const synergyId = row.synergy?.id;
+    if (!synergyId || seenSynergies.has(synergyId)) continue;
+    seenSynergies.add(synergyId);
+    add(row);
+  }
+  for (const row of ordered) add(row);
+  return [...retained.values()].slice(0, limit);
+}
+
 function runeOptions(rune) {
   return Object.entries(rune.itemStats ?? {})
     .filter(([name, rows]) => name.startsWith("random_stat_group") && Array.isArray(rows))
@@ -94,7 +111,7 @@ export function generateRuneCandidates({
       explanation: synergy ? `Activates ${synergy.name}` : "No matching rune synergy",
     });
   }
-  return ranked(candidates, limit);
+  return diverseRuneCandidates(candidates, limit);
 }
 
 function maxItemLevel(item) {

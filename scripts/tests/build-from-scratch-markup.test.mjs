@@ -57,6 +57,8 @@ test("result is calculated and inspectable rather than mocked", () => {
   assert.match(html, /optionalFallback:false/);
   assert.match(html, /toggleLock/);
   assert.doesNotMatch(html, /<table/);
+  assert.match(html, /synergy\.stats/);
+  assert.match(html, /formatSigned\(value,id\)/);
 });
 
 test("Builder results use the shared Armory hover card contract", () => {
