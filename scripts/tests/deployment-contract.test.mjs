@@ -78,6 +78,8 @@ test("public pages expose production discovery and accessibility metadata", asyn
     ["web/tracker.html", "https://tlhelper.org/tracker"],
     ["web/achievements.html", "https://tlhelper.org/achievements"],
     ["web/combat-lab.html", "https://tlhelper.org/combat-lab"],
+    ["web/gear-viewer.html", "https://tlhelper.org/gear-viewer"],
+    ["web/full-build-optimizer.html", "https://tlhelper.org/full-build-optimizer"],
     ["web/build-from-scratch.html", "https://tlhelper.org/build-from-scratch"],
     ["web/privacy.html", "https://tlhelper.org/privacy"],
   ];
@@ -86,7 +88,7 @@ test("public pages expose production discovery and accessibility metadata", asyn
     assert.match(document, /<html lang="en">/i, `${file} declares its language`);
     assert.match(document, /<meta name="description"/i, `${file} has a description`);
     assert.ok(document.includes(`<link rel="canonical" href="${canonical}">`), `${file} has its canonical URL`);
-    assert.match(document, /<link rel="icon" href="\.\/icon\.svg"/i, `${file} has a favicon`);
+    assert.match(document, /<link rel="icon" href="\.\/tl-logo\.png" type="image\/png">/i, `${file} uses the current brand favicon`);
     assert.match(document, /class="tl-skip-link"[^>]*href="#main-content"/i, `${file} has a skip link`);
     assert.match(document, /<main[^>]*id="main-content"/i, `${file} exposes the main landmark`);
     assert.match(document, /<h1\b/i, `${file} has a primary heading`);
@@ -100,15 +102,15 @@ test("search discovery files publish only the clean production pages", async () 
   const sitemap = await read("web/sitemap.xml");
   assert.match(robots, /Sitemap: https:\/\/tlhelper\.org\/sitemap\.xml/);
   assert.match(robots, /Disallow: \/api\//);
-  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/build-from-scratch", "/privacy"]) {
+  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/gear-viewer", "/full-build-optimizer", "/build-from-scratch", "/privacy"]) {
     assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
   }
 });
 
 test("standalone pages use the shared application header", async () => {
-  for (const file of ["web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/build-from-scratch.html", "web/privacy.html"]) {
+  for (const file of ["web/index.html", "web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/gear-viewer.html", "web/full-build-optimizer.html", "web/build-from-scratch.html", "web/privacy.html"]) {
     const document = await read(file);
-    assert.match(document, /<header class="tl-app-header">/i, `${file} uses the shared header`);
+    assert.match(document, /<header class="tl-app-header(?: [^"]+)?">/i, `${file} uses the shared header`);
     assert.match(document, /<nav class="tl-app-nav"/i, `${file} uses the shared navigation`);
     assert.match(document, /class="tl-app-brand"/i, `${file} uses the shared brand`);
   }

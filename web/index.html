@@ -7,7 +7,7 @@
 <meta name="description" content="Create, compare, and save Throne and Liberty builds with equipment, skills, masteries, runes, artifacts, and combat stats.">
 <meta name="theme-color" content="#0c0a07">
 <link rel="canonical" href="https://tlhelper.org/">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="icon" href="./tl-logo.png" type="image/png">
 <meta property="og:type" content="website"><meta property="og:title" content="Build Planner | TL Helper"><meta property="og:description" content="Build and save your Throne and Liberty loadout."><meta property="og:url" content="https://tlhelper.org/">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="Build Planner | TL Helper"><meta name="twitter:description" content="Build and save your Throne and Liberty loadout.">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
@@ -98,12 +98,12 @@
 
     <!-- ======================= TOP BAR ======================= -->
     <header class="tl-app-header tl-armory-header">
-      <div class="tl-app-brand">
+      <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
         <div class="tl-app-brand-mark"><span>T</span></div>
-        <div class="tl-app-brand-copy"><div class="tl-app-brand-title">TL HELPER</div><div class="tl-app-brand-subtitle">Build Planner</div></div>
-      </div>
+        <div class="tl-app-brand-copy"><div class="tl-app-brand-title">TL HELPER</div><div class="tl-app-brand-subtitle">Armory</div></div>
+      </a>
       <nav class="tl-app-nav" aria-label="Primary navigation">
-        <span class="tl-app-nav-item is-active" aria-current="page">Armory</span>
+        <a class="tl-app-nav-item is-active" href="./index.html" aria-current="page">Armory</a>
         <a class="tl-app-nav-item" href="./tracker.html">Tracker</a>
         <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
         <a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a>
@@ -111,7 +111,7 @@
         <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
         <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
       </nav>
-      <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
+      <div class="tl-armory-identity">
         <input value="{{ charName }}" onChange="{{ onNameChange }}" aria-label="Character name" placeholder="Character name" spellcheck="false"
           style="min-width:110px;width:clamp(110px,13vw,190px);padding:6px 9px;border:1px solid rgba(212,166,94,.2);border-radius:7px;background:rgba(8,6,4,.46);color:#f3e9d4;font-family:Marcellus,serif;">
         <input value="{{ charRole }}" onChange="{{ onRoleChange }}" aria-label="Build role" placeholder="Build role" spellcheck="false"

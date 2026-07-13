@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Build from Scratch | TL Helper</title>
 <meta name="description" content="Forge a complete Throne and Liberty loadout around ranked stat goals, owned Heroics, sets, runes, artifacts, and attribute breakpoints.">
+<meta name="theme-color" content="#0c0a07">
 <link rel="canonical" href="https://tlhelper.org/build-from-scratch">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
-<style>html{background:#0c0a07;color-scheme:dark}@view-transition{navigation:auto}</style>
+<link rel="icon" href="./tl-logo.png" type="image/png">
+<style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
 <link rel="stylesheet" href="./tl-shell.css">
 <script src="./tl-builder-support.js"></script>
 </head>
@@ -32,7 +33,7 @@
   @keyframes tlSpin{to{transform:rotate(360deg);}}
   @keyframes tlSlide{from{transform:translateX(40px);opacity:0;}to{transform:none;opacity:1;}}
   @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;}}
-  .tl-app-header{position:relative;z-index:5;backdrop-filter:blur(10px);}
+  .tl-app-header{position:relative;z-index:5;}
 </style>
 </helmet>
 
@@ -42,26 +43,29 @@
 
   <!-- ===== HEADER ===== -->
   <header class="tl-app-header">
-    <a class="tl-app-brand" href="./index.html" style="display:inline-flex;align-items:center;gap:12px;">
-      <span style="flex:0 0 38px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(242,199,119,.5);color:#f2c777;font-family:Marcellus,serif;transform:rotate(45deg);box-shadow:0 0 16px rgba(214,138,58,.2);"><span style="transform:rotate(-45deg);font-size:15px;">TL</span></span>
-      <span style="line-height:1.05;">
-        <span style="display:block;color:#d8b878;font-size:12px;font-weight:700;letter-spacing:.2em;">TL HELPER</span>
-        <span style="display:block;margin-top:3px;color:rgba(220,199,158,.55);font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;">Armory · Full Build Optimizer</span>
-      </span>
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
+      <span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span>
+      <span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Build Optimizer</span></span>
     </a>
-    <nav class="tl-app-nav" style="display:flex;align-items:center;gap:6px;margin-left:8px;">
-      <span style="min-height:34px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid rgba(212,166,94,.45);border-radius:999px;color:#d8b878;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(212,166,94,.09);">Build from Scratch</span>
-      <a href="./gear-viewer.html" style="min-height:34px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid transparent;border-radius:999px;color:rgba(220,199,158,.5);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Gear Viewer</a>
-      <a href="./combat-lab.html" style="min-height:34px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid transparent;border-radius:999px;color:rgba(220,199,158,.5);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Combat Lab</a>
+    <nav class="tl-app-nav" aria-label="Primary navigation">
+      <a class="tl-app-nav-item" href="./index.html">Armory</a>
+      <a class="tl-app-nav-item" href="./tracker.html">Tracker</a>
+      <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
+      <a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a>
+      <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
+      <a class="tl-app-nav-item is-active" href="./build-from-scratch.html" aria-current="page">Build Optimizer</a>
+      <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
     </nav>
-    <div style="margin-left:auto;display:flex;align-items:stretch;">
-      <div style="min-width:96px;padding:0 16px;border-left:1px solid rgba(212,166,94,.18);text-align:center;">
-        <div style="color:rgba(220,199,158,.42);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">Weapon Set</div>
-        <div style="margin-top:3px;color:#d8b878;font-family:Marcellus,serif;font-size:14px;">{{ weaponSetLabel }}</div>
-      </div>
-      <div style="min-width:96px;padding:0 16px;border-left:1px solid rgba(212,166,94,.18);text-align:center;">
-        <div style="color:rgba(220,199,158,.42);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">Combat Power</div>
-        <div style="margin-top:3px;color:#f2c777;font-family:Marcellus,serif;font-size:14px;">{{ combatPower }}</div>
+    <div class="tl-app-header-end">
+      <div class="tl-app-status-group">
+        <div class="tl-app-status">
+          <div class="tl-app-status-label">Weapon Set</div>
+          <div class="tl-app-status-value">{{ weaponSetLabel }}</div>
+        </div>
+        <div class="tl-app-status">
+          <div class="tl-app-status-label">Combat Power</div>
+          <div class="tl-app-status-value">{{ combatPower }}</div>
+        </div>
       </div>
     </div>
   </header>
