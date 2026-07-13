@@ -38,6 +38,30 @@ test("scratch builds start empty and are explicitly marked as scratch", async ()
   assert.equal(scratch.sourceKind, "scratch");
   assert.equal(scratch.name, "New optimized build");
   assert.equal(scratch.build.equipment.head.itemId, "");
+  assert.deepEqual(scratch.attributes, { str: 0, dex: 0, int: 0, per: 0, con: 0 });
+});
+
+test("stable slot locks preserve complete selections and a fixed objective baseline", async () => {
+  const current = { itemId: "old", level: 12, traits: [{ statId: "attack", tier: 3 }], heroicEffects: [{ statId: "guard", level: 12 }], runes: [{ runeId: "r", statId: "attack", level: 9 }] };
+  const items = { old: { id: "old", name: "Old", grade: 41, equipmentType: "head" }, next: { id: "next", name: "Next", grade: 41, equipmentType: "head" } };
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} }, EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) { return { stats: [{ id: "attack", total: build.equipment.head.itemId === "next" ? 20 : 10 }] }; },
+    slotSelectionContribution(_slot, selection) { return { attack: selection?.itemId === "next" ? 20 : 10 }; },
+    slotItems: () => Object.values(items), slotById: () => ({ id: "head", types: ["head"] }),
+    emptyEquipmentSelection: () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] }), itemMaxLevel: () => 12,
+    heroicSlotGroupForSlot: () => "", statName: (id) => id, gradeColor: () => "#fff",
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: structuredClone(current) }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"], protect: [] }, lockedSlotIds: ["head"], objectiveBaseline: { attack: 5 }, rules: {},
+  });
+  assert.deepEqual(result.build.equipment.head, current);
+  assert.equal(result.slots[0].slotId, "head");
+  assert.deepEqual(result.objectiveBaseline, { attack: 5 });
+  assert.deepEqual(result.attributes, {});
 });
 
 test("saved Armory state is returned with build and attributes", async () => {
