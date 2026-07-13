@@ -93,24 +93,36 @@ test("results remain compact and inspectable", () => {
   assert.match(html, /id="cancel"/);
 });
 
-test("builder requires a weapon pair and includes starting attributes", () => {
+test("builder requires a weapon pair and supplies an optimizable attribute budget", () => {
   assert.match(html, /id="main-weapon"/);
   assert.match(html, /id="off-weapon"/);
   assert.match(html, /slotById\("main_hand"\)\.types/);
   assert.match(html, /slotById\("off_hand"\)\.types/);
   assert.match(html, /weaponTypes:\[state\.weaponTypes\.main,state\.weaponTypes\.off\]/);
-  for (const id of ["str", "dex", "int", "per", "con"]) assert.match(html, new RegExp(`data-attribute="${id}"`));
-  assert.match(html, /0 allocated points currently/);
-  assert.match(html, /source\.attributes=\{\.\.\.state\.startingAttributes\}/);
+  assert.match(html, /id="attribute-point-budget"/);
+  assert.match(html, /attributePointBudget:state\.attributePointBudget/);
+  assert.match(html, /0 points available/);
+  assert.match(html, /Gear stats also contribute/);
+  assert.doesNotMatch(html, /data-attribute=/);
 });
 
 test("result experience uses readable tabs instead of a dominant Fit table", () => {
-  for (const label of ["Overview", "All Stats", "Gear", "Sets &amp; Runes"]) assert.ok(html.includes(label));
+  for (const label of ["Overview", "Attributes", "All Stats", "Gear", "Sets &amp; Runes"]) assert.ok(html.includes(label));
   assert.match(html, /result\.allStats/);
   assert.match(html, /row\.group\?\?row\.category/);
   assert.match(html, /class="stat-groups"/);
   assert.match(html, /class="gear-overview"/);
   assert.doesNotMatch(html, /<table/);
+});
+
+test("result shows optimized allocation and active attribute breakpoints", () => {
+  assert.match(html, /result\.optimizedAttributes/);
+  assert.match(html, /activeAttributeBreakpoints/);
+  assert.match(html, /row\.bonuses/);
+  assert.match(html, /class="attribute-allocation"/);
+  assert.match(html, /class="breakpoint-grid"/);
+  assert.match(html, /Gear attributes are included/);
+  assert.match(html, /calculateBuild\(result\.build,optimizedAttributes/);
 });
 
 test("doll and gear results use the shared item hover", () => {

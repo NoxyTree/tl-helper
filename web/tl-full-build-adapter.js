@@ -3,6 +3,7 @@ import { loadArmoryState as loadStateDefault } from "./tl-persistence.js";
 import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
 import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimizer-components.js";
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
+import { ATTRIBUTE_BREAKPOINTS, allocatedAttributeValue } from "./tl-questlog-rules.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
@@ -135,11 +136,114 @@ export function resolveWeaponTypeConstraints(core, request = {}) {
   return { [slots[0]]: main, [slots[1]]: off };
 }
 
+const ATTRIBUTE_IDS = ["str", "dex", "int", "per", "con"];
+
+export function rawPointsForAttributeGain(requiredGain, budget = Number.MAX_SAFE_INTEGER) {
+  if (requiredGain <= 0) return 0;
+  const limit = Math.max(0, Math.floor(Number(budget) || 0));
+  for (let raw = 0; raw <= limit; raw += 1) if (allocatedAttributeValue(raw) >= requiredGain) return raw;
+  return limit + 1;
+}
+
+function balancedAllocation(budget, preferred = "") {
+  const result = Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, Math.floor(budget / ATTRIBUTE_IDS.length)]));
+  let remainder = budget - Object.values(result).reduce((sum, value) => sum + value, 0);
+  const order = preferred ? [preferred, ...ATTRIBUTE_IDS.filter((id) => id !== preferred)] : ATTRIBUTE_IDS;
+  for (let index = 0; remainder > 0; index = (index + 1) % order.length, remainder -= 1) result[order[index]] += 1;
+  return result;
+}
+
+function allocationKey(allocation) {
+  return ATTRIBUTE_IDS.map((id) => allocation[id]).join("|");
+}
+
+function activeAttributeBreakpoints(core, calc) {
+  const grouped = new Map();
+  for (const stat of calc.stats ?? []) for (const source of stat.sources ?? []) {
+    if (source.type !== "attribute_bracket") continue;
+    const match = String(source.sourceLabel ?? source.name ?? "").match(/^([A-Z]+) \((\d+)\):/);
+    if (!match) continue;
+    const attributeId = match[1].toLowerCase();
+    const threshold = Number(match[2]);
+    const key = `${attributeId}:${threshold}`;
+    if (!grouped.has(key)) grouped.set(key, { attributeId, attributeName: core.statName(attributeId), threshold, bonuses: [] });
+    grouped.get(key).bonuses.push({ statId: stat.id, name: core.statName(stat.id), value: Number(source.value), formattedValue: core.formatStat(stat.id, Number(source.value)) });
+  }
+  return [...grouped.values()].sort((a, b) => ATTRIBUTE_IDS.indexOf(a.attributeId) - ATTRIBUTE_IDS.indexOf(b.attributeId) || a.threshold - b.threshold);
+}
+
+function satisfiesProtectedStats(stats, protectedStats) {
+  return Object.entries(protectedStats).every(([id, rule]) => {
+    const value = Number(stats[id] ?? 0);
+    if (rule.min != null && value < Number(rule.min)) return false;
+    return rule.baseline == null || value >= Number(rule.baseline) * (1 - Number(rule.allowedLossPercent ?? 0) / 100);
+  });
+}
+
+export function optimizeAttributeAllocation({ core, build, budget, rankedGoals, baseline, scales, includeSetEffects = true, minimums = {} }) {
+  if (!Number.isInteger(budget) || budget < 0) throw new RangeError("attributePointBudget must be a nonnegative integer.");
+  const zero = Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, 0]));
+  const zeroCalc = core.calculateBuild(build, zero, { includeSetEffects });
+  const zeroTotals = totalMap(zeroCalc);
+  const seeds = new Map();
+  const add = (allocation) => seeds.set(allocationKey(allocation), allocation);
+  add(balancedAllocation(budget));
+  const breakpointRequirements = [];
+  for (const id of ATTRIBUTE_IDS) {
+    add({ ...zero, [id]: budget });
+    add(balancedAllocation(budget, id));
+    for (const threshold of Object.keys(ATTRIBUTE_BREAKPOINTS[id] ?? {}).map(Number)) {
+      const needed = rawPointsForAttributeGain(threshold - Number(zeroTotals[id] ?? 0), budget);
+      if (needed > budget) continue;
+      const allocation = balancedAllocation(budget - needed);
+      allocation[id] += needed;
+      add(allocation);
+      const bonuses = ATTRIBUTE_BREAKPOINTS[id][threshold] ?? {};
+      const relevance = rankedGoals.reduce((sum, goal) => sum + (bonuses[goal.id] == null ? 0 : goal.weight * Math.abs(Number(bonuses[goal.id])) / Math.max(1, Number(scales[goal.id] ?? 1))), 0)
+        + Object.keys(minimums).reduce((sum, statId) => sum + (bonuses[statId] == null ? 0 : 1), 0);
+      if (relevance > 0) breakpointRequirements.push({ id, threshold, needed, relevance });
+    }
+  }
+  // Preserve complementary milestone builds, bounded to the twelve most
+  // relevant individual breakpoints before creating cross-attribute pairs.
+  const pairPool = breakpointRequirements.sort((a, b) => b.relevance - a.relevance || a.needed - b.needed || a.id.localeCompare(b.id) || a.threshold - b.threshold).slice(0, 12);
+  for (let first = 0; first < pairPool.length; first += 1) for (let second = first + 1; second < pairPool.length; second += 1) {
+    const left = pairPool[first];
+    const right = pairPool[second];
+    if (left.id === right.id || left.needed + right.needed > budget) continue;
+    const allocation = balancedAllocation(budget - left.needed - right.needed);
+    allocation[left.id] += left.needed;
+    allocation[right.id] += right.needed;
+    add(allocation);
+  }
+  const evaluate = (attributes) => {
+    const calc = core.calculateBuild(build, attributes, { includeSetEffects });
+    const stats = totalMap(calc);
+    const violations = Object.entries(minimums).reduce((sum, [id, minimum]) => sum + Math.max(0, Number(minimum) - Number(stats[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum))), 0);
+    return { attributes, calc, stats, violations, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), key: allocationKey(attributes) };
+  };
+  const compare = (a, b) => a.violations - b.violations || b.score - a.score || a.key.localeCompare(b.key);
+  let best = [...seeds.values()].map(evaluate).sort(compare)[0];
+  // A small deterministic coordinate ascent catches useful splits between the
+  // breakpoint seeds without turning attributes into an exhaustive search.
+  for (let round = 0; round < 4; round += 1) {
+    const neighbors = [];
+    for (const from of ATTRIBUTE_IDS) if (best.attributes[from] > 0) for (const to of ATTRIBUTE_IDS) if (to !== from) {
+      neighbors.push(evaluate({ ...best.attributes, [from]: best.attributes[from] - 1, [to]: best.attributes[to] + 1 }));
+    }
+    const next = [best, ...neighbors].sort(compare)[0];
+    if (next.key === best.key) break;
+    best = next;
+  }
+  return { ...best, activeAttributeBreakpoints: activeAttributeBreakpoints(core, best.calc) };
+}
+
 /** Browser adapter. Dependencies are injectable to keep the boundary testable. */
 export async function createOptimizerAdapter(deps = {}) {
   const core = deps.core ?? coreDefault;
   const storage = deps.storage ?? globalThis.localStorage;
   const fetcher = deps.fetch ?? globalThis.fetch?.bind(globalThis);
+  const runAttributeOptimizer = deps.optimizeAttributeAllocation ?? optimizeAttributeAllocation;
   if (!core.data) await core.initCore(deps.dataSource ?? "./data/app-data.json");
 
   const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name, sourceKind: payload.sourceKind ?? "armory" });
@@ -187,6 +291,10 @@ export async function createOptimizerAdapter(deps = {}) {
       const goals = request.goals ?? { increase: [], protect: [] };
       const rankedGoals = normalizeRankedGoals(goals);
       const weaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
+      const attributePointBudget = request.attributePointBudget;
+      if (attributePointBudget != null && (!scratch || !Number.isInteger(attributePointBudget) || attributePointBudget < 0)) {
+        throw new RangeError(!scratch ? "attributePointBudget is only supported for scratch builds." : "attributePointBudget must be a nonnegative integer.");
+      }
       const baseline = totalMap(calculate(source, rules.includeSetEffects !== false));
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
       const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
@@ -253,7 +361,9 @@ export async function createOptimizerAdapter(deps = {}) {
         const weaponTypeSeeds = core.WEAPON_SLOTS.includes(slot)
           ? ranked.filter((row, index, all) => all.findIndex((other) => other.weaponType === row.weaponType && !other.heroicGroup) === index && !row.heroicGroup)
           : [];
-        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds];
+        const attributeSeeds = attributePointBudget == null ? [] : ATTRIBUTE_IDS.flatMap((attributeId) => [...ranked]
+          .sort((a, b) => Number(b.stats?.[attributeId] ?? 0) - Number(a.stats?.[attributeId] ?? 0) || a.id.localeCompare(b.id)).slice(0, 2));
+        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds, ...attributeSeeds];
         candidatesBySlot[slot] = [...(scratch ? [] : [currentRow]), ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
       }
 
@@ -271,16 +381,37 @@ export async function createOptimizerAdapter(deps = {}) {
       for (const rows of Object.values(candidatesBySlot)) for (const row of rows) row.scoreHint = scoreRankedGoals(row.stats ?? {}, {}, objectiveScales, rankedGoals);
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
-      const search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
+      const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
+      const attributePoolSize = request.depth === "thorough" ? 64 : 48;
+      const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
+      let search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
         const build = applySelections(source.build, selections);
-        const stats = totalMap(core.calculateBuild(build, source.attributes, { includeSetEffects: rules.includeSetEffects !== false }));
-        const normalized = scoreRankedGoals(stats, objectiveBaseline, objectiveScales, rankedGoals);
-        return { score: normalized, stats, build };
+        const calc = core.calculateBuild(build, provisionalAttributes, { includeSetEffects: rules.includeSetEffects !== false });
+        const stats = totalMap(calc);
+        return { score: scoreRankedGoals(stats, objectiveBaseline, objectiveScales, rankedGoals), stats, build, attributes: provisionalAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc) };
       }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         return !Object.values(selections).some((selection) => selection?.itemId === itemId);
-      }, weights: Object.fromEntries(rankedGoals.map(({ id, weight }) => [id, weight / objectiveScales[id]])), protectedStats, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: 4, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + 45 * row.completedSlots / row.totalSlots : 50 + 50 * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: Object.fromEntries(rankedGoals.map(({ id, weight }) => [id, weight / objectiveScales[id]])), paretoStats: attributePointBudget == null ? undefined : [...rankedGoals.map(({ id }) => id), ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      if (attributePointBudget != null) {
+        const exact = [];
+        for (let index = 0; index < search.alternatives.length; index += 1) {
+          if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
+          const candidate = search.alternatives[index];
+          const optimized = runAttributeOptimizer({ core, build: candidate.evaluation.build, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, includeSetEffects: rules.includeSetEffects !== false, minimums: attributeMinimums });
+          if (satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints } });
+          runtime.onProgress?.({ percent: 60 + 40 * (index + 1) / search.alternatives.length, label: "Optimizing attribute points", detail: `${index + 1} of ${search.alternatives.length} shortlisted loadouts` });
+          if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
+        exact.sort((a, b) => b.evaluation.score - a.evaluation.score
+          || neutralTotal(a, "neutralHeroicCost") - neutralTotal(b, "neutralHeroicCost")
+          || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")
+          || neutralTotal(b, "neutralGrade") - neutralTotal(a, "neutralGrade")
+          || a.key.localeCompare(b.key));
+        search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), attributeFinalistsEvaluated: search.alternatives.length };
+      }
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
       const finalStats = best.evaluation.stats;
@@ -314,11 +445,15 @@ export async function createOptimizerAdapter(deps = {}) {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (objectiveBaseline[id] ?? 0) })),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.minimum == null ? "" : `; minimum ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: [...(scratch ? ["Built from a naked level baseline with no allocated attribute points.", "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,
-        attributes: clone(source.attributes ?? {}),
+        attributes: clone(best.evaluation.attributes ?? source.attributes ?? {}),
+        optimizedAttributes: attributePointBudget == null ? null : clone(best.evaluation.attributes),
+        attributePointBudget: attributePointBudget ?? null,
+        activeAttributeBreakpoints: clone(best.evaluation.activeAttributeBreakpoints ?? []),
+        attributeFinalistsEvaluated: search.attributeFinalistsEvaluated ?? 0,
         objectiveBaseline: clone(objectiveBaseline),
         objectiveScales: clone(objectiveScales),
         goalResults,
