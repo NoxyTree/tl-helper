@@ -25,7 +25,10 @@ test("stat picker exposes every adapter stat through searchable categories witho
 
 test("selected priorities are reorderable, removable, and support explicit goal modes", () => {
   assert.match(html, /movePriority/);
-  assert.match(html, /draggable="true"/);
+  assert.match(html, /<div draggable="true" tabindex="0" onDragStart="\{\{ p\.dragStart \}\}"/);
+  assert.match(html, /Drag anywhere on this priority/);
+  assert.match(html, /event\.target!==event\.currentTarget && event\.target\.closest\('button,select,input,label'\)/);
+  assert.match(html, /this\._dragPriorityId=id/);
   assert.match(html, /startPriorityDrag/);
   assert.match(html, /dragOverPriority/);
   assert.match(html, /dropPriority/);

@@ -138,7 +138,7 @@
         <p style="margin:0 0 14px;color:#8a795f;font-size:11.5px;line-height:1.5;">The optimizer weights these in order. Priority 1 is protected hardest. These become your <strong style="color:#e5c88f;">favourite stats</strong> on the result screen.</p>
         <div style="display:grid;gap:8px;">
           <sc-for list="{{ rankedList }}" as="p" hint-placeholder-count="5">
-            <div onDragOver="{{ p.dragOver }}" onDrop="{{ p.drop }}" style="position:relative;display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid {{ p.border }};border-radius:11px;background:{{ p.bg }};opacity:{{ p.opacity }};transition:border-color .12s ease,background .12s ease,opacity .12s ease;">
+            <div draggable="true" tabindex="0" onDragStart="{{ p.dragStart }}" onDragEnd="{{ endPriorityDrag }}" onDragOver="{{ p.dragOver }}" onDrop="{{ p.drop }}" onKeyDown="{{ p.reorderKey }}" aria-label="Drag to reorder {{ p.name }}. Use arrow keys for keyboard reordering." style="position:relative;display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid {{ p.border }};border-radius:11px;background:{{ p.bg }};opacity:{{ p.opacity }};cursor:grab;transition:border-color .12s ease,background .12s ease,opacity .12s ease;">
               <sc-if value="{{ p.dropBefore }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;z-index:4;left:8px;right:8px;top:-5px;height:2px;border-radius:2px;background:#f2c777;box-shadow:0 0 9px rgba(242,199,119,.65);"></span></sc-if>
               <sc-if value="{{ p.dropAfter }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;z-index:4;left:8px;right:8px;bottom:-5px;height:2px;border-radius:2px;background:#f2c777;box-shadow:0 0 9px rgba(242,199,119,.65);"></span></sc-if>
               <span style="flex:0 0 auto;width:30px;height:30px;display:grid;place-items:center;color:{{ p.rank_color }};border:1px solid {{ p.rank_border }};border-radius:9px;background:{{ p.rank_bg }};font:400 15px Marcellus,serif;">{{ p.rank }}</span>
@@ -163,7 +163,7 @@
                 </sc-if>
               </div>
               <div style="display:flex;align-items:center;gap:4px;">
-                <span role="button" tabindex="0" draggable="true" onDragStart="{{ p.dragStart }}" onDragEnd="{{ endPriorityDrag }}" onKeyDown="{{ p.reorderKey }}" aria-label="Drag to reorder {{ p.name }}. Use arrow keys for keyboard reordering." title="Drag to reorder" style="width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(0,0,0,.24);cursor:grab;" style-hover="border-color:rgba(242,199,119,.6);background:rgba(107,68,22,.18);">
+                <span aria-hidden="true" title="Drag anywhere on this priority" style="width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(0,0,0,.24);cursor:grab;" style-hover="border-color:rgba(242,199,119,.6);background:rgba(107,68,22,.18);">
                   <span aria-hidden="true" style="display:grid;grid-template-columns:repeat(2,3px);grid-template-rows:repeat(3,3px);gap:3px;"><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span><span style="border-radius:50%;background:#9d8968;"></span></span>
                 </span>
                 <button onClick="{{ p.remove }}" aria-label="Remove" style="width:28px;height:28px;display:grid;place-items:center;color:#c98d84;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(0,0,0,.24);cursor:pointer;font-size:13px;" style-hover="border-color:rgba(229,124,114,.6);color:#e57c72;">✕</button>
@@ -1522,12 +1522,14 @@ class Component extends DCLogic {
     this.setState({ priorities: arr });
   }
   startPriorityDrag(id,event) {
+    if(event.target!==event.currentTarget && event.target.closest('button,select,input,label')){event.preventDefault();return;}
+    this._dragPriorityId=id;
     event.dataTransfer.effectAllowed='move';
     event.dataTransfer.setData('text/plain',id);
     this.setState({dragPriorityId:id,dragOverPriorityId:null,dragInsertAfter:false});
   }
   dragOverPriority(id,event) {
-    const source=this.state.dragPriorityId||event.dataTransfer?.getData('text/plain');
+    const source=this._dragPriorityId||this.state.dragPriorityId||event.dataTransfer?.getData('text/plain');
     if(!source||source===id)return;
     event.preventDefault();
     event.dataTransfer.dropEffect='move';
@@ -1536,16 +1538,18 @@ class Component extends DCLogic {
   }
   dropPriority(id,event) {
     event.preventDefault();
-    const source=this.state.dragPriorityId||event.dataTransfer?.getData('text/plain');
+    const source=this._dragPriorityId||this.state.dragPriorityId||event.dataTransfer?.getData('text/plain');
     if(!source||source===id){this.endPriorityDrag();return;}
     const priorities=this.state.priorities.filter(priorityId=>priorityId!==source);
     const targetIndex=priorities.indexOf(id);
     if(targetIndex<0){this.endPriorityDrag();return;}
     priorities.splice(targetIndex+(this.state.dragInsertAfter?1:0),0,source);
+    this._dragPriorityId=null;
     this.setState({priorities,dragPriorityId:null,dragOverPriorityId:null,dragInsertAfter:false});
   }
-  endPriorityDrag = () => this.setState({dragPriorityId:null,dragOverPriorityId:null,dragInsertAfter:false});
+  endPriorityDrag = () => {this._dragPriorityId=null;this.setState({dragPriorityId:null,dragOverPriorityId:null,dragInsertAfter:false});};
   priorityReorderKey(id,event) {
+    if(event.target!==event.currentTarget)return;
     if(!['ArrowUp','ArrowDown'].includes(event.key))return;
     event.preventDefault();
     this.movePriority(id,event.key==='ArrowUp'?-1:1);
