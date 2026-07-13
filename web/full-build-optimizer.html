@@ -64,6 +64,11 @@
     .goal-chip-value { flex:none; color:#f2c777; font:17px Marcellus,serif; }
     .goal-chip button { flex:none; width:26px; height:26px; border:1px solid rgba(224,129,104,.2); border-radius:7px; background:rgba(70,27,21,.12); color:#d99582; cursor:pointer; }
     .goal-chip button:hover { border-color:rgba(224,129,104,.48); background:rgba(104,39,29,.22); }
+    .goal-drag { flex:none; width:28px; height:28px; display:grid; place-items:center; border:1px solid rgba(212,166,94,.22); border-radius:7px; color:#9c835d; cursor:grab; user-select:none; }
+    .goal-drag:active { cursor:grabbing; }
+    .goal-chip.is-dragging { opacity:.45; }
+    .composite-badge { display:inline-block; margin-left:5px; padding:1px 5px; border:1px solid rgba(185,140,240,.32); border-radius:5px; color:#b98cf0; font-size:7px; letter-spacing:.08em; text-transform:uppercase; vertical-align:middle; }
+    .goal-components { grid-column:2/-1; display:flex; flex-wrap:wrap; gap:4px 8px; color:#9f8cb8; font-size:8px; }
     .picker-trigger { width:100%; min-height:43px; display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid rgba(212,166,94,.28); border-radius:9px; background:#0b0806; color:#e6d6b4; cursor:pointer; text-align:left; }
     .picker-trigger:hover,.picker-trigger[aria-expanded="true"] { border-color:rgba(242,199,119,.62); background:rgba(107,68,22,.16); }
     .picker-trigger-plus { width:22px; height:22px; display:grid; place-items:center; border:1px solid rgba(242,199,119,.35); border-radius:6px; color:#f2c777; font-size:15px; }
@@ -98,6 +103,10 @@
     .slots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
     .slot-lock { display:flex; gap:8px; align-items:center; padding:9px; border:1px solid rgba(212,166,94,.14); border-radius:8px; background:rgba(8,6,4,.36); color:#cfc1a6; font-size:11.5px; }
     .slot-lock input { accent-color:var(--gold); }
+    .slot-lock span { min-width:0; }
+    .slot-lock strong,.slot-lock small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .slot-lock strong { font-size:10.5px; font-weight:600; }
+    .slot-lock small { margin-top:2px; color:#806f55; font-size:8.5px; }
     .is-unavailable { opacity:.42; }
     .is-unavailable input,.is-unavailable button { cursor:not-allowed; }
     .actions { display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(90deg,rgba(33,24,13,.96),rgba(13,10,7,.96)); backdrop-filter:blur(8px); z-index:4; }
@@ -124,6 +133,14 @@
     .results { padding:16px; animation:tlRise .28s ease; }
     .result-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; padding:12px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:rgba(20,15,10,.72); }
     .result-toolbar strong { color:#f2c777; font:18px Marcellus,serif; }
+    .result-toolbar-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+    .cost-card { min-width:190px; padding:8px 11px; border:1px solid rgba(126,224,166,.22); border-radius:8px; background:rgba(38,105,66,.08); }
+    .cost-card small { display:block; color:#89a98f; font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
+    .cost-card strong { display:block; margin-top:2px; color:#9af0b8; font-size:19px; }
+    .cost-card span { display:block; margin-top:2px; color:#78907e; font-size:9px; }
+    .market-field { margin-top:12px; }
+    .market-field select { margin-top:1px; }
+    .market-note { color:#75664f; font-size:9px; line-height:1.45; }
     .result-stage { display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; align-items:start; }
     .build-doll { position:sticky; top:18px; padding:16px 14px 14px; border:1px solid rgba(212,166,94,.2); border-radius:10px; background:linear-gradient(180deg,rgba(26,20,12,.55),rgba(14,11,7,.75)); box-shadow:inset 0 1px 0 rgba(246,211,145,.06),0 18px 40px rgba(0,0,0,.3); }
     .doll-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:12px; }
@@ -131,6 +148,8 @@
     .doll-grid { display:grid; grid-template-columns:74px minmax(110px,1fr) 74px; gap:8px; align-items:stretch; }
     .doll-rail { display:flex; flex-direction:column; justify-content:space-between; gap:5px; }
     .doll-slot { display:grid; justify-items:center; gap:3px; min-width:0; color:#8a795f; }
+    [data-result-slot] { cursor:help; }
+    [data-result-slot]:hover .doll-orb { border-color:#f2c777; box-shadow:0 0 18px rgba(242,199,119,.2),inset 0 0 10px rgba(0,0,0,.7); }
     .doll-orb { position:relative; width:48px; height:48px; display:grid; place-items:center; overflow:hidden; border:1.5px solid rgba(212,166,94,.35); border-radius:999px; background:radial-gradient(circle at 35% 30%,#251c11,#120e08 75%); box-shadow:inset 0 0 10px rgba(0,0,0,.7); }
     .doll-orb img { width:38px; height:38px; border-radius:999px; object-fit:cover; }
     .doll-orb span { color:rgba(212,166,94,.5); font-size:16px; }
@@ -165,6 +184,21 @@
     .explanations,.alternatives { margin-top:15px; padding-top:14px; border-top:1px solid var(--line); }
     .explanations ul { padding-left:17px; color:#cfc1a6; font-size:11.5px; line-height:1.6; }
     .alternative { padding:10px; border:1px solid rgba(212,166,94,.14); border-radius:8px; margin-top:7px; }
+    #result-hover { position:fixed; z-index:90; width:min(350px,calc(100vw - 24px)); max-height:86vh; overflow:auto; pointer-events:none; border:1px solid rgba(212,166,94,.48); border-radius:10px; background:linear-gradient(180deg,rgba(27,20,13,.995),rgba(11,8,5,.995)); box-shadow:0 22px 55px rgba(0,0,0,.75); }
+    #result-hover .hc-head { display:flex; align-items:center; gap:11px; padding:12px 14px; }
+    #result-hover .hc-icon { width:46px; height:46px; flex:none; border:1px solid; border-radius:9px; background-position:center; background-size:cover; }
+    #result-hover .hc-name { font-size:15px; font-weight:700; line-height:1.2; }
+    #result-hover .hc-meta { margin-top:3px; color:#9d8a68; font-size:10.5px; }
+    #result-hover .hc-section { padding:10px 14px; border-top:1px solid rgba(212,166,94,.16); }
+    #result-hover .hc-title { margin-bottom:7px; color:#cbb185; font-size:9px; letter-spacing:.17em; text-transform:uppercase; }
+    #result-hover .hc-title.heroic { color:#ffb765; }
+    #result-hover .hc-stat-row,#result-hover .hc-rune-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; min-height:19px; color:#cfc1a6; font-size:11.5px; line-height:1.5; }
+    #result-hover .hc-stat-row strong,#result-hover .hc-rune-row strong { color:#f0e1c1; font-weight:600; }
+    #result-hover .hc-price { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+    #result-hover .hc-price strong { color:#9af0b8; font:20px Marcellus,serif; }
+    #result-hover .hc-price small { display:block; color:#78907e; font-size:9px; line-height:1.4; }
+    #result-hover .hc-missing { color:#b99f76; font-size:11px; }
+    .result-status { flex-basis:100%; margin:2px 0 0; color:#9af0b8; font-size:10px; text-align:right; }
     .hidden { display:none!important; }
     @keyframes tlPulse { 50%{transform:rotate(45deg) scale(1.08);box-shadow:0 0 38px rgba(242,199,119,.24)} }
     @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:minmax(270px,.8fr) minmax(0,1.4fr)}}
@@ -173,7 +207,7 @@
     @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     @keyframes tlFade { from{opacity:0} to{opacity:1} }
     @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
-    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}}
+    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}.result-toolbar{align-items:stretch;flex-direction:column}.result-toolbar-actions{justify-content:stretch}.result-toolbar-actions button,.cost-card{flex:1}.result-status{text-align:left}}
   </style>
 </head>
 <body>
@@ -192,16 +226,18 @@
           <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
           <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
           <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
+          <label class="field market-field">Auction House region<select id="market-region"><option value="eu">Europe</option><option value="na">Americas</option><option value="jp">Japan and Oceania</option></select><span id="market-status" class="market-note">TLDB prices load when available.</span></label>
         </div></section>
 
         <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
-          <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Optimized equally</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
+          <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Ranked priorities · drag to reorder</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
           <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
           <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
         </div></section>
 
         <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">3. Search rules</h2></div><div class="panel-body">
           <div class="toggle-list">
+            <label class="toggle-row"><input id="endgame-only" type="checkbox" checked><span><strong>Endgame equipment only</strong><small>Excludes levelling and starter equipment below level 50 from replacements.</small></span></label>
             <label class="toggle-row"><input id="keep-heroics" type="checkbox" checked><span><strong>Keep current Heroics</strong><small>Locks equipped Heroics by default because replacing them is expensive.</small></span></label>
             <label class="toggle-row"><input id="reconsider-heroics" type="checkbox"><span><strong>Reconsider Heroics</strong><small>Suggest the best legal Heroic in each equipment group.</small></span></label>
             <label class="toggle-row"><input id="include-sets" type="checkbox" checked><span><strong>Include set effects</strong><small>Scores activated and broken equipment set thresholds.</small></span></label>
@@ -222,18 +258,23 @@
       <div id="results-state" class="results hidden"></div>
     </section>
   </main>
+  <div id="result-hover" class="hidden" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", controller:null, adapter:null, core:null, statOptions:[] };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, marketTools:null, marketRegion:"eu", marketPayload:null, marketByItemKey:new Map(), statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
-    const locks = $("slot-locks");
-    SLOTS.forEach((name,index) => { const label=document.createElement("label"); label.className="slot-lock"; label.innerHTML=`<input type="checkbox" data-slot="${index}"><span>${name}</span>`; locks.append(label); });
+    function renderLocks() {
+      const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
+      $("slot-locks").innerHTML=slots.map((slot,index)=>{ const selection=build?.equipment?.[slot.id],item=state.core?.indexes?.itemById?.[selection?.itemId],available=Boolean(item); return `<label class="slot-lock ${available?"":"is-unavailable"}" title="${available?`Keep ${esc(item.name)}`:"Nothing is equipped in this slot"}"><input type="checkbox" data-slot="${index}" ${available?"":"disabled"}><span><strong>${esc(slot.label??SLOTS[index]??slot.id)}</strong>${available?`<small>${esc(item.name)}</small>`:""}</span></label>`; }).join("");
+      const equipped=slots.filter(slot=>build?.equipment?.[slot.id]?.itemId).length;
+      $("locks-hint").textContent=build&&equipped<slots.length?`${equipped}/${slots.length} equipment slots are filled. Empty slots cannot be locked and will be treated as upgrade opportunities.`:"A locked slot keeps its current item, traits, runes, and configured effects.";
+    }
 
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
     selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
-    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; await refreshCurrentStats(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
+    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; await refreshCurrentStats(); renderLocks(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setView(view) {
       const changed=document.body.dataset.optimizerView!==view; document.body.dataset.optimizerView=view;
@@ -242,40 +283,61 @@
       if(changed) window.scrollTo({top:0,behavior:"smooth"});
     }
     function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("error-message").textContent=message; setView("error"); updateReady(); }
+    async function loadMarket(region=state.marketRegion) {
+      state.marketRegion=region; $("market-status").textContent="Loading TLDB market snapshot...";
+      try {
+        const response=await fetch(`/api/market/prices?region=${encodeURIComponent(region)}`,{cache:"no-store"});
+        const payload=await response.json();
+        if(!response.ok) throw new Error(payload?.error??`Market request failed (${response.status}).`);
+        state.marketPayload=payload; state.marketByItemKey=state.marketTools.indexMarketItems(payload);
+        const time=new Date(payload.snapshotGeneratedAtUtc); const stamp=Number.isNaN(time.valueOf())?"latest snapshot":time.toLocaleString([], {dateStyle:"medium",timeStyle:"short"});
+        $("market-status").textContent=`${payload.regionName} prices from TLDB · ${stamp}${payload.stale?" · last known":""}`;
+      } catch(error) {
+        state.marketPayload=null; state.marketByItemKey=new Map(); $("market-status").textContent="TLDB prices are unavailable right now. Builds can still be optimized.";
+      }
+      if(state.result) renderResult(state.result);
+    }
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const module = await import("./tl-full-build-adapter.js"); state.core=await import("./tl-core.js");
+        const [module,core,rulesData,persistence,marketTools] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-build-market.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.marketTools=marketTools;
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
         for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","currentStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
         $("engine-status").textContent="Ready"; setView("setup");
-        setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory();
+        setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory(); loadMarket().catch(()=>{});
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
     }
+    $("market-region").addEventListener("change",event=>loadMarket(event.target.value));
     async function refreshCurrentStats() {
       state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:$("include-sets").checked}) : {};
       for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key);
     }
-    async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } updateReady(); }
-    $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); await refreshCurrentStats(); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Import failed: ${error.message}`; } finally { $("import-build").disabled=false; updateReady(); } });
+    async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } renderLocks(); updateReady(); }
+    $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); await refreshCurrentStats(); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Import failed: ${error.message}`; } finally { renderLocks(); $("import-build").disabled=false; updateReady(); } });
     $("include-sets").addEventListener("change",()=>refreshCurrentStats().catch(error=>{ $("source-status").textContent=`Current stats could not be refreshed: ${error.message}`; }));
 
     const STAT_CATEGORIES = [
-      ["featured","Featured"],["offense","Offense"],["defense","Defense"],["control","Control"],["recovery","Recovery"],["utility","Utility"],["pvp","PvP"]
+      ["featured","Featured"],["offense","Offense"],["defense","Defense"],["resources","Resources"],["utility","Utility"],["pvp","PvP"],["control","Control"],["pve","Boss & PvE"],["directional","Positioning"],["species","Enemy Types"],["attributes","Attributes"]
     ];
-    const FEATURED_STATS = /hit_chance|critical_hit|heavy_attack|attack_speed|cooldown|buff_duration|endurance|evasion|max_health|collision/i;
+    const FEATURED_IDS = new Set(["hp_max","damage_reduction","skill_cooldown_modifier","buff_given_duration_modifier","attack_speed_modifier","block_chance","all_accuracy","all_evasion","all_critical_attack","all_critical_defense","all_double_attack","all_double_defense","pvp_all_accuracy","pvp_all_critical_defense","pvp_all_evasion","pvp_all_double_attack","pvp_all_double_defense"]);
+    function isFeaturedStat(row) { return FEATURED_IDS.has(row.id)||/^(max health|damage reduction|cooldown speed|buff duration|attack speed|block chance|pvp endurance|pvp evasion|pvp hit chance|pvp heavy attack)/i.test(row.name??""); }
     function statCategory(row) {
-      const text=`${row.id} ${row.name??row.label??""}`.toLowerCase();
+      const id=String(row.id??"").toLowerCase(),text=`${id} ${row.name??row.label??""}`.toLowerCase();
+      if(["str","dex","int","per","con"].includes(id)) return "attributes";
       if(/pvp/.test(text)) return "pvp";
-      if(/stun|bind|sleep|silence|collision|weaken|fear|petrif|control|resistance/.test(text)) return "control";
-      if(/heal|health|mana|regen|recovery|cost|duration|cooldown/.test(text)) return "recovery";
-      if(/defen|endurance|evasion|reduction|block|shield|taken/.test(text)) return "defense";
-      if(/attack|damage|hit|critical|range|speed|penetration/.test(text)) return "offense";
-      return "utility";
+      if(/boss|\bpve\b|monster|npc/.test(text)) return "pve";
+      if(/species|humanoid|wildkin|demon|undead|construct|animal/.test(text)) return "species";
+      if(/front|rear|side|back|directional/.test(text)) return "directional";
+      if(/stun|bind|collision|collide|weaken|silence|sleep|petrif|blind|control/.test(text)) return "control";
+      if(/health|\bhp\b|mana|stamina|regen|healing|heal |cost efficiency|resource/.test(text)) return "resources";
+      if(/cooldown|duration|movement|move speed|attack speed|range|buff|debuff|utility/.test(text)) return "utility";
+      if(/defense|armou?r|endurance|evasion|resistance|reduction|block|damage taken|shield/.test(text)) return "defense";
+      return "offense";
     }
+    const compositeComponents=id=>(state.rulesData?.STAT_EXPANSIONS?.[id]??[]).map(componentId=>({id:componentId,name:state.core?.statName(componentId)??componentId}));
     function setupPicker(id,key) {
       const root=$(id); root.dataset.key=key; root.dataset.open="false"; root.dataset.category="featured";
       root.innerHTML=`<div class="goal-selected" aria-live="polite"></div><button class="picker-trigger" type="button" aria-expanded="false"><span class="picker-trigger-plus">+</span><span class="picker-trigger-label">Add a ${key==="increase"?"wanted":"protected"} stat</span><span class="picker-trigger-count"></span><span class="picker-trigger-caret">▼</span></button><div class="picker-menu hidden" role="dialog" aria-label="Choose a ${key==="increase"?"wanted":"protected"} stat"><input class="picker-search" type="search" aria-label="Search all calculated stats" placeholder="Search all calculated stats"><div class="picker-categories"></div><div class="picker-result-head"><strong>Featured</strong><span></span></div><div class="picker-results"></div><div class="picker-footer"><span>Select as many stats as matter to this build.</span><button class="picker-done" type="button">Done</button></div></div>`;
@@ -290,45 +352,93 @@
     function availableStats(key) { return state.statOptions.filter(row=>!state[key].includes(row.id)); }
     function renderPickerOptions(root,key) {
       const search=root.querySelector(".picker-search").value.trim().toLowerCase(), category=root.dataset.category;
-      const available=availableStats(key), visible=available.filter(row=>{ const matches=!search||`${row.name??row.label??row.id} ${row.id}`.toLowerCase().includes(search); return matches&&(search?true:category==="featured"?FEATURED_STATS.test(`${row.id} ${row.name??""}`):statCategory(row)===category); });
-      const counts=Object.fromEntries(STAT_CATEGORIES.map(([id])=>[id,available.filter(row=>id==="featured"?FEATURED_STATS.test(`${row.id} ${row.name??""}`):statCategory(row)===id).length]));
+      const available=availableStats(key), visible=available.filter(row=>{ const matches=!search||`${row.name??row.label??row.id} ${row.id}`.toLowerCase().includes(search); return matches&&(search?true:category==="featured"?isFeaturedStat(row):statCategory(row)===category); });
+      const counts=Object.fromEntries(STAT_CATEGORIES.map(([id])=>[id,available.filter(row=>id==="featured"?isFeaturedStat(row):statCategory(row)===id).length]));
       root.querySelector(".picker-categories").innerHTML=STAT_CATEGORIES.map(([id,label])=>`<button type="button" class="picker-category ${!search&&category===id?"active":""}" data-category="${id}">${label} <span>${counts[id]}</span></button>`).join("");
       root.querySelector(".picker-result-head strong").textContent=search?"Search results":STAT_CATEGORIES.find(row=>row[0]===category)?.[1]??"Stats";
       root.querySelector(".picker-result-head span").textContent=`${visible.length} results`;
-      root.querySelector(".picker-results").innerHTML=visible.length?visible.map(row=>{ const current=state.currentStats[row.id]; return `<button type="button" class="picker-option" data-stat="${esc(row.id)}" title="Add ${esc(row.name??row.label??row.id)}"><span class="picker-option-plus">+</span><span class="picker-option-name">${esc(row.name??row.label??row.id)}</span>${key==="protect"?`<span class="picker-option-value" title="Current value">${esc(current?.formattedValue??"0")}</span>`:""}</button>`; }).join(""):`<div class="picker-no-results">No available stats match this view.</div>`;
+      root.querySelector(".picker-results").innerHTML=visible.length?visible.map(row=>{ const current=state.currentStats[row.id],components=compositeComponents(row.id); return `<button type="button" class="picker-option" data-stat="${esc(row.id)}" title="Add ${esc(row.name??row.label??row.id)}"><span class="picker-option-plus">+</span><span class="picker-option-name">${esc(row.name??row.label??row.id)}${components.length>1?` <span class="composite-badge">Composite</span>`:""}</span>${key==="protect"?`<span class="picker-option-value" title="Current value">${esc(current?.formattedValue??"0")}</span>`:""}</button>`; }).join(""):`<div class="picker-no-results">No available stats match this view.</div>`;
+    }
+    function movePriority(id,direction) { const index=state.increase.indexOf(id),target=index+direction;if(index<0||target<0||target>=state.increase.length)return;const next=[...state.increase];next.splice(target,0,next.splice(index,1)[0]);state.increase=next;renderPicker($("increase-picker"),"increase"); }
+    function bindPriorityOrdering(selected) {
+      selected.ondragstart=event=>{const card=event.target.closest("[data-priority]");if(!card)return;state.dragPriorityId=card.dataset.priority;card.classList.add("is-dragging");event.dataTransfer?.setData("text/plain",state.dragPriorityId);if(event.dataTransfer)event.dataTransfer.effectAllowed="move";};
+      selected.ondragend=event=>{event.target.closest("[data-priority]")?.classList.remove("is-dragging");state.dragPriorityId="";};
+      selected.ondragover=event=>{if(event.target.closest("[data-priority]")){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect="move";}};
+      selected.ondrop=event=>{const target=event.target.closest("[data-priority]"),source=state.dragPriorityId||event.dataTransfer?.getData("text/plain");if(!target||!source||target.dataset.priority===source)return;event.preventDefault();const next=state.increase.filter(id=>id!==source),targetIndex=next.indexOf(target.dataset.priority),rect=target.getBoundingClientRect(),after=event.clientY>rect.top+rect.height/2;next.splice(targetIndex+(after?1:0),0,source);state.increase=next;state.dragPriorityId="";renderPicker($("increase-picker"),"increase");};
+      selected.onkeydown=event=>{const handle=event.target.closest("[data-drag-handle]");if(!handle||!["ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();movePriority(handle.dataset.dragHandle,event.key==="ArrowUp"?-1:1);};
     }
     function renderPicker(root,key) {
       const selected=root.querySelector(".goal-selected");
-      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id,current=state.currentStats[id]; return `<div class="goal-chip"><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}</strong><small>${key==="increase"?"Included equally in the objective":"Protected at current value"}</small></span>${key==="protect"?`<strong class="goal-chip-value" title="Current protected floor">${esc(current?.formattedValue??"0")}</strong>`:""}<button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
+      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id,current=state.currentStats[id],components=compositeComponents(id); return `<div class="goal-chip" ${key==="increase"?`data-priority="${esc(id)}" draggable="true"`:""}><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}${components.length>1?` <span class="composite-badge">Composite</span>`:""}</strong><small>${key==="increase"?(index===0?"Protected hardest; drag to change priority":"Maximized after higher-ranked goals"):"Protected at current value"}</small>${components.length>1?`<span class="goal-components">${components.map(component=>esc(component.name)).join(" · ")}</span>`:""}</span>${key==="protect"?`<strong class="goal-chip-value" title="Current protected floor">${esc(current?.formattedValue??"0")}</strong>`:""}${key==="increase"?`<span class="goal-drag" role="button" tabindex="0" data-drag-handle="${esc(id)}" aria-label="Drag to reorder ${esc(name)}. Use arrow keys for keyboard reordering." title="Drag to reorder">⋮⋮</span>`:""}<button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
       selected.querySelectorAll("button[data-remove]").forEach(button=>button.onclick=()=>{ state[key]=state[key].filter(value=>value!==button.dataset.remove); renderPicker(root,key); });
+      if(key==="increase") bindPriorityOrdering(selected);
       root.querySelector(".picker-trigger-count").textContent=`${availableStats(key).length} available`;
       renderPickerOptions(root,key); updateReady();
     }
     function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
-    function request() { return { build:state.build, sourceKind:state.source, goals:{ increase:state.increase, protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
+    function request() { return { build:state.build, sourceKind:state.source, goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     function dollItem(loadout,slot) { const group=slot.startsWith("talistone")||slot.startsWith("gemstone")?loadout?.artifacts:loadout?.equipment; const row=Array.isArray(group)?group.find(item=>item.id===slot):group?.[slot]; if(row?.name)return { name:row.name, icon:row.imageUrl??row.icon??"" }; const item=state.core?.indexes?.itemById?.[row?.itemId]; return item?{ name:item.name, icon:item.imageUrl??"" }:null; }
-    function dollSlot(loadout,slot,label) { const item=dollItem(loadout,slot); return `<div class="doll-slot" title="${esc(item?.name??`Empty ${label}`)}"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><small>${esc(label)}</small></div>`; }
+    function dollSlot(loadout,slot,label) { const item=dollItem(loadout,slot); return `<div class="doll-slot" data-result-slot="${esc(slot)}" aria-label="Inspect ${esc(item?.name??`empty ${label}`)}"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><small>${esc(label)}</small></div>`; }
     function renderDoll(result) {
       const loadout=result.loadout??result.build??{};
       const left=[["head","Head"],["chest","Chest"],["hands","Hands"],["legs","Legs"],["feet","Feet"],["cloak","Cloak"]];
       const right=[["necklace","Necklace"],["bracelet","Bracelet"],["belt","Belt"],["ring_1","Ring 1"],["ring_2","Ring 2"],["brooch","Brooch"],["earring","Earring"]];
-      const weapon=slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-weapon"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><div><small>${slot==="main_hand"?"Main weapon":"Off weapon"}</small><b>${esc(item?.name??"Empty")}</b></div></div>`; };
-      const artifactSlots=Array.isArray(loadout.artifacts)?loadout.artifacts.map(row=>row.id):Object.keys(loadout.artifacts??{}); const artifacts=artifactSlots.map(slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-orb" title="${esc(item?.name??slot)}">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div>`; }).join("");
+      const weapon=slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-weapon" data-result-slot="${esc(slot)}" aria-label="Inspect ${esc(item?.name??"empty weapon")}"><div class="doll-orb">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div><div><small>${slot==="main_hand"?"Main weapon":"Off weapon"}</small><b>${esc(item?.name??"Empty")}</b></div></div>`; };
+      const artifactSlots=Array.isArray(loadout.artifacts)?loadout.artifacts.map(row=>row.id):Object.keys(loadout.artifacts??{}); const artifacts=artifactSlots.map(slot=>{ const item=dollItem(loadout,slot); return `<div class="doll-orb" data-result-slot="${esc(slot)}" aria-label="Inspect ${esc(item?.name??slot)}">${item?.icon?`<img src="${esc(item.icon)}" alt="">`:`<span>+</span>`}</div>`; }).join("");
       return `<aside class="build-doll" aria-label="Recommended character equipment"><div class="doll-title"><h3>Recommended loadout</h3><span class="section-kicker">Result</span></div><div class="doll-grid"><div class="doll-rail">${left.map(row=>dollSlot(loadout,...row)).join("")}</div><div class="doll-portrait"><div class="doll-portrait-copy"><strong>${esc(result.name??"Optimized build")}</strong><small>Best result found</small></div></div><div class="doll-rail">${right.map(row=>dollSlot(loadout,...row)).join("")}</div></div><div class="doll-weapons">${weapon("main_hand")}${weapon("off_hand")}</div><div class="doll-artifacts"><small>Artifacts</small>${artifacts||"<span class=\"hint\">Kept from source</span>"}</div></aside>`;
+    }
+    const formatLucent=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(Number(value)||0);
+    function costForResult(result) { return state.marketTools.estimateBuildCost(result.build,state.build?.build,state.marketByItemKey); }
+    function marketRowFor(result,slotId) { return costForResult(result).rows.find(row=>row.slotId===slotId)??null; }
+    function renderResultHover(model,costRow) {
+      const stats=rows=>(rows??[]).map(row=>`<div class="hc-stat-row"><span>${esc(row.name)}</span><strong>${esc(row.formattedValue)}</strong></div>`).join("");
+      const price=costRow?.owned
+        ? `<div class="hc-price"><div><strong>Owned</strong><small>Unchanged from your source build</small></div><span>0 Lucent</span></div>`
+        : costRow?.priced
+          ? `<div class="hc-price"><div><strong>${formatLucent(costRow.price)} Lucent</strong><small>Minimum ${esc(state.marketPayload?.regionName??"")} base-item listing from TLDB</small></div><span>${esc(costRow.market?.quantity??"")} listed</span></div>`
+          : `<div class="hc-missing">No matching TLDB listing was available for this item. It is excluded from the known cost.</div>`;
+      const runes=(model.runes??[]).filter(row=>row.filled).map(row=>`<div class="hc-rune-row"><span>${esc(`${row.typeLabel} ${row.gradeName}`)}</span><strong>${esc(`${row.contribution} · Lv ${row.level}`)}</strong></div>`).join("");
+      $("result-hover").innerHTML=`<div class="hc-head" style="border-top:${model.headBorder};background:${model.headBg}">${model.hasIcon?`<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>`:""}<div><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div></div><div class="hc-section"><div class="hc-title">Auction House estimate</div>${price}</div>${model.hasStats?`<div class="hc-section"><div class="hc-title">Stats</div>${stats(model.stats)}</div>`:""}${model.hasTraits?`<div class="hc-section"><div class="hc-title">Traits</div>${stats(model.traits)}</div>`:""}${model.hasUnique?`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${stats(model.unique)}</div>`:""}${model.hasHeroicEffects?`<div class="hc-section"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map(row=>`<div class="hc-stat-row"><span>${esc(`${row.groupNumber}. ${row.name} · Lv ${row.level}`)}</span><strong>${esc(row.value)}</strong></div>`).join("")}</div>`:""}${runes?`<div class="hc-section"><div class="hc-title">Runes</div>${runes}${model.hasSynergy?`<div class="hc-rune-row"><span>${esc(model.synergyName)}</span><strong>${esc(model.synergyStats.join(", "))}</strong></div>`:""}</div>`:""}`;
+    }
+    function positionResultHover(event) { const card=$("result-hover"),x=Math.max(12,Math.min(event.clientX+18,window.innerWidth-card.offsetWidth-12)),flip=event.clientY>window.innerHeight*.55; card.style.left=`${x}px`; card.style.top=flip?"":`${Math.max(12,event.clientY-12)}px`; card.style.bottom=flip?`${Math.max(12,window.innerHeight-event.clientY-12)}px`:""; }
+    function bindResultHover(result) {
+      const root=$("results-state"); let active="";
+      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:$("include-sets").checked}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false}); if(!model){active="";return;} renderResultHover(model,marketRowFor(result,active)); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
+      root.onmousemove=event=>{if(active)positionResultHover(event);}; root.onmouseleave=()=>{active="";$("result-hover").classList.add("hidden");$("result-hover").setAttribute("aria-hidden","true");};
+    }
+    function resultSnapshot(result) {
+      const previous=state.persistence.loadArmoryState(localStorage,{currentGameBuild:state.core.data?.gameBuild??"unversioned"});
+      return { profile:previous.ok?previous.data.profile:{name:result.name??"Optimized build",role:"Adventurer",server:""}, attributes:result.attributes??result.optimizedAttributes??{}, favoriteStatIds:[...state.increase], build:state.core.deepClone(result.build) };
+    }
+    function saveResultAsPreset(result) {
+      const snapshot={...resultSnapshot(result),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name:result.name??"Optimized build",createdAt:new Date().toISOString()};
+      const loaded=state.persistence.loadArmoryPresets(localStorage,{currentGameBuild:state.core.data?.gameBuild??"unversioned"}); const presets=loaded.ok?loaded.data:[];
+      state.persistence.saveArmoryPresets(localStorage,[...presets,snapshot],{gameBuild:state.core.data?.gameBuild??"unversioned"});
     }
     function renderResult(result) {
       if(!result || !Array.isArray(result.slots) || !Array.isArray(result.statDeltas)) throw new Error("The optimizer returned an invalid result. No recommendation was displayed.");
-      const rows=result.slots.map(row=>`<tr><td>${esc(row.slot)}</td><td>${esc(row.current?.name??"Empty")}</td><td><strong>${esc(row.recommended?.name??"Empty")}</strong></td><td class="reason">${esc(row.reason??"")}</td></tr>`).join("");
-      const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":""}${esc(row.formattedDelta??row.delta)}</strong></div>`).join("");
+      state.result=result; const cost=costForResult(result);
+      const rows=result.slots.map(row=>`<tr><td>${esc(row.slot)}</td><td>${esc(row.current?.name??"Empty")}</td><td data-result-slot="${esc(row.slotId)}"><strong>${esc(row.recommended?.name??"Empty")}</strong></td><td class="reason">${esc(row.reason??"")}</td></tr>`).join("");
+      const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":Number(row.delta)<0?"−":""}${esc(row.formattedDelta??Math.abs(Number(row.delta)))}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><button id="edit-build-goals" class="secondary" type="button">Edit build goals</button></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
-      $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); }; $("engine-status").textContent="Complete"; setView("result");
+      const costLabel=cost.complete?"Total cost":"Known cost",coverage=cost.changedCount?`${cost.pricedCount}/${cost.changedCount} changed pieces priced${cost.missingCount?` · ${cost.missingCount} unavailable`:""}`:"No changed equipment to buy";
+      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><div class="result-toolbar-actions"><div class="cost-card"><small>${costLabel}</small><strong>${formatLucent(cost.knownCost)} Lucent</strong><span>${coverage}</span></div><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Base-item minimum listings only. Traits, runes, Heroic configuration, and taxes are not included.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
+      $("save-result-preset").onclick=()=>{ try{saveResultAsPreset(result);$("result-status").textContent="Saved as a new Armory preset.";}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
+      $("use-result-build").onclick=()=>{ try{state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
+      bindResultHover(result); $("engine-status").textContent="Complete"; setView("result");
     }
-    $("run-optimizer").addEventListener("click",async()=>{ state.controller=new AbortController(); $("run-optimizer").disabled=true; showProgress({percent:0,label:"Preparing your build",detail:"Loading legal equipment candidates."}); try { const result=await state.adapter.optimize(request(),{ signal:state.controller.signal, onProgress:showProgress }); renderResult(result); } catch(error){ if(error.name==="AbortError"){ $("engine-status").textContent="Ready"; setView("setup"); } else setEngineError(`The search stopped without a result. ${error.message}`); } finally { state.controller=null; updateReady(); } });
-    $("cancel-optimizer").addEventListener("click",()=>state.controller?.abort()); $("retry-engine").addEventListener("click",connectEngine);
+    $("run-optimizer").addEventListener("click",()=>{
+      state.worker?.terminate(); $("run-optimizer").disabled=true; showProgress({percent:0,label:"Preparing your build",detail:"Starting the optimizer worker."});
+      const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
+      worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;renderResult(message.result);updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
+      worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
+      worker.postMessage({type:"optimize",request:request()});
+    });
+    $("cancel-optimizer").addEventListener("click",()=>{state.worker?.postMessage({type:"cancel"});state.worker?.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}); $("retry-engine").addEventListener("click",connectEngine);
     connectEngine();
   </script>
 </body>

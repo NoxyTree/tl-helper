@@ -32,6 +32,12 @@ test("goal selection uses the structured Build from Scratch picker pattern", () 
   assert.match(html, /class="picker-results"/);
   assert.match(html, /class="goal-chip"/);
   assert.doesNotMatch(html, /createElement\("datalist"\)/);
+  assert.match(html, /Ranked priorities · drag to reorder/);
+  assert.match(html, /compositeComponents/);
+  assert.match(html, /class="composite-badge"/);
+  assert.match(html, /draggable="true"/);
+  assert.match(html, /data-drag-handle/);
+  assert.match(html, /goals:\{ priorities:state\.increase\.map/);
 });
 
 test("protected goals show current calculated floors and widen the workspace", () => {
@@ -52,6 +58,8 @@ test("optimizer uses full-screen setup, loading, and result phases", () => {
   assert.match(html, /setView\("result"\)/);
   assert.match(html, /id="edit-build-goals"/);
   assert.doesNotMatch(html, /id="empty-state"/);
+  assert.match(html, /new Worker\("\.\/tl-builder-worker\.js"/);
+  assert.match(html, /message\.type==="progress"/);
 });
 
 test("results include an Armory-style character doll canvas", () => {
@@ -85,7 +93,8 @@ test("optimizer uses a strict adapter and never fabricates recommendations", () 
   assert.match(html, /loadArmoryBuild/);
   assert.match(html, /importQuestlogBuild/);
   assert.match(html, /listStats/);
-  assert.match(html, /adapter\.optimize/);
+  assert.match(html, /tl-builder-worker\.js/);
+  assert.match(html, /worker\.postMessage\(\{type:"optimize"/);
   assert.match(html, /The page will never invent results/);
   assert.match(html, /returned an invalid result/);
   assert.doesNotMatch(html, /setTimeout\([^)]*renderResult/);
@@ -99,4 +108,17 @@ test("result contract includes comparison, deltas, explanations, warnings, and a
   assert.match(html, /result\.warnings/);
   assert.match(html, /result\.alternatives/);
   assert.match(html, /Current<\/th><th>Recommended/);
+});
+
+test("results expose regional TLDB pricing, honest cost coverage, hover cards, and Armory handoff", () => {
+  assert.match(html, /id="market-region"/);
+  assert.match(html, /\/api\/market\/prices\?region=/);
+  assert.match(html, /Total cost/);
+  assert.match(html, /Known cost/);
+  assert.match(html, /minimum listings from TLDB|Minimum .* base-item listing from TLDB/);
+  assert.match(html, /id="result-hover"/);
+  assert.match(html, /buildItemHoverModel/);
+  assert.match(html, /id="save-result-preset"/);
+  assert.match(html, /id="use-result-build"/);
+  assert.match(html, /saveArmoryState/);
 });

@@ -264,6 +264,7 @@ test("stable slot locks preserve complete selections and a fixed objective basel
   assert.deepEqual(result.goalResults.map(({ id, rank, value, normalizedContribution, minimumMet }) => ({ id, rank, value, normalizedContribution, minimumMet })), [
     { id: "attack", rank: 1, value: 10, normalizedContribution: 0.5, minimumMet: null },
   ]);
+  assert.deepEqual(result.statDeltas, [{ id: "attack", name: "attack", delta: 5, formattedDelta: "5" }]);
   assert.equal(result.tuningFrontier.length, 1);
   assert.deepEqual(result.tuningFrontier[0].goalValues, { attack: 10 });
   assert.deepEqual(result.tuningFrontier[0].build.equipment.head, current);
