@@ -110,19 +110,16 @@ test("builder requires a weapon pair and supplies an optimizable attribute budge
 test("result experience uses readable tabs instead of a dominant Fit table", () => {
   for (const label of ["Overview", "Attributes", "All Stats", "Gear", "Sets &amp; Runes"]) assert.ok(html.includes(label));
   assert.match(html, /result\.allStats/);
-  assert.match(html, /row\.group\?\?row\.category/);
-  assert.match(html, /class="stat-groups"/);
+  assert.match(html, /tl-builder-result-view\.js/);
+  assert.match(html, /renderDenseStatLedger/);
   assert.match(html, /class="gear-overview"/);
   assert.doesNotMatch(html, /<table/);
 });
 
 test("result shows optimized allocation and active attribute breakpoints", () => {
   assert.match(html, /result\.optimizedAttributes/);
-  assert.match(html, /activeAttributeBreakpoints/);
-  assert.match(html, /row\.bonuses/);
-  assert.match(html, /class="attribute-allocation"/);
-  assert.match(html, /class="breakpoint-grid"/);
-  assert.match(html, /Gear attributes are included/);
+  assert.match(html, /renderCompactAttributeTracks/);
+  assert.match(html, /Lit milestones are active breakpoint bonuses/);
   assert.match(html, /calculateBuild\(result\.build,optimizedAttributes/);
 });
 

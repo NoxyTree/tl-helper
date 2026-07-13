@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+
+test("composite goals preserve one goal weight across typed leaf totals", () => {
+  const [goal] = expandCompositeGoals(normalizeRankedGoals({ increase: ["pvp_all_critical_defense"] }));
+  assert.deepEqual(goal.components, ["pvp_melee_critical_defense", "pvp_range_critical_defense", "pvp_magic_critical_defense"]);
+  assert.equal(scoreRankedGoals({ pvp_melee_critical_defense: 300 }, {}, { pvp_all_critical_defense: 100 }, [goal]), 0.05);
+  assert.equal(scoreRankedGoals({ pvp_melee_critical_defense: 100, pvp_range_critical_defense: 100, pvp_magic_critical_defense: 100 }, {}, { pvp_all_critical_defense: 100 }, [goal]), 1);
+  const scale = deriveObjectiveScales({ data: { items: [{ pvp_melee_critical_defense: 90 }, { pvp_range_critical_defense: 120 }, { pvp_magic_critical_defense: 90 }] }, EQUIPMENT_SLOTS: [{}], ARTIFACT_SLOTS: [] }, [goal]);
+  assert.deepEqual(scale, { pvp_all_critical_defense: 100 });
+});
 import { allocatedAttributeValue } from "../../web/tl-questlog-rules.js";
 
 function attributeTestCore() {
