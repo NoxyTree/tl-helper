@@ -32,6 +32,8 @@
 }
 
 .tl-app-header {
+  position: relative;
+  z-index: 5;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(190px, auto) minmax(0, 1fr) auto;
