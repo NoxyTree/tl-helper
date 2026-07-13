@@ -47,6 +47,27 @@ test("gamer priorities are ranked, reorderable, and sent to the adapter", () => 
   assert.match(html, /Save preset/);
 });
 
+test("custom stat picker is compact, categorized, and keyboard accessible", () => {
+  assert.match(html, /role="combobox"/);
+  assert.match(html, /aria-autocomplete="list"/);
+  assert.match(html, /aria-controls="stat-options"/);
+  assert.match(html, /id="stat-options"[^>]+role="listbox"/);
+  assert.match(html, /role="option"/);
+  assert.match(html, /Offense/);
+  assert.match(html, /Defense/);
+  assert.match(html, /Utility/);
+  assert.match(html, /PvP/);
+  assert.match(html, /\.slice\(0,10\)/);
+  assert.match(html, /event\.key==="ArrowDown"/);
+  assert.match(html, /event\.key==="ArrowUp"/);
+  assert.match(html, /event\.key==="Enter"/);
+  assert.match(html, /event\.key==="Escape"/);
+  assert.match(html, /No matching stats/);
+  assert.match(html, /Type a stat name or choose a category/);
+  assert.doesNotMatch(html, /<datalist/);
+  assert.doesNotMatch(html, /createElement\("datalist"\)/);
+});
+
 test("scratch builder uses the adapter and stable lock identifiers", () => {
   assert.match(html, /createScratchBuild/);
   assert.match(html, /adapter\.optimize/);

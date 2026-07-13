@@ -65,7 +65,11 @@ function heuristic(state, weights) {
 }
 
 function stateOrder(a, b, weights) {
-  return heuristic(b, weights) - heuristic(a, weights) || a.key.localeCompare(b.key);
+  return heuristic(b, weights) - heuristic(a, weights)
+    || number(a.neutralHeroics) - number(b.neutralHeroics)
+    || number(b.neutralLevel) - number(a.neutralLevel)
+    || number(b.neutralGrade) - number(a.neutralGrade)
+    || a.key.localeCompare(b.key);
 }
 
 function prune(states, { beamWidth, paretoWidth, paretoStats, weights }) {
@@ -102,6 +106,9 @@ function addCandidate(state, slot, candidate) {
     sets: addCounts(state.sets, candidate.setKeys),
     custom: state.custom.concat(candidate.stateKeys ?? []),
     hint: number(state.hint) + number(candidate.scoreHint),
+    neutralHeroics: number(state.neutralHeroics) + number(candidate.neutralHeroicCost),
+    neutralLevel: number(state.neutralLevel) + number(candidate.neutralItemLevel),
+    neutralGrade: number(state.neutralGrade) + number(candidate.neutralGrade),
     key: `${state.key}|${slot}:${id}`,
   };
 }
@@ -135,7 +142,7 @@ export async function optimizeFullBuild(options) {
   const weights = options.weights ?? {};
   const paretoStats = [...new Set([...(options.paretoStats ?? Object.keys(weights)), ...Object.keys(options.protectedStats ?? {})])].sort();
   let searched = 0;
-  let beam = [{ selections: {}, candidates: {}, stats: {}, heroic: {}, weapons: [], sets: {}, custom: [], hint: 0, key: "" }];
+  let beam = [{ selections: {}, candidates: {}, stats: {}, heroic: {}, weapons: [], sets: {}, custom: [], hint: 0, neutralHeroics: 0, neutralLevel: 0, neutralGrade: 0, key: "" }];
 
   for (let index = 0; index < slots.length; index += 1) {
     assertRunning(options);
@@ -170,8 +177,12 @@ export async function optimizeFullBuild(options) {
     options.onProgress?.({ phase: "evaluate", completed: index + 1, total: beam.length, legal: results.length });
   }
 
+  const neutral = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + number(candidate[key]), 0);
   results.sort((a, b) => number(b.evaluation.score) - number(a.evaluation.score)
     || number(b.evaluation.protectedHeadroom) - number(a.evaluation.protectedHeadroom)
+    || neutral(a, "neutralHeroicCost") - neutral(b, "neutralHeroicCost")
+    || neutral(b, "neutralItemLevel") - neutral(a, "neutralItemLevel")
+    || neutral(b, "neutralGrade") - neutral(a, "neutralGrade")
     || a.key.localeCompare(b.key));
   const alternatives = results.slice(0, alternativeCount);
   return { best: alternatives[0] ?? null, alternatives, searched, finalists: beam.length };
