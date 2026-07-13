@@ -10,7 +10,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
+import { applySetCompletionHints, deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
 import { optimizeFullBuild } from "../../web/tl-full-build-optimizer.js";
 
 test("completion hints combine structured bonus_stat rows and passive rules per piece", () => {
@@ -113,7 +113,7 @@ test("the beam keeps a zero-immediate-value set route only when candidates carry
   // are equipped, at which point the exact evaluator scores the set route 100.
   const run = async (setHint) => optimizeFullBuild({
     candidatesBySlot: Object.fromEntries(["s1", "s2", "s3", "s4"].map((slot) => [slot, [
-      { id: `${slot}-standalone`, selection: { itemId: `${slot}-standalone` }, stats: { power: 1 }, scoreHint: 1 },
+      { id: `${slot}-standalone`, selection: { itemId: `${slot}-standalone` }, stats: { power: 1 } },
       { id: `${slot}-set`, selection: { itemId: `${slot}-set` }, stats: {}, setKeys: ["S"], scoreHint: setHint },
     ]])),
     evaluate: (selections, context) => {
@@ -134,4 +134,49 @@ test("the beam keeps a zero-immediate-value set route only when candidates carry
   const withHints = await run(25);
   assert.equal(withHints.best.evaluation.score, 100, "per-piece completion hints keep the set route alive to exact evaluation");
   assert.equal(Object.values(withHints.best.selections).every((row) => row.itemId.endsWith("-set")), true);
+});
+
+test("direct candidate stats are not duplicated as score hints", async () => {
+  const result = await optimizeFullBuild({
+    candidatesBySlot: { head: [
+      { id: "direct", selection: { itemId: "direct" }, stats: { power: 6 } },
+      { id: "future-value", selection: { itemId: "future-value" }, stats: {}, scoreHint: 10 },
+    ] },
+    evaluate: (selections) => {
+      const score = selections.head.itemId === "future-value" ? 10 : 6;
+      return { score, stats: { power: score } };
+    },
+    weights: { power: 1 },
+    paretoStats: [],
+    beamWidth: 1,
+    paretoWidth: 1,
+  });
+
+  assert.equal(result.best.selections.head.itemId, "future-value");
+  assert.equal(result.best.evaluation.score, 10);
+});
+
+test("set hints are disabled without erasing artifact bundle objective hints", () => {
+  const core = {
+    indexes: {
+      itemSetById: {
+        S: { id: "S", itemSetBonus: [{ set_count: 2, bonus_stat: [{ type: "power", value: 100 }] }] },
+      },
+    },
+  };
+  const goals = expandCompositeGoals(normalizeRankedGoals({ increase: ["power"] }));
+  const candidatesBySlot = {
+    head: [{ id: "set-piece", stats: {}, setKeys: ["S"] }],
+    artifact_bundle: [{ id: "artifact", scoreHint: 0.75 }],
+  };
+
+  const disabled = applySetCompletionHints({ core, candidatesBySlot, rankedGoals: goals, scales: { power: 100 }, includeSetEffects: false });
+  assert.equal(disabled.size, 0);
+  assert.equal(candidatesBySlot.head[0].scoreHint, 0);
+  assert.equal(candidatesBySlot.artifact_bundle[0].scoreHint, 0.75);
+
+  const enabled = applySetCompletionHints({ core, candidatesBySlot, rankedGoals: goals, scales: { power: 100 }, includeSetEffects: true });
+  assert.equal(enabled.get("S"), 0.5);
+  assert.equal(candidatesBySlot.head[0].scoreHint, 0.5);
+  assert.equal(candidatesBySlot.artifact_bundle[0].scoreHint, 0.75);
 });

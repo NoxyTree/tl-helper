@@ -297,6 +297,35 @@ test("minimum item level excludes progression gear from scratch candidates", asy
   assert.ok(result.assumptions.includes("Equipment below level 50 was excluded."));
 });
 
+test("candidate cap ranks direct stats without copying them into score hints", async () => {
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const itemRows = [
+    ...["a", "b", "c", "d"].map((id) => ({ id, power: 10, guard: 0 })),
+    ...["e", "f", "g", "h"].map((id) => ({ id, power: 0, guard: 10 })),
+    { id: "z-balanced", power: 6, guard: 6 },
+  ];
+  const items = Object.fromEntries(itemRows.map((row) => [row.id, { ...row, name: row.id, grade: 41, equipmentType: "head" }]));
+  const totals = (selection) => {
+    const item = items[selection?.itemId];
+    return { power: item?.power ?? 0, guard: item?.guard ?? 0 };
+  };
+  const core = {
+    data: { gameBuild: "test", statLabels: { power: "Power", guard: "Guard" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} }, EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) { const row = totals(build.equipment.head); return { stats: Object.entries(row).map(([id, total]) => ({ id, total })) }; },
+    slotSelectionContribution(_slot, selection) { return totals(selection); },
+    slotItems: () => Object.values(items), slotById: () => ({ id: "head", types: ["head"] }), emptyEquipmentSelection: empty,
+    itemMaxLevel: () => 80, heroicSlotGroupForSlot: () => "", statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff",
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { priorities: [{ id: "power", rank: 1 }, { id: "guard", rank: 1 }] }, rules: {},
+  });
+
+  assert.equal(result.build.equipment.head.itemId, "z-balanced");
+});
+
 test("chosen main and off-hand weapon types are enforced during candidate generation", async () => {
   const items = {
     staff: { id: "staff", name: "Staff", grade: 41, equipmentType: "staff" }, bow: { id: "bow", name: "Bow", grade: 41, equipmentType: "bow" },

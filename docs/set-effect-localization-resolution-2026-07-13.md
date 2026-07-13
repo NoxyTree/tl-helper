@@ -92,6 +92,15 @@ range increase by 30, a faithful reading of the string. Retained as
   Evasion-increasing set effects" (also in ko). The static calculator currently
   has no cross-set exclusivity concept and would double-count if both sets were
   equipped; flagged as follow-up work, not fixed here.
+  **Resolved later on 2026-07-13**: `SET_EXCLUSIVITY_GROUPS` now groups only
+  the breakpoints that carry an explicit non-stacking clause. The calculator
+  suppresses all but the highest-precedence active member. Evasion sets without
+  that clause continue to stack. The client proves the exclusivity but not the
+  resolution order, so highest-value-wins remains labeled as modeled.
+- **Critical Damage exclusivity**: the same stat-scoped model now covers Death,
+  Imperial Seeker, Spectral Overseer, and Secret Order 2-piece effects. Only
+  Critical Damage is suppressed. Secret Order still contributes its independent
+  Heavy Attack Damage effect when another Critical Damage set wins precedence.
 
 ## Rule changes in this pass
 

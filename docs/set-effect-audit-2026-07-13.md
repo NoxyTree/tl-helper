@@ -2,14 +2,14 @@
 
 - Audit date: 2026-07-13
 - Game build: `24118850`
-- Data generated: `2026-07-10T18:30:44.277Z`
+- Data generated: `2026-07-13T21:09:40.259Z`
 - Unique sets: **78** (14 artifact sets, 64 equipment/accessory sets)
 - Activation breakpoints: **151** (2-piece: 68, 3-piece: 9, 4-piece: 60, 6-piece: 14)
 - Counting rule: artifact definitions duplicated between `itemSets` and `artifactSets` are normalized by set ID. One effect row means one set activation breakpoint; a breakpoint may contain several stat changes or a static plus conditional mechanic.
 
 ## Executive finding
 
-The final build calculator applies known set rules, but the optimizer's bounded candidate search scores individual item contributions with set effects disabled. Strong completed sets can therefore be removed before exact finalist calculation. The current registry also contains one user-confirmed dynamic formula error, 0 high-risk description-to-rule conflicts, boundary ambiguities, party-aura stacking assumptions, and thirteen unmapped passive breakpoints. Set-based optimizer results are provisional until both the formula registry and search strategy are corrected.
+All 151 projected breakpoints are now classified as structured, mapped, or explicitly unsupported. The calculator returns one canonical set-effect trace used by totals and page explanations, including dynamic evaluated values and stat-scoped exclusivity. Current audit status is 0 confirmed-incorrect, 0 high-risk, 0 review, and 10 deliberately unsupported breakpoints. Optimizer finalists still use the complete calculator; breakpoint-aware hints now protect equipment-set routes during bounded pruning without becoming a second scoring authority.
 
 ## Coverage summary
 
@@ -18,7 +18,7 @@ The final build calculator applies known set rules, but the optimizer's bounded 
 | Structured static | 40 | Direct `bonus_stat` rows; no passive rule required. |
 | Mapped constant | 84 | Constant outputs in `SET_PASSIVE_RULES`. |
 | Dynamic or thresholded | 17 | Depends on attributes, Health, Mana, or Defense. |
-| Unmapped passive | 10 | Description exists, but static calculator applies nothing. |
+| Explicit unsupported | 10 | Description exists, but the static calculator deliberately applies nothing and returns the unsupported reason. |
 | **Total** | **151** | |
 
 Cross-cutting limitation: **15** mapped breakpoints include a persistent static component but omit additional conditional combat behavior from sheet totals.
@@ -44,7 +44,7 @@ Cross-cutting limitation: **15** mapped breakpoints include a persistent static 
 - **Secret Order Set 4-piece** (`set_aa_t3_leather_004`): Skill Damage Boost +80. Full description: Skill Damage Boost +80 Using a Control Skill increases Skill Damage Boost by 50 for 5s. Stacks up to 2 times.
 - **Stigma Executor Set 4-piece** (`set_aa_t4_leather_001`): Critical Damage +20. Full description: Critical Damage +20% When standing still for 4s, Critical Damage +15%. Removed upon moving.
 
-## Unmapped effects
+## Explicit unsupported effects
 
 - **Dimensional Chaos 2-piece** (`set_aa_PartyDungeon_Ring_001`): Persistent static component; should be representable. Description: Stamina Regen -10
 - **Elder Set 2-piece** (`set_aa_T2_fabric_004`): Mixed base and triggered damage-over-time effect. Description: Skill Damage over time +12%, Every time you Weaken a target, +4% (Up to 3 stacks). Does not stack with other damage over time effects.
@@ -67,31 +67,27 @@ Cross-cutting limitation: **15** mapped breakpoints include a persistent static 
 
 ## Auric breakpoint example
 
-The Vanguard Leader 2-piece effect is written as 45 Magic, Melee, and Ranged Endurance per complete 10 Perception. At 41 Perception, the correct calculation is `floor(41 / 10) * 45 = 180` displayed Endurance. Internally, Endurance uses a 0.1 display modifier, so that is raw `1,800`, not raw `1,845`. The current rule computes `41 * 4.5 = 184.5` displayed, which incorrectly grants partial progress between ten-point breakpoints.
+The Vanguard Leader 2-piece effect is 45 Magic, Melee, and Ranged Endurance per complete 10 Perception. At 41 Perception, the calculator now uses `floor(41 / 10) * 45 = 180` displayed Endurance. Internally, Endurance uses a 0.1 display modifier, so that is raw `1,800`, not raw `1,845`. Boundary tests cover 9, 10, 19, 20, 40, and 41 Perception.
 
 ## Evidence locations
 
 - `web/data/projections/equipment.json`: 78-set projection and all 151 descriptions/breakpoints for Steam build 24118850.
 - `web/tl-questlog-rules.js`: current static set formula registry and stat unit conversions.
-- `web/tl-core.js:1708` and `:1821-1844`: exact build calculation phases and passive set-rule application.
-- `web/tl-full-build-adapter.js:469`: approximate slot contribution explicitly called with set effects disabled.
-- `web/tl-full-build-optimizer.js:95-106`, `:212`, and `:219`: bounded beam pruning followed by exact calculation only for retained finalists.
-- `D:/TL_Data/warehouse/tl-24118850.sqlite`: decoded-record warehouse. It contains Vanguard Leader skill and formula records, including tooltip value 45 and a multiplier record, but the current warehouse links do not alone establish the whole-ten-point operation.
+- `web/tl-core.js`: ordered calculation phases, canonical set-effect trace, explicit unsupported registry, and exclusivity application.
+- `web/tl-full-build-adapter.js`: direct candidate ranking, set-completion hints, and complete finalist calculation.
+- `web/tl-full-build-optimizer.js`: deterministic bounded beam pruning followed by complete evaluation of retained finalists.
+- `D:/TL_Data/decoded/24118850/tables`: decoded set joins and abnormal-state evidence used by the localization resolution review.
 
-## Required correction sequence
+## Release state and remaining work
 
-1. Replace the Auric 2-piece formula with `floor(final Perception / 10) * 45` and add boundary tests at 9, 10, 19, 20, 40, and 41 Perception.
-2. Resolve the 0 high-risk constant conflicts and the two strict-threshold boundaries from decoded effect and conditional-branch records or a minimal in-game stat-panel check.
-3. Split unmapped mixed effects into persistent and conditional components. Add only persistent, client-visible totals to the static calculator.
-4. Record every breakpoint in a provenance-bearing registry with formula kind, dependencies, unit conversion, phase, confidence, and supported calculation stage.
-5. Make optimizer pruning breakpoint-aware. Precompute set topology and possible completions, but evaluate dynamic values against projected final attributes rather than freezing one number.
-6. Keep `calculateBuild` as the final exact static authority, rerun reference fixtures, then compare optimizer output before and after the search correction.
+1. Keep the ten combat/scoped or unverified persistent breakpoints explicitly unsupported until a verified stat mapping or combat-stage model exists.
+2. Validate the modeled highest-value precedence for mutually exclusive set effects if client or server execution-order evidence becomes available.
+3. Improve bounded optimizer coverage for attribute-activated dynamic sets, partial artifact-set hybrids, Heroic configuration, weapon-material interactions, and rune refinement. These affect search completeness, not finalist arithmetic.
+4. Continue using `calculateBuild` as the only final sheet-stat authority and require every new projected breakpoint to pass the structured/mapped/unsupported classification test.
 
-## Optimizer-specific defect
+## Optimizer search state
 
-`web/tl-full-build-adapter.js:469` calls `slotSelectionContribution(..., { includeSetEffects: false })` while constructing candidates. Set IDs are retained as count keys, but no future breakpoint value enters the approximate stat vector. `web/tl-full-build-optimizer.js:95-106` and `:212` globally prune the beam using those approximate stats. Exact evaluation starts only at `:219`, which is too late for discarded set routes such as Nine Lives.
-
-A deterministic four-slot reproduction used a +1 standalone candidate and a zero-immediate-value set candidate in each slot. Completing four set candidates was worth +100 in the exact evaluator. With beam width 1, approximate pruning retained four standalone items for an exact score of 4 and discarded the exact-score-100 set route before finalist evaluation. This isolates the search defect independently of item data or formula correctness.
+Equipment candidates retain their direct stat value once through the beam stat vector. Future set-completion value is carried separately as an optimistic per-piece hint, and those hints are disabled when set effects are excluded. Artifact bundle objective hints are preserved instead of being overwritten. Every retained finalist is recalculated through `calculateBuild`; hints never enter returned totals or the final score directly. The search remains bounded, so the UI correctly describes the result as the best loadout found rather than proof of a global optimum.
 
 ## Complete breakpoint inventory
 
@@ -253,10 +249,11 @@ A deterministic four-slot reproduction used a +1 standalone candidate and a zero
 
 - `node scripts/audit-set-effects.mjs` regenerates this document deterministically.
 - The generated inventory contains exactly 151 data rows and no malformed table rows.
-- `node --test scripts/tests/set-aware-fit.test.mjs scripts/tests/artifact-set-calculation.test.mjs scripts/tests/full-build-optimizer.test.mjs` passed 10 of 10 tests.
-- Production calculation and optimizer files were not modified during this audit. Formula and search changes remain review-gated.
+- `scripts/tests/canonical-set-effects.test.mjs` proves all 151 breakpoints have exactly one classification and checks applied, inactive, suppressed, excluded, and unsupported states.
+- Cross-surface tests compare Armory BuildSnapshot, Gear Viewer slot deltas, and optimizer adapter totals against the same Nine Lives calculation.
+- Reference-build and edge-case verification remain release gates after any formula, data, or optimizer-search change.
 
 ## Review handoff
 
-A reviewing agent should read this document, `STATUS.md` source-of-truth hierarchy, `web/tl-questlog-rules.js`, `web/tl-core.js`, `web/tl-full-build-adapter.js`, and `web/tl-full-build-optimizer.js`. Review formulas before implementation, preserve exact versus modeled versus unsupported stages, and do not promote conditional combat effects into static totals without evidence.
+A reviewing agent should read this document, `STATUS.md` source-of-truth hierarchy, `docs/set-effect-localization-resolution-2026-07-13.md`, `web/tl-questlog-rules.js`, `web/tl-core.js`, `web/tl-full-build-adapter.js`, and `web/tl-full-build-optimizer.js`. Preserve data-backed, derived, modeled, and unsupported stages, and do not promote conditional combat effects into static totals without evidence.
 

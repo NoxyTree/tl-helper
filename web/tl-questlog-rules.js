@@ -19,6 +19,29 @@ export const ATTRIBUTE_BREAKPOINTS={str:{30:{hp_max:750},40:{damage_reduction:30
 
 export const BASE_ATTRIBUTES={str:10,dex:10,int:10,per:10,con:10};
 export const STELLAR_JOURNEY_ATTRIBUTES={str:1,dex:1,int:1,per:1,con:1};
+// Cross-set exclusivity is clause-based. Only effects whose own decoded
+// description says they cannot stack with another effect in the named group
+// are members. Other evasion sets continue to stack normally. The client text
+// proves exclusivity but does not expose resolution order, so precedence is a
+// documented modeled rule based on the magnitude of the exclusive effect.
+// Each entry applies only to the breakpoint that carries the clause.
+export const SET_EXCLUSIVITY_GROUPS={
+  evasion:{
+    set_aa_T2_leather_004:{pieces:2,precedence:220,statIds:["all_evasion"]},
+    set_aa_t3_lether_003:{pieces:2,precedence:150,statIds:["magic_evasion","melee_evasion","range_evasion"]},
+  },
+  critical_damage:{
+    set_aa_T2_leather_006:{pieces:2,precedence:15,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_T2_leather_007:{pieces:2,precedence:15,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_leather_002:{pieces:2,precedence:14,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_t3_leather_004:{pieces:2,precedence:12,statIds:["critical_damage_dealt_modifier"]},
+  },
+  damage_over_time:{
+    set_aa_T2_fabric_002:{pieces:2,precedence:20,suppressAll:true},
+    set_aa_T2_fabric_004:{pieces:2,precedence:12,suppressAll:true},
+  },
+};
+
 // Verified against the live Questlog bundle (CSq355zw.js, 2026-07-10): its
 // client also defines CHARACTER_LEVEL=60 with base rows only for 50 and 55,
 // and resolves the level via the same nearest-match reduce used in

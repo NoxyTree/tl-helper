@@ -1517,6 +1517,14 @@
                           <span style="font-size: 10px; color: {{ member.color }}; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 5px; padding: 2px 7px; background: rgba(8, 6, 4, 0.5);">{{ member.name }}</span>
                         </sc-for>
                       </div>
+                      <div style="display:grid;gap:4px;margin-top:8px;">
+                        <sc-for list="{{ preview.setInfo.bonuses }}" as="bonus" hint-placeholder-count="2">
+                          <div style="display:flex;gap:7px;font-size:10px;line-height:1.45;color:{{ bonus.color }};">
+                            <strong style="flex:none;">{{ bonus.required }}</strong>
+                            <span><span style="color:#8a795f;">{{ bonus.confidence }}:</span> {{ bonus.text }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
                     </div>
                   </sc-if>
 
@@ -2673,7 +2681,7 @@ class Component extends DCLogic {
       ...this.skillsVals(calc, weapons),
       ...this.masteryVals(weapons),
       ...this.runesVals(calc),
-      ...this.artifactsVals(),
+      ...this.artifactsVals(calc),
       ...this.pickerVals(calc),
       ...this.dollHoverVals(calc),
     };
@@ -3419,7 +3427,7 @@ class Component extends DCLogic {
     };
   }
 
-  artifactsVals() {
+  artifactsVals(calc) {
     const core = this.core;
     const build = this.state.build;
     if (this.state.tab !== "artifacts") return { artifactsLoaded: false };
@@ -3435,16 +3443,21 @@ class Component extends DCLogic {
     });
     const setRows = core.data.artifactSets.map((set) => {
       const count = set.memberItemIds.filter((id) => equippedIds.has(id)).length;
+      const calculatedSet = calc?.setEffects?.sets?.find((row) => row.setId === set.id);
       const bonuses = core.values(set.bonuses).map((bonus) => {
         const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
-        const active = count >= required;
+        const calculated = calculatedSet?.breakpoints?.find((row) => row.required === required);
+        const active = calculated?.active ?? count >= required;
         const statRows = core.values(bonus.bonus_stat ?? bonus.bonusStat).map((row) => `${core.statName(row.type)} ${core.formatStat(row.type, row.value)}`);
         const passiveRows = core.values(bonus.bonus_passive ?? bonus.bonusPassive).map((passive) => core.plainInline(passive.name || passive.text));
+        const confidenceId = calculated?.provenance?.application === "modeled" ? "modeled" : calculated?.confidence;
+        const confidence = confidenceId === "exact" ? "Data-backed" : confidenceId ? core.label(confidenceId) : "";
+        const calculatedText = calculated && active ? core.setEffectBreakpointSummary(calculated) : "";
         return {
           required,
           active,
-          color: active ? "#55d58a" : "#6e5f49",
-          text: [...statRows, ...passiveRows].filter(Boolean).join(", ") || "No structured bonus text",
+          color: calculated?.status === "unsupported" || calculated?.status === "suppressed" ? "#c9955a" : active ? "#55d58a" : "#6e5f49",
+          text: calculatedText ? `${confidence}: ${calculatedText}` : [...statRows, ...passiveRows].filter(Boolean).join(", ") || "No structured bonus text",
         };
       });
       return {
@@ -3659,9 +3672,15 @@ class Component extends DCLogic {
       if (previewItem.setId) {
         const set = core.indexes.itemSetById[previewItem.setId];
         if (set) {
+          const previewBuild = isEquippedPreview ? build : core.deepClone(build);
+          if (!isEquippedPreview) core.slotCollectionForSlot(previewBuild, slot.id)[slot.id] = {
+            ...core.emptyEquipmentSelection(), itemId: previewItem.id, level,
+          };
+          const previewCalc = isEquippedPreview ? calc : core.calculateBuild(previewBuild, this.state.attributes, { includeSetEffects: true });
+          const calculatedSet = previewCalc?.setEffects?.sets?.find((row) => row.setId === set.id);
           const equippedSetIds = new Set([
-            ...Object.values(build.equipment).map((row) => row.itemId).filter(Boolean),
-            ...Object.values(build.artifacts ?? {}).map((row) => row.itemId).filter(Boolean),
+            ...Object.values(previewBuild.equipment).map((row) => row.itemId).filter(Boolean),
+            ...Object.values(previewBuild.artifacts ?? {}).map((row) => row.itemId).filter(Boolean),
           ]);
           const members = core.values(set.itemSetMadeOfItems).map((member) => ({
             name: member.name,
@@ -3672,6 +3691,12 @@ class Component extends DCLogic {
             name: set.name,
             count: `${members.filter((member) => member.equipped).length}/${members.length}`,
             members,
+            bonuses: (calculatedSet?.breakpoints ?? []).map((breakpoint) => ({
+              required: `${breakpoint.required} pc`,
+              text: core.setEffectBreakpointSummary(breakpoint),
+              confidence: breakpoint.provenance?.application === "modeled" ? "Modeled" : breakpoint.confidence === "exact" ? "Data-backed" : core.label(breakpoint.confidence),
+              color: breakpoint.status === "unsupported" || breakpoint.status === "suppressed" ? "#c9955a" : breakpoint.active ? "#7ee0a6" : "#6e5f49",
+            })),
           };
         }
       }

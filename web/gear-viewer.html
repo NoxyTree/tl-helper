@@ -200,7 +200,7 @@
       <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Optimize 3 traits</label></span>
       <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
-      <span class="check-inline"><input id="set-fit-toggle" type="checkbox"><label for="set-fit-toggle">Include set effects in Fit</label></span>
+      <span class="check-inline"><input id="set-fit-toggle" type="checkbox" checked><label for="set-fit-toggle">Include set effects in Fit</label></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -250,7 +250,7 @@
       withTraits: true,
       heroicPotential: false,
       keepHeroic: true,
-      includeSetEffects: false,
+      includeSetEffects: true,
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -295,15 +295,18 @@
       return Boolean(item) && core.gradeName(item.grade) === "Heroic";
     }
 
-    function candidateSlotFor(item, build) {
-      if (state.mode === "bare") return TYPE_SLOT[item.equipmentType];
+    function candidateSlotsFor(item, build) {
+      if (state.mode === "bare") return [TYPE_SLOT[item.equipmentType]].filter(Boolean);
       const matching = core.BUILD_SLOTS
         .filter((slot) => slot.types.includes(item.equipmentType))
         .map((slot) => ({ slotId: slot.id, equipped: equippedItemForSlot(slot.id, build) }))
         .filter((row) => row.equipped?.equipmentType === item.equipmentType)
         .sort((a, b) => Number(b.equipped.id === item.id) - Number(a.equipped.id === item.id)
-          || Number(isHeroic(a.equipped)) - Number(isHeroic(b.equipped)));
-      return matching[0]?.slotId ?? TYPE_SLOT[item.equipmentType];
+          || Number(isHeroic(a.equipped)) - Number(isHeroic(b.equipped))
+          || a.slotId.localeCompare(b.slotId));
+      const alreadyEquipped = matching.filter((row) => row.equipped.id === item.id);
+      if (alreadyEquipped.length) return alreadyEquipped.map((row) => row.slotId);
+      return matching.length ? matching.map((row) => row.slotId) : [TYPE_SLOT[item.equipmentType]].filter(Boolean);
     }
 
     function maxTierRow(statId, tiers) {
@@ -447,28 +450,29 @@
       $("progress").classList.remove("hidden");
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        const slotId = candidateSlotFor(item, build);
         const level = core.itemMaxLevel(item);
-        let selection = {
-          ...core.emptyEquipmentSelection(),
-          itemId: item.id,
-          level,
-          traits: state.withTraits ? optimizedTraitRows(item) : [],
-        };
-        let potential = null;
-        let contribution;
-        if (state.withTraits && state.heroicPotential && isHeroic(item)) {
-          potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals);
-          selection = potential.selection;
-          contribution = potential.contribution;
-        } else {
-          contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+        for (const slotId of candidateSlotsFor(item, build)) {
+          let selection = {
+            ...core.emptyEquipmentSelection(),
+            itemId: item.id,
+            level,
+            traits: state.withTraits ? optimizedTraitRows(item) : [],
+          };
+          let potential = null;
+          let contribution;
+          if (state.withTraits && state.heroicPotential && isHeroic(item)) {
+            potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals);
+            selection = potential.selection;
+            contribution = potential.contribution;
+          } else {
+            contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+          }
+          const availableStatIds = potentialStatIds(item, contribution);
+          rows.push({
+            item, slotId, level, selection, contribution, potential, availableStatIds,
+            haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
+          });
         }
-        const availableStatIds = potentialStatIds(item, contribution);
-        rows.push({
-          item, slotId, level, selection, contribution, potential, availableStatIds,
-          haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
-        });
         if (i % 40 === 39) {
           $("status").textContent = `Scoring items… ${i + 1} / ${items.length}`;
           $("progress-fill").style.width = `${Math.round(((i + 1) / items.length) * 100)}%`;
@@ -511,8 +515,14 @@
 
     function availableStats(rows) {
       const counts = new Map();
+      const seen = new Set();
       for (const row of rows) {
-        for (const statId of row.availableStatIds ?? Object.keys(row.contribution)) counts.set(statId, (counts.get(statId) ?? 0) + 1);
+        for (const statId of row.availableStatIds ?? Object.keys(row.contribution)) {
+          const key = `${row.item.id}|${statId}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          counts.set(statId, (counts.get(statId) ?? 0) + 1);
+        }
       }
       return [...counts.entries()]
         .map(([statId, count]) => ({ statId, count, name: core.statName(statId) }))
@@ -569,12 +579,28 @@
             return { statId, delta, allowedLoss, pass: delta >= -allowedLoss - 1e-9 };
           });
           row.protectionPass = row.protection.every((part) => part.pass);
+          row.protectionHeadroom = row.protection.reduce((sum, part) => sum + part.delta + part.allowedLoss, 0);
         } else {
           row.protection = [];
           row.protectionPass = true;
+          row.protectionHeadroom = 0;
         }
       }
       return filtered;
+    }
+
+    function bestCandidateSlots(rows) {
+      const bestByItem = new Map();
+      const compare = (a, b) => Number(b.isPinned) - Number(a.isPinned)
+        || Number(b.protectionPass) - Number(a.protectionPass)
+        || (b.score ?? 0) - (a.score ?? 0)
+        || (b.protectionHeadroom ?? 0) - (a.protectionHeadroom ?? 0)
+        || a.slotId.localeCompare(b.slotId);
+      for (const row of rows) {
+        const current = bestByItem.get(row.item.id);
+        if (!current || compare(row, current) < 0) bestByItem.set(row.item.id, row);
+      }
+      return [...bestByItem.values()];
     }
 
     function sortRows(rows) {
@@ -907,9 +933,10 @@
         state.sortDir = "desc";
       }
       scoreRows(rows, filtered);
+      const bestSlots = bestCandidateSlots(filtered);
       const visible = state.columns.length
-        ? filtered.filter((row) => row.isPinned || row.score > 0 || state.sortKey !== "score")
-        : filtered;
+        ? bestSlots.filter((row) => row.isPinned || row.score > 0 || state.sortKey !== "score")
+        : bestSlots;
       sortRows(visible);
       renderHead();
       renderBody(visible);
@@ -942,7 +969,7 @@
       if (state.protected.length && state.protectTolerancePct !== 1) params.set("loss", String(state.protectTolerancePct));
       if (!state.keepHeroic) params.set("heroic", "0");
       if (state.heroicPotential) params.set("heroicPotential", "1");
-      if (state.includeSetEffects) params.set("sets", "1");
+      if (!state.includeSetEffects) params.set("sets", "0");
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
       if (state.grade !== "all") params.set("grade", state.grade);
@@ -959,7 +986,7 @@
       if (params.has("loss")) state.protectTolerancePct = Math.max(0, Math.min(5, Number(params.get("loss")) || 0));
       if (params.get("heroic") === "0") state.keepHeroic = false;
       if (params.get("heroicPotential") === "1") state.heroicPotential = true;
-      if (params.get("sets") === "1") state.includeSetEffects = true;
+      if (params.get("sets") === "0") state.includeSetEffects = false;
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
@@ -1002,7 +1029,8 @@
       }
 
       // Precedence: valid hash -> saved defaults -> product defaults.
-      const PREFS_KEY = "tlhelper-gear-viewer-prefs-v1";
+      // v2 resets the old product default that silently persisted set-aware Fit as disabled.
+      const PREFS_KEY = "tlhelper-gear-viewer-prefs-v2";
       if (location.hash.length > 1) {
         readHash();
       } else {

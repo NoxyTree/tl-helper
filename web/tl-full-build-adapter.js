@@ -417,6 +417,23 @@ export function deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, 
   return hints;
 }
 
+export function applySetCompletionHints({
+  core, candidatesBySlot, rankedGoals, scales, baseline = {}, includeSetEffects = true,
+}) {
+  // Preserve heuristic-only value already supplied by compound candidates
+  // such as artifact bundles. Ordinary candidates have no extra hint because
+  // their direct value is already represented in `stats`.
+  for (const rows of Object.values(candidatesBySlot ?? {})) for (const row of rows) {
+    row.scoreHint = Number(row.scoreHint ?? 0);
+  }
+  if (!includeSetEffects) return new Map();
+  const completionHints = deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales, baseline });
+  for (const rows of Object.values(candidatesBySlot ?? {})) for (const row of rows) for (const key of row.setKeys ?? []) {
+    row.scoreHint += Number(completionHints.get(key) ?? 0);
+  }
+  return completionHints;
+}
+
 /** Browser adapter. Dependencies are injectable to keep the boundary testable. */
 export async function createOptimizerAdapter(deps = {}) {
   const core = deps.core ?? coreDefault;
@@ -560,10 +577,13 @@ export async function createOptimizerAdapter(deps = {}) {
             if (runeRows[0]) selection.runes = runeRows[0].selection;
           }
           const stats = contribution(slot, selection);
-          rows.push({ id: item.id, selection, stats, scoreHint: weight(stats), ...candidateMeta(slot, item) });
+          // Direct value already lives in `stats` and is scored by the beam.
+          // scoreHint is reserved for value not representable in partial stats,
+          // such as future set completion and whole artifact-bundle estimates.
+          rows.push({ id: item.id, selection, stats, directScore: weight(stats), ...candidateMeta(slot, item) });
         }
-        const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), scoreHint: weight(contribution(slot, current)), ...candidateMeta(slot, currentItem) };
-        const ranked = rows.sort((a, b) => b.scoreHint - a.scoreHint
+        const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), ...candidateMeta(slot, currentItem) };
+        const ranked = rows.sort((a, b) => b.directScore - a.directScore
           || a.neutralHeroicCost - b.neutralHeroicCost
           || b.neutralItemLevel - a.neutralItemLevel
           || b.neutralGrade - a.neutralGrade
@@ -590,14 +610,12 @@ export async function createOptimizerAdapter(deps = {}) {
         ? Object.fromEntries(Object.entries(request.objectiveBaseline).map(([id, value]) => [id, Number(value) || 0]))
         : baseline;
       const objectiveScales = generationScales;
-      for (const rows of Object.values(candidatesBySlot)) for (const row of rows) row.scoreHint = scoreRankedGoals(row.stats ?? {}, {}, objectiveScales, rankedGoals);
       // Breakpoint-aware pruning: each set-bearing candidate carries an
       // optimistic per-piece share of its set's full-completion value so the
       // beam protects set routes through to exact finalist evaluation. Not a
       // pruning guarantee — see deriveSetCompletionHints for the baseline-
       // threshold limitation.
-      const completionHints = deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline });
-      for (const rows of Object.values(candidatesBySlot)) for (const row of rows) for (const key of row.setKeys ?? []) row.scoreHint += completionHints.get(key) ?? 0;
+      applySetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline, includeSetEffects: rules.includeSetEffects !== false });
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
@@ -652,6 +670,7 @@ export async function createOptimizerAdapter(deps = {}) {
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
       const finalStats = best.evaluation.stats;
+      const finalCalculation = core.calculateBuild(best.evaluation.build, best.evaluation.attributes ?? source.attributes ?? {}, { includeSetEffects: rules.includeSetEffects !== false });
       const goalResults = rankedGoals.map((goal) => {
         const value = goalValue(finalStats, goal);
         const delta = value - Number(objectiveBaseline[goal.id] ?? 0);
@@ -708,6 +727,7 @@ export async function createOptimizerAdapter(deps = {}) {
         tradeoffs,
         allStats,
         progression: progression ? clone({ ...progression.summary, settings: progression.settings }) : null,
+        setEffects: clone(finalCalculation.setEffects),
       };
     },
   };

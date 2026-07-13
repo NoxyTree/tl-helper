@@ -1913,19 +1913,12 @@ class Component extends DCLogic {
       ...Object.values(s.result.build?.supportSlots||{}),
     ].filter(Boolean) : [];
     const selectedItems = selectedRows.map(row=>this.core?.data?.items?.find(item=>item.id===row.itemId)).filter(Boolean);
-    const setCounts = new Map();
-    selectedItems.forEach(item=>{if(item.setId)setCounts.set(item.setId,(setCounts.get(item.setId)||0)+1);});
-    const setSummary = s.result ? [...setCounts.entries()].map(([setId,count])=>{
-      const set=this.core?.data?.itemSets?.find(row=>row.id===setId);
-      if(!set)return null;
-      const bonuses=(set.itemSetBonus||[]).filter(bonus=>count>=Number(bonus.set_count||bonus.setCount||0)).flatMap(bonus=>{
-        const stats=(bonus.bonus_stat||bonus.bonusStat||[]).map(row=>this.statLabel(row.type)+' '+this.core.formatStat(row.type,row.value));
-        const passives=(bonus.bonus_passive||bonus.bonusPassive||[]).map(row=>row.text||row.name).filter(Boolean);
-        return [...stats,...passives];
-      });
-      const maximum=Math.max(count,...(set.itemSetBonus||[]).map(bonus=>Number(bonus.set_count||bonus.setCount||0)));
-      return {name:set.name,count:count+' / '+maximum+' pieces',bonus:bonuses.join(' · ')||'No set bonus active yet'};
-    }).filter(Boolean) : this.SET_SUMMARY;
+    const confidenceLabel={exact:'Data-backed',derived:'Derived',modeled:'Modeled',unsupported:'Unsupported'};
+    const setSummary = s.result ? (s.resultCalc?.setEffects?.sets||[]).map(set=>{
+      const active=(set.breakpoints||[]).filter(breakpoint=>breakpoint.active);
+      const bonuses=active.map(breakpoint=>{const confidence=breakpoint.provenance?.application==='modeled'?'modeled':breakpoint.confidence;return `${breakpoint.required} pc (${confidenceLabel[confidence]||confidence}): ${this.core.setEffectBreakpointSummary(breakpoint)}`;});
+      return {name:set.name,count:set.equippedPieces+' / '+set.memberPieces+' pieces',bonus:bonuses.join(' · ')||'No set bonus active yet'};
+    }) : this.SET_SUMMARY;
     const runeSynergies=s.resultCalc?.runeSynergies||{};
     const runeChips=s.result ? Object.entries(runeSynergies).filter(([,synergy])=>Boolean(synergy)).map(([slotId,synergy],index)=>({
       label:(this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId)+': '+(synergy.name||'Rune synergy')+Object.entries(synergy.stats||{}).map(([id,value])=>' · '+this.core.formatSigned(value,id)+' '+this.core.statName(id)).join(''),

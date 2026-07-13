@@ -64,9 +64,16 @@ export function renderGearResultAccess(result = {}) {
 export function renderSystemsResultAccess(result = {}, { runeName = (id) => id } = {}) {
   const equipment = loadoutRows(result.loadout?.equipment);
   const runes = equipment.flatMap((row) => (row.selection ?? row).runes ?? []).filter((row) => row.runeId);
-  const sets = result.sets ?? result.setEffects ?? [];
+  const setPayload = result.sets ?? result.setEffects ?? [];
+  const sets = Array.isArray(setPayload) ? setPayload : setPayload.sets ?? [];
   const artifacts = loadoutRows(result.loadout?.artifacts);
-  return `<div class="tlb-result-systems"><section><h3>Equipment Sets</h3>${sets.length ? `<ul>${sets.map((row) => `<li>${esc(typeof row === "string" ? row : row.name ?? row.text ?? row.setId)}</li>`).join("")}</ul>` : `<p>Known set thresholds were included in the complete-loadout calculation.</p>`}</section><section><h3>Runes</h3><strong>${runes.length} sockets configured</strong>${runes.length ? `<ul>${runes.map((row) => `<li>${esc(runeName(row.runeId))}</li>`).join("")}</ul>` : ""}</section><section><h3>Artifacts</h3><strong>${artifacts.length}/6 equipped</strong><p>Open Gear to inspect each artifact and its active set thresholds.</p></section><section><h3>Heroics</h3><p>Open Gear and hover a Heroic item to inspect its selected trait, effects, levels, and runes.</p></section></div>`;
+  const setText = (row) => {
+    if (typeof row === "string") return row;
+    const count = row.equippedPieces == null ? "" : ` (${row.equippedPieces}/${row.memberPieces})`;
+    const active = (row.breakpoints ?? []).filter((breakpoint) => breakpoint.active).map((breakpoint) => `${breakpoint.required} pc ${String(breakpoint.status).replaceAll("_", " ")}`);
+    return `${row.name ?? row.text ?? row.setId}${count}${active.length ? `: ${active.join(", ")}` : ""}`;
+  };
+  return `<div class="tlb-result-systems"><section><h3>Equipment Sets</h3>${sets.length ? `<ul>${sets.map((row) => `<li>${esc(setText(row))}</li>`).join("")}</ul>` : `<p>Known set thresholds were included in the complete-loadout calculation.</p>`}</section><section><h3>Runes</h3><strong>${runes.length} sockets configured</strong>${runes.length ? `<ul>${runes.map((row) => `<li>${esc(runeName(row.runeId))}</li>`).join("")}</ul>` : ""}</section><section><h3>Artifacts</h3><strong>${artifacts.length}/6 equipped</strong><p>Open Gear to inspect each artifact and its active set thresholds.</p></section><section><h3>Heroics</h3><p>Open Gear and hover a Heroic item to inspect its selected trait, effects, levels, and runes.</p></section></div>`;
 }
 
 export const BUILDER_RESULT_TABS = Object.freeze([

@@ -21,6 +21,9 @@ test("gear access retains hover and inspection hooks for equipment and artifacts
 test("systems access preserves rune, set, artifact, and Heroic routes", () => {
   const html = renderSystemsResultAccess({ setEffects: ["Overture 2 pc"], loadout: { equipment: [{ selection: { runes: [{ runeId: "r1" }] } }], artifacts: Array.from({ length: 6 }, (_, index) => ({ id: `a${index}` })) } }, { runeName: () => "Attack Rune" });
   for (const text of ["Overture", "Attack Rune", "6/6", "Heroics"]) assert.match(html, new RegExp(text));
+
+  const canonical = renderSystemsResultAccess({ setEffects: { sets: [{ name: "Nine Lives Set", equippedPieces: 4, memberPieces: 5, breakpoints: [{ required: 4, active: true, status: "applied" }] }] } });
+  assert.match(canonical, /Nine Lives Set \(4\/5\): 4 pc applied/);
 });
 
 test("tab contract keeps detailed gear and systems access", () => {

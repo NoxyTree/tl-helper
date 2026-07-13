@@ -35,7 +35,9 @@ test("Combat Calculator explains reviewed ability coverage and attacker build wo
 
 test("build-aware weapon ranking stays within the equipped weapon families and matching slots", () => {
   assert.match(html, /function equippedWeaponSlots\(build = scoringContext\(\)\.build\)/);
-  assert.match(html, /return matching\[0\]\?\.slotId \?\? TYPE_SLOT\[item\.equipmentType\]/);
+  assert.match(html, /function candidateSlotsFor\(item, build\)/);
+  assert.match(html, /return matching\.length \? matching\.map\(\(row\) => row\.slotId\)/);
+  assert.match(html, /for \(const slotId of candidateSlotsFor\(item, build\)\)/);
   assert.match(html, /equippedWeaponTypes\.has\(row\.item\.equipmentType\)/);
 });
 
@@ -79,7 +81,7 @@ test("hover cards omit skill-core potentials and present set effects clearly", a
   assert.doesNotMatch(core, /cores, hasCores|coreMoreLabel/);
   assert.match(html, />Set Effects</);
   assert.match(hoverCard, />Set Effects</);
-  assert.match(core, /mark: active \? "✓" : "○"/);
+  assert.match(core, /mark: fullySuppressed \? "✕" : unsupported \? "!" : active \? "✓" : "○"/);
 });
 
 test("Heroic comparison never stacks duplicate effects", () => {

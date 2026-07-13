@@ -3,10 +3,14 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { STAT_UNIT_MODIFIERS } from "../web/tl-questlog-rules.js";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "out");
 const webDataDir = path.join(root, "web", "data");
-const publicDir = path.join(outDir, "questlog-public");
+const publicDir = process.env.TL_QUESTLOG_PUBLIC_DIR
+  ? path.resolve(process.env.TL_QUESTLOG_PUBLIC_DIR)
+  : path.join(outDir, "questlog-public");
 
 // Icons resolve to locally mirrored files under web/assets/icons/ (see
 // scripts/mirror-icons.mjs, which fetches any missing files from the
@@ -479,6 +483,7 @@ for (const source of [
   collectStatIdsFromValue(source, statIds);
 }
 for (const id of [
+  ...Object.keys(STAT_UNIT_MODIFIERS),
   "str",
   "dex",
   "int",
@@ -495,7 +500,7 @@ for (const id of [
 const gameBuild = String(process.env.TL_STEAM_BUILD ?? "").trim();
 assert(/^\d+$/.test(gameBuild), "TL_STEAM_BUILD must be a numeric Steam build. Run through update-tl-helper.mjs or set it explicitly.");
 
-const generatedAtUtc = new Date().toISOString();
+const generatedAtUtc = process.env.TL_GENERATED_AT_UTC?.trim() || new Date().toISOString();
 const appData = {
   schema: "tl-helper.web-data",
   // Version 2 interns repeated itemPotential tables in the equipment wire
