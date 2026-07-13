@@ -268,6 +268,36 @@
         </div>
         <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached.</p>
       </section>
+
+      <!-- Passive skills and mastery -->
+      <section style="border:1px solid rgba(185,140,240,.3);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.1),transparent 42%),linear-gradient(180deg,rgba(28,20,35,.72),rgba(16,12,11,.88));padding:18px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:7px;">
+          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#d8b8ff;border:1px solid rgba(185,140,240,.5);border-radius:50%;font:13px Marcellus,serif;">5</span>
+          <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Passive Skills &amp; Mastery</h2>
+          <span style="margin-left:auto;color:#9f8cb8;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">Included in totals</span>
+        </div>
+        <p style="margin:0 0 14px;color:#9b8aa8;font-size:11.5px;line-height:1.55;">The Forge selects eight passive skills and allocates each weapon's available Mastery points around your ranked stats. Active and defensive skills are deliberately excluded because they are combat actions rather than permanent sheet-stat sources.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;">
+          <label style="display:grid;gap:6px;padding:11px 12px;border:1px solid rgba(185,140,240,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+            <span style="color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Passive skill level</span>
+            <select value="{{ passiveLevelCap }}" onChange="{{ setPassiveLevelCap }}" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(185,140,240,.28);border-radius:7px;background:#0b080d;color:#eadcf2;font:600 11px 'Instrument Sans';">
+              <sc-for list="{{ passiveLevelOptions }}" as="level" hint-placeholder-count="4"><option value="{{ level.id }}">{{ level.label }}</option></sc-for>
+            </select>
+            <span style="color:#75687e;font-size:9px;line-height:1.4;">Each selected passive is capped at a legal level available in the current data.</span>
+          </label>
+          <sc-for list="{{ progressionWeapons }}" as="weapon" hint-placeholder-count="2">
+            <label style="display:grid;gap:6px;padding:11px 12px;border:1px solid {{ weapon.border }};border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="display:flex;justify-content:space-between;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><span>{{ weapon.name }} Mastery</span><span style="color:#d8b8ff;">{{ weapon.value }}/220</span></span>
+              <input type="number" min="0" max="220" step="1" value="{{ weapon.value }}" onInput="{{ weapon.change }}" disabled="{{ weapon.disabled }}" aria-label="Available {{ weapon.name }} Mastery points" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(185,140,240,.28);border-radius:7px;background:#0b080d;color:#eadcf2;font:600 12px 'Instrument Sans';">
+              <span style="color:#75687e;font-size:9px;line-height:1.4;">The optimizer may spend up to this many legal points on this weapon.</span>
+            </label>
+          </sc-for>
+        </div>
+        <button onClick="{{ togglePotential }}" aria-pressed="{{ potentialEnabled }}" style="width:100%;margin-top:9px;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid {{ potentialBorder }};border-radius:10px;background:{{ potentialBg }};color:#d8c9e4;cursor:pointer;text-align:left;">
+          <span style="flex:none;width:34px;height:20px;border-radius:999px;background:{{ potentialTrack }};position:relative;"><span style="position:absolute;top:2px;left:{{ potentialKnob }};width:16px;height:16px;border-radius:50%;background:#0b0805;"></span></span>
+          <span style="min-width:0;"><strong style="display:block;color:#e6d6e9;font-size:11.5px;">Overall Mastery: Potential unlocked</strong><small style="display:block;margin-top:2px;color:#796b82;font-size:9.5px;">Adds +1 Strength, Dexterity, Wisdom, Perception, and Fortitude when you own this Overall Mastery.</small></span>
+        </button>
+      </section>
     </div>
 
     <!-- RIGHT: My Heroics + forge -->
@@ -751,6 +781,38 @@
         </div>
       </div>
 
+      <!-- Passive skills and mastery -->
+      <sc-if value="{{ hasProgression }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
+        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(185,140,240,.45));"></span>
+          <span style="color:#d8c2e7;font:400 14px Marcellus,serif;letter-spacing:.06em;">Passive Skills &amp; Mastery</span>
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(185,140,240,.45),transparent);"></span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;"><span style="color:#9f8cb8;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Selected passives</span><span style="color:#796b82;font-size:9px;">{{ passiveSkillCount }}/8 permanent-effect loadout</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <sc-for list="{{ passiveSkills }}" as="skill" hint-placeholder-count="8">
+            <div title="{{ skill.title }}" style="min-width:0;flex:1 1 92px;display:flex;align-items:center;gap:8px;padding:8px;border:1px solid rgba(185,140,240,.2);border-radius:10px;background:rgba(0,0,0,.24);">
+              <span style="position:relative;flex:none;width:36px;height:36px;border-radius:50%;border:1px solid {{ skill.color }};background:{{ skill.icon }};"><b style="position:absolute;right:-4px;bottom:-3px;min-width:17px;height:17px;display:grid;place-items:center;padding:0 3px;border-radius:5px;background:#0b080d;border:1px solid {{ skill.color }};color:{{ skill.color }};font-size:8px;font-style:normal;">{{ skill.level }}</b></span>
+              <span style="min-width:0;"><strong style="display:block;color:#decfe7;font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ skill.name }}</strong><small style="display:block;margin-top:2px;color:#796b82;font-size:8.5px;">{{ skill.weapon }}</small></span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;gap:9px;margin-top:12px;padding-top:12px;border-top:1px dotted rgba(185,140,240,.2);">
+          <sc-for list="{{ masteryGroups }}" as="group" hint-placeholder-count="2">
+            <div style="padding:10px 11px;border:1px solid rgba(185,140,240,.18);border-radius:10px;background:rgba(0,0,0,.2);">
+              <div style="display:flex;align-items:baseline;gap:9px;"><strong style="color:#decfe7;font-size:11.5px;">{{ group.weapon }}</strong><span style="color:#796b82;font-size:9px;">{{ group.nodeCount }} nodes</span><span style="flex:1;"></span><span style="color:#d8b8ff;font:400 14px Marcellus,serif;">{{ group.points }}/{{ group.available }}</span></div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;">
+                <sc-for list="{{ group.nodes }}" as="node" hint-placeholder-count="6"><span title="{{ node.title }}" style="max-width:100%;padding:4px 7px;border:1px solid {{ node.border }};border-radius:7px;background:{{ node.bg }};color:{{ node.color }};font-size:8.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ node.name }} {{ node.level }}</span></sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ hasOverallMastery }}" hint-placeholder-val="{{ false }}"><div style="margin-top:9px;padding:8px 10px;border-left:2px solid rgba(126,224,166,.45);background:rgba(31,76,47,.08);color:#a9c9b3;font-size:9.5px;">Overall Mastery: {{ overallMasteryLabel }} contributes directly to these totals.</div></sc-if>
+        <div style="margin-top:9px;color:#74677d;font-size:8.5px;line-height:1.45;">Every permanent mastery and passive contribution is included in the stat source breakdown. Conditional combat-only effects remain visible here but are not invented as always-on totals.</div>
+      </div>
+      </sc-if>
+
       <!-- Sets & runes summary -->
       <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
@@ -848,11 +910,19 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 22px;margin-top:8px;">
         <sc-for list="{{ activeStats }}" as="s" hint-placeholder-count="12">
-          <div style="display:flex;align-items:baseline;gap:8px;min-height:29px;padding:0 6px;border-radius:6px;background:{{ s.bg }};">
+          <div style="min-width:0;border-radius:7px;background:{{ s.bg }};">
+          <button onClick="{{ s.toggleSources }}" disabled="{{ s.noSources }}" aria-expanded="{{ s.sourceOpen }}" title="{{ s.sourceTitle }}" style="width:100%;display:flex;align-items:baseline;gap:8px;min-height:29px;padding:0 6px;border:0;border-radius:6px;background:transparent;cursor:{{ s.sourceCursor }};text-align:left;">
             <sc-if value="{{ s.fav }}" hint-placeholder-val="{{ false }}"><span style="color:#f2c777;font-size:9px;">★</span></sc-if>
             <span style="color:{{ s.name_color }};font-size:12px;">{{ s.name }}</span>
             <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.1);transform:translateY(-3px);"></span>
             <span style="color:{{ s.value_color }};font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;">{{ s.value }}</span>
+            <sc-if value="{{ s.hasSources }}" hint-placeholder-val="{{ false }}"><span style="color:#796b82;font-size:8px;">{{ s.sourceCaret }}</span></sc-if>
+          </button>
+          <sc-if value="{{ s.sourceOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;gap:4px;margin:2px 6px 7px;padding:7px 8px;border:1px solid rgba(185,140,240,.18);border-radius:7px;background:rgba(14,9,18,.68);">
+              <sc-for list="{{ s.sources }}" as="source" hint-placeholder-count="4"><div style="display:flex;align-items:baseline;gap:7px;font-size:9px;"><span style="min-width:0;color:#9f8cb8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ source.name }}</span><span style="flex:1;border-bottom:1px dotted rgba(185,140,240,.12);transform:translateY(-2px);"></span><span style="color:{{ source.color }};font-weight:700;font-variant-numeric:tabular-nums;">{{ source.value }}</span></div></sc-for>
+            </div>
+          </sc-if>
           </div>
         </sc-for>
       </div>
@@ -950,6 +1020,8 @@ class Component extends DCLogic {
     dragOverPriorityId: null,
     dragInsertAfter: false,
     weaponTypes: { main:'', off:'' },
+    progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, includePotential:false },
+    openStatSource: null,
     source: null,
     result: null,
     resultCalc: null,
@@ -1428,6 +1500,7 @@ class Component extends DCLogic {
     return {
       build:source, sourceKind:'scratch', weaponTypes:[this.state.weaponTypes.main,this.state.weaponTypes.off],
       attributePointBudget:this.ATTR_BUDGET, goals:{priorities,protect:[]}, lockedSlotIds,
+      progression:{...this.state.progression,masteryPointsByWeapon:{...this.state.progression.masteryPointsByWeapon}},
       rules:{ minimumItemLevel:this.state.rules.endgame?50:0, keepCurrentHeroics:false, reconsiderHeroics:this.state.heroicMode==='theoretical',
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
         bestHeroicConfiguration:this.state.heroicMode==='theoretical',
@@ -1591,6 +1664,14 @@ class Component extends DCLogic {
     if(weaponHeroic){const item=this.findHeroic('weapon',weaponHeroic.itemId);if(item && ![weaponTypes.main,weaponTypes.off].includes(item.equipmentType)){const heroics={...this.state.heroics,weapon:null};this.setState({weaponTypes,heroics});return;}}
     this.setState({weaponTypes});
   }
+  setPassiveLevelCap = (event) => this.setState({progression:{...this.state.progression,skillLevelCap:Math.max(1,Math.min(20,Number(event.target.value)||20))}});
+  setMasteryPoints(weapon,event) {
+    if(!weapon)return;
+    const value=Math.max(0,Math.min(this.core?.MASTERY_POINT_BUDGET||220,Math.floor(Number(event.target.value)||0)));
+    this.setState({progression:{...this.state.progression,masteryPointsByWeapon:{...this.state.progression.masteryPointsByWeapon,[weapon]:value}}});
+  }
+  togglePotential = () => this.setState({progression:{...this.state.progression,includePotential:!this.state.progression.includePotential}});
+  toggleStatSources(id) { this.setState({openStatSource:this.state.openStatSource===id?null:id}); }
 
   toggleLock(slot) { const l = { ...this.state.locked }; l[slot] = !l[slot]; this.setState({ locked: l }); }
   clampPos(e) {
@@ -1651,6 +1732,18 @@ class Component extends DCLogic {
         border:selected?'rgba(242,199,119,.65)':'rgba(212,166,94,.24)', bg:'rgba(0,0,0,.24)',
         icon:'radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)',glow:'rgba(229,200,143,.16)',change:(event)=>this.setWeaponType(role,event) };
     });
+    const progressionWeapons=['main','off'].map(role=>{
+      const weapon=s.weaponTypes[role];
+      const value=weapon ? Number(s.progression.masteryPointsByWeapon[weapon] ?? this.core?.MASTERY_POINT_BUDGET ?? 220) : 0;
+      return {weapon,name:weapon?(this.core?.label(weapon)||weapon):(role==='main'?'Main weapon':'Off-hand weapon'),value,disabled:!weapon,
+        border:weapon?'rgba(185,140,240,.3)':'rgba(120,105,128,.14)',change:(event)=>this.setMasteryPoints(weapon,event)};
+    });
+    const passiveLevelOptions=[
+      {id:'5',label:'Common 5'},
+      {id:'10',label:'Uncommon 10'},
+      {id:'15',label:'Epic 15'},
+      {id:'20',label:'Heroic 20'},
+    ];
 
     const rankedList = s.priorities.map((id, i) => {
       const option=s.statOptions.find(row=>row.id===id);
@@ -1858,10 +1951,31 @@ class Component extends DCLogic {
     const prototypeRows=(this.STATS[s.statTab]||[]).map(row=>({name:row[0],formattedValue:row[1],id:'',legacyFav:row[2]}));
     const activeStats = (dynamicRows.length?dynamicRows:(s.result?[]:prototypeRows)).map(row => {
       const fav = favouriteIds.has(row.id)||Boolean(row.legacyFav);
-      return { name:row.name, value:row.formattedValue, fav,
+      const calcRow=s.resultCalc?.stats?.find(stat=>stat.id===row.id);
+      const sources=(calcRow?.sources||[]).slice().sort((a,b)=>Math.abs(Number(b.value)||0)-Math.abs(Number(a.value)||0)).map(source=>({name:source.sourceLabel||source.name||source.type,value:this.core.formatSigned(source.value,row.id),color:Number(source.value)<0?'#e57c72':'#9fd8b5'}));
+      const sourceOpen=Boolean(row.id)&&s.openStatSource===row.id&&sources.length>0;
+      return { name:row.name, value:row.formattedValue, fav,hasSources:sources.length>0,noSources:sources.length===0,sourceOpen,sources,sourceCaret:sourceOpen?'Less':'More',sourceCursor:sources.length?'pointer':'default',sourceTitle:sources.length?'Show every source contributing to '+row.name:'No source breakdown available',toggleSources:()=>this.toggleStatSources(row.id),
         bg: fav ? 'rgba(242,199,119,.09)' : 'transparent',
         name_color: fav ? '#f6e6c3' : '#c1af8c', value_color: fav ? '#f2c777' : '#eadfc4' };
     });
+
+    const passiveSkills=s.result&&this.core?this.core.selectedSkillRows(s.result.build).filter(row=>row.loadoutType==='passive').map(({skill,selection})=>{
+      const tier=this.core.skillLevelTierFor(selection.level,this.core.skillMaxLevel(skill));
+      const contributionSources=(s.resultCalc?.stats||[]).flatMap(stat=>(stat.sources||[]).filter(source=>source.type==='skill_passive'&&source.sourceLabel===skill.name).map(source=>this.statLabel(stat.id)+' '+this.core.formatSigned(source.value,stat.id)));
+      return{name:skill.name,weapon:this.core.label(skill.mainCategory),level:selection.level,color:tier.color,icon:skill.imageUrl?`url(${skill.imageUrl}) center/cover`:'radial-gradient(circle at 35% 30%,#372644,#130e18)',title:[skill.name,'Level '+selection.level,...contributionSources].join(' | ')};
+    }):[];
+    const masteryGroups=s.result&&this.core?[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(weapon=>{
+      const state=this.core.masteryWeaponPointState(weapon,s.result.build),available=Number(s.result.progression?.settings?.masteryPointsByWeapon?.[weapon]??this.core.MASTERY_POINT_BUDGET);
+      const nodes=[...state.selectedNormal,...state.selectedSynergy].sort((a,b)=>a.grade-b.grade||this.core.masteryNodeOrder(a)-this.core.masteryNodeOrder(b)).map(node=>{
+        const level=this.core.masterySelectedLevel(node,s.result.build),color=this.core.gradeColor(node.grade);
+        const stats=this.core.masteryStructuredStats(node,level).map(row=>this.statLabel(row.statId)+' '+this.core.formatStat(row.statId,row.value));
+        const effects=this.core.masteryTextRows(node,level);
+        return{name:node.name,level:node.specializationType==='normal'?'Lv '+level:'Synergy',color,border:color+'66',bg:color+'0d',title:[node.name,...stats,...effects].join(' | ')};
+      });
+      return{weapon:this.core.label(weapon),points:state.totalPoints,available,nodeCount:nodes.length,nodes};
+    }):[];
+    const overallMasteries=s.result&&this.core?this.core.selectedUnifiedMasteries(s.result.build).map(id=>this.core.data.masteries.find(row=>row.id===id)).filter(Boolean):[];
+    const hasProgression=passiveSkills.length>0||masteryGroups.some(group=>group.nodeCount>0)||overallMasteries.length>0;
 
     const ghostSlots = ['Head','Chest','Hands','Legs','Feet','Cloak','Neck','Brace','Belt','Ring I','Art I','Art II'];
     const totalSlots = gearSource.length + this.WEAPONS.length + this.ARTIFACTS.length;
@@ -2040,7 +2154,9 @@ class Component extends DCLogic {
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       setupCols, resultCols, statsSpan, weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
 
-      weaponSlots, rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
+      weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,
+      togglePotential:this.togglePotential,potentialEnabled:s.progression.includePotential,potentialBorder:s.progression.includePotential?'rgba(185,140,240,.5)':'rgba(185,140,240,.2)',potentialBg:s.progression.includePotential?'rgba(117,76,164,.14)':'rgba(0,0,0,.2)',potentialTrack:s.progression.includePotential?'linear-gradient(90deg,#8e5db8,#d8b8ff)':'rgba(120,105,128,.35)',potentialKnob:s.progression.includePotential?'16px':'2px',
+      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
       priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',
@@ -2056,6 +2172,7 @@ class Component extends DCLogic {
       weaponStats, attrTracks, setSummary, runeChips, noActiveSystems:setSummary.length===0&&runeChips.length===0,
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
+      hasProgression,passiveSkills,passiveSkillCount:passiveSkills.length,masteryGroups,hasOverallMastery:overallMasteries.length>0,overallMasteryLabel:overallMasteries.map(row=>row.name).join(', '),
 
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
 

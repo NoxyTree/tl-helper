@@ -109,3 +109,14 @@ test("availability rules have accessible information controls", () => {
   assert.match(html, /onFocus="\{\{ r\.showTip \}\}"/);
   assert.match(html, /role="tooltip"/);
 });
+
+test("scratch builds configure passive skills and per-weapon mastery without inventing an active loadout", () => {
+  assert.match(html, /Passive Skills &amp; Mastery/);
+  assert.match(html, /Active and defensive skills are deliberately excluded/);
+  assert.match(html, /skillLevelCap/);
+  assert.match(html, /masteryPointsByWeapon/);
+  assert.match(html, /MASTERY_POINT_BUDGET/);
+  assert.match(html, /selects eight passive skills/);
+  assert.match(html, /toggleStatSources/);
+  assert.match(html, /sourceLabel/);
+});
