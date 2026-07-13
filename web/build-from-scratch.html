@@ -137,7 +137,7 @@
                 <div style="margin-top:2px;color:#8a795f;font-size:10.5px;">{{ p.hint }}</div>
                 <sc-if value="{{ p.compositeOpen }}" hint-placeholder-val="{{ false }}">
                   <div style="margin-top:8px;padding:8px 9px;border-left:2px solid rgba(185,140,240,.45);border-radius:0 7px 7px 0;background:rgba(185,140,240,.06);">
-                    <div style="margin-bottom:6px;color:#9f8cb8;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">Weakest component sets the result</div>
+                    <div style="margin-bottom:6px;color:#9f8cb8;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">Included in this priority</div>
                     <div style="display:flex;flex-wrap:wrap;gap:5px;"><sc-for list="{{ p.components }}" as="component" hint-placeholder-count="3"><span style="padding:3px 6px;border:1px solid rgba(185,140,240,.2);border-radius:6px;color:#cbb9dc;font-size:9px;">{{ component.name }}</span></sc-for></div>
                   </div>
                 </sc-if>
@@ -193,7 +193,7 @@
                           </div>
                           <sc-if value="{{ q.compositeOpen }}" hint-placeholder-val="{{ false }}">
                             <div style="padding:8px 10px 9px;border-top:1px solid rgba(185,140,240,.16);background:rgba(185,140,240,.045);">
-                              <div style="margin-bottom:6px;color:#9f8cb8;font-size:8px;letter-spacing:.08em;text-transform:uppercase;">Weakest component sets the result</div>
+                              <div style="margin-bottom:6px;color:#9f8cb8;font-size:8px;letter-spacing:.08em;text-transform:uppercase;">Included in this priority</div>
                               <div style="display:flex;flex-wrap:wrap;gap:5px;"><sc-for list="{{ q.components }}" as="component" hint-placeholder-count="3"><span style="padding:3px 6px;border:1px solid rgba(185,140,240,.2);border-radius:6px;color:#cbb9dc;font-size:8.5px;">{{ component.name }}</span></sc-for></div>
                             </div>
                           </sc-if>
@@ -1517,7 +1517,7 @@ class Component extends DCLogic {
     const rankedList = s.priorities.map((id, i) => {
       const option=s.statOptions.find(row=>row.id===id);
       const components=this.rulesData?.STAT_EXPANSIONS?.[id]||[];
-      const d = {name:option?.name||this.statLabel(id),hint:components.length>1?'The weakest final subtype drives this composite goal.':'Maximized after higher-ranked goals.',composite:components.length>1};
+      const d = {name:option?.name||this.statLabel(id),hint:components.length>1?'Optimizes all included stats together.':'Maximized after higher-ranked goals.',composite:components.length>1};
       const top = i === 0;
       return { id, rank: i + 1, name: d.name, hint: d.hint, composite: !!d.composite, components:this.compositeComponents(id),compositeOpen:s.openComposite===id,compositeCaret:s.openComposite===id?'▲':'▼',toggleComposite:()=>this.toggleComposite(id),
         border: top ? 'rgba(242,199,119,.5)' : 'rgba(212,166,94,.2)',

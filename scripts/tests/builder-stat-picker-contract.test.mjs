@@ -13,7 +13,8 @@ test("stat picker exposes every adapter stat through searchable categories witho
   assert.match(html, /priorityCategories/);
   assert.match(html, /toggleComposite/);
   assert.match(html, /compositeComponents/);
-  assert.match(html, /Weakest component sets the result/);
+  assert.match(html, /Included in this priority/);
+  assert.match(html, /Optimizes all included stats together/);
   assert.match(html, /aria-label="Show components for/);
   assert.doesNotMatch(html, /cat\.icon/);
   for (const label of ["Featured", "Offense", "Defense", "Resources", "Utility", "PvP", "Control", "Boss & PvE", "Positioning", "Enemy Types", "Attributes"]) assert.ok(html.includes(label));
