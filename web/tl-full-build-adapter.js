@@ -4,7 +4,7 @@ import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
 import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimizer-components.js";
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
 import { optimizeScratchProgression } from "./tl-progression-optimizer.js";
-import { ATTRIBUTE_BREAKPOINTS, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue } from "./tl-questlog-rules.js";
+import { ATTRIBUTE_BREAKPOINTS, SET_PASSIVE_RULES, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue } from "./tl-questlog-rules.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
@@ -374,6 +374,49 @@ export function refineRuneConfiguration({
   return { ...current, build: workingBuild, attributes: workingAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, finalCalc), runeInsights };
 }
 
+/**
+ * Optimistic per-piece objective value of completing each set that appears in
+ * the candidate pool. Candidate stats are generated with set effects disabled,
+ * so without this a partial-set beam state carries none of the value its
+ * completed set would unlock and the final beam-width cut can discard it
+ * before exact evaluation (docs/set-effect-database-review-2026-07-13.md §10).
+ * This is breakpoint-aware pruning that protects set routes, not a global
+ * guarantee: the hint may overestimate never-completed sets, and dynamic
+ * bonuses are projected against BASELINE attributes, so a threshold bonus the
+ * set's own items would unlock (baseline below the threshold, final above it)
+ * contributes zero hint and that route can still be pruned. Exact finalist
+ * calculation remains the sole scoring authority.
+ */
+export function deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales, baseline = {} }) {
+  const hints = new Map();
+  const setIds = new Set(Object.values(candidatesBySlot ?? {}).flatMap((rows) => rows.flatMap((row) => row.setKeys ?? [])));
+  if (!setIds.size) return hints;
+  // Dynamic set rules read {stat: {total}} maps; project them against the
+  // baseline totals so attribute-scaled breakpoints contribute realistically.
+  const totalsEnv = new Proxy({}, { get: (_, id) => ({ total: Number(baseline[id]) || 0 }) });
+  const addExpanded = (stats, id, value) => {
+    stats[id] = (stats[id] ?? 0) + Number(value || 0);
+    for (const target of STAT_EXPANSIONS[id] ?? []) addExpanded(stats, target, value);
+  };
+  for (const setId of setIds) {
+    const set = core.indexes?.itemSetById?.[setId] ?? (core.data?.itemSets ?? []).find((row) => row.id === setId);
+    if (!set) continue;
+    const stats = {};
+    let pieces = 0;
+    for (const bonus of set.itemSetBonus ?? []) {
+      const count = Number(bonus.set_count ?? 0);
+      pieces = Math.max(pieces, count);
+      for (const row of bonus.bonus_stat ?? []) addExpanded(stats, row.type, row.value);
+      const rule = SET_PASSIVE_RULES[set.id]?.[count];
+      if (rule) try { for (const row of rule.effect(totalsEnv) ?? []) addExpanded(stats, row.statId, row.value); } catch { /* a dynamic rule that cannot evaluate against the baseline stays out of the hint */ }
+    }
+    if (!pieces) continue;
+    const score = scoreRankedGoals(stats, {}, scales, rankedGoals);
+    if (score > 0) hints.set(setId, score / pieces);
+  }
+  return hints;
+}
+
 /** Browser adapter. Dependencies are injectable to keep the boundary testable. */
 export async function createOptimizerAdapter(deps = {}) {
   const core = deps.core ?? coreDefault;
@@ -548,6 +591,13 @@ export async function createOptimizerAdapter(deps = {}) {
         : baseline;
       const objectiveScales = generationScales;
       for (const rows of Object.values(candidatesBySlot)) for (const row of rows) row.scoreHint = scoreRankedGoals(row.stats ?? {}, {}, objectiveScales, rankedGoals);
+      // Breakpoint-aware pruning: each set-bearing candidate carries an
+      // optimistic per-piece share of its set's full-completion value so the
+      // beam protects set routes through to exact finalist evaluation. Not a
+      // pruning guarantee — see deriveSetCompletionHints for the baseline-
+      // threshold limitation.
+      const completionHints = deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline });
+      for (const rows of Object.values(candidatesBySlot)) for (const row of rows) for (const key of row.setKeys ?? []) row.scoreHint += completionHints.get(key) ?? 0;
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
