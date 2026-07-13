@@ -22,6 +22,13 @@ test("rune candidates cap Chaos at one and respect availability", () => {
   assert.ok(owned.every((candidate) => candidate.selection.filter((row) => row.runeId === "c").length <= 1));
 });
 
+test("rune candidates exclude non-combat metadata stats when requested", () => {
+  const runes = [rune("combat", "attack", "hit"), rune("craft", "assist", "adjust_cooking_exp")];
+  const rows = generateRuneCandidates({ category: "weapon", runes, allowStat: (id) => !id.startsWith("adjust_") });
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every((candidate) => candidate.selection.every((row) => row.runeId !== "craft")));
+});
+
 const artifact = (set, type, index) => ({ id: `${set}-${type}`, name: `${set} ${type}`, equipmentType: type, setId: set, itemStats: { artifact: { 0: { power: index } } } });
 const types = ["talistone1", "talistone2", "talistone3", "talistone4", "gemstone1", "gemstone2"];
 

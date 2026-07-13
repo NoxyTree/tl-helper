@@ -59,6 +59,12 @@ test("result is calculated and inspectable rather than mocked", () => {
   assert.doesNotMatch(html, /<table/);
 });
 
+test("Builder results use the shared Armory hover card contract", () => {
+  assert.match(html, /dc-import name="ItemHoverCard" data="\{\{ hover \}\}"/);
+  assert.match(html, /hoverModel:\{\.\.\.hover/);
+  assert.match(html, /Each effect may be selected only once per item/);
+});
+
 test("result tuning links two to five real-stat sliders to retained legal builds", () => {
   assert.match(html, /Tune the tradeoff/);
   assert.match(html, /class="tl-tune-range"/);

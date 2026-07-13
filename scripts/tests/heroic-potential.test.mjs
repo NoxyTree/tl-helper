@@ -44,10 +44,11 @@ test("fills all dynamic effect groups at maximum level and supports three groups
   const result = optimizeHeroicPotential(item, { evaluate });
   assert.equal(result.selection.heroicEffects.length, 3);
   assert.deepEqual(result.selection.heroicEffects.map(({ statId, level, value }) => ({ statId, level, value })), [
-    { statId: "effect_b", level: 2, value: 3 },
+    { statId: "effect_a", level: 1, value: 8 },
     { statId: "effect_b", level: 2, value: 3 },
     { statId: "effect_d", level: 3, value: 12 },
   ]);
+  assert.equal(new Set(result.selection.heroicEffects.map((row) => row.statId)).size, 3);
   assert.ok(result.selection.heroicEffects.every((row) => row.levelKnown));
 });
 
@@ -57,6 +58,12 @@ test("duplicate policy changes the legal best effect configuration", () => {
 
   const forbidden = optimizeHeroicPotential(baseItem, { evaluate, allowDuplicateEffects: false });
   assert.deepEqual(forbidden.selection.heroicEffects.map((row) => row.statId), ["effect_a", "effect_b"]);
+});
+
+test("Heroic effects are non-stacking by default", () => {
+  const result = optimizeHeroicPotential(baseItem, { evaluate });
+  assert.deepEqual(result.selection.heroicEffects.map((row) => row.statId), ["effect_a", "effect_b"]);
+  assert.match(result.assumptions.duplicateEffects, /not allowed/);
 });
 
 test("uses protection headroom then lexical signature as deterministic tie breakers", () => {

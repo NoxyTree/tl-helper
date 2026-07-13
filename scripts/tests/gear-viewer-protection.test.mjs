@@ -56,6 +56,8 @@ test("hover cards show inherent stats separately and gear can filter exact item 
   assert.match(html, /String\(row\.level\) === state\.itemLevel/);
   assert.match(html, /if \(model\.hasStats\).*Stats.*statRows\(model\.stats\)/);
   assert.match(core, /name: statName\(statId\), formattedValue: formatStat\(statId, value\)/);
+  assert.match(core, /filled: true/);
+  assert.match(hoverCard, /value="\{\{ rune\.filled \}\}"/);
   assert.match(html, /grid-template-columns: 12px minmax\(0, 1fr\) auto/);
 });
 
@@ -78,6 +80,10 @@ test("hover cards omit skill-core potentials and present set effects clearly", a
   assert.match(html, />Set Effects</);
   assert.match(hoverCard, />Set Effects</);
   assert.match(core, /mark: active \? "✓" : "○"/);
+});
+
+test("Heroic comparison never stacks duplicate effects", () => {
+  assert.match(html, /allowDuplicateEffects: false/);
 });
 
 test("the currently equipped item is pinned above ranked candidates", () => {

@@ -93,7 +93,7 @@
               <span style="font-size: 10.5px; color: #6e5f49;">Empty socket</span>
             </div>
           </sc-if>
-          <sc-if value="{{ rune.hasIcon }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ rune.filled }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; align-items: center; gap: 9px;">
               <span style="flex: none; position: relative; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid {{ rune.typeColor }}; background: url({{ rune.icon }}) center/cover, radial-gradient(circle at 35% 30%, #201810, #100c07); box-shadow: 0 0 8px {{ rune.typeColor }}44; display: block;">
                 <b style="position: absolute; right: -4px; bottom: -4px; font-style: normal; font-size: 9px; font-weight: 700; color: #f3e9d4; background: rgba(10, 8, 5, 0.95); border: 1px solid {{ rune.typeColor }}; border-radius: 999px; padding: 0 4px;">{{ rune.level }}</b>

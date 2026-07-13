@@ -401,7 +401,7 @@
     function exactHeroicPotential(item, slotId, build, attributes, level, currentTotals) {
       const potential = optimizeHeroicPotential(item, {
         evaluate: (selection) => potentialEvaluation(item, selection),
-        allowDuplicateEffects: true,
+        allowDuplicateEffects: false,
         frontierLimit: 4,
       });
       const finalists = potential.finalists.map((candidate) => {

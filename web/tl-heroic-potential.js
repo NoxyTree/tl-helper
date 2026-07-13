@@ -95,7 +95,7 @@ function combinations(values, count, start = 0, chosen = [], output = []) {
  */
 export function optimizeHeroicPotential(item, {
   evaluate,
-  allowDuplicateEffects = true,
+  allowDuplicateEffects = false,
   frontierLimit = DEFAULT_FRONTIER_LIMIT,
 } = {}) {
   if (!item?.itemStats) throw new TypeError("A Heroic item with itemStats is required.");

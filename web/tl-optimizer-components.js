@@ -58,6 +58,7 @@ export function generateRuneCandidates({
   runes,
   runeSynergies = [],
   scoreStat = () => 0,
+  allowStat = () => true,
   scoreSynergy = (synergy) => Object.entries(synergy?.stats ?? {}).reduce((sum, [id, value]) => sum + scoreStat(id, value), 0),
   chaos = { mode: "none", ownedIds: [] },
   variantsPerType = 8,
@@ -67,7 +68,7 @@ export function generateRuneCandidates({
   const variants = [];
   for (const rune of runes ?? []) {
     if (rune.equipmentCategory !== category || !chaosAllowed(rune, policy)) continue;
-    for (const option of runeOptions(rune)) {
+    for (const option of runeOptions(rune).filter((row) => allowStat(row.statId))) {
       const key = `${rune.runeType}|${rune.id}|${option.statId}|${option.level}`;
       variants.push({ rune, option, key, score: stableScore(scoreStat(option.statId, option.value), key).value });
     }

@@ -362,6 +362,7 @@ export async function createOptimizerAdapter(deps = {}) {
         neutralGrade: Number(item?.grade ?? 0),
       });
       const runeCandidatesByCategory = new Map();
+      const optimizerRuneStatIds = new Set(optimizerStatIds(core));
 
       for (let slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
         const slot = slots[slotIndex];
@@ -381,7 +382,7 @@ export async function createOptimizerAdapter(deps = {}) {
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
           if (rules.bestHeroicConfiguration && item.grade === core.HEROIC_GRADE) {
-            selection = { ...selection, ...optimizeHeroicPotential(item, { frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
+            selection = { ...selection, ...optimizeHeroicPotential(item, { allowDuplicateEffects: false, frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
           }
           if (rules.runes?.mode === "keep") selection.runes = clone(current?.runes ?? []);
           else if (rules.runes?.mode && rules.runes.mode !== "keep") {
@@ -390,7 +391,7 @@ export async function createOptimizerAdapter(deps = {}) {
             let runeRows = runeCandidatesByCategory.get(category);
             if (!runeRows) {
               const goalWeights = componentWeightMap(rankedGoals, generationScales);
-              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: 4 });
+              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: 4 });
               runeCandidatesByCategory.set(category, runeRows);
             }
             if (runeRows[0]) selection.runes = runeRows[0].selection;

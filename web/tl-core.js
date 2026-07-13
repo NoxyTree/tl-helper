@@ -612,10 +612,13 @@ export function heroicEffectValue(option, level = 0) {
 }
 
 export function selectedHeroicEffects(item, selection) {
+  const selectedStatIds = new Set();
   return normalizeHeroicEffectRows(selection?.heroicEffects, item).flatMap((row, groupIndex) => {
     if (!row.statId) return [];
+    if (selectedStatIds.has(row.statId)) return [];
     const option = heroicEffectOptions(item, groupIndex).find((entry) => entry.statId === row.statId);
     if (!option) return [];
+    selectedStatIds.add(row.statId);
     const level = clamp(Number.isFinite(Number(row.level)) ? Math.trunc(Number(row.level)) : 0, 0, option.maxLevel);
     const value = heroicEffectValue(option, level);
     return [{
@@ -766,6 +769,7 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     const val = opt?.levels?.[lvl] ?? 0;
     return {
       empty: false,
+      filled: true,
       icon: rune?.imageUrl ?? "", hasIcon: Boolean(rune?.imageUrl),
       typeLabel: rune ? runeTypeLabel(rune.runeType).toUpperCase() : "",
       typeColor: rune ? (typeColors[rune.runeType] ?? "#cbb185") : "#cbb185",
@@ -776,7 +780,7 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
   });
   const isEquipmentSlot = EQUIPMENT_SLOTS.some((s) => s.id === slotId);
   const runes = isEquipmentSlot
-    ? [...filledRunes, ...Array.from({ length: Math.max(0, 3 - filledRunes.length) }, () => ({ empty: true, typeColor: "rgba(212, 166, 94, 0.3)", hasIcon: false }))]
+    ? [...filledRunes, ...Array.from({ length: Math.max(0, 3 - filledRunes.length) }, () => ({ empty: true, filled: false, typeColor: "rgba(212, 166, 94, 0.3)", hasIcon: false }))]
     : filledRunes;
 
   const synergy = calc?.runeSynergies?.[slotId];

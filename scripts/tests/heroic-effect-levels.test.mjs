@@ -27,7 +27,7 @@ const heroic = {
   equipmentType: "chest",
   itemStats: {
     random_stat_group_1: [effect("all_evasion", 160, [160, 180, 220])],
-    random_stat_group_2: [effect("hp_max", 600, [600, 700, 800])],
+    random_stat_group_2: [effect("hp_max", 600, [600, 700, 800]), effect("all_evasion", 140, [140, 160, 180])],
     random_stat_group_3: [effect("all_accuracy", 160, [160, 190, 230])],
   },
 };
@@ -67,6 +67,16 @@ test("Heroic effect rows and groups are dynamic and retain level metadata", () =
     { statId: "", level: 0, levelKnown: false },
     { statId: "", level: 0, levelKnown: false },
   ]);
+});
+
+test("duplicate Heroic effects never stack during calculation", () => {
+  const selected = selectedHeroicEffects(heroic, { heroicEffects: [
+    { statId: "all_evasion", level: 2, levelKnown: true },
+    { statId: "all_evasion", level: 2, levelKnown: true },
+    { statId: "all_accuracy", level: 2, levelKnown: true },
+  ] });
+  assert.deepEqual(selected.map((row) => row.statId), ["all_evasion", "all_accuracy"]);
+  assert.deepEqual(selected.map((row) => row.value), [220, 230]);
 });
 
 test("Questlog imports mark selected Heroic effect levels as unknown at level zero", () => {

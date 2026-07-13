@@ -856,6 +856,10 @@
 
   <!-- ===== HOVER ITEM CARD ===== -->
   <sc-if value="{{ hasHover }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;z-index:120;left:{{ hover.x }}px;top:{{ hover.y }}px;pointer-events:none;animation:tlFade .1s ease;">
+    <dc-import name="ItemHoverCard" data="{{ hover }}" hint-size="340px,520px"></dc-import>
+  </div>
+  <sc-if value="{{ legacyHover }}" hint-placeholder-val="{{ false }}">
   <div style="position:fixed;z-index:60;left:{{ hover.x }}px;top:{{ hover.y }}px;width:320px;max-width:calc(100vw - 24px);max-height:80vh;overflow-y:auto;pointer-events:none;border:1px solid rgba(212,166,94,.5);border-radius:11px;background:linear-gradient(180deg, rgba(27,20,13,.995), rgba(11,8,5,.995));box-shadow:0 22px 55px rgba(0,0,0,.75);animation:tlFade .1s ease;">
     <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:2px solid {{ hover.nameColor }};background:{{ hover.headBg }};">
       <span style="flex:none;width:44px;height:44px;border-radius:9px;border:1px solid {{ hover.nameColor }};background:{{ hover.icon }};"></span>
@@ -915,6 +919,7 @@
     </sc-if>
     <div style="padding:8px 14px;border-top:1px dotted rgba(212,166,94,.18);color:#75664f;font-size:9.5px;">Click item to {{ hover.lockVerb }}</div>
   </div>
+  </sc-if>
   </sc-if>
 
 </div>
@@ -1301,8 +1306,10 @@ class Component extends DCLogic {
   curItem() { const d=this.state.drawer; return this.findHeroic(d.group, d.draft.itemId); }
   selectDraftItem(item) {
     // Owned recreation: conservative defaults, nothing auto-maximized. Effects start "unknown" (level 0).
+    const usedEffects=new Set();
     const heroicEffects = Array.from({length:this.heroicEffectGroupCount(item)},(_,groupIndex) => {
-      const option=this.heroicEffectOptions(item,groupIndex)[0];
+      const option=this.heroicEffectOptions(item,groupIndex).find(row=>!usedEffects.has(row.statId));
+      if(option)usedEffects.add(option.statId);
       return { statId:option?.statId||'', level:0, levelKnown:false };
     });
     this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits:[], uniqueTrait:null,
@@ -1319,7 +1326,8 @@ class Component extends DCLogic {
   setUniqueTrait(statId) { const cur=this.state.drawer.draft.uniqueTrait;
     this.patchDraft({ uniqueTrait: statId ? { statId, tier: cur && cur.statId===statId ? cur.tier : 1 } : null }); }
   setUniqueTier(tier) { const u=this.state.drawer.draft.uniqueTrait; if (u) this.patchDraft({ uniqueTrait:{ ...u, tier:Number(tier) } }); }
-  setEffectStat(i, statId) { this.patchDraft({ heroicEffects:this.state.drawer.draft.heroicEffects.map((e,j)=> j===i ? { ...e, statId } : e) }); }
+  setEffectStat(i, statId) { const effects=this.state.drawer.draft.heroicEffects;if(effects.some((e,j)=>j!==i&&e.statId===statId))return;
+    this.patchDraft({ heroicEffects:effects.map((e,j)=> j===i ? { ...e, statId } : e) }); }
   setEffectLevel(i, delta) { const d=this.state.drawer.draft; const opt=this.heroicEffectOptions(this.curItem(), i).find(o=>o.statId===d.heroicEffects[i].statId);
     const max=opt?(opt.maxLevel??opt.max??0):0; const e=d.heroicEffects[i]; const lvl=Math.max(0, Math.min(max, (e.levelKnown?e.level:0)+delta));
     this.patchDraft({ heroicEffects:d.heroicEffects.map((x,j)=> j===i ? { ...x, level:lvl, levelKnown:true } : x) }); }
@@ -1347,15 +1355,13 @@ class Component extends DCLogic {
   configToItem(group, cfg) {
     const item = this.findHeroic(group, cfg.itemId) || {};
     const inh = item.inherentByLevel ? [{ name:'Item Level', value:'Lv ' + (cfg.level || (this.getItemLevels(item).at(-1)||'')) }, { name:(item.inherentByLevel[cfg.level]||Object.values(item.inherentByLevel)[0]||''), value:'' }] : [];
+    const unique=cfg.uniqueTrait?[{name:this.statLabel(cfg.uniqueTrait.statId),formattedValue:this.core.formatStat(cfg.uniqueTrait.statId,this.tierVal(item.itemStats?.uniqueTraits?.[cfg.uniqueTrait.statId],cfg.uniqueTrait.tier))}]:[];
+    const heroicEffects=cfg.heroicEffects.map((e,i)=>{const option=this.heroicEffectOptions(item,i).find(row=>row.statId===e.statId);const value=this.heroicEffectValue(option,e.levelKnown?e.level:0);return {groupNumber:i+1,name:this.statLabel(e.statId),value:this.core.formatSigned(value,e.statId),level:e.level,levelKnown:e.levelKnown};});
     return { name:item.name, meta:this.itemMeta(item), slotLabel:item.slotLabel, rarity:'heroic', slot:'heroic_'+group,
-      stats: inh,
-      traits: cfg.traits.map(t => ({ name:this.statLabel(t.statId), value:'T'+t.tier })),
-      heroic: [
-        ...(cfg.uniqueTrait ? [{ grp:'★', name:this.statLabel(cfg.uniqueTrait.statId), value:'T'+cfg.uniqueTrait.tier }] : []),
-        ...cfg.heroicEffects.map((e,i)=>({ grp:String(i+1), name:this.statLabel(e.statId), value: e.levelKnown ? ('Lv '+e.level) : 'Lv ?' })),
-      ],
+      imageUrl:item.imageUrl||'',stats:inh,traits:cfg.traits.map(t=>({name:this.statLabel(t.statId),value:this.core.formatStat(t.statId,this.tierVal(item.itemStats?.traits?.[t.statId],t.tier))})),unique,heroicEffects,
       runes: cfg.runes.filter(r=>r.runeId).map(r => { const rn=this.runeById(item, r.runeId);
-        return { type:(rn?rn.runeType:'').slice(0,3).toUpperCase(), grade:r.chaos?'Chaos':'Normal', level:r.level, contribution:this.statLabel(r.statId) }; }) };
+        const option=rn?.options?.find(row=>row.statId===r.statId);const value=option?.levels?.[r.level]??0;
+        return { empty:false,filled:true,icon:rn?.imageUrl||'',hasIcon:Boolean(rn?.imageUrl),typeLabel:this.core.runeTypeLabel(rn?.runeType).toUpperCase(),typeColor:this.RUNE_TYPE_COLOR[rn?.runeType]||'#e5c88f',gradeName:this.core.runeTierLabel(rn),level:r.level,contribution:`+${this.core.formatStat(r.statId,value)} ${this.statLabel(r.statId)}` }; }) };
   }
 
   FORGE_PHASES = [
@@ -1378,6 +1384,8 @@ class Component extends DCLogic {
       if (!cfg || this.state.heroicMode==='none') continue;
       const item=this.findHeroic(group,cfg.itemId);
       if (!item) continue;
+      const effectIds=cfg.heroicEffects.map(row=>row.statId).filter(Boolean);
+      if(new Set(effectIds).size!==effectIds.length)throw new Error(`${item.name} repeats a Heroic effect. Each effect may be selected only once per item.`);
       source.build.equipment[item.slotId]={
         ...this.core.emptyEquipmentSelection(), itemId:item.id, level:cfg.level,
         traits:cfg.traits.map(row=>({...row})), uniqueTrait:cfg.uniqueTrait?{...cfg.uniqueTrait}:null,
@@ -1403,6 +1411,8 @@ class Component extends DCLogic {
       this.setState({ engineError:'Choose two different weapon families and at least one priority before forging.' });
       return;
     }
+    let request;
+    try{request=this.optimizerRequest();}catch(error){this.setState({engineError:error.message||String(error)});return;}
     this.setState({ phase:'forging', progress:0, candidates:0, stepIndex:0, engineError:'',
       progressPhase:this.FORGE_PHASES[0].title, progressMsg:'Starting the optimizer worker…' });
     this._worker?.terminate();
@@ -1425,7 +1435,7 @@ class Component extends DCLogic {
         this._worker?.terminate(); this._worker=null; this.setState({phase:'setup',engineError:message.message||'The optimizer stopped without a result.'});
       }
     };
-    this._worker.postMessage({type:'optimize',request:this.optimizerRequest()});
+    this._worker.postMessage({type:'optimize',request});
   };
   cancelForge = () => { this._worker?.postMessage({type:'cancel'}); this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'}); };
   editGoals = () => this.setState({ phase:'setup' });
@@ -1523,7 +1533,7 @@ class Component extends DCLogic {
 
   toggleLock(slot) { const l = { ...this.state.locked }; l[slot] = !l[slot]; this.setState({ locked: l }); }
   clampPos(e) {
-    const pad = 16, w = 320, h = 460;
+    const pad = 16, w = 340, h = 520;
     let x = e.clientX + 22, y = e.clientY - 40;
     if (x + w > window.innerWidth - pad) x = e.clientX - w - 22;
     if (y + h > window.innerHeight - pad) y = Math.max(pad, window.innerHeight - h - pad);
@@ -1537,21 +1547,13 @@ class Component extends DCLogic {
   hoverCard(item) {
     if(item && item.hoverModel) return item.hoverModel;
     const rar = this.RARITY[item.rarity] || this.RARITY.epic;
-    const runes = (item.runes || []).map(r => {
-      const c = this.RUNE_COLOR[r.type] || '#e5c88f';
-      return { type: r.type, grade: r.grade, level: r.level, contribution: r.contribution,
-        color: c, glow: c + '44', icon: 'radial-gradient(circle at 35% 30%, #201810, #100c07)' };
-    });
+    const stats=(item.stats||[]).map(row=>({name:row.name,formattedValue:row.formattedValue??row.value??''}));
+    const traits=(item.traits||[]).map(row=>({name:row.name,formattedValue:row.formattedValue??row.value??''}));
     return {
-      name: item.name, meta: item.meta, nameColor: rar.color, icon: rar.icon,
-      headBg: 'linear-gradient(180deg,' + rar.glow + ', transparent)',
-      hasStats: !!(item.stats && item.stats.length), stats: item.stats || [],
-      hasTraits: !!(item.traits && item.traits.length), traits: item.traits || [],
-      hasHeroic: !!(item.heroic && item.heroic.length), heroic: item.heroic || [],
-      hasRunes: runes.length > 0, runes,
-      hasSet: item.slot === 'cloak' || item.slot === 'bracelet',
-      setName: 'Vanguard Aegis',
-      setBonuses: [ { req:'2', text:'Damage Reduction +18', color:'#e5c88f', opacity:1 }, { req:'4', text:'Block Chance +6%, Max Health +1,600', color:'#e5c88f', opacity:1 } ],
+      name:item.name,meta:item.meta,nameColor:rar.color,icon:item.imageUrl||'',hasIcon:Boolean(item.imageUrl),headBorder:'2px solid '+rar.color,
+      headBg:'linear-gradient(180deg,'+rar.glow+', transparent)',hasStats:stats.length>0,stats,hasTraits:traits.length>0,traits,
+      unique:item.unique||[],hasUnique:Boolean(item.unique?.length),heroicEffects:item.heroicEffects||[],hasHeroicEffects:Boolean(item.heroicEffects?.length),
+      resonance:[],visibleResonance:[],hasResonance:false,effects:[],hasEffects:false,runes:item.runes||[],hasRunes:Boolean(item.runes?.length),hasSynergy:false,hasSet:false,
       lockVerb: this.state.locked[item.slot] ? 'unlock' : 'lock',
     };
   }
@@ -1565,16 +1567,12 @@ class Component extends DCLogic {
     const hover=this.core.buildItemHoverModel(slotId,this.state.result.build,this.state.resultCalc,{optionalFallback:false});
     const rarity=item.grade===this.core.HEROIC_GRADE?'heroic':item.grade>=41?'violet':'epic';
     const rar=this.RARITY[rarity]||this.RARITY.epic;
-    const heroic=(hover?.heroicEffects||[]).map(row=>({grp:String(row.groupNumber),name:row.name,value:row.levelKnown?'Lv '+row.level:'Lv ?'}));
-    const runes=(hover?.runes||[]).map(row=>({type:String(row.type||row.runeType||'').slice(0,3).toUpperCase(),grade:row.tier||'',level:row.level,contribution:row.text||row.name||''}));
+    const heroic=(hover?.heroicEffects||[]).map(row=>({grp:String(row.groupNumber),name:row.name,value:row.value}));
+    const runes=hover?.runes||[];
     const model={slot:slotId,slotLabel:this.core.slotById(slotId).label,name:item.name,meta:(item.gradeName||this.core.gradeName(item.grade))+' · '+this.core.label(item.equipmentType)+' · Lv '+selection.level,
       rarity,level:selection.level,topStat:hover?.stats?.[0]?.text||'',stats:(hover?.stats||[]).map(row=>({name:row.name,value:row.formattedValue})),
       traits:(hover?.traits||[]).map(row=>({name:row.name,value:row.formattedValue})),heroic,runes,imageUrl:item.imageUrl||'',
-      hoverModel:{name:item.name,meta:(item.gradeName||this.core.gradeName(item.grade))+' · '+this.core.label(item.equipmentType)+' · Lv '+selection.level,nameColor:rar.color,
-        icon:item.imageUrl?`url(${item.imageUrl}) center/contain no-repeat`:rar.icon,headBg:'linear-gradient(180deg,'+rar.glow+',transparent)',
-        hasStats:Boolean(hover?.stats?.length),stats:(hover?.stats||[]).map(row=>({name:row.name,value:row.formattedValue})),hasTraits:Boolean(hover?.traits?.length),traits:(hover?.traits||[]).map(row=>({name:row.name,value:row.formattedValue})),
-        hasHeroic:Boolean(heroic.length),heroic,hasRunes:Boolean(runes.length),runes:runes.map(row=>({...row,color:'#e5c88f',glow:'rgba(229,200,143,.25)',icon:'radial-gradient(circle at 35% 30%,#201810,#100c07)'})),
-        hasSet:false,setName:'',setBonuses:[],lockVerb:this.state.locked[slotId]?'unlock':'lock'} };
+      hoverModel:{...hover,lockVerb:this.state.locked[slotId]?'unlock':'lock'} };
     return model;
   }
 
@@ -1890,8 +1888,8 @@ class Component extends DCLogic {
           uniqueTierOptions=Array.from({length:maxT},(_,j)=>({id:String(j+1),label:'T'+(j+1)}));
           uniqueTierVal=String(draft.uniqueTrait.tier); uniqueValue=this.core.formatStat(draft.uniqueTrait.statId,this.tierVal(arr,draft.uniqueTrait.tier)); hasUniqueSel=true; }
         effectRows=draft.heroicEffects.map((e,i)=>{
-          const opts=this.heroicEffectOptions(item,i); const opt=opts.find(o=>o.statId===e.statId)||opts[0];
-          return { grp:String(i+1), statId:e.statId, options:opts.map(o=>({id:o.statId,label:this.statLabel(o.statId)})),
+          const usedEffects=draft.heroicEffects.filter((_,j)=>j!==i).map(row=>row.statId);const opts=this.heroicEffectOptions(item,i); const opt=opts.find(o=>o.statId===e.statId)||opts[0];
+          return { grp:String(i+1), statId:e.statId, options:opts.filter(o=>o.statId===e.statId||!usedEffects.includes(o.statId)).map(o=>({id:o.statId,label:this.statLabel(o.statId)})),
             known:e.levelKnown, level:e.level, max:opt?(opt.maxLevel??opt.max??0):0, prob:opt?Number(opt.probability??opt.prob??0).toFixed(2)+'%':'',
             value: this.core.formatStat(e.statId,this.heroicEffectValue(opt,e.levelKnown?e.level:0)),
             onStat:(ev)=>this.setEffectStat(i,ev.target.value), inc:()=>this.setEffectLevel(i,1), dec:()=>this.setEffectLevel(i,-1),
@@ -1990,7 +1988,7 @@ class Component extends DCLogic {
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
 
-      hasHover: !!s.hover, hover: s.hover || {},
+      hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
 
       heroicsEngaged: s.heroicsEngaged, heroicHasAny, heroicCount, showHeroicGateway, heroicPanelBorder,
       heroicModes, heroicModeExplain, heroicSlotsVisible, heroicNoneNote, heroicSlots,

@@ -18,6 +18,9 @@ const model = {
 test("renders the complete selected item configuration without skill-core potentials", () => {
   const html = renderBuilderItemHover(model);
   for (const text of ["Defense", "Traits", "Heroic Trait", "Heroic Effects", "Trait Resonance", "Runes", "Rune Synergy", "Set Effects", "Inherent item passive"]) assert.match(html, new RegExp(text));
+  assert.match(html, /Evasion/);
+  assert.match(html, /220/);
+  assert.match(html, /\+80 Hit/);
   assert.doesNotMatch(html, /Excluded|Never render|Skill Core/);
 });
 
