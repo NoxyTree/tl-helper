@@ -78,6 +78,7 @@ test("public pages expose production discovery and accessibility metadata", asyn
     ["web/tracker.html", "https://tlhelper.org/tracker"],
     ["web/achievements.html", "https://tlhelper.org/achievements"],
     ["web/combat-lab.html", "https://tlhelper.org/combat-lab"],
+    ["web/build-from-scratch.html", "https://tlhelper.org/build-from-scratch"],
     ["web/privacy.html", "https://tlhelper.org/privacy"],
   ];
   for (const [file, canonical] of pages) {
@@ -99,13 +100,13 @@ test("search discovery files publish only the clean production pages", async () 
   const sitemap = await read("web/sitemap.xml");
   assert.match(robots, /Sitemap: https:\/\/tlhelper\.org\/sitemap\.xml/);
   assert.match(robots, /Disallow: \/api\//);
-  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/privacy"]) {
+  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/build-from-scratch", "/privacy"]) {
     assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
   }
 });
 
 test("standalone pages use the shared application header", async () => {
-  for (const file of ["web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/privacy.html"]) {
+  for (const file of ["web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/build-from-scratch.html", "web/privacy.html"]) {
     const document = await read(file);
     assert.match(document, /<header class="tl-app-header">/i, `${file} uses the shared header`);
     assert.match(document, /<nav class="tl-app-nav"/i, `${file} uses the shared navigation`);

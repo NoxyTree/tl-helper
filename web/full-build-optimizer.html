@@ -32,7 +32,10 @@
     label.field { display:grid; gap:6px; color:var(--muted); font-size:11.5px; }
     input[type="url"],select { width:100%; min-height:38px; padding:8px 10px; color:var(--cream); background:#0c0906; border:1px solid var(--line); border-radius:8px; }
     .source-tabs,.segmented { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-    .source-tabs { grid-template-columns:repeat(3,1fr); }
+    .source-tabs { grid-template-columns:repeat(2,1fr); }
+    .experience-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+    .experience-switch a,.experience-switch span { min-height:37px; display:grid; place-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--muted); font-size:12px; text-decoration:none; }
+    .experience-switch .active { border-color:rgba(212,166,94,.7); background:rgba(212,166,94,.14); color:#ffe9b8; }
     .source-tabs button,.segmented button { min-height:37px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:rgba(8,6,4,.62); color:var(--muted); cursor:pointer; }
     .source-tabs button.active,.segmented button.active { border-color:rgba(212,166,94,.7); background:rgba(212,166,94,.14); color:#ffe9b8; }
     .questlog { display:flex; gap:7px; margin-top:10px; }
@@ -136,7 +139,8 @@
     <div class="layout">
       <div class="stack">
         <section class="panel" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Choose your build</h2></div><div class="panel-body">
-          <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button><button type="button" data-source="scratch">Build from scratch</button></div>
+          <div class="experience-switch" aria-label="Optimizer experience"><span class="active">Improve my build</span><a href="./build-from-scratch.html">Build from scratch</a></div>
+          <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
           <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
           <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
         </div></section>
@@ -185,18 +189,7 @@
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
     selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
-    function activateSegment(id,value) { const root=$(id); root.querySelectorAll("button[data-value]").forEach(node=>node.classList.toggle("active",node.dataset.value===value)); state[id==="rune-mode"?"runeMode":id==="artifact-mode"?"artifactMode":"depth"]=value; }
-    function setScratchControls(active) {
-      $("protect-block").classList.toggle("is-unavailable",active); $("protect-mode-label").textContent=active?"Needs an existing baseline":"Do not reduce";
-      $("protect-picker").querySelector("input").disabled=active; $("locks-panel").classList.toggle("is-unavailable",active);
-      document.querySelectorAll("[data-slot]").forEach(node=>{ node.checked=false; node.disabled=active; });
-      $("locks-hint").textContent=active?"Scratch builds have no equipped slots to lock.":"A locked slot keeps its current item, traits, runes, and configured effects.";
-      $("keep-heroics").disabled=active; $("keep-heroics").checked=!active; $("reconsider-heroics").checked=active;
-      if(active){ state.protect=[]; renderPicker($("protect-picker"),"protect"); activateSegment("rune-mode","normal"); activateSegment("artifact-mode","sets"); }
-      else { $("keep-heroics").disabled=false; $("keep-heroics").checked=true; $("reconsider-heroics").checked=false; activateSegment("rune-mode","keep"); activateSegment("artifact-mode","keep"); }
-      $("chaos-warning").classList.add("hidden");
-    }
-    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); setScratchControls(state.source==="scratch"); if(state.source==="armory") await loadArmory(); else if(state.source==="scratch") { state.build=await state.adapter.createScratchBuild(); $("source-status").textContent="Starting with empty slots. The optimizer may use any legal equipment under these rules."; updateReady(); } else { state.build=null; updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
+    document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("empty-state").classList.add("hidden"); $("progress-state").classList.add("hidden"); $("results-state").classList.add("hidden"); $("error-state").classList.remove("hidden"); $("error-message").textContent=message; updateReady(); }
     async function connectEngine() {
@@ -237,7 +230,7 @@
       const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":""}${esc(row.formattedDelta??row.delta)}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      $("results-state").innerHTML=`<div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>${state.source==="scratch"?"Starting point":"Current"}</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      $("results-state").innerHTML=`<div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
       $("progress-state").classList.add("hidden"); $("results-state").classList.remove("hidden");
     }
     $("run-optimizer").addEventListener("click",async()=>{ state.controller=new AbortController(); $("run-optimizer").disabled=true; $("cancel-optimizer").classList.remove("hidden"); showProgress({percent:0}); try { const result=await state.adapter.optimize(request(),{ signal:state.controller.signal, onProgress:showProgress }); renderResult(result); } catch(error){ if(error.name==="AbortError"){ $("progress-state").classList.add("hidden"); $("empty-state").classList.remove("hidden"); } else setEngineError(`The search stopped without a result. ${error.message}`); } finally { state.controller=null; $("cancel-optimizer").classList.add("hidden"); updateReady(); } });

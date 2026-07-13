@@ -78,12 +78,14 @@ export async function createOptimizerAdapter(deps = {}) {
   const fetcher = deps.fetch ?? globalThis.fetch?.bind(globalThis);
   if (!core.data) await core.initCore(deps.dataSource ?? "./data/app-data.json");
 
-  const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name });
+  const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name, sourceKind: payload.sourceKind ?? "armory" });
   const calculate = (wrapped, includeSetEffects = true) => core.calculateBuild(wrapped.build, wrapped.attributes ?? {}, { includeSetEffects });
 
   return {
-    async createScratchBuild() {
-      return { build: core.createInitialBuild(), attributes: {}, name: "New optimized build", sourceKind: "scratch" };
+    async createScratchBuild({ name = "New optimized build", attributes = {} } = {}) {
+      const build = core.createInitialBuild();
+      build.name = name;
+      return wrap({ build, attributes: { str: 0, dex: 0, int: 0, per: 0, con: 0, ...attributes }, name, sourceKind: "scratch" });
     },
 
     async loadArmoryBuild() {
@@ -117,7 +119,8 @@ export async function createOptimizerAdapter(deps = {}) {
       const goals = request.goals ?? { increase: [], protect: [] };
       const baseline = totalMap(calculate(source, rules.includeSetEffects !== false));
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
-      const lockedIndexes = new Set(request.locks ?? []);
+      const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
+      const lockedSlotIds = new Set(request.lockedSlotIds ?? []);
       const candidatesBySlot = {};
       const cap = request.depth === "thorough" ? 18 : 8;
       const contribution = (slot, selection) => core.slotSelectionContribution(slot, selection, source.build, source.attributes, { includeSetEffects: false });
@@ -135,7 +138,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const current = selectionFor(source.build, slot);
         const currentItem = core.indexes.itemById[current?.itemId];
         const keepCurrentHeroic = !scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
-        if (lockedIndexes.has(slotIndex) || keepCurrentHeroic) {
+        if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic) {
           candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
           continue;
         }
@@ -176,11 +179,14 @@ export async function createOptimizerAdapter(deps = {}) {
         slots.push("artifact_bundle");
       }
 
+      const objectiveBaseline = request.objectiveBaseline && typeof request.objectiveBaseline === "object"
+        ? Object.fromEntries(Object.entries(request.objectiveBaseline).map(([id, value]) => [id, Number(value) || 0]))
+        : baseline;
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       const search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
         const build = applySelections(source.build, selections);
         const stats = totalMap(core.calculateBuild(build, source.attributes, { includeSetEffects: rules.includeSetEffects !== false }));
-        const normalized = (goals.increase ?? []).reduce((sum, id) => sum + ((stats[id] ?? 0) - (baseline[id] ?? 0)) / Math.max(1, Math.abs(baseline[id] ?? 0)), 0);
+        const normalized = (goals.increase ?? []).reduce((sum, id) => sum + ((stats[id] ?? 0) - (objectiveBaseline[id] ?? 0)) / Math.max(1, Math.abs(objectiveBaseline[id] ?? 0)), 0);
         return { score: normalized, stats, build };
       }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
         const itemId = candidate.selection?.itemId;
@@ -199,16 +205,18 @@ export async function createOptimizerAdapter(deps = {}) {
       const outputSlots = [...core.EQUIPMENT_SLOTS, ...core.ARTIFACT_SLOTS].map((slot) => {
         const recommendedSelection = best.selections[slot.id] ?? best.evaluation.build.artifacts?.[slot.id];
         const currentSelection = selectionFor(source.build, slot.id);
-        return { slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason: scratch ? "Selected for the complete optimized loadout" : recommendedSelection?.itemId === currentSelection?.itemId ? "Kept" : "Improves the selected build goals" };
+        return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason: scratch ? "Selected for the complete optimized loadout" : recommendedSelection?.itemId === currentSelection?.itemId ? "Kept" : "Improves the selected build goals" };
       });
       return {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
-        statDeltas: [...new Set([...(goals.increase ?? []), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (baseline[id] ?? 0) })),
+        statDeltas: [...new Set([...(goals.increase ?? []), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (objectiveBaseline[id] ?? 0) })),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included."],
         assumptions: [...(scratch ? ["Built from a naked level baseline with no allocated attribute points.", "This is a theoretical catalogue build. Ownership and acquisition cost are not scored."] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,
+        attributes: clone(source.attributes ?? {}),
+        objectiveBaseline: clone(objectiveBaseline),
       };
     },
   };
