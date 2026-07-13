@@ -1019,6 +1019,25 @@
                 <sc-if value="{{ noSynergy }}" hint-placeholder-val="{{ true }}">
                   <p style="margin: 8px 0 0; font-size: 12px; line-height: 1.55; color: #8a795f;">No three-rune synergy is active on this slot. Socket three compatible rune types to unlock a cached synergy bonus.</p>
                 </sc-if>
+                <section data-rune-synergy-guide style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(212,166,94,.12);">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+                    <div><div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#f6d391;">Synergy Guide</div><p style="margin:5px 0 0;color:#8a795f;font-size:10.5px;line-height:1.5;">Choose a bonus, then match its socket recipe from left to right. Your current runes update the match markers live.</p></div>
+                    <span style="flex:none;padding:4px 7px;border:1px solid rgba(114,169,255,.25);border-radius:999px;color:#9fc3ff;background:rgba(114,169,255,.08);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">{{ synergyGuideCategory }}</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:8px;margin-top:11px;">
+                    <sc-for list="{{ synergyGuideRows }}" as="guide" hint-placeholder-count="6">
+                      <article style="min-width:0;padding:10px;border:1px solid {{ guide.border }};border-radius:9px;background:{{ guide.bg }};box-shadow:{{ guide.shadow }};">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="color:#d9c8a5;font-size:10.5px;font-weight:650;">Sockets 1 → 2 → 3</span><span style="color:{{ guide.statusColor }};font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">{{ guide.statusLabel }}</span></div>
+                        <div style="display:flex;align-items:center;gap:5px;margin-top:7px;">
+                          <sc-for list="{{ guide.steps }}" as="step" hint-placeholder-count="3"><span title="{{ step.title }}" style="display:flex;align-items:center;gap:5px;min-width:0;padding:4px 7px;border:1px solid {{ step.border }};border-radius:999px;background:{{ step.bg }};color:{{ step.color }};font-size:9px;font-weight:700;"><i style="width:5px;height:5px;flex:none;border-radius:999px;background:{{ step.dot }};box-shadow:0 0 5px {{ step.dot }};"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ step.label }}</span></span></sc-for>
+                        </div>
+                        <div style="display:grid;gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(212,166,94,.09);">
+                          <sc-for list="{{ guide.bonuses }}" as="bonus" hint-placeholder-count="2"><div style="display:flex;align-items:baseline;gap:7px;font-size:10.5px;"><span style="color:#9d8a68;">{{ bonus.name }}</span><span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.14);transform:translateY(-3px);"></span><b style="color:#f3e9d4;font-weight:650;">{{ bonus.value }}</b></div></sc-for>
+                        </div>
+                      </article>
+                    </sc-for>
+                  </div>
+                </section>
                 <p style="margin: 16px 0 0; padding-top: 12px; border-top: 1px solid rgba(212, 166, 94, 0.12); font-size: 10.5px; line-height: 1.55; color: #8a795f;">Socket order matters. A Chaos rune can stand in for Attack, Defense, or Support when resolving a synergy, but each item may contain only one Chaos rune.</p>
               </aside>
             </div>
@@ -3337,6 +3356,41 @@ class Component extends DCLogic {
     const runeEffectRows = runeRows
       .filter((row) => row.hasRune && row.contribution !== "—")
       .map((row) => ({ name: `Socket ${row.n}`, value: row.contribution }));
+    const selectedTypes = rows.map((row) => core.indexes.runeById[row.runeId]?.runeType ?? "");
+    const synergyGuideRows = core.data.runeSynergies
+      .filter((row) => row.equipmentCategory === category)
+      .sort((a, b) => a.combination.join("|").localeCompare(b.combination.join("|")))
+      .map((guide) => {
+        const steps = guide.combination.map((expected, index) => {
+          const actual = selectedTypes[index];
+          const matches = actual === expected || actual === "chaos";
+          const conflicts = Boolean(actual) && !matches;
+          const typeColor = typeColors[expected] ?? "#cbb185";
+          return {
+            label: core.runeTypeLabel(expected),
+            title: actual === "chaos" ? `Socket ${index + 1}: Chaos stands in for ${core.runeTypeLabel(expected)}` : `Socket ${index + 1}: ${core.runeTypeLabel(expected)}`,
+            border: matches ? "rgba(126,224,166,.58)" : conflicts ? "rgba(229,106,106,.55)" : `${typeColor}66`,
+            bg: matches ? "rgba(85,213,138,.12)" : conflicts ? "rgba(229,106,106,.09)" : `${typeColor}12`,
+            color: matches ? "#9aefb9" : conflicts ? "#ee9992" : typeColor,
+            dot: matches ? "#55d58a" : conflicts ? "#e56a6a" : typeColor,
+            matches,
+            conflicts,
+          };
+        });
+        const matched = steps.filter((step) => step.matches).length;
+        const conflicts = steps.some((step) => step.conflicts);
+        const active = synergy?.id === guide.id;
+        return {
+          id: guide.id,
+          steps,
+          bonuses: Object.entries(guide.stats ?? {}).map(([id, value]) => ({ name: core.statName(id), value: core.formatSigned(value, id) })),
+          statusLabel: active ? "Active" : conflicts ? "Different recipe" : matched ? `${matched}/3 matched` : "Available",
+          statusColor: active ? "#7ee0a6" : conflicts ? "#e58b84" : matched ? "#f6d391" : "#6e7f99",
+          border: active ? "rgba(85,213,138,.55)" : matched && !conflicts ? "rgba(246,211,145,.34)" : "rgba(212,166,94,.14)",
+          bg: active ? "rgba(85,213,138,.08)" : matched && !conflicts ? "rgba(212,166,94,.06)" : "rgba(10,8,5,.38)",
+          shadow: active ? "0 0 18px rgba(85,213,138,.08)" : "none",
+        };
+      });
 
     return {
       runesLoaded: true,
@@ -3360,6 +3414,8 @@ class Component extends DCLogic {
             value: core.formatSigned(value, id),
           }))
         : [],
+      synergyGuideCategory: `${core.label(category)} recipes`,
+      synergyGuideRows,
     };
   }
 

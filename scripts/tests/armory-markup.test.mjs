@@ -38,6 +38,11 @@ test("rune panel provides explicit item, effect, and selector empty states", () 
   assert.match(runes, /No rune effects yet\./);
   assert.match(runes, /<option value="">Empty<\/option>/);
   assert.match(runes, /<option value="">Choose stat<\/option>/);
+  assert.match(runes, /data-rune-synergy-guide/);
+  assert.match(runes, /Synergy Guide/);
+  assert.match(runes, /Sockets 1 → 2 → 3/);
+  assert.match(runes, /synergyGuideRows/);
+  assert.match(markup, /actual === expected \|\| actual === "chaos"/);
 });
 
 test("TL Helper creation and saving are primary while Questlog remains optional", () => {
