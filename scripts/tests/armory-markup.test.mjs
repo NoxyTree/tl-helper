@@ -82,3 +82,9 @@ test("compact item editing flows from selection into per-item configuration", ()
   assert.doesNotMatch(markup, /isEquipped \? "" : item\.id/);
   assert.doesNotMatch(shellCss, /Item Picker[^\n]+last-child[^\n]+display:\s*none/);
 });
+
+test("item Heroic effects use one consistent stacked column", () => {
+  const picker = sectionBetween('value="{{ pickerOpen }}"', '</x-dc>');
+  assert.match(picker, /data-item-heroic-effects[^>]+grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.doesNotMatch(picker, /heroicEffectRows[\s\S]{0,800}repeat\(auto-fit/);
+});
