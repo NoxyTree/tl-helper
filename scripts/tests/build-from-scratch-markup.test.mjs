@@ -34,9 +34,11 @@ test("owned Heroic builder uses the canonical item-specific data model", () => {
   assert.match(html, /uniqueTrait/);
   assert.match(html, /resonance/);
   assert.match(html, /Choose the exact owned rune, stat roll, and level/);
-  assert.match(html, /Use only my Heroics/);
-  assert.match(html, /Allow theoretical/);
+  assert.match(html, /Owned only/);
+  assert.match(html, /Include theoretical/);
   assert.match(html, /No Heroics/);
+  assert.match(html, /Heroic equipment is disabled for this search/);
+  assert.doesNotMatch(html, /No Heroic equipment will be included in the build/);
 });
 
 test("forge runs in a worker and remains cancellable", () => {

@@ -264,7 +264,7 @@
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;">
           <div style="min-width:0;flex:1;">
             <h2 style="margin:0;color:#ffcf8c;font:400 19px Marcellus,serif;">My Heroics</h2>
-            <p style="margin:5px 0 0;color:#a4906d;font-size:11px;line-height:1.5;">Add the Heroic equipment you already own. These items and their exact configurations are locked into your generated build.</p>
+            <p style="margin:5px 0 0;color:#a4906d;font-size:11px;line-height:1.5;">Add Heroics you own to lock their exact configurations, then choose whether the optimizer may also consider theoretical Heroics.</p>
           </div>
           <sc-if value="{{ heroicHasAny }}" hint-placeholder-val="{{ false }}">
             <span style="flex:0 0 auto;color:#7ee0a6;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(126,224,166,.4);border-radius:999px;padding:3px 8px;white-space:nowrap;">{{ heroicCount }} locked</span>
@@ -340,10 +340,6 @@
               </sc-if>
             </sc-for>
           </div>
-          </sc-if>
-
-          <sc-if value="{{ heroicNoneNote }}" hint-placeholder-val="{{ false }}">
-            <div style="text-align:center;color:#8a795f;font-size:11px;padding:6px 4px 2px;">No Heroic equipment will be included in the build.</div>
           </sc-if>
         </sc-if>
       </section>
@@ -1211,9 +1207,9 @@ class Component extends DCLogic {
   };
   RUNE_TYPE_COLOR = { attack:'#f0a933', defense:'#87acef', assist:'#c984f1' };
   HERO_MODES = [
-    { id:'owned', label:'Use only my Heroics', explain:'Configured Heroics may be equipped. The optimizer cannot invent another Heroic.' },
-    { id:'theoretical', label:'Allow theoretical', explain:'The optimizer may recommend the best legal Heroic configuration, even if you have not marked it as owned.' },
-    { id:'none', label:'No Heroics', explain:'The generated build excludes all Heroic equipment.' },
+    { id:'owned', label:'Owned only', explain:'Only the Heroics you configure below may be used. Their exact rolls stay locked.' },
+    { id:'theoretical', label:'Include theoretical', explain:'The optimizer may use your configured Heroics or recommend other legal Heroics with optimized rolls.' },
+    { id:'none', label:'No Heroics', explain:'Heroic equipment is disabled for this search.' },
   ];
 
   heroicCatalog(group) {
@@ -1766,7 +1762,6 @@ class Component extends DCLogic {
     });
     const heroicModeExplain = (this.HERO_MODES.find(m=>m.id===s.heroicMode)||{}).explain;
     const heroicSlotsVisible = s.heroicMode !== 'none';
-    const heroicNoneNote = s.heroicMode === 'none';
     const heroicSlots = this.HGROUPS.map(g => {
       const cfg = s.heroics[g.key];
       if (!cfg) return { group:g.key, label:g.label, empty:true, configured:false, add:()=>this.addHeroic(g.key) };
@@ -1940,7 +1935,7 @@ class Component extends DCLogic {
       hasHover: !!s.hover, hover: s.hover || {},
 
       heroicsEngaged: s.heroicsEngaged, heroicHasAny, heroicCount, showHeroicGateway, heroicPanelBorder,
-      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicNoneNote, heroicSlots,
+      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicSlots,
       engageHeroics: this.engageHeroics, noHeroics: this.noHeroics,
       drawerOpen, closeDrawer: this.closeDrawer, drawerBack: this.drawerBack, setDrawerSearch: this.setDrawerSearch,
       ...drawerVals,
