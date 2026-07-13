@@ -54,6 +54,15 @@ test("TL Helper creation and saving are primary while Questlog remains optional"
   assert.match(builds, />Save current build<\/button>/);
 });
 
+test("Questlog import accepts a character-builder link instead of raw JSON", () => {
+  const importer = sectionBetween('value="{{ importOpen }}"', 'value="{{ pickerOpen }}"');
+  assert.match(importer, /type="url"/);
+  assert.match(importer, /aria-label="Questlog character-builder link"/);
+  assert.match(importer, /questlog\.gg\/throne-and-liberty\/en\/character-builder/);
+  assert.doesNotMatch(importer, /Questlog build JSON|Paste a JSON object|<textarea/);
+  assert.match(markup, /fetch\(`\/api\/questlog\/character\?url=\$\{encodeURIComponent\(url\)\}`/);
+});
+
 test("a first visit starts with an editable empty TL Helper build", () => {
   assert.match(markup, /const build = saved\?\.build \?\? core\.createInitialBuild\(\)/);
   assert.doesNotMatch(markup, /const build = saved\?\.build \?\? core\.seedShowcaseBuild/);
