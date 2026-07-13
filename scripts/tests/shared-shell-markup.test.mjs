@@ -8,7 +8,7 @@ const html = Object.fromEntries(await Promise.all(pages.map(async (page) => [
 ])));
 
 for (const [page, markup] of Object.entries(html)) {
-  assert.match(markup, /<link\b[^>]*href=["'][^"']*tl-shell\.css["'][^>]*>/i, `${page} links the shared shell stylesheet`);
+  assert.match(markup, /<link\b[^>]*href=["'][^"']*tl-shell\.css(?:\?[^"']*)?["'][^>]*>/i, `${page} links the shared shell stylesheet`);
   assert.match(markup, /<header\b[^>]*class=["'][^"']*\btl-app-header\b[^"']*["']/i, `${page} uses the shared app header`);
   assert.match(markup, /class=["'][^"']*\btl-app-brand\b/i, `${page} uses the shared brand`);
   assert.match(markup, /class=["'][^"']*\btl-app-nav\b/i, `${page} uses the shared navigation`);

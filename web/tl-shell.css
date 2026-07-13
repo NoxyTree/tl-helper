@@ -287,7 +287,6 @@
 
   [data-screen-label="Item Picker"] { padding: 12px !important; }
   [data-screen-label="Item Picker"] > div > div { grid-template-columns: 1fr !important; }
-  [data-screen-label="Item Picker"] > div > div > div:last-child { display: none !important; }
   [data-screen-label="Item Picker"] > div > header { flex-wrap: wrap !important; gap: 8px !important; padding: 12px !important; }
 }
 

@@ -4,6 +4,7 @@ import test from "node:test";
 
 const armoryPath = new URL("../../web/index.html", import.meta.url);
 const markup = await readFile(armoryPath, "utf8");
+const shellCss = await readFile(new URL("../../web/tl-shell.css", import.meta.url), "utf8");
 
 function sectionBetween(start, end) {
   const startAt = markup.indexOf(start);
@@ -68,4 +69,16 @@ test("a first visit starts with an editable empty TL Helper build", () => {
   assert.match(markup, /const build = saved\?\.build \?\? core\.createInitialBuild\(\)/);
   assert.doesNotMatch(markup, /const build = saved\?\.build \?\? core\.seedShowcaseBuild/);
   assert.doesNotMatch(markup, /onAutoFill|seedShowcaseBuild\(/);
+});
+
+test("compact item editing flows from selection into per-item configuration", () => {
+  const picker = sectionBetween('value="{{ pickerOpen }}"', '</x-dc>');
+  assert.match(picker, /data-picker-view="{{ pickerView }}"/);
+  assert.match(picker, />1&nbsp; Choose item</);
+  assert.match(picker, />2&nbsp; Configure</);
+  assert.match(picker, /Runes \{\{ preview\.runeFilled \}\}\/3/);
+  assert.match(markup, /view: equipped \? "config" : "list"/);
+  assert.match(markup, /if \(isEquipped\) this\.setState\(\{ picker: \{ \.\.\.picker, view: "config" \}/);
+  assert.doesNotMatch(markup, /isEquipped \? "" : item\.id/);
+  assert.doesNotMatch(shellCss, /Item Picker[^\n]+last-child[^\n]+display:\s*none/);
 });

@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
-  <link href="./tl-shell.css" rel="stylesheet">
+  <link href="./tl-shell.css?v=20260713-item-editor" rel="stylesheet">
   <style>
     html, body { margin: 0; padding: 0; min-height: 100vh; }
     body {
@@ -65,12 +65,28 @@
       [data-screen-label="Workspace"] { width: 100%; }
       [data-screen-label="Workspace"] > nav { overflow-x: auto; }
       [data-screen-label="Workspace"] > div { grid-template-columns: minmax(0, 1fr) !important; }
+      .tl-item-picker-overlay { padding: 0 !important; }
+      .tl-item-picker-dialog { width: 100% !important; height: 100% !important; border-radius: 0 !important; }
+      .tl-picker-body { display: block !important; }
+      .tl-picker-list-pane, .tl-picker-config-pane { width: 100%; height: 100%; border-right: 0 !important; }
+      .tl-picker-compact-nav { display: grid !important; }
+      .tl-picker-body[data-picker-view="list"] .tl-picker-config-pane { display: none !important; }
+      .tl-picker-body[data-picker-view="config"] .tl-picker-list-pane { display: none !important; }
     }
     @media (max-width: 620px) {
       [data-screen-label="Header Actions"] { justify-content: flex-start !important; }
       #main-content { padding: 12px !important; gap: 16px !important; }
       [data-screen-label="Character Doll"] > div { padding: 13px 9px !important; }
       [data-screen-label="Workspace"] > nav button { padding-left: 12px !important; padding-right: 12px !important; }
+      .tl-item-picker-header { padding: 11px 12px !important; gap: 9px !important; }
+      .tl-item-picker-header h2 { font-size: 18px !important; }
+      .tl-item-picker-clear { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 10px !important; }
+      .tl-picker-filters { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(112px, .45fr); }
+      .tl-picker-filters input { grid-column: 1 / -1; }
+      .tl-picker-config-pane { padding: 10px !important; }
+      .tl-picker-config-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      .tl-picker-level-row { flex-wrap: wrap; }
+      .tl-picker-level-row input[type="range"] { min-width: 150px !important; }
     }
     @keyframes tlEmber {
       0%, 100% { opacity: 0.55; }
@@ -1140,17 +1156,17 @@
       </div>
     </sc-if>
 
-    <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Item Picker" onClick="{{ closePicker }}"
+    <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}"><div class="tl-item-picker-overlay" data-screen-label="Item Picker" onClick="{{ closePicker }}"
         style="position: fixed; inset: 0; z-index: 50; background: rgba(5, 4, 2, 0.72); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 30px; animation: tlFadeIn 0.2s ease;">
-        <div onClick="{{ stopClose }}" role="dialog" aria-label="Edit slot"
+        <div class="tl-item-picker-dialog" onClick="{{ stopClose }}" role="dialog" aria-label="Edit slot"
           style="width: min(1380px, 100%); height: min(880px, 100%); display: flex; flex-direction: column; border: 1px solid rgba(212, 166, 94, 0.32); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 20, 12, 0.98), rgba(13, 10, 7, 0.99)); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(246, 211, 145, 0.08); animation: tlSlideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden;">
 
-          <header style="display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: rgba(20, 15, 9, 0.5);">
+          <header class="tl-item-picker-header" style="display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: rgba(20, 15, 9, 0.5);">
             <div style="flex: 1;">
               <div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #8a795f;">Edit Slot</div>
               <h2 style="margin: 1px 0 0; font-family: Marcellus, serif; font-size: 20px; font-weight: 400; color: #f6d391;">{{ pickerSlotLabel }}</h2>
             </div>
-            <button type="button" onClick="{{ onPickerClear }}"
+            <button class="tl-item-picker-clear" type="button" onClick="{{ onPickerClear }}"
               style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9d8a68; background: none; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
               style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.5);">{{ pickerClearLabel }}</button>
             <button type="button" onClick="{{ closePicker }}" aria-label="Close"
@@ -1158,11 +1174,16 @@
               style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.6);">✕</button>
           </header>
 
-          <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 480px;">
+          <nav class="tl-picker-compact-nav" aria-label="Item editor steps" style="display:none;grid-template-columns:1fr 1fr;gap:7px;padding:8px 10px;border-bottom:1px solid rgba(212,166,94,.14);background:rgba(10,8,5,.7);">
+            <button type="button" onClick="{{ showPickerList }}" aria-current="{{ pickerListCurrent }}" style="min-height:38px;border:1px solid {{ pickerListBorder }};border-radius:8px;background:{{ pickerListBg }};color:{{ pickerListColor }};font-size:11px;font-weight:650;cursor:pointer;">1&nbsp; Choose item</button>
+            <button type="button" onClick="{{ showPickerConfig }}" disabled="{{ pickerConfigDisabled }}" aria-current="{{ pickerConfigCurrent }}" style="min-height:38px;border:1px solid {{ pickerConfigBorder }};border-radius:8px;background:{{ pickerConfigBg }};color:{{ pickerConfigColor }};font-size:11px;font-weight:650;cursor:{{ pickerConfigCursor }};opacity:{{ pickerConfigOpacity }};">2&nbsp; Configure</button>
+          </nav>
+
+          <div class="tl-picker-body" data-picker-view="{{ pickerView }}" style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 480px;">
             <!-- list side -->
-            <div style="display: flex; flex-direction: column; min-height: 0; border-right: 1px solid rgba(212, 166, 94, 0.14);">
+            <div class="tl-picker-list-pane" style="display: flex; flex-direction: column; min-height: 0; border-right: 1px solid rgba(212, 166, 94, 0.14);">
               <div style="padding: 12px 16px 10px; display: grid; gap: 8px;">
-                <div style="display: flex; gap: 8px;">
+                <div class="tl-picker-filters" style="display: flex; gap: 8px;">
                   <input value="{{ pickerSearch }}" onInput="{{ onPickerSearch }}" placeholder="Search items, grades, stats, sources…" spellcheck="false"
                     style="flex: 1; font-size: 13px; color: #f3e9d4; background: rgba(8, 6, 4, 0.65); border: 1px solid rgba(212, 166, 94, 0.24); border-radius: 8px; padding: 9px 13px;"
                     style-focus="border-color: rgba(232, 184, 106, 0.65); outline: none;">
@@ -1222,7 +1243,7 @@
             </div>
 
             <!-- preview / config side -->
-            <div style="min-height: 0; overflow-y: auto; padding: 16px; background: rgba(10, 8, 5, 0.35);">
+            <div class="tl-picker-config-pane" style="min-height: 0; overflow-y: auto; padding: 16px; background: rgba(10, 8, 5, 0.35);">
               <sc-if value="{{ hasPreview }}" hint-placeholder-val="{{ false }}">
                 <div style="border: 1px solid rgba(212, 166, 94, 0.22); border-radius: 10px; overflow: hidden; background: rgba(13, 10, 7, 0.85);">
                   <!-- tooltip head -->
@@ -1239,8 +1260,14 @@
                     <span style="flex: none; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: {{ preview.equipTagColor }}; border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px;">{{ preview.equipTag }}</span>
                   </div>
 
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid rgba(212,166,94,.08);border-bottom:1px solid rgba(212,166,94,.1);background:rgba(8,6,4,.5);">
+                    <button type="button" onClick="{{ showPickerList }}" style="font-size:10px;letter-spacing:.05em;color:#cbb185;background:transparent;border:1px solid rgba(212,166,94,.24);border-radius:7px;padding:7px 10px;cursor:pointer;">Change item</button>
+                    <span style="flex:1;min-width:0;color:#6e5f49;font-size:9.5px;text-align:right;">Level, traits and resonance</span>
+                    <sc-if value="{{ preview.canConfigureRunes }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ preview.openRunes }}" style="white-space:nowrap;font-size:10px;letter-spacing:.05em;color:#dce9ff;background:rgba(114,169,255,.12);border:1px solid rgba(114,169,255,.48);border-radius:7px;padding:7px 10px;cursor:pointer;">Runes {{ preview.runeFilled }}/3</button></sc-if>
+                  </div>
+
                   <!-- level -->
-                  <div style="display: flex; align-items: center; gap: 12px; padding: 10px 17px; border-bottom: 1px solid rgba(212, 166, 94, 0.1);">
+                  <div class="tl-picker-level-row" style="display: flex; align-items: center; gap: 12px; padding: 10px 17px; border-bottom: 1px solid rgba(212, 166, 94, 0.1);">
                     <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">Item Level</span>
                     <sc-if value="{{ preview.levelEditable }}" hint-placeholder-val="{{ false }}">
                       <button type="button" onClick="{{ preview.onLevelDec }}" aria-label="Lower level" style="flex: none; width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">−</button>
@@ -1260,7 +1287,7 @@
                   </div>
 
                   <!-- headline stats -->
-                  <div style="padding: 11px 17px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 22px;">
+                  <div class="tl-picker-config-grid" style="padding: 11px 17px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 22px;">
                     <sc-for list="{{ preview.headline }}" as="row" hint-placeholder-count="3">
                       <div style="display: flex; align-items: baseline; gap: 8px;">
                         <span style="font-size: 12px; color: #d9c8a5;">{{ row.label }}</span>
@@ -1280,7 +1307,7 @@
                   </div>
 
                   <sc-if value="{{ preview.hasExtra }}" hint-placeholder-val="{{ false }}">
-                    <div style="padding: 9px 17px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 22px;">
+                    <div class="tl-picker-config-grid" style="padding: 9px 17px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 22px;">
                       <sc-for list="{{ preview.extra }}" as="row" hint-placeholder-count="3">
                         <div style="display: flex; align-items: baseline; gap: 8px;">
                           <span style="font-size: 11.5px; color: #a4906d;">{{ row.label }}</span>
@@ -1370,7 +1397,7 @@
                         <span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185;">Traits</span>
                         <span style="font-size: 9px; color: #6e5f49;">{{ preview.traitHint }}</span>
                       </div>
-                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
+                      <div class="tl-picker-config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
                         <sc-for list="{{ preview.traitRows }}" as="trait" hint-placeholder-count="3">
                           <div>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -1379,7 +1406,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-left: 12px;">
                               <sc-for list="{{ trait.tiers }}" as="tier" hint-placeholder-count="3">
-                                <button type="button" onClick="{{ tier.onClick }}"
+                                <button type="button" onClick="{{ tier.onClick }}" aria-label="{{ trait.name }} {{ tier.label }}" aria-pressed="{{ tier.active }}"
                                   style="font-size: 10.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid {{ tier.border }}; background: {{ tier.bg }}; color: {{ tier.color }}; cursor: {{ tier.cursor }}; font-variant-numeric: tabular-nums;"
                                   style-hover="border-color: rgba(126, 224, 166, 0.55);">{{ tier.label }}</button>
                               </sc-for>
@@ -1403,7 +1430,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-left: 12px;">
                               <sc-for list="{{ trait.tiers }}" as="tier" hint-placeholder-count="3">
-                                <button type="button" onClick="{{ tier.onClick }}"
+                                <button type="button" onClick="{{ tier.onClick }}" aria-label="{{ trait.name }} {{ tier.label }}" aria-pressed="{{ tier.active }}"
                                   style="font-size: 10.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid {{ tier.border }}; background: {{ tier.bg }}; color: {{ tier.color }}; cursor: {{ tier.cursor }}; font-variant-numeric: tabular-nums;"
                                   style-hover="border-color: rgba(255, 183, 101, 0.55);">{{ tier.label }}</button>
                               </sc-for>
@@ -1421,7 +1448,7 @@
                         <span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #cf9dff;">Trait Resonance</span>
                         <span style="font-size: 9px; color: #6e5f49;">Pick one</span>
                       </div>
-                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
+                      <div class="tl-picker-config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
                         <sc-for list="{{ preview.resonanceRows }}" as="trait" hint-placeholder-count="2">
                           <div>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -1431,7 +1458,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-left: 12px;">
                               <sc-for list="{{ trait.tiers }}" as="tier" hint-placeholder-count="3">
-                                <button type="button" onClick="{{ tier.onClick }}"
+                                <button type="button" onClick="{{ tier.onClick }}" aria-label="{{ trait.name }} {{ tier.label }}" aria-pressed="{{ tier.active }}"
                                   style="font-size: 10.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid {{ tier.border }}; background: {{ tier.bg }}; color: {{ tier.color }}; cursor: {{ tier.cursor }}; font-variant-numeric: tabular-nums;"
                                   style-hover="border-color: rgba(207, 157, 255, 0.55);">{{ tier.label }}</button>
                               </sc-for>
@@ -1474,8 +1501,7 @@
                     </div>
                   </sc-if>
 
-                  <div style="padding: 10px 15px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-                    <sc-if value="{{ preview.canConfigureRunes }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ preview.openRunes }}" style="font-size: 10.5px; letter-spacing: 0.08em; color: #f6d391; background: rgba(212, 166, 94, 0.1); border: 1px solid rgba(232, 184, 106, 0.4); border-radius: 6px; padding: 5px 9px; cursor: pointer;">Configure Runes</button></sc-if>
+                  <div style="padding: 10px 15px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: flex; flex-wrap:wrap; align-items: center; justify-content: flex-end; gap: 8px 12px;">
                     <a href="{{ preview.dbUrl }}" target="_blank" rel="noreferrer" style="font-size: 10.5px; letter-spacing: 0.08em;">View in database ↗</a>
                   </div>
                 </div>
@@ -1858,7 +1884,7 @@ class Component extends DCLogic {
     let type = "all";
     const equipped = core.slotItem(slotId, this.state.build);
     if (options.length > 1 && equipped && options.includes(equipped.equipmentType)) type = equipped.equipmentType;
-    this.setState({ picker: { slot: slotId, search: "", type, grade: "all", sort: "level_desc" }, pickerHoverId: "" });
+    this.setState({ picker: { slot: slotId, search: "", type, grade: "all", sort: "level_desc", view: equipped ? "config" : "list" }, pickerHoverId: "" });
   }
 
   closePicker() {
@@ -1876,6 +1902,9 @@ class Component extends DCLogic {
         level: item ? core.getItemLevels(item).at(-1) ?? 0 : 0,
       };
     });
+    if (this.state.picker?.slot === slotId) {
+      this.setState({ picker: { ...this.state.picker, view: itemId ? "config" : "list" }, pickerHoverId: "" });
+    }
     this.flashSlot(slotId);
   }
 
@@ -3421,7 +3450,11 @@ class Component extends DCLogic {
         footerColor: disabled ? "#e56a6a" : isEquipped ? "#55d58a" : "#6e5f49",
         opacity: disabled ? "0.45" : "1",
         cursor: disabled ? "not-allowed" : "pointer",
-        onClick: () => !disabled && this.equipItem(slot.id, isEquipped ? "" : item.id),
+        onClick: () => {
+          if (disabled) return;
+          if (isEquipped) this.setState({ picker: { ...picker, view: "config" }, pickerHoverId: "" });
+          else this.equipItem(slot.id, item.id);
+        },
         onHover: () => this.setState({ pickerHoverId: item.id }),
         onLeave: () => this.setState({ pickerHoverId: "" }),
       };
@@ -3651,6 +3684,7 @@ class Component extends DCLogic {
         canConfigureRunes: isEquippedPreview
           && core.EQUIPMENT_SLOTS.some((entry) => entry.id === slot.id)
           && core.runeChoicesForCategory(core.runeCategoryForSlot(slot.id)).length > 0,
+        runeFilled: core.normalizeRuneRows(selection.runes).filter((row) => row.runeId).length,
         openRunes: () => this.setState({ tab: "runes", runeSlot: slot.id, picker: null, pickerHoverId: "" }),
         dbUrl: core.itemDatabaseUrl(previewItem),
         traitHint: isEquippedPreview ? "Click a tier to select — up to 3 traits" : "Traits are editable once equipped",
@@ -3659,6 +3693,20 @@ class Component extends DCLogic {
 
     return {
       pickerOpen: true,
+      pickerView: picker.view === "config" && equippedItem ? "config" : "list",
+      showPickerList: () => setPicker({ view: "list" }),
+      showPickerConfig: () => equippedItem && setPicker({ view: "config" }),
+      pickerConfigDisabled: !equippedItem,
+      pickerConfigCursor: equippedItem ? "pointer" : "not-allowed",
+      pickerConfigOpacity: equippedItem ? "1" : ".45",
+      pickerListCurrent: picker.view !== "config" || !equippedItem ? "step" : "false",
+      pickerConfigCurrent: picker.view === "config" && equippedItem ? "step" : "false",
+      pickerListBorder: picker.view !== "config" || !equippedItem ? "rgba(232,184,106,.65)" : "rgba(212,166,94,.18)",
+      pickerListBg: picker.view !== "config" || !equippedItem ? "rgba(212,166,94,.14)" : "rgba(10,8,5,.45)",
+      pickerListColor: picker.view !== "config" || !equippedItem ? "#f6d391" : "#8a795f",
+      pickerConfigBorder: picker.view === "config" && equippedItem ? "rgba(114,169,255,.62)" : "rgba(212,166,94,.18)",
+      pickerConfigBg: picker.view === "config" && equippedItem ? "rgba(114,169,255,.14)" : "rgba(10,8,5,.45)",
+      pickerConfigColor: picker.view === "config" && equippedItem ? "#dce9ff" : "#8a795f",
       pickerSlotLabel: slot.label,
       pickerSearch: picker.search,
       onPickerSearch: (event) => setPicker({ search: event.target.value }),
