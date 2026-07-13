@@ -66,10 +66,9 @@ const total = (calc, id) => statRow(calc, id)?.uncappedTotal ?? statRow(calc, id
 const baseline = calculateBuild(equipBuild({}), {});
 const delta = (calc, id) => total(calc, id) - total(baseline, id);
 
-test("exclusive set groups preserve decoded priorities and temporary modeled precedence", () => {
+test("exclusive set groups preserve decoded priorities with lower values winning", () => {
   assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[FA].pieces, 2);
   assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[LS].pieces, 2);
-  assert.ok(SET_EXCLUSIVITY_GROUPS.evasion[FA].precedence > SET_EXCLUSIVITY_GROUPS.evasion[LS].precedence);
   assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[FA].decodedPriority, 2);
   assert.equal(SET_EXCLUSIVITY_GROUPS.evasion[LS].decodedPriority, 1);
   assert.ok(SET_PASSIVE_RULES[FA]?.[2]);
@@ -79,12 +78,12 @@ test("exclusive set groups preserve decoded priorities and temporary modeled pre
   }
 });
 
-test("only the stronger active exclusive evasion set contributes", () => {
+test("only the lower-priority-number exclusive evasion set contributes", () => {
   const calc = calculateBuild(equipBuild({ head: "fa_head", chest: "fa_chest", hands: "ls_hands", legs: "ls_legs" }), {});
-  for (const school of ["magic_evasion", "melee_evasion", "range_evasion"]) assert.equal(delta(calc, school), 2200, school);
+  for (const school of ["magic_evasion", "melee_evasion", "range_evasion"]) assert.equal(delta(calc, school), 1500, school);
   const labels = statRow(calc, "magic_evasion").sources.filter((row) => row.type === "set_bonus").map((row) => row.sourceLabel);
-  assert.ok(labels.includes("Forgotten Assassin Set"));
-  assert.ok(!labels.includes("Lightning Strike Set"));
+  assert.ok(labels.includes("Lightning Strike Set"));
+  assert.ok(!labels.includes("Forgotten Assassin Set"));
 });
 
 test("an evasion set without the exclusivity clause still stacks", () => {
@@ -93,7 +92,7 @@ test("an evasion set without the exclusivity clause still stacks", () => {
   assert.equal(delta(calc, "melee_evasion"), 2200);
 });
 
-test("Critical Damage set clauses keep only the strongest persistent value", () => {
+test("priority-2 Critical Damage suppresses priority-3 Death", () => {
   const calc = calculateBuild(equipBuild({
     head: "death_head",
     chest: "death_chest",
@@ -107,15 +106,16 @@ test("Critical Damage set clauses keep only the strongest persistent value", () 
   assert.deepEqual(labels, ["Imperial Seeker Set"]);
 });
 
-test("partial exclusivity suppresses Secret Order Critical Damage but retains Heavy Attack Damage", () => {
+test("priority-1 Secret Order suppresses Imperial Critical Damage and retains Heavy Attack Damage", () => {
   const calc = calculateBuild(equipBuild({
     hands: "imperial_hands",
     legs: "imperial_legs",
     feet: "secret_feet",
     cloak: "secret_cloak",
   }), {});
-  assert.equal(delta(calc, "critical_damage_dealt_modifier"), 1500);
+  assert.equal(delta(calc, "critical_damage_dealt_modifier"), 1200);
   assert.equal(delta(calc, "double_damage_dealt_modifier"), 1400);
+  assert.equal(statRow(calc, "critical_damage_dealt_modifier").sources.find((row) => row.type === "set_bonus").sourceLabel, "Secret Order Set");
   assert.equal(statRow(calc, "double_damage_dealt_modifier").sources.find((row) => row.type === "set_bonus").sourceLabel, "Secret Order Set");
 });
 

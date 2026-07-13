@@ -95,10 +95,10 @@ range increase by 30, a faithful reading of the string. Retained as
   **Partially resolved later**: `SET_EXCLUSIVITY_GROUPS` now groups only
   the breakpoints that carry an explicit non-stacking clause. The calculator
   suppresses all but one active member. Evasion sets without that clause
-  continue to stack. `TLAbnormalState_Item` provides `PriorityInGroup` values,
-  but the decoded records do not prove whether lower or higher priority wins.
-  Current magnitude-based precedence is temporary and modeled; the
-  non-monotonic Critical Damage priorities contradict it as a decoded rule.
+  continue to stack. `TLAbnormalState_Item` provides `PriorityInGroup` values.
+  A later in-game Veiled Concord/Secret Order priority-1 versus Death
+  priority-3 comparison confirmed that the lower number wins. The calculator
+  now applies decoded priority and labels the direction as calibrated.
 - **Critical Damage exclusivity**: the same stat-scoped model now covers Death,
   Imperial Seeker, Spectral Overseer, and Secret Order 2-piece effects. Only
   Critical Damage is suppressed. Secret Order still contributes its independent

@@ -48,5 +48,5 @@
     "set_aa_leather_002:2": 3,
     "set_aa_t3_leather_004:2": 1
   },
-  "exclusivityWinnerDirection": "unresolved"
+  "exclusivityWinnerDirection": "lower_wins"
 }

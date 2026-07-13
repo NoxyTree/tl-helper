@@ -79,7 +79,7 @@ The Vanguard Leader 2-piece effect is 45 Magic, Melee, and Ranged Endurance per 
 ## Release state and remaining work
 
 1. Keep the nine combat or scoped breakpoints explicitly unsupported until a verified sheet-stat mapping or combat-stage model exists.
-2. Resolve whether lower or higher decoded PriorityInGroup wins for mutually exclusive set effects. Current magnitude-based precedence is temporary and explicitly modeled, not decoded truth.
+2. Keep the calibrated lower-PriorityInGroup exclusivity direction covered by the Veiled Concord/Secret Order versus Death regression test.
 3. Improve bounded optimizer coverage for attribute-activated dynamic sets, partial artifact-set hybrids, Heroic configuration, weapon-material interactions, and rune refinement. These affect search completeness, not finalist arithmetic.
 4. Continue using `calculateBuild` as the only final sheet-stat authority and require every new projected breakpoint to pass the structured/mapped/unsupported classification test.
 

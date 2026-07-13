@@ -57,7 +57,7 @@ Stat-scoped exclusivity is implemented for the decoded non-stacking groups:
 - Death, Imperial Seeker, Spectral Overseer, and Secret Order Critical Damage effects
 - the two currently unsupported Damage over Time exclusivity members
 
-Only the conflicting stat is suppressed. Secret Order therefore keeps Heavy Attack Damage when the temporary modeled winner is selected. Decoded `TLAbnormalState_Item` rows expose `PriorityInGroup` values, but the available records do not prove whether lower or higher priority wins. Current magnitude-based precedence remains explicitly `modeled`, is contradicted as a general ordering rule by the non-monotonic Critical Damage priorities, and must not be treated as decoded truth.
+Only the conflicting stat is suppressed. Secret Order therefore keeps Heavy Attack Damage when another Critical Damage row is suppressed. Decoded `TLAbnormalState_Item` rows expose `PriorityInGroup`, and an in-game Veiled Concord/Secret Order priority-1 versus Death priority-3 test confirmed that the lower number wins. Exclusivity application is now labeled `calibrated` and uses decoded priority rather than effect magnitude.
 
 Imperial Seeker and Spectral Overseer share the priority-2 Critical Damage abnormal row. Death is priority 3 and Secret Order is priority 1. Their conditional or independent components are not members of that abnormal-state group, so only the grouped persistent Critical Damage stat is suppressed.
 
@@ -120,7 +120,10 @@ Steel Wall Guardian 4-piece evaluates its Max Health scaler in phase 3, while Wr
 ### Modeled
 
 - Owner application of the personal plus self-inclusive party aura for Oracle Priest, Forgotten Assassin, Skilled Veteran, and Admiral.
-- Temporary magnitude-based precedence for mutually exclusive set effects. Decoded priorities exist, but winner direction remains unresolved.
+
+### Calibrated
+
+- Lower `PriorityInGroup` wins for mutually exclusive set effects, confirmed by the Veiled Concord/Secret Order versus Death in-game comparison.
 
 ### Unsupported
 

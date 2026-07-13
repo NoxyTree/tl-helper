@@ -1930,8 +1930,8 @@ function activeSetCounts(selections) {
 }
 
 // Returns breakpoint-specific stat suppression for active members that lose
-// under the temporary modeled precedence rule. Decoded PriorityInGroup values
-// exist, but their direction is unresolved. Some breakpoints contain
+// under decoded PriorityInGroup. An in-game priority-1 versus priority-3 test
+// confirmed that lower values win. Some breakpoints contain
 // unrelated stats which must remain active, so suppression cannot be modeled
 // as an all-or-nothing breakpoint flag.
 export function suppressedSetStats(activeSets) {
@@ -1939,14 +1939,14 @@ export function suppressedSetStats(activeSets) {
   for (const [groupId, group] of Object.entries(SET_EXCLUSIVITY_GROUPS)) {
     const contenders = activeSets
       .filter(({ set, count }) => group[set.id] && count >= group[set.id].pieces)
-      .sort((a, b) => group[b.set.id].precedence - group[a.set.id].precedence || a.set.id.localeCompare(b.set.id));
+      .sort((a, b) => group[a.set.id].decodedPriority - group[b.set.id].decodedPriority || a.set.id.localeCompare(b.set.id));
     for (const { set } of contenders.slice(1)) {
       const rule = group[set.id];
       suppressed.set(`${set.id}:${rule.pieces}`, {
         groupId,
         winnerSetId: contenders[0]?.set.id ?? "",
-        provenance: "modeled",
-        reason: "Decoded PriorityInGroup direction is unresolved; temporary modeled precedence is applied.",
+        provenance: "calibrated",
+        reason: "Lower decoded PriorityInGroup wins, confirmed by an in-game priority-1 versus priority-3 test.",
         all: rule.suppressAll === true,
         statIds: new Set(rule.statIds ?? []),
       });
@@ -1971,7 +1971,7 @@ function createSetEffectTrace(selections, includeSetEffects) {
   for (const [groupId, group] of Object.entries(SET_EXCLUSIVITY_GROUPS)) {
     const contenders = activeSets
       .filter(({ set, count }) => group[set.id] && count >= group[set.id].pieces)
-      .sort((a, b) => group[b.set.id].precedence - group[a.set.id].precedence || a.set.id.localeCompare(b.set.id));
+      .sort((a, b) => group[a.set.id].decodedPriority - group[b.set.id].decodedPriority || a.set.id.localeCompare(b.set.id));
     if (contenders.length < 2) continue;
     for (const [index, { set }] of contenders.entries()) {
       const key = setBreakpointKey(set.id, group[set.id].pieces);
@@ -1980,9 +1980,9 @@ function createSetEffectTrace(selections, includeSetEffects) {
         groupId,
         role: index === 0 ? "winner" : "suppressed",
         winnerSetId: contenders[0].set.id,
-        provenance: "modeled",
+        provenance: "calibrated",
         decodedPriority: group[set.id].decodedPriority,
-        reason: "Decoded PriorityInGroup direction is unresolved; temporary modeled precedence is applied.",
+        reason: "Lower decoded PriorityInGroup wins, confirmed by an in-game priority-1 versus priority-3 test.",
       });
     }
   }
@@ -2004,7 +2004,7 @@ function createSetEffectTrace(selections, includeSetEffects) {
         stage: classification.stage,
         provenance: {
           calculation: classification.confidence,
-          application: exclusivity.has(key) ? "modeled" : "exact",
+          application: exclusivity.has(key) ? "calibrated" : "exact",
           reason: classification.reason,
         },
         descriptions: values(bonus.bonus_passive ?? bonus.bonusPassive).map((passive) => plainInline(passive?.text || passive?.name)).filter(Boolean),

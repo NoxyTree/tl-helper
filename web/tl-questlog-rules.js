@@ -22,25 +22,25 @@ export const STELLAR_JOURNEY_ATTRIBUTES={str:1,dex:1,int:1,per:1,con:1};
 // Cross-set exclusivity is clause-based. Only effects whose own decoded
 // description says they cannot stack with another effect in the named group
 // are members. Other evasion sets continue to stack normally. The client text
-// proves exclusivity and TLAbnormalState_Item exposes PriorityInGroup, but the
-// decoded data does not prove whether the lower or higher priority wins.
-// `precedence` therefore remains a temporary modeled winner rule. It must not
-// be presented as decoded truth; `decodedPriority` preserves the exact signal.
+// proves exclusivity and TLAbnormalState_Item exposes PriorityInGroup. An
+// in-game Secret Order (priority 1) versus Death (priority 3) test confirmed
+// that the lower PriorityInGroup wins. Shared-priority members have the same
+// grouped persistent value, so their lexical tie-break does not change totals.
 // Each entry applies only to the breakpoint that carries the clause.
 export const SET_EXCLUSIVITY_GROUPS={
   evasion:{
-    set_aa_T2_leather_004:{pieces:2,precedence:220,decodedPriority:2,statIds:["all_evasion"]},
-    set_aa_t3_lether_003:{pieces:2,precedence:150,decodedPriority:1,statIds:["magic_evasion","melee_evasion","range_evasion"]},
+    set_aa_T2_leather_004:{pieces:2,decodedPriority:2,statIds:["all_evasion"]},
+    set_aa_t3_lether_003:{pieces:2,decodedPriority:1,statIds:["magic_evasion","melee_evasion","range_evasion"]},
   },
   critical_damage:{
-    set_aa_T2_leather_006:{pieces:2,precedence:15,decodedPriority:2,statIds:["critical_damage_dealt_modifier"]},
-    set_aa_T2_leather_007:{pieces:2,precedence:15,decodedPriority:2,statIds:["critical_damage_dealt_modifier"]},
-    set_aa_leather_002:{pieces:2,precedence:14,decodedPriority:3,statIds:["critical_damage_dealt_modifier"]},
-    set_aa_t3_leather_004:{pieces:2,precedence:12,decodedPriority:1,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_T2_leather_006:{pieces:2,decodedPriority:2,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_T2_leather_007:{pieces:2,decodedPriority:2,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_leather_002:{pieces:2,decodedPriority:3,statIds:["critical_damage_dealt_modifier"]},
+    set_aa_t3_leather_004:{pieces:2,decodedPriority:1,statIds:["critical_damage_dealt_modifier"]},
   },
   damage_over_time:{
-    set_aa_T2_fabric_002:{pieces:2,precedence:20,decodedPriority:2,suppressAll:true},
-    set_aa_T2_fabric_004:{pieces:2,precedence:12,decodedPriority:1,suppressAll:true},
+    set_aa_T2_fabric_002:{pieces:2,decodedPriority:2,suppressAll:true},
+    set_aa_T2_fabric_004:{pieces:2,decodedPriority:1,suppressAll:true},
   },
 };
 

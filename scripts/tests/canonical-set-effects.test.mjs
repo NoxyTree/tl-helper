@@ -95,7 +95,7 @@ test("calculateBuild returns applied, inactive, and explicit unsupported set bre
   assert.deepEqual(result.setEffects.unsupportedActive.map((row) => row.key), ["set_aa_fabric_001:2"]);
 });
 
-test("set breakdown records stat-scoped modeled suppression without hiding unrelated stats", async () => {
+test("set breakdown records stat-scoped calibrated suppression without hiding unrelated stats", async () => {
   const imperial = [item("imperial-head", "head", "set_aa_T2_leather_006"), item("imperial-chest", "chest", "set_aa_T2_leather_006")];
   const secret = [item("secret-hands", "hands", "set_aa_t3_leather_004"), item("secret-legs", "legs", "set_aa_t3_leather_004")];
   await initCore(dataFor([...imperial, ...secret], [
@@ -108,16 +108,16 @@ test("set breakdown records stat-scoped modeled suppression without hiding unrel
   const imperialEffect = result.setEffects.sets.find((set) => set.setId === "set_aa_T2_leather_006").breakpoints[0];
   const secretEffect = result.setEffects.sets.find((set) => set.setId === "set_aa_t3_leather_004").breakpoints[0];
 
-  assert.equal(imperialEffect.status, "applied");
-  assert.equal(imperialEffect.provenance.application, "modeled");
-  assert.equal(secretEffect.status, "applied_with_suppression");
-  assert.deepEqual(secretEffect.suppression.statIds, ["critical_damage_dealt_modifier"]);
-  assert.equal(secretEffect.suppression.winnerSetId, "set_aa_T2_leather_006");
-  assert.ok(secretEffect.suppressedStats.some((row) => row.statId === "critical_damage_dealt_modifier" && row.value === 1200));
+  assert.equal(imperialEffect.status, "suppressed");
+  assert.equal(imperialEffect.provenance.application, "calibrated");
+  assert.deepEqual(imperialEffect.suppression.statIds, ["critical_damage_dealt_modifier"]);
+  assert.equal(imperialEffect.suppression.winnerSetId, "set_aa_t3_leather_004");
+  assert.ok(imperialEffect.suppressedStats.some((row) => row.statId === "critical_damage_dealt_modifier" && row.value === 1500));
+  assert.equal(secretEffect.status, "applied");
   assert.ok(secretEffect.appliedStats.some((row) => row.statId === "double_damage_dealt_modifier" && row.value === 1400));
-  assert.match(setEffectBreakpointSummary(secretEffect), /Heavy Attack Damage \+14%.*Not applied: Critical Damage \+12% is replaced by Imperial Seeker Set/);
+  assert.match(setEffectBreakpointSummary(imperialEffect), /Not applied: Critical Damage \+15% is replaced by Secret Order Set/);
   const criticalSources = result.stats.find((row) => row.id === "critical_damage_dealt_modifier").sources.filter((row) => row.type === "set_bonus");
-  assert.deepEqual(criticalSources.map((row) => row.setId), ["set_aa_T2_leather_006"]);
+  assert.deepEqual(criticalSources.map((row) => row.setId), ["set_aa_t3_leather_004"]);
 });
 
 test("excluded set effects retain topology without claiming applied values", async () => {

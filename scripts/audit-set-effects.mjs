@@ -344,7 +344,7 @@ lines.push("");
 lines.push("## Release state and remaining work");
 lines.push("");
 lines.push("1. Keep the nine combat or scoped breakpoints explicitly unsupported until a verified sheet-stat mapping or combat-stage model exists.");
-lines.push("2. Resolve whether lower or higher decoded PriorityInGroup wins for mutually exclusive set effects. Current magnitude-based precedence is temporary and explicitly modeled, not decoded truth.");
+lines.push("2. Keep the calibrated lower-PriorityInGroup exclusivity direction covered by the Veiled Concord/Secret Order versus Death regression test.");
 lines.push("3. Improve bounded optimizer coverage for attribute-activated dynamic sets, partial artifact-set hybrids, Heroic configuration, weapon-material interactions, and rune refinement. These affect search completeness, not finalist arithmetic.");
 lines.push("4. Continue using `calculateBuild` as the only final sheet-stat authority and require every new projected breakpoint to pass the structured/mapped/unsupported classification test.");
 lines.push("");

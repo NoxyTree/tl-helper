@@ -26,13 +26,13 @@ test("decoded breakpoint fixture matches executable passive joins and raw values
   }
 });
 
-test("decoded exclusivity priorities are preserved without inventing winner direction", () => {
+test("decoded exclusivity priorities are preserved with calibrated lower-value direction", () => {
   const actual = {};
   for (const group of Object.values(SET_EXCLUSIVITY_GROUPS)) {
     for (const [setId, row] of Object.entries(group)) actual[`${setId}:${row.pieces}`] = row.decodedPriority;
   }
   assert.deepEqual(actual, evidence.exclusivityPriorities);
-  assert.equal(evidence.exclusivityWinnerDirection, "unresolved");
+  assert.equal(evidence.exclusivityWinnerDirection, "lower_wins");
 });
 
 test("generated set descriptions correct known Questlog join and localization errors", () => {
