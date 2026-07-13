@@ -34,6 +34,9 @@
   @keyframes tlSlide{from{transform:translateX(40px);opacity:0;}to{transform:none;opacity:1;}}
   @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;}}
   .tl-app-header{position:relative;z-index:5;}
+  .tl-priority-category-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+  .tl-priority-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+  @media (max-width:900px){.tl-priority-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-priority-result-grid{grid-template-columns:1fr;}}
 </style>
 </helmet>
 
@@ -145,10 +148,52 @@
         <sc-if value="{{ hasPool }}" hint-placeholder-val="{{ true }}">
           <div style="margin-top:14px;padding-top:13px;border-top:1px dotted rgba(212,166,94,.2);">
             <div style="color:#7d6b51;font-size:9px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px;">Add a priority</div>
-            <select value="" onChange="{{ addPrioritySelect }}" aria-label="Add a priority stat" style="width:100%;min-height:42px;padding:8px 12px;border:1px solid rgba(212,166,94,.28);border-radius:9px;background:#0b0806;color:#e6d6b4;font:600 12px 'Instrument Sans';">
-              <option value="">Search or choose any calculated stat</option>
-              <sc-for list="{{ poolList }}" as="q" hint-placeholder-count="20"><option value="{{ q.id }}">{{ q.name }}</option></sc-for>
-            </select>
+            <button onClick="{{ togglePriorityPicker }}" aria-label="Add a priority stat" aria-expanded="{{ priorityPickerOpen }}" style="width:100%;min-height:44px;display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid {{ priorityPickerBorder }};border-radius:9px;background:{{ priorityPickerBg }};color:#e6d6b4;cursor:pointer;text-align:left;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.65);">
+              <span style="width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(242,199,119,.35);border-radius:6px;color:#f2c777;font-size:15px;">+</span>
+              <span style="flex:1;">Choose a stat category</span>
+              <span style="color:#8a795f;font-size:10px;">{{ poolCount }} available</span>
+              <span style="color:#cbb185;font-size:12px;">{{ priorityPickerCaret }}</span>
+            </button>
+            <sc-if value="{{ priorityPickerOpen }}" hint-placeholder-val="{{ false }}">
+              <div role="dialog" aria-label="Choose a stat priority" onKeyDown="{{ priorityPickerKeyDown }}" style="margin-top:8px;padding:12px;border:1px solid rgba(242,199,119,.38);border-radius:12px;background:linear-gradient(180deg,rgba(24,18,12,.98),rgba(10,8,7,.99));box-shadow:0 18px 45px rgba(0,0,0,.42);animation:tlRise .16s ease;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="search" value="{{ prioritySearch }}" onInput="{{ setPrioritySearch }}" aria-label="Search all calculated stats" placeholder="Search all calculated stats" style="min-width:0;flex:1;height:40px;padding:8px 11px;border:1px solid rgba(212,166,94,.28);border-radius:8px;background:#090705;color:#f3e9d4;font:500 12px 'Instrument Sans';outline:none;">
+                  <sc-if value="{{ hasPrioritySearch }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearPrioritySearch }}" aria-label="Clear stat search" style="height:40px;padding:0 12px;border:1px solid rgba(212,166,94,.22);border-radius:8px;background:rgba(0,0,0,.24);color:#b3a488;cursor:pointer;font-size:11px;">Clear</button></sc-if>
+                </div>
+                <div class="tl-priority-category-grid" style="margin-top:10px;">
+                  <sc-for list="{{ priorityCategories }}" as="cat" hint-placeholder-count="10">
+                    <button onClick="{{ cat.select }}" aria-pressed="{{ cat.active }}" style="min-width:0;display:flex;align-items:center;gap:8px;padding:8px 9px;border:1px solid {{ cat.border }};border-radius:8px;background:{{ cat.bg }};color:{{ cat.color }};cursor:pointer;text-align:left;" style-hover="border-color:rgba(242,199,119,.55);">
+                      <span style="flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;border:1px solid {{ cat.iconBorder }};border-radius:7px;background:rgba(0,0,0,.22);color:{{ cat.iconColor }};font-size:11px;font-weight:700;">{{ cat.icon }}</span>
+                      <span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:600;">{{ cat.name }}</span>
+                      <span style="color:#75664f;font-size:9px;">{{ cat.count }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:12px 2px 7px;">
+                  <div><div style="color:#e5c88f;font-size:11.5px;font-weight:700;">{{ priorityResultTitle }}</div><div style="margin-top:2px;color:#75664f;font-size:9.5px;line-height:1.4;">{{ priorityResultHint }}</div></div>
+                  <span style="flex:none;color:#8a795f;font-size:9px;">{{ priorityResultCount }} results</span>
+                </div>
+                <div style="max-height:300px;overflow:auto;padding-right:3px;">
+                  <sc-for list="{{ priorityGroups }}" as="group" hint-placeholder-count="4">
+                    <div style="margin:{{ group.margin }} 0 6px;color:#806f54;font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">{{ group.name }}</div>
+                    <div class="tl-priority-result-grid">
+                      <sc-for list="{{ group.stats }}" as="q" hint-placeholder-count="12">
+                        <button onClick="{{ q.add }}" style="min-width:0;display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid rgba(212,166,94,.16);border-radius:8px;background:rgba(0,0,0,.22);color:#e6d6b4;cursor:pointer;text-align:left;" style-hover="border-color:rgba(242,199,119,.55);background:rgba(107,68,22,.18);">
+                          <span style="flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:rgba(242,199,119,.09);color:#f2c777;font-size:14px;">+</span>
+                          <span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;">{{ q.name }}</span>
+                          <sc-if value="{{ q.composite }}" hint-placeholder-val="{{ false }}"><span style="flex:none;color:#b98cf0;font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Composite</span></sc-if>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noPriorityResults }}" hint-placeholder-val="{{ false }}"><div style="padding:28px 12px;text-align:center;color:#8a795f;font-size:11px;">No available stats match that search.</div></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px;padding-top:10px;border-top:1px dotted rgba(212,166,94,.18);">
+                  <span style="color:#75664f;font-size:9.5px;">Select several stats, then rank them above.</span>
+                  <button onClick="{{ closePriorityPicker }}" style="padding:7px 13px;border:1px solid rgba(242,199,119,.4);border-radius:8px;background:rgba(107,68,22,.2);color:#e5c88f;cursor:pointer;font-size:10.5px;font-weight:700;">Done</button>
+                </div>
+              </div>
+            </sc-if>
           </div>
         </sc-if>
       </section>
@@ -840,6 +885,9 @@ class Component extends DCLogic {
     priorities: [],
     minimumValues: {},
     statOptions: [],
+    priorityPickerOpen: false,
+    prioritySearch: '',
+    priorityCategory: 'featured',
     weaponTypes: { main:'', off:'' },
     source: null,
     result: null,
@@ -1343,7 +1391,28 @@ class Component extends DCLogic {
   }
   removePriority(id) { this.setState({ priorities: this.state.priorities.filter(p => p !== id) }); }
   addPriority(id) { if (!this.state.priorities.includes(id)) this.setState({ priorities: [...this.state.priorities, id] }); }
-  addPrioritySelect = (event) => { const id=event.target.value; if(id)this.addPriority(id); event.target.value=''; };
+  togglePriorityPicker = () => this.setState({ priorityPickerOpen: !this.state.priorityPickerOpen });
+  closePriorityPicker = () => this.setState({ priorityPickerOpen:false, prioritySearch:'' });
+  setPrioritySearch = (event) => this.setState({ prioritySearch:event.target.value });
+  clearPrioritySearch = () => this.setState({ prioritySearch:'' });
+  priorityPickerKeyDown = (event) => { if(event.key==='Escape')this.closePriorityPicker(); };
+  statPickerCategory(row) {
+    const id=String(row?.id||'').toLowerCase(),name=String(row?.name||'').toLowerCase(),text=id+' '+name;
+    if(['str','dex','int','per','con'].includes(id))return 'attributes';
+    if(text.includes('pvp'))return 'pvp';
+    if(/boss|\bpve\b|monster|npc/.test(text))return 'pve';
+    if(/species|humanoid|wildkin|demon|undead|construct|animal/.test(text))return 'species';
+    if(/front|rear|side|back|directional/.test(text))return 'directional';
+    if(/stun|bind|collision|collide|weaken|silence|sleep|petrif|blind|control/.test(text))return 'control';
+    if(/health|\bhp\b|mana|stamina|regen|healing|heal |cost efficiency|resource/.test(text))return 'resources';
+    if(/cooldown|duration|movement|move speed|attack speed|range|buff|debuff|utility/.test(text))return 'utility';
+    if(/defense|armou?r|endurance|evasion|resistance|reduction|block|damage taken|shield/.test(text))return 'defense';
+    return 'offense';
+  }
+  isFeaturedStat(row) {
+    return ['hp_max','damage_reduction','skill_cooldown_modifier','buff_given_duration_modifier','attack_speed_modifier','block_chance','all_accuracy','all_evasion','all_critical_attack','all_critical_defense','all_double_attack','all_double_defense','pvp_accuracy','pvp_endurance','pvp_evasion','pvp_double_attack','pvp_double_defense'].includes(row.id)
+      || /^(max health|damage reduction|cooldown speed|buff duration|attack speed|block chance|pvp endurance|pvp evasion|pvp hit chance|pvp heavy attack)/i.test(row.name);
+  }
   toggleRule(k) { const value=!this.state.rules[k]; this.setState({ rules: { ...this.state.rules, [k]: value }, ...(k==='heroic'?{heroicMode:value?'theoretical':'owned'}:{}) }); }
   toggleMinimums = () => this.setState({ minimums: !this.state.minimums });
   setWeaponType(role,event) {
@@ -1440,7 +1509,34 @@ class Component extends DCLogic {
         minimum:s.minimumValues[id]??'',setMinimum:(event)=>{const value=event.target.value;this.setState({minimumValues:{...this.state.minimumValues,[id]:value===''?null:Number(value)}});},
         up: () => this.movePriority(id, -1), down: () => this.movePriority(id, 1), remove: () => this.removePriority(id) };
     });
-    const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name}));
+    const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),composite:(this.rulesData?.STAT_EXPANSIONS?.[row.id]||[]).length>1}));
+    const categoryDefs = [
+      ['featured','Featured','★','Common build goals and composite stats.'],
+      ['offense','Offense','ATK','Damage, hit, critical and heavy attack stats.'],
+      ['defense','Defense','DEF','Mitigation, endurance, evasion and blocking.'],
+      ['resources','Resources','HP','Health, mana, stamina, regeneration and healing.'],
+      ['utility','Utility','UTL','Cooldowns, durations, speed, range and buffs.'],
+      ['pvp','PvP','PvP','Player-versus-player attack and defense stats.'],
+      ['control','Control','CC','Crowd-control chance and resistance.'],
+      ['pve','Boss & PvE','PvE','Boss-specific attack and defense stats.'],
+      ['directional','Positioning','POS','Front, side, rear and back modifiers.'],
+      ['species','Enemy Types','TYPE','Humanoid, wildkin, demon, undead and construct.'],
+      ['attributes','Attributes','STAT','Strength, Dexterity, Wisdom, Perception and Fortitude.'],
+    ];
+    const categoryCount=(id)=>id==='featured'?poolList.filter(row=>this.isFeaturedStat(row)).length:poolList.filter(row=>row.category===id).length;
+    const priorityCategories=categoryDefs.map(([id,name,icon,hint])=>{const active=!s.prioritySearch&&s.priorityCategory===id;return{id,name,icon,hint,count:categoryCount(id),active,
+      border:active?'rgba(242,199,119,.58)':'rgba(212,166,94,.16)',bg:active?'rgba(107,68,22,.26)':'rgba(0,0,0,.2)',color:active?'#f6d391':'#b3a488',iconBorder:active?'rgba(242,199,119,.5)':'rgba(212,166,94,.2)',iconColor:active?'#f2c777':'#8a795f',
+      select:()=>this.setState({priorityCategory:id,prioritySearch:''})};});
+    const query=s.prioritySearch.trim().toLowerCase();
+    const visiblePool=query?poolList.filter(row=>(row.name+' '+row.id.replaceAll('_',' ')).toLowerCase().includes(query))
+      :s.priorityCategory==='featured'?poolList.filter(row=>this.isFeaturedStat(row)):poolList.filter(row=>row.category===s.priorityCategory);
+    const groupOrder=Object.fromEntries(categoryDefs.map((row,index)=>[row[0],index]));
+    const groupedPool=new Map();
+    for(const row of visiblePool){const key=query?row.category:(s.priorityCategory==='featured'?'featured':row.category);if(!groupedPool.has(key))groupedPool.set(key,[]);groupedPool.get(key).push({...row,add:()=>this.addPriority(row.id)});}
+    const priorityGroups=[...groupedPool.entries()].sort((a,b)=>(groupOrder[a[0]]??99)-(groupOrder[b[0]]??99)).map(([id,stats],index)=>({name:query?(categoryDefs.find(row=>row[0]===id)?.[1]||'Other'):'',margin:index?'13px':'0',stats}));
+    const activeCategory=categoryDefs.find(row=>row[0]===s.priorityCategory)||categoryDefs[0];
+    const priorityResultTitle=query?'Search results':activeCategory[1];
+    const priorityResultHint=query?'Matches are grouped by combat category.':activeCategory[3];
 
     const ruleMeta = {
       heroic: ['Theoretical Heroics', 'Best theoretical configuration', 'Allows the optimizer to configure Heroic equipment using its best Heroic trait and effect levels. Disable this to exclude theoretical Heroic configurations. Heroics you mark as owned and locked are preserved separately.'],
@@ -1768,7 +1864,11 @@ class Component extends DCLogic {
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       setupCols, resultCols, statsSpan, weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
 
-      weaponSlots, rankedList, poolList, hasPool: poolList.length > 0, addPrioritySelect:this.addPrioritySelect, ruleList,
+      weaponSlots, rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
+      priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
+      priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
+      priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',
+      togglePriorityPicker:this.togglePriorityPicker,closePriorityPicker:this.closePriorityPicker,setPrioritySearch:this.setPrioritySearch,clearPrioritySearch:this.clearPrioritySearch,priorityPickerKeyDown:this.priorityPickerKeyDown,
       minimums: s.minimums, toggleMinimums: this.toggleMinimums,
       minBorder: s.minimums ? 'rgba(242,199,119,.4)' : 'rgba(212,166,94,.16)',
       minBg: s.minimums ? 'rgba(107,68,22,.14)' : 'rgba(0,0,0,.2)',
