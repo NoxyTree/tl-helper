@@ -43,6 +43,7 @@ const REQUIRED_UNRESOLVED_FIELDS = Object.freeze([
 
 const EXECUTABLE_DISTANCE_UNRESOLVED_FIELDS = Object.freeze(["serverRounding"]);
 const EXECUTABLE_TIME_UNRESOLVED_FIELDS = Object.freeze(["eclipseState"]);
+const EXECUTABLE_RESOURCE_UNRESOLVED_FIELDS = Object.freeze([]);
 
 const distanceRule = (sourceId) => Object.freeze({
   ruleId: `distance:${sourceId}`,
@@ -74,6 +75,21 @@ const timeOfDayRule = (sourceId) => Object.freeze({
   precisionLimitation: "Fixed ordinary day and night amounts and source gating are decoded and reviewed. Eclipse, dawn, dusk, and unspecified state fail closed.",
 });
 
+const resourceThresholdRule = (sourceId, resource) => Object.freeze({
+  ruleId: `resource-threshold:${sourceId}`,
+  mechanic: "source_resource_threshold",
+  modulePath: "web/tl-resource-threshold-scenario-effects.js",
+  evaluatorExport: "evaluateResourceThresholdScenarioEffects",
+  definitionsExport: "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS",
+  definitionKey: sourceId,
+  gameBuild: SCENARIO_EFFECT_GAME_BUILD,
+  requiredScenarioInputs: Object.freeze([`participants[source].resources.${resource}.currentRatioBps`]),
+  unresolvedFields: EXECUTABLE_RESOURCE_UNRESOLVED_FIELDS,
+  precisionStage: "decoded_exact_threshold",
+  precisionSemantics: "reviewed_source_resource_threshold",
+  precisionLimitation: "Threshold operator, selected-mastery rank values, source recipient, equipped-weapon gate, and integer basis-point comparison are decoded and reviewed.",
+});
+
 // Each promotion is an explicit reviewed binding. Absence from this registry
 // always remains non-executable. In particular, Predator's Focus is omitted
 // because its nearby-opponent replacement scenario is not represented yet.
@@ -84,6 +100,8 @@ export const EXECUTABLE_SCENARIO_RULE_REFERENCES = Object.freeze({
   "SkillSet_WP_Item_kA_CR_61": timeOfDayRule("SkillSet_WP_Item_kA_CR_61"),
   "SkillSet_WP_Item_kA_DA_61_2": timeOfDayRule("SkillSet_WP_Item_kA_DA_61_2"),
   "SkillSet_WP_Item_kA_ST_55": distanceRule("SkillSet_WP_Item_kA_ST_55"),
+  "Sword2h_Hero_Attack_01": resourceThresholdRule("Sword2h_Hero_Attack_01", "health"),
+  "Orb_Rare_Util_Skill": resourceThresholdRule("Orb_Rare_Util_Skill", "mana"),
 });
 
 const WEAPON_TYPES = new Set(["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"]);

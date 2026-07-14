@@ -21,7 +21,7 @@
     .page-head p { margin: 0; color: var(--tl-shell-muted); font-size: 13.5px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 14px; }
     .toolbar label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--tl-shell-muted); }
-    .toolbar select, .toolbar input[type="search"], .toolbar input[type="url"] { box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13.5px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
+    .toolbar select, .toolbar input[type="search"], .toolbar input[type="url"], .toolbar input[type="number"] { box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13.5px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
     .toolbar input[type="search"] { width: 240px; }
     .toolbar .grow { flex: 1; }
     .check-inline { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--tl-shell-muted); padding-bottom: 9px; }
@@ -201,7 +201,7 @@
       <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
       <span class="check-inline"><input id="set-fit-toggle" type="checkbox" checked><label for="set-fit-toggle">Include set effects in Fit</label></span>
-      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score combat scenario at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span><select id="scenario-time" aria-label="Time of day"><option value="unspecified">Time unspecified</option><option value="day">Day</option><option value="night">Night</option></select></span>
+      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score combat scenario at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span><select id="scenario-time" aria-label="Time of day"><option value="unspecified">Time unspecified</option><option value="day">Day</option><option value="night">Night</option></select><label for="scenario-health-percent">Health %</label><input id="scenario-health-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Health percentage" style="width:4.75rem"><label for="scenario-mana-percent">Mana %</label><input id="scenario-mana-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Mana percentage" style="width:4.75rem"></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -256,6 +256,8 @@
       scenarioEnabled: false,
       scenarioDistance: 10,
       scenarioTime: "unspecified",
+      scenarioHealthBps: null,
+      scenarioManaBps: null,
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -286,7 +288,12 @@
 
     function activeScenario() {
       if (!state.scenarioEnabled || state.mode === "bare") return null;
-      return core.createBuildScenario(scoringContext().build, { targetDistanceMeters: state.scenarioDistance, timeOfDay: state.scenarioTime });
+      return core.createBuildScenario(scoringContext().build, {
+        targetDistanceMeters: state.scenarioDistance,
+        timeOfDay: state.scenarioTime,
+        ...(state.scenarioHealthBps === null ? {} : { sourceHealthRatioBps: state.scenarioHealthBps }),
+        ...(state.scenarioManaBps === null ? {} : { sourceManaRatioBps: state.scenarioManaBps }),
+      });
     }
 
     function normalizeScenarioDistance(value, fallback = 10) {
@@ -294,20 +301,48 @@
       return Number.isFinite(distance) && distance >= 0 ? distance : fallback;
     }
 
+    function normalizeScenarioBps(value, fallback = null) {
+      if (value === null || value === undefined || value === "") return null;
+      const bps = Number(value);
+      return Number.isSafeInteger(bps) && bps >= 0 && bps <= 10000 ? bps : fallback;
+    }
+
+    function scenarioPercentToBps(value, fallback = null) {
+      const match = /^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(String(value ?? "").trim());
+      if (!match) return String(value ?? "").trim() ? fallback : null;
+      const bps = Number(match[1]) * 100 + Number(`${match[2] ?? ""}00`.slice(0, 2));
+      return bps <= 10000 ? bps : fallback;
+    }
+
+    function scenarioBpsToPercent(value) {
+      const bps = normalizeScenarioBps(value);
+      if (bps === null) return "";
+      const whole = Math.floor(bps / 100);
+      const fraction = String(bps % 100).padStart(2, "0").replace(/0+$/, "");
+      return fraction ? `${whole}.${fraction}` : String(whole);
+    }
+
+    function scenarioResourceLabel() {
+      const parts = [];
+      if (state.scenarioHealthBps !== null) parts.push(`Health ${scenarioBpsToPercent(state.scenarioHealthBps)}%`);
+      if (state.scenarioManaBps !== null) parts.push(`Mana ${scenarioBpsToPercent(state.scenarioManaBps)}%`);
+      return parts.length ? `, ${parts.join(", ")}` : "";
+    }
+
     function syncScenarioControls() {
       const unavailable = state.mode === "bare";
       $("scenario-fit-toggle").disabled = unavailable;
       $("scenario-distance").disabled = unavailable || !state.scenarioEnabled;
       $("scenario-time").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-health-percent").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-mana-percent").disabled = unavailable || !state.scenarioEnabled;
     }
 
-    function calculationOptions() {
-      const scenario = activeScenario();
+    function calculationOptions(scenario = activeScenario()) {
       return { includeSetEffects: state.includeSetEffects, ...(scenario == null ? {} : { scenario }) };
     }
 
-    function candidateContribution(slotId, selection, build, attributes) {
-      const options = calculationOptions();
+    function candidateContribution(slotId, selection, build, attributes, options = calculationOptions()) {
       return state.mode !== "bare" && core.WEAPON_SLOTS.includes(slotId)
         ? core.slotReplacementDelta(slotId, selection, build, attributes, options)
         : core.slotSelectionContribution(slotId, selection, build, attributes, options);
@@ -446,7 +481,7 @@
       return ranked[0].traits.map(({ statId, tier }) => ({ statId, tier }));
     }
 
-    function exactHeroicPotential(item, slotId, build, attributes, level, currentTotals) {
+    function exactHeroicPotential(item, slotId, build, attributes, level, currentTotals, options) {
       const potential = optimizeHeroicPotential(item, {
         evaluate: (selection) => potentialEvaluation(item, selection),
         allowDuplicateEffects: false,
@@ -454,13 +489,13 @@
       });
       const finalists = potential.finalists.map((candidate) => {
         const selection = { ...core.emptyEquipmentSelection(), ...candidate.selection, itemId: item.id, level };
-        const contribution = candidateContribution(slotId, selection, build, attributes);
+        const contribution = candidateContribution(slotId, selection, build, attributes, options);
         return { ...candidate, selection, contribution };
       });
       const maxima = Object.fromEntries(state.columns.map((statId) => [statId, Math.max(0, ...finalists.map((row) => Number(row.contribution[statId] ?? 0)))]));
       const equipped = state.mode === "bare" ? null : core.slotSelection(slotId, build);
       const equippedContribution = equipped?.itemId
-        ? candidateContribution(slotId, equipped, build, attributes)
+        ? candidateContribution(slotId, equipped, build, attributes, options)
         : {};
       for (const row of finalists) {
         row.exactScore = state.columns.length
@@ -486,8 +521,8 @@
 
     async function computeRows() {
       const { build, attributes } = scoringContext();
-      const options = calculationOptions();
       const scenario = activeScenario();
+      const options = calculationOptions(scenario);
       const currentCalculation = core.calculateBuild(build, attributes, options);
       calculationBlock = state.mode === "bare" || (currentCalculation.status?.state === "legal" && currentCalculation.scenarioEffects?.status !== "unsupported")
         ? null
@@ -521,14 +556,14 @@
           };
           let potential = null;
           if (state.withTraits && state.heroicPotential && isHeroic(item)) {
-            potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals);
+            potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals, options);
             baseSelection = potential.selection;
           }
           const actualSelection = state.mode === "bare" ? null : core.slotSelection(slotId, build);
           const isActualItem = actualSelection?.itemId === item.id;
           if (isActualItem) {
             const exactSelection = core.deepClone(actualSelection);
-            const contribution = candidateContribution(slotId, exactSelection, build, attributes);
+            const contribution = candidateContribution(slotId, exactSelection, build, attributes, options);
             const availableStatIds = potentialStatIds(item, contribution);
             const selectedPerk = core.selectedItemPerk(item, exactSelection);
             rows.push({
@@ -551,7 +586,7 @@
             });
             if (selectionStatus.state !== "legal") continue;
             if (core.slotSelectionCalculationStatus(slotId, selection, build, attributes, options)?.state !== "legal") continue;
-            const contribution = candidateContribution(slotId, selection, build, attributes);
+            const contribution = candidateContribution(slotId, selection, build, attributes, options);
             const availableStatIds = potentialStatIds(item, contribution);
             rows.push({
               candidateId: `variant:${slotId}:${item.id}:${variant.perkId || "bare"}`, item, slotId, level, selection, contribution, potential, availableStatIds, isExactCurrent: false,
@@ -637,7 +672,9 @@
       }
       const protectionActive = state.mode !== "bare" && state.protected.length > 0;
       const context = protectionActive ? scoringContext() : null;
-      const currentCalculation = context ? core.calculateBuild(context.build, context.attributes, calculationOptions()) : null;
+      const protectionScenario = protectionActive ? activeScenario() : null;
+      const protectionOptions = calculationOptions(protectionScenario);
+      const currentCalculation = context ? core.calculateBuild(context.build, context.attributes, protectionOptions) : null;
       const currentTotals = currentCalculation
         ? Object.fromEntries((currentCalculation.scenarioStats ?? currentCalculation.stats).map((row) => [row.id, row.total]))
         : {};
@@ -657,7 +694,7 @@
           if (!currentBySlot.has(row.slotId)) {
             const equipped = core.slotSelection(row.slotId, context.build);
             currentBySlot.set(row.slotId, equipped?.itemId
-              ? candidateContribution(row.slotId, equipped, context.build, context.attributes)
+              ? candidateContribution(row.slotId, equipped, context.build, context.attributes, protectionOptions)
               : {});
           }
           const equippedContribution = currentBySlot.get(row.slotId);
@@ -909,8 +946,8 @@
       const { item, slotId, selection } = candidate;
       const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
       const context = scoringContext();
-      const options = calculationOptions();
       const scenario = activeScenario();
+      const options = calculationOptions(scenario);
       const calculationKey = scenario == null
         ? staticCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects })
         : scenarioCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects, scenario });
@@ -1049,7 +1086,7 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
-      const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}` : "";
+      const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}${scenarioResourceLabel()}` : "";
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
       if (calculationBlock) {
         const count = calculationBlock.blockingIssues?.length ?? 0;
@@ -1072,6 +1109,8 @@
       if (state.scenarioEnabled) {
         params.set("distance", String(state.scenarioDistance));
         if (state.scenarioTime !== "unspecified") params.set("time", state.scenarioTime);
+        if (state.scenarioHealthBps !== null) params.set("hpBps", String(state.scenarioHealthBps));
+        if (state.scenarioManaBps !== null) params.set("mpBps", String(state.scenarioManaBps));
       }
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
@@ -1098,6 +1137,20 @@
         }
       }
       if (["day", "night"].includes(params.get("time"))) state.scenarioTime = params.get("time");
+      if (params.has("hpBps")) {
+        const hpBps = normalizeScenarioBps(params.get("hpBps"));
+        if (hpBps !== null) {
+          state.scenarioEnabled = true;
+          state.scenarioHealthBps = hpBps;
+        }
+      }
+      if (params.has("mpBps")) {
+        const mpBps = normalizeScenarioBps(params.get("mpBps"));
+        if (mpBps !== null) {
+          state.scenarioEnabled = true;
+          state.scenarioManaBps = mpBps;
+        }
+      }
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
@@ -1157,6 +1210,8 @@
             if (typeof prefs.scenarioEnabled === "boolean") state.scenarioEnabled = prefs.scenarioEnabled;
             if (Number.isFinite(prefs.scenarioDistance) && prefs.scenarioDistance >= 0) state.scenarioDistance = prefs.scenarioDistance;
             if (["unspecified", "day", "night"].includes(prefs.scenarioTime)) state.scenarioTime = prefs.scenarioTime;
+            if (Object.hasOwn(prefs, "scenarioHealthBps")) state.scenarioHealthBps = normalizeScenarioBps(prefs.scenarioHealthBps);
+            if (Object.hasOwn(prefs, "scenarioManaBps")) state.scenarioManaBps = normalizeScenarioBps(prefs.scenarioManaBps);
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
@@ -1164,7 +1219,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, scenarioTime: state.scenarioTime, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, scenarioTime: state.scenarioTime, scenarioHealthBps: state.scenarioHealthBps, scenarioManaBps: state.scenarioManaBps, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -1200,6 +1255,8 @@
       $("scenario-fit-toggle").checked = state.scenarioEnabled;
       $("scenario-distance").value = String(state.scenarioDistance);
       $("scenario-time").value = state.scenarioTime;
+      $("scenario-health-percent").value = scenarioBpsToPercent(state.scenarioHealthBps);
+      $("scenario-mana-percent").value = scenarioBpsToPercent(state.scenarioManaBps);
       syncScenarioControls();
 
       let searchTimer = 0;
@@ -1225,6 +1282,18 @@
       });
       $("scenario-time").addEventListener("change", () => {
         state.scenarioTime = ["day", "night"].includes($("scenario-time").value) ? $("scenario-time").value : "unspecified";
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-health-percent").addEventListener("change", () => {
+        state.scenarioHealthBps = scenarioPercentToBps($("scenario-health-percent").value, state.scenarioHealthBps);
+        $("scenario-health-percent").value = scenarioBpsToPercent(state.scenarioHealthBps);
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-mana-percent").addEventListener("change", () => {
+        state.scenarioManaBps = scenarioPercentToBps($("scenario-mana-percent").value, state.scenarioManaBps);
+        $("scenario-mana-percent").value = scenarioBpsToPercent(state.scenarioManaBps);
         state.limit = ROW_LIMIT;
         refresh();
       });

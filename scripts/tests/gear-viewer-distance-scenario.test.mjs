@@ -9,21 +9,36 @@ test("Gear Viewer combat-scenario scoring is explicit and disabled by default", 
   assert.doesNotMatch(html, /id="scenario-fit-toggle" type="checkbox" checked/);
   assert.match(html, /id="scenario-distance" type="number" min="0" step="0\.5" value="10"/);
   assert.match(html, /id="scenario-time" aria-label="Time of day"/);
+  assert.match(html, /id="scenario-health-percent" type="number" min="0" max="100" step="0\.01" placeholder="Any"/);
+  assert.match(html, /id="scenario-mana-percent" type="number" min="0" max="100" step="0\.01" placeholder="Any"/);
   assert.match(html, /scenarioEnabled: false/);
   assert.match(html, /scenarioTime: "unspecified"/);
+  assert.match(html, /scenarioHealthBps: null/);
+  assert.match(html, /scenarioManaBps: null/);
   assert.match(html, /if \(!state\.scenarioEnabled \|\| state\.mode === "bare"\) return null/);
-  assert.match(html, /core\.createBuildScenario\(scoringContext\(\)\.build, \{ targetDistanceMeters: state\.scenarioDistance, timeOfDay: state\.scenarioTime \}\)/);
+  assert.match(html, /core\.createBuildScenario\(scoringContext\(\)\.build, \{[\s\S]*?targetDistanceMeters: state\.scenarioDistance,[\s\S]*?timeOfDay: state\.scenarioTime,[\s\S]*?sourceHealthRatioBps: state\.scenarioHealthBps[\s\S]*?sourceManaRatioBps: state\.scenarioManaBps/);
 });
 
 test("Gear Viewer applies the same scenario to ranking, protection, and hover calculations", () => {
-  assert.match(html, /function calculationOptions\(\)/);
+  assert.match(html, /function calculationOptions\(scenario = activeScenario\(\)\)/);
   assert.match(html, /core\.slotReplacementDelta\(slotId, selection, build, attributes, options\)/);
   assert.match(html, /core\.slotSelectionContribution\(slotId, selection, build, attributes, options\)/);
   assert.match(html, /core\.calculateBuild\(build, attributes, options\)/);
-  assert.match(html, /core\.calculateBuild\(context\.build, context\.attributes, calculationOptions\(\)\)/);
+  assert.match(html, /core\.calculateBuild\(context\.build, context\.attributes, protectionOptions\)/);
   assert.match(html, /const beforeCalc = core\.calculateBuild\(context\.build, context\.attributes, options\)/);
   assert.match(html, /const calc = core\.calculateBuild\(build, context\.attributes, options\)/);
   assert.match(html, /currentCalculation\.scenarioStats \?\? currentCalculation\.stats/);
+});
+
+test("Gear Viewer represents optional source Health and Mana as canonical basis points", () => {
+  assert.match(html, /function normalizeScenarioBps\(value, fallback = null\)/);
+  assert.match(html, /Number\.isSafeInteger\(bps\) && bps >= 0 && bps <= 10000/);
+  assert.match(html, /function scenarioPercentToBps\(value, fallback = null\)/);
+  assert.match(html, /Number\(match\[1\]\) \* 100/);
+  assert.match(html, /state\.scenarioHealthBps === null \? \{\} : \{ sourceHealthRatioBps: state\.scenarioHealthBps \}/);
+  assert.match(html, /state\.scenarioManaBps === null \? \{\} : \{ sourceManaRatioBps: state\.scenarioManaBps \}/);
+  assert.match(html, /const scenario = activeScenario\(\);\s+const options = calculationOptions\(scenario\)/);
+  assert.match(html, /candidateContribution\(slotId, selection, build, attributes, options\)/);
 });
 
 test("Gear Viewer scenario state has isolated cache identity and shareable persistence", () => {
@@ -31,8 +46,12 @@ test("Gear Viewer scenario state has isolated cache identity and shareable persi
   assert.match(html, /scenarioCalculationFingerprint\(\{ build: context\.build, attributes: context\.attributes, includeSetEffects: state\.includeSetEffects, scenario \}\)/);
   assert.match(html, /params\.set\("distance", String\(state\.scenarioDistance\)\)/);
   assert.match(html, /params\.set\("time", state\.scenarioTime\)/);
+  assert.match(html, /params\.set\("hpBps", String\(state\.scenarioHealthBps\)\)/);
+  assert.match(html, /params\.set\("mpBps", String\(state\.scenarioManaBps\)\)/);
   assert.match(html, /if \(params\.has\("distance"\)\)/);
-  assert.match(html, /scenarioEnabled: state\.scenarioEnabled, scenarioDistance: state\.scenarioDistance, scenarioTime: state\.scenarioTime/);
+  assert.match(html, /if \(params\.has\("hpBps"\)\)/);
+  assert.match(html, /if \(params\.has\("mpBps"\)\)/);
+  assert.match(html, /scenarioEnabled: state\.scenarioEnabled, scenarioDistance: state\.scenarioDistance, scenarioTime: state\.scenarioTime, scenarioHealthBps: state\.scenarioHealthBps, scenarioManaBps: state\.scenarioManaBps/);
   assert.match(html, /scenario at \$\{state\.scenarioDistance\}m/);
 });
 
@@ -42,4 +61,6 @@ test("Gear Viewer fails closed and cannot enable scenarios without a build", () 
   assert.match(html, /\$\("scenario-fit-toggle"\)\.disabled = unavailable/);
   assert.match(html, /\$\("scenario-distance"\)\.disabled = unavailable \|\| !state\.scenarioEnabled/);
   assert.match(html, /\$\("scenario-time"\)\.disabled = unavailable \|\| !state\.scenarioEnabled/);
+  assert.match(html, /\$\("scenario-health-percent"\)\.disabled = unavailable \|\| !state\.scenarioEnabled/);
+  assert.match(html, /\$\("scenario-mana-percent"\)\.disabled = unavailable \|\| !state\.scenarioEnabled/);
 });

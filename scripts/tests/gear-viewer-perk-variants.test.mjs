@@ -11,7 +11,7 @@ test("Gear Viewer composes persistent Skill Core variants outside Heroic potenti
   assert.match(html, /core\.calculableItemPerkVariants\(item, \{ scenario \}\)/);
   assert.match(html, /const selection = \{ \.\.\.baseSelection, perkId: variant\.perkId \}/);
   assert.match(html, /potential = exactHeroicPotential/);
-  assert.match(html, /const contribution = candidateContribution\(slotId, selection, build, attributes\)/);
+  assert.match(html, /const contribution = candidateContribution\(slotId, selection, build, attributes, options\)/);
 });
 
 test("Gear Viewer preserves the exact current core and permits legal repeated passive variants", () => {

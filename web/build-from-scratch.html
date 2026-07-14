@@ -85,6 +85,12 @@
       <div style="color:#8b7a5d;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;">{{ kicker }}</div>
       <h1 style="margin:6px 0 0;color:#f6d391;font-family:Marcellus,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1;">{{ title }}</h1>
       <p style="margin:9px 0 0;max-width:560px;color:#b3a488;font-size:13px;line-height:1.5;">{{ subtitle }}</p>
+      <sc-if value="{{ resultScenarioActive }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:660px;margin-top:10px;padding:9px 11px;border:1px solid rgba(135,172,239,.35);border-radius:9px;background:rgba(65,92,136,.13);color:#b8d0ff;font-size:10.5px;line-height:1.5;">
+          <strong style="color:#dce8ff;">Scenario totals:</strong> {{ resultScenarioSummary }}<br>
+          <span style="color:#8397b5;">Save as preset and Use in Armory store the build only. Armory recalculates persistent static totals without this combat scenario.</span>
+        </div>
+      </sc-if>
     </div>
     <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
       <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
@@ -258,10 +264,50 @@
         </div>
       </section>
 
+      <!-- Combat scenario -->
+      <section style="border:1px solid rgba(135,172,239,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(135,172,239,.09),transparent 42%),linear-gradient(180deg,rgba(20,25,34,.76),rgba(13,12,11,.88));padding:18px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:7px;">
+          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#b8d0ff;border:1px solid rgba(135,172,239,.5);border-radius:50%;font:13px Marcellus,serif;">4</span>
+          <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Combat Scenario</h2>
+          <span style="margin-left:auto;color:#87acef;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">Optional conditional scoring</span>
+        </div>
+        <p style="margin:0 0 13px;color:#8fa2be;font-size:11.5px;line-height:1.55;">Score decoded conditional effects for one explicit situation. Health and Mana may be left blank; effects that require an unspecified value fail closed instead of assuming one.</p>
+        <button onClick="{{ toggleScenario }}" aria-pressed="{{ scenarioEnabled }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid {{ scenarioBorder }};border-radius:10px;background:{{ scenarioBg }};color:#d8e2f2;cursor:pointer;text-align:left;">
+          <span style="flex:none;width:34px;height:20px;border-radius:999px;background:{{ scenarioTrack }};position:relative;"><span style="position:absolute;top:2px;left:{{ scenarioKnob }};width:16px;height:16px;border-radius:50%;background:#0b0805;"></span></span>
+          <span style="min-width:0;"><strong style="display:block;color:#e6edf7;font-size:11.5px;">Score a combat scenario</strong><small style="display:block;margin-top:2px;color:#71839e;font-size:9.5px;">When disabled, the Forge optimizes persistent sheet totals only.</small></span>
+        </button>
+        <sc-if value="{{ scenarioEnabled }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-top:9px;">
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Target distance</span>
+              <input type="number" min="0" step="0.5" value="{{ scenarioDistance }}" onInput="{{ setScenarioDistance }}" aria-label="Scenario target distance in metres" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Metres from the target.</span>
+            </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Time of day</span>
+              <select value="{{ scenarioTimeOfDay }}" onChange="{{ setScenarioTimeOfDay }}" aria-label="Scenario time of day" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 11px 'Instrument Sans';">
+                <option value="unspecified">Unspecified</option><option value="day">Day</option><option value="night">Night</option>
+              </select>
+              <span style="color:#687991;font-size:9px;">Leave unspecified unless relevant.</span>
+            </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Source Health %</span>
+              <input type="number" min="0" max="100" step="0.01" value="{{ scenarioHealthPercent }}" onInput="{{ setScenarioHealthPercent }}" aria-label="Scenario source Health percentage" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Blank means unspecified.</span>
+            </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Source Mana %</span>
+              <input type="number" min="0" max="100" step="0.01" value="{{ scenarioManaPercent }}" onInput="{{ setScenarioManaPercent }}" aria-label="Scenario source Mana percentage" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Blank means unspecified.</span>
+            </label>
+          </div>
+        </sc-if>
+      </section>
+
       <!-- Attribute budget -->
       <section style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(31,23,14,.7), rgba(20,15,10,.82));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">4</span>
+          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">5</span>
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Attribute Budget</h2>
           <span style="margin-left:auto;color:#f2c777;font:400 20px Marcellus,serif;">{{ attrBudget }}<span style="color:#6f5f49;font-family:'Instrument Sans';font-size:11px;"> pts</span></span>
         </div>
@@ -271,7 +317,7 @@
       <!-- Passive skills and mastery -->
       <section style="border:1px solid rgba(185,140,240,.3);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.1),transparent 42%),linear-gradient(180deg,rgba(28,20,35,.72),rgba(16,12,11,.88));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:7px;">
-          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#d8b8ff;border:1px solid rgba(185,140,240,.5);border-radius:50%;font:13px Marcellus,serif;">5</span>
+          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#d8b8ff;border:1px solid rgba(185,140,240,.5);border-radius:50%;font:13px Marcellus,serif;">6</span>
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Passive Skills &amp; Mastery</h2>
           <span style="margin-left:auto;color:#9f8cb8;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">Included in totals</span>
         </div>
@@ -1020,6 +1066,7 @@ class Component extends DCLogic {
     dragInsertAfter: false,
     weaponTypes: { main:'', off:'' },
     progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, includePotential:false },
+    scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'' },
     openStatSource: null,
     source: null,
     result: null,
@@ -1059,7 +1106,12 @@ class Component extends DCLogic {
       const improved=new URLSearchParams(location.search).get('result')==='improved' ? handoff.loadImprovedResult(sessionStorage) : null;
       if(improved){
         const result=improved.result,attributes=result.optimizedAttributes||result.attributes||{};
-        const resultCalc=this.core.calculateBuild(result.build,attributes,{includeSetEffects:improved.includeSetEffects,optionalFallback:false});
+        const resultCalc=this.core.calculateBuild(result.build,attributes,{includeSetEffects:improved.includeSetEffects,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
+        if(resultCalc.status?.state!=='legal'||(result.scenario&&resultCalc.scenarioEffects?.status!=='applied')){
+          const errors=resultCalc.scenarioEffects?.errors||resultCalc.status?.blockingIssues||[];
+          this.setState({source,statOptions,engineReady:true,heroics,heroicMode,heroicsEngaged:Boolean(saved.heroics),engineError:`The improved result could not be opened because its calculation is unsupported${errors.length?`: ${errors.map(row=>row.message).join(' ')}`:'.'}`});
+          return;
+        }
         const itemType=slotId=>this.core.indexes.itemById[result.build?.equipment?.[slotId]?.itemId]?.equipmentType||'';
         const kept=Object.fromEntries(improved.keptSlotIds.map(id=>[id,true]));
         if(kept.main_hand)kept.main=true;if(kept.off_hand)kept.off=true;
@@ -1496,6 +1548,7 @@ class Component extends DCLogic {
       const value=mode==='maximize'?null:this.core.statDisplayToRaw(id,Number(displayValue));
       return{id,rank:index+1,mode,minimum:mode==='at_least'?value:null,target:mode==='target'?value:null};
     });
+    const scenario=this.buildScenario(source.build);
     return {
       build:source, sourceKind:'scratch', weaponTypes:[this.state.weaponTypes.main,this.state.weaponTypes.off],
       attributePointBudget:this.ATTR_BUDGET, goals:{priorities,protect:[]}, lockedSlotIds,
@@ -1505,6 +1558,7 @@ class Component extends DCLogic {
         bestHeroicConfiguration:this.state.heroicMode==='theoretical',
         runes:{mode:this.state.rules.runes?'normal':'keep',chaosOwnershipRequired:true,normalDuplicateCap:3,chaosDuplicateCap:1},
         artifacts:{mode:this.state.rules.artifacts?'sets':'keep'} }, depth:'thorough',
+      ...(scenario?{scenario}:{}),
     };
   }
   forge = () => {
@@ -1527,11 +1581,12 @@ class Component extends DCLogic {
           progressPhase:row.label||this.FORGE_PHASES[stepIndex].title,progressMsg:row.detail||'Evaluating complete loadouts…'});
       }else if(message.type==='result'){
         const result=message.result;
-        const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false});
-        if(resultCalc.status?.state!=='legal'){
-          const count=resultCalc.status?.blockingIssues?.length??0;
+        const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
+        const scenarioUnsupported=result.scenario&&resultCalc.scenarioEffects?.status!=='applied';
+        if(resultCalc.status?.state!=='legal'||scenarioUnsupported){
+          const count=scenarioUnsupported?(resultCalc.scenarioEffects?.errors?.length??0):(resultCalc.status?.blockingIssues?.length??0);
           this._worker.terminate(); this._worker=null;
-          this.setState({phase:'setup',engineError:`The optimizer finalist is ${resultCalc.status?.state??'provisional'} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
+          this.setState({phase:'setup',engineError:`The optimizer finalist is ${scenarioUnsupported?'unsupported for this combat scenario':(resultCalc.status?.state??'provisional')} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
           return;
         }
         this._worker.terminate(); this._worker=null;
@@ -1579,16 +1634,16 @@ class Component extends DCLogic {
     const floors=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.minimum!=null).map(goal=>[goal.id,goal.minimum]));
     const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,Number(event.target.value),floors);
     if(!candidate)return;
-    const resultCalc=this.core.calculateBuild(candidate.build,candidate.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false});
-    if(resultCalc.status?.state!=='legal')return;
-    const totals=Object.fromEntries((resultCalc.stats||[]).map(row=>[row.id,Number(row.total)||0]));
+    const resultCalc=this.core.calculateBuild(candidate.build,candidate.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
+    if(resultCalc.status?.state!=='legal'||(result.scenario&&resultCalc.scenarioEffects?.status!=='applied'))return;
+    const totals=Object.fromEntries((resultCalc.scenarioStats??resultCalc.stats??[]).map(row=>[row.id,Number(row.total)||0]));
     const goalResults=(result.goalResults||[]).map(goal=>{
       const value=Number(candidate.goalValues?.[goal.id]??totals[goal.id]??0);
       const components=(goal.components||[]).map(component=>{const componentValue=Number(totals[component.id]||0);return{...component,value:componentValue,formattedValue:this.core.formatStat(component.id,componentValue)};});
       return{...goal,value,formattedValue:this.core.formatStat(goal.id,value),minimumMet:goal.minimum==null?null:value>=goal.minimum,components};
     });
     const allStats=Object.entries(totals).map(([statId,value])=>({id:statId,name:this.core.statName(statId),value,formattedValue:this.core.formatStat(statId,value),group:this.core.statPageFor(statId)})).sort((a,b)=>a.group.localeCompare(b.group)||a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
-    const next={...result,score:candidate.score,build:structuredClone(candidate.build),attributes:{...(candidate.optimizedAttributes||{})},optimizedAttributes:{...(candidate.optimizedAttributes||{})},activeAttributeBreakpoints:structuredClone(candidate.activeAttributeBreakpoints||[]),goalResults,allStats};
+    const next={...result,scenario:result.scenario??null,score:candidate.score,build:structuredClone(candidate.build),attributes:{...(candidate.optimizedAttributes||{})},optimizedAttributes:{...(candidate.optimizedAttributes||{})},activeAttributeBreakpoints:structuredClone(candidate.activeAttributeBreakpoints||[]),goalResults,allStats};
     this.setState({result:next,resultCalc,source:{build:structuredClone(candidate.build),attributes:{...(candidate.optimizedAttributes||{})},sourceKind:'scratch',name:result.name}});
   }
   componentWillUnmount() { this._worker?.terminate(); window.removeEventListener('resize', this._onResize); }
@@ -1660,6 +1715,45 @@ class Component extends DCLogic {
       || /^(max health|damage reduction|cooldown speed|buff duration|attack speed|block chance|pvp endurance|pvp evasion|pvp hit chance|pvp heavy attack)/i.test(row.name);
   }
   toggleRule(k) { const value=!this.state.rules[k]; this.setState({ rules: { ...this.state.rules, [k]: value }, ...(k==='heroic'?{heroicMode:value?'theoretical':'owned'}:{}) }); }
+  toggleScenario = () => this.setState({scenario:{...this.state.scenario,enabled:!this.state.scenario.enabled}});
+  setScenarioDistance = (event) => this.setState({scenario:{...this.state.scenario,distance:event.target.value}});
+  setScenarioTimeOfDay = (event) => this.setState({scenario:{...this.state.scenario,timeOfDay:event.target.value}});
+  setScenarioHealthPercent = (event) => this.setState({scenario:{...this.state.scenario,healthPercent:event.target.value}});
+  setScenarioManaPercent = (event) => this.setState({scenario:{...this.state.scenario,manaPercent:event.target.value}});
+  scenarioPercentToBps(value,label) {
+    const text=String(value??'').trim();
+    if(!text)return null;
+    const percent=Number(text),basisPoints=percent*100;
+    if(!Number.isFinite(percent)||percent<0||percent>100)throw new Error(`${label} must be between 0 and 100, or left blank.`);
+    if(Math.abs(basisPoints-Math.round(basisPoints))>1e-8)throw new Error(`${label} supports at most two decimal places.`);
+    return Math.round(basisPoints);
+  }
+  scenarioRatioLabel(scenario,resourceId) {
+    const sourceId=scenario?.source?.participantId;
+    const participant=scenario?.participants?.find(row=>row?.id===sourceId);
+    const bps=participant?.resources?.[resourceId]?.currentRatioBps;
+    if(!Number.isInteger(bps)||bps<0||bps>10000)return 'unspecified';
+    const whole=Math.floor(bps/100),fraction=String(bps%100).padStart(2,'0').replace(/0+$/,'');
+    return `${whole}${fraction?'.'+fraction:''}%`;
+  }
+  resultScenarioSummary(scenario) {
+    if(!scenario)return '';
+    const distance=Number(scenario?.target?.distanceMeters),time=scenario?.environment?.timeOfDay;
+    const timeLabel=time==='unspecified'?'time unspecified':String(time||'time unspecified');
+    return `Target ${Number.isFinite(distance)?distance:'?'}m · ${timeLabel} · Health ${this.scenarioRatioLabel(scenario,'health')} · Mana ${this.scenarioRatioLabel(scenario,'mana')}`;
+  }
+  buildScenario(build) {
+    const input=this.state.scenario;
+    if(!input.enabled)return null;
+    const targetDistanceMeters=Number(input.distance);
+    if(!Number.isFinite(targetDistanceMeters)||targetDistanceMeters<0)throw new Error('Target distance must be zero or greater.');
+    const timeOfDay=['unspecified','day','night'].includes(input.timeOfDay)?input.timeOfDay:'unspecified';
+    const sourceHealthRatioBps=this.scenarioPercentToBps(input.healthPercent,'Source Health %');
+    const sourceManaRatioBps=this.scenarioPercentToBps(input.manaPercent,'Source Mana %');
+    return this.core.createBuildScenario(build,{targetDistanceMeters,timeOfDay,
+      ...(sourceHealthRatioBps==null?{}:{sourceHealthRatioBps}),
+      ...(sourceManaRatioBps==null?{}:{sourceManaRatioBps})});
+  }
   setGoalMode(id,event) { this.setState({goalModes:{...this.state.goalModes,[id]:event.target.value}}); }
   setGoalValue(id,event) { const value=event.target.value;this.setState({goalValues:{...this.state.goalValues,[id]:value===''?null:Number(value)}}); }
   setWeaponType(role,event) {
@@ -1727,6 +1821,8 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const isSetup = s.phase === 'setup', isForging = s.phase === 'forging', isResult = s.phase === 'result';
+    const resultStats=s.resultCalc?.scenarioStats??s.resultCalc?.stats??[];
+    const resultScenarioSummary=this.resultScenarioSummary(s.result?.scenario);
 
     const weaponSlots = ['main','off'].map(role => {
       const slotId=role==='main'?'main_hand':'off_hand';
@@ -1852,7 +1948,7 @@ class Component extends DCLogic {
     });
 
     const attrSource=s.result&&this.core?['str','dex','int','per','con'].map((key)=>{
-      const total=Number(s.resultCalc?.stats?.find(row=>row.id===key)?.total||0),allocated=Number(s.result.optimizedAttributes?.[key]||0);
+      const total=Number(resultStats.find(row=>row.id===key)?.total||0),allocated=Number(s.result.optimizedAttributes?.[key]||0);
       const thresholds=Object.keys(this.rulesData.ATTRIBUTE_BREAKPOINTS[key]||{}).map(Number).sort((a,b)=>a-b),next=thresholds.find(value=>value>total);
       const rewards=thresholds.flatMap(bp=>Object.entries(this.rulesData.ATTRIBUTE_BREAKPOINTS[key][bp]).map(([statId,value])=>({bp:String(bp),text:this.statLabel(statId)+' '+this.core.formatStat(statId,value),state:bp<=total?'active':'locked'})));
       return {key,abbr:key.toUpperCase(),name:this.statLabel(key),total,allocated,next:next||thresholds.at(-1),dist:next?Math.max(0,next-total):0,pct:Math.min(100,total/Math.max(1,thresholds.at(-1))*100),rewards};
@@ -1873,7 +1969,7 @@ class Component extends DCLogic {
         open: () => this.setState({ openAttr: a.key }) };
     });
 
-    const total=(id)=>Number(s.resultCalc?.stats?.find(row=>row.id===id)?.total||0);
+    const total=(id)=>Number(resultStats.find(row=>row.id===id)?.total||0);
     const weaponStats = s.result ? [
       {tag:'Main',name:'Base Damage',value:this.core.formatNumber(total('attack_power_main_hand_min'))+'~'+this.core.formatNumber(total('attack_power_main_hand_max'))},
       {name:'Damage Reduction',value:this.core.formatStat('damage_reduction',total('damage_reduction'))},
@@ -1950,7 +2046,7 @@ class Component extends DCLogic {
     const prototypeRows=(this.STATS[s.statTab]||[]).map(row=>({name:row[0],formattedValue:row[1],id:'',legacyFav:row[2]}));
     const activeStats = (dynamicRows.length?dynamicRows:(s.result?[]:prototypeRows)).map(row => {
       const fav = favouriteIds.has(row.id)||Boolean(row.legacyFav);
-      const calcRow=s.resultCalc?.stats?.find(stat=>stat.id===row.id);
+      const calcRow=resultStats.find(stat=>stat.id===row.id);
       const sources=(calcRow?.sources||[]).slice().sort((a,b)=>Math.abs(Number(b.value)||0)-Math.abs(Number(a.value)||0)).map(source=>({name:source.sourceLabel||source.name||source.type,value:this.core.formatSigned(source.value,row.id),color:Number(source.value)<0?'#e57c72':'#9fd8b5'}));
       const sourceOpen=Boolean(row.id)&&s.openStatSource===row.id&&sources.length>0;
       return { name:row.name, value:row.formattedValue, fav,hasSources:sources.length>0,noSources:sources.length===0,sourceOpen,sources,sourceCaret:sourceOpen?'Less':'More',sourceCursor:sources.length?'pointer':'default',sourceTitle:sources.length?'Show every source contributing to '+row.name:'No source breakdown available',toggleSources:()=>this.toggleStatSources(row.id),
@@ -1960,7 +2056,7 @@ class Component extends DCLogic {
 
     const passiveSkills=s.result&&this.core?this.core.selectedSkillRows(s.result.build).filter(row=>row.loadoutType==='passive').map(({skill,selection})=>{
       const tier=this.core.skillLevelTierFor(selection.level,this.core.skillMaxLevel(skill));
-      const contributionSources=(s.resultCalc?.stats||[]).flatMap(stat=>(stat.sources||[]).filter(source=>source.type==='skill_passive'&&source.sourceLabel===skill.name).map(source=>this.statLabel(stat.id)+' '+this.core.formatSigned(source.value,stat.id)));
+      const contributionSources=resultStats.flatMap(stat=>(stat.sources||[]).filter(source=>source.type==='skill_passive'&&source.sourceLabel===skill.name).map(source=>this.statLabel(stat.id)+' '+this.core.formatSigned(source.value,stat.id)));
       return{name:skill.name,weapon:this.core.label(skill.mainCategory),level:selection.level,color:tier.color,icon:skill.imageUrl?`url(${skill.imageUrl}) center/cover`:'radial-gradient(circle at 35% 30%,#372644,#130e18)',title:[skill.name,'Level '+selection.level,...contributionSources].join(' | ')};
     }):[];
     const masteryGroups=s.result&&this.core?[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(weapon=>{
@@ -2150,11 +2246,15 @@ class Component extends DCLogic {
           ? ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build improved from your current character. Items marked KEPT were carried forward; hover any item for its complete configuration.')
           : ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build assembled from your ranked goals. Hover any item for its full card; click to lock and re-forge the rest.'))
         : 'Pick two weapon families, rank the stats you care about, set your rules, then forge a complete character from the equipment catalogue.',
+      resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       setupCols, resultCols, statsSpan, weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
 
       weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,
       togglePotential:this.togglePotential,potentialEnabled:s.progression.includePotential,potentialBorder:s.progression.includePotential?'rgba(185,140,240,.5)':'rgba(185,140,240,.2)',potentialBg:s.progression.includePotential?'rgba(117,76,164,.14)':'rgba(0,0,0,.2)',potentialTrack:s.progression.includePotential?'linear-gradient(90deg,#8e5db8,#d8b8ff)':'rgba(120,105,128,.35)',potentialKnob:s.progression.includePotential?'16px':'2px',
+      scenarioEnabled:s.scenario.enabled,scenarioDistance:s.scenario.distance,scenarioTimeOfDay:s.scenario.timeOfDay,scenarioHealthPercent:s.scenario.healthPercent,scenarioManaPercent:s.scenario.manaPercent,
+      toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,
+      scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
       rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,

@@ -1,6 +1,6 @@
 # Project status: TL data platform
 
-Updated 2026-07-14 after the persistent-calculation authority review and receipted canonical data rebuild. Current snapshot:
+Updated 2026-07-14 after the persistent-calculation authority review, receipted canonical data rebuild, and exact self-resource threshold scenario extension. Current snapshot:
 game version `1.431.22.7761`, Steam build `24118850`, decoder `0.2.0`.
 
 Public-beta release preparation was completed locally on 2026-07-12. The
@@ -40,6 +40,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Web application | Armory, tracker, achievements, static build calculator, and first Combat Lab | `web/` |
 | BuildSnapshot v2 | Immutable, versioned raw-build contract with authoritative recalculation, used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
 | Static calculation regression | 69/69 assertions across 3 fixtures; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
+| Scenario calculation | 8 decoded-exact rules across distance, ordinary day/night, and source Health/Mana thresholds; persistent totals remain separate | `web/tl-scenario-effects.js`, `web/data/scenario-effects.json` |
 | Coverage audit | All four stated counts validate from the new data root | `node scripts/audit-questlog-coverage.mjs` |
 | `TLJsonDataTable` decoder | RowStruct-validated tagged-property decoding; 55 reviewed tables clean, including `TLEffectProperty` and all weapon abnormal states | `node scripts/decode-tljson-table.mjs --all-priority` |
 | Collector | 92 tests; deterministic rerun, resume, build-scoped output, `TL_DATA_ROOT` | `dotnet run --project src/TlCollector/App -- sample` |
@@ -100,7 +101,7 @@ JSON, and refreshed coverage summary on 2026-07-14:
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
 - Latest verification gate: BuildSnapshot v2 passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 547/547, and all four
+  fixtures, all 12 edge checks passed, JavaScript tests 590/590, and all four
   refreshed coverage validations passed. Collector tests remain 92/92 from the
   prior collector gate; the receipted run did not rerun collection.
 

@@ -28,6 +28,7 @@ function scenario(overrides = {}) {
         relationship: "enemy",
         buildSnapshotHash: "A".repeat(64),
         equippedWeaponTypes: [],
+        resources: { health: { currentRatioBps: 4999 } },
       },
       {
         id: "player",
@@ -35,6 +36,10 @@ function scenario(overrides = {}) {
         buildSnapshotId: "build.player",
         equippedWeaponTypes: ["dagger", "longbow"],
         activeWeaponType: "longbow",
+        resources: {
+          health: { currentRatioBps: 5000 },
+          mana: { currentRatioBps: 3300 },
+        },
       },
     ],
     source: { participantId: "player" },
@@ -124,11 +129,47 @@ test("combat scenarios normalize deterministic build-scoped state and deeply fre
   assert.ok(Object.isFrozen(normalized));
   assert.ok(Object.isFrozen(normalized.environment));
   assert.ok(Object.isFrozen(normalized.participants[0].equippedWeaponTypes));
+  assert.ok(Object.isFrozen(normalized.participants[0].resources.health));
   assert.throws(() => { normalized.target.distanceMeters = "99"; }, TypeError);
   input.environment.weather = "clear";
   input.participants[1].equippedWeaponTypes.push("staff");
   assert.equal(normalized.environment.weather, "rain");
   assert.deepEqual(normalized.participants[0].equippedWeaponTypes, ["dagger", "longbow"]);
+  assert.deepEqual(normalized.participants[0].resources, {
+    health: { currentRatioBps: 5000 },
+    mana: { currentRatioBps: 3300 },
+  });
+});
+
+test("combat scenario v2 validates exact participant resource ratios", () => {
+  for (const currentRatioBps of [0, 1, 9999, 10000]) {
+    const input = scenario();
+    input.participants[1].resources.health.currentRatioBps = currentRatioBps;
+    assert.equal(normalizeCombatScenario(input).participants[0].resources.health.currentRatioBps, currentRatioBps);
+  }
+  for (const invalid of [-1, 10001, 1.5, NaN, Infinity, "5000"]) {
+    const input = scenario();
+    input.participants[1].resources.health.currentRatioBps = invalid;
+    assert.throws(() => normalizeCombatScenario(input));
+  }
+  const unknownResource = scenario();
+  unknownResource.participants[1].resources.stamina = { currentRatioBps: 5000 };
+  assert.throws(() => normalizeCombatScenario(unknownResource), /unknown field/);
+  const unknownRatioField = scenario();
+  unknownRatioField.participants[1].resources.health.percent = 50;
+  assert.throws(() => normalizeCombatScenario(unknownRatioField), /unknown field/);
+});
+
+test("combat scenario v1 migrates to canonical v2 without resource semantics", () => {
+  const input = scenario({ schemaVersion: 1 });
+  for (const participant of input.participants) delete participant.resources;
+  const migrated = normalizeCombatScenario(input);
+  assert.equal(migrated.schemaVersion, 2);
+  assert.ok(migrated.participants.every((participant) => Object.keys(participant.resources).length === 0));
+
+  const smuggled = scenario({ schemaVersion: 1 });
+  assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
+  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 3 })), /Unsupported combat scenario schemaVersion/);
 });
 
 test("scenario normalization is deterministic across non-semantic input ordering", () => {

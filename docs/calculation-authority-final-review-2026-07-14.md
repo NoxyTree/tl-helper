@@ -159,11 +159,11 @@ BuildSnapshot v2 stores raw build state and allocated attributes while treating 
 - Nonfinite malformed input cannot be converted into a legal default or collide with a legal calculation fingerprint.
 - The calculation context explicitly identifies persistent static mode, included set effects, and excluded dynamic effects.
 
-## First exact scenario extension
+## Exact scenario extensions
 
 The conditional-effect work queue now contains `530` deterministic source shells: `62` weapon passives, `159` non-structured masteries, `286` item or Skill Core complexes, and `23` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
 
-Six decoded rules are now executable through an explicit combat scenario:
+Eight decoded rules are now executable through an explicit combat scenario:
 
 - Sniper's Sense
 - Far Sight
@@ -171,8 +171,10 @@ Six decoded rules are now executable through an explicit combat scenario:
 - Black Rage's Boost
 - Kowazan's Bombing, with exact ordinary day and night Attack Speed values
 - Kowazan's Madness, with exact ordinary day and night Melee Critical Hit Chance values
+- Critical Equilibrium, with all ten exact ranks and mutually exclusive Health branches at `50.00%`
+- Tranquil Will, with exact Mana Cost Efficiency at source Mana `<= 33.00%`
 
-Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the current scenario does not yet model. Kowazan Eclipse behavior also remains fail-closed because distinct Eclipse rows exist but their activation graph is not decoded.
+Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the current scenario does not yet model. Kowazan Eclipse behavior also remains fail-closed because distinct Eclipse rows exist but their activation graph is not decoded. Absolute-current-Health effects such as Adentus remain unsupported because a percentage-only scenario cannot represent their decoded scaling semantics honestly.
 
 Scenario calculation is deliberately an overlay rather than a mutation of persistent totals:
 
@@ -180,6 +182,7 @@ Scenario calculation is deliberately an overlay rather than a mutation of persis
 - A valid scenario adds `scenarioEffects` and `scenarioStats`.
 - An invalid, unsupported, weapon-mismatched, or wrong-build scenario applies no partial overlay.
 - The exact combat-scenario contract is closed-world and versioned. Unknown fields, missing schemas, invalid participants, and mismatched game builds fail validation.
+- CombatScenario v2 stores optional source and target Health or Mana ratios as integer basis points. Missing values remain unspecified, and v1 inputs migrate only when they contain no resource semantics.
 - Browser contract modules are byte-exact mirrors of the authored combat-engine modules and are protected by a synchronization test.
 - Decoded distance rules are pinned to game build `24118850`; they cannot execute against a future projection until they are re-audited.
 - Equipped-weapon progression and selected Skill Core authority are reused, so foreign stored passives, foreign masteries, and unselected cores cannot reactivate through a scenario.
@@ -188,7 +191,7 @@ Scenario calculation is deliberately an overlay rather than a mutation of persis
 - Scenario fingerprints and slot caches use the normalized closed-world contract, so non-semantic participant, action, or weapon ordering cannot split cache identity.
 - Scratch optimization rebinds the scenario source weapons for progression evaluation, every concrete candidate, attribute and rune refinement, and the final result.
 
-Gear Viewer and Full Build Optimizer expose target-distance and ordinary day/night scoring as an explicit opt-in. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, and optimizer handoff use the same canonical scenario when enabled.
+Gear Viewer, Full Build Optimizer, and Build From Scratch expose target-distance, ordinary day/night, and nullable source Health or Mana scoring as explicit scenario inputs. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, tuning, and optimizer handoff use the same canonical scenario when enabled.
 
 ## Cross-surface behavior
 
@@ -226,7 +229,7 @@ These are explicit and do not silently enter exact item ranking:
 
 1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
 2. `GT_Hero_Attack_01`, Instinct and Restraint, has exact level rates and an exact Eclipse reversal, but percentage All Defense materialization, Base Damage hand scope, stacking order, and rounding are not present in the decoded client rows. It remains provisional rather than receiving invented endpoint totals.
-3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the six decoded distance and ordinary day/night rules listed above are currently executable.
+3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the eight decoded distance, ordinary day/night, and self-resource threshold rules listed above are currently executable.
 4. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
 5. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
 
@@ -242,13 +245,13 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `562/562`
+- Node test suite: `590/590`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
 - Set audit: `78` sets, `151` breakpoints, no incorrect or review classifications
 - Passive-effect contract: `80 + 193 + 294 = 567` effects, every ID classified exactly once
-- Conditional scenario catalogue: `530/530` source shells, with `6` decoded rules executable and `524` explicitly non-executable
+- Conditional scenario catalogue: `530/530` source shells, with `8` decoded rules executable and `522` explicitly non-executable
 - Closed-world scenario, game-build drift, source-weapon binding, scratch-candidate rebinding, canonical cache identity, day/night separation, shared-abnormal conflict handling, derived-stat reconstruction, hard-cap reconstruction, and unsupported-current-stat regressions: passed
 - Browser combat-engine contract synchronization: passed
 - Passive registry binding audit: passed

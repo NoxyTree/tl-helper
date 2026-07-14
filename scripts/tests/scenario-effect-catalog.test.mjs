@@ -41,8 +41,8 @@ test("catalogue covers the exact conditional source universe", () => {
       setBreakpointConditional: 23,
     },
     bySupportState: {
-      catalogued_unmodeled: 501,
-      scenario_executable_decoded: 6,
+      catalogued_unmodeled: 499,
+      scenario_executable_decoded: 8,
       unsupported_static_calculator: 9,
       static_component_only: 14,
     },
@@ -88,11 +88,12 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
     assert.equal(Object.hasOwn(effect, "trigger"), false);
     assert.equal(Object.hasOwn(effect, "formula"), false);
     if (effect.supportState === "scenario_executable_decoded") {
-      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount"].includes(effect.precision.stage));
-      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario"].includes(effect.precision.semantics));
+      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount", "decoded_exact_threshold"].includes(effect.precision.stage));
+      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario", "reviewed_source_resource_threshold"].includes(effect.precision.semantics));
       assert.equal(effect.precision.executable, true);
       assert.ok(effect.executableSemantics);
-      assert.ok(effect.unresolvedFields.length === 1 && ["serverRounding", "eclipseState"].includes(effect.unresolvedFields[0]));
+      assert.ok(effect.unresolvedFields.length === 0
+        || (effect.unresolvedFields.length === 1 && ["serverRounding", "eclipseState"].includes(effect.unresolvedFields[0])));
     } else {
       assert.equal(effect.precision.stage, "unsupported");
       assert.equal(effect.precision.semantics, "unresolved");
@@ -104,17 +105,19 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   }
 });
 
-test("only the six reviewed decoded scenario rules are promoted to deterministic executable references", () => {
+test("only the eight reviewed decoded scenario rules are promoted to deterministic executable references", () => {
   const catalog = buildScenarioEffectCatalog(inputs());
   const expectedIds = [
     "Bow_Normal_Attack_Skill",
+    "Orb_Rare_Util_Skill",
     "SkillSet_WP_BO_S_DistanceCritical",
     "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
     "SkillSet_WP_Item_kA_CR_61",
     "SkillSet_WP_Item_kA_DA_61_2",
     "SkillSet_WP_Item_kA_ST_55",
+    "Sword2h_Hero_Attack_01",
   ];
-  assert.deepEqual(Object.keys(EXECUTABLE_SCENARIO_RULE_REFERENCES), expectedIds);
+  assert.deepEqual(sorted(Object.keys(EXECUTABLE_SCENARIO_RULE_REFERENCES)), expectedIds);
   const executable = catalog.effects.filter((row) => row.supportState === "scenario_executable_decoded");
   assert.deepEqual(sorted(executable.map((row) => row.sourceId)), expectedIds);
 
@@ -123,7 +126,7 @@ test("only the six reviewed decoded scenario rules are promoted to deterministic
     assert.deepEqual(reference, EXECUTABLE_SCENARIO_RULE_REFERENCES[effect.sourceId]);
     assert.equal(reference.definitionKey, effect.sourceId);
     assert.equal(reference.gameBuild, "24118850");
-    assert.ok(["target_distance", "time_of_day"].includes(reference.mechanic));
+    assert.ok(["target_distance", "time_of_day", "source_resource_threshold"].includes(reference.mechanic));
     assert.ok(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId]);
     assert.notEqual(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId].executable, false);
     if (reference.mechanic === "target_distance") {
@@ -132,12 +135,19 @@ test("only the six reviewed decoded scenario rules are promoted to deterministic
       assert.equal(reference.definitionsExport, "DISTANCE_EFFECT_DEFINITIONS");
       assert.deepEqual(reference.requiredScenarioInputs, ["targetDistanceMeters"]);
       assert.deepEqual(reference.unresolvedFields, ["serverRounding"]);
-    } else {
+    } else if (reference.mechanic === "time_of_day") {
       assert.equal(reference.modulePath, "web/tl-time-of-day-scenario-effects.js");
       assert.equal(reference.evaluatorExport, "evaluateTimeOfDayScenarioEffects");
       assert.equal(reference.definitionsExport, "TIME_OF_DAY_EFFECT_DEFINITIONS");
       assert.deepEqual(reference.requiredScenarioInputs, ["environment.timeOfDay"]);
       assert.deepEqual(reference.unresolvedFields, ["eclipseState"]);
+    } else {
+      assert.equal(reference.modulePath, "web/tl-resource-threshold-scenario-effects.js");
+      assert.equal(reference.evaluatorExport, "evaluateResourceThresholdScenarioEffects");
+      assert.equal(reference.definitionsExport, "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS");
+      assert.deepEqual(reference.unresolvedFields, []);
+      assert.equal(reference.requiredScenarioInputs.length, 1);
+      assert.match(reference.requiredScenarioInputs[0], /^participants\[source\]\.resources\.(health|mana)\.currentRatioBps$/);
     }
     assert.equal(effect.provenance.some((row) => row.kind === "decoded_executable_rule" && row.path === reference.modulePath), true);
     assert.equal(effect.sourceEdges.some((row) => row.relation === "executed_by_reviewed_rule" && row.to === reference.ruleId), true);

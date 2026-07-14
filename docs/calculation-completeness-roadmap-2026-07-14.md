@@ -18,7 +18,7 @@ Current closed-world inventories are:
 | Weapon passives | 80 | Every ID classified exactly once |
 | Non-structured mastery | 193 | Every ID classified exactly once; 33 persistent mappings across unified and weapon mastery |
 | Innate item and selectable perk complexes | 294 | Every ID classified exactly once |
-| Conditional source shells | 530 | 6 exact scenario rules executable; 524 explicitly non-executable and fail-closed |
+| Conditional source shells | 530 | 8 exact scenario rules executable; 522 explicitly non-executable and fail-closed |
 
 Selected skills and masteries are active only for equipped weapon families. Unified mastery is global. Build From Scratch can temporarily supply its requested weapon families to the same calculator while it constructs progression before concrete weapons are equipped. That override is local to scratch evaluation and does not change normal build calculation.
 
@@ -38,8 +38,8 @@ Until those tests exist, both remain fail-closed or provisional. Neither can sil
 The scenario contract must grow by evidence-backed dimensions, not by parsing tooltip prose into guessed formulas. Recommended order:
 
 1. Time-of-day state. Ordinary day and night are now exact for Kowazan's Bombing and Kowazan's Madness. Unsupported phases and shared older Kowazan controllers fail closed.
-2. Self and target Health or Mana thresholds. This is the next mechanic family.
-3. Moving, stationary, and positional state.
+2. Self Health or Mana thresholds. CombatScenario v2 and the three optimizer-facing pages now carry optional participant-owned resource ratios. Critical Equilibrium and Tranquil Will are exact and executable. Absolute resource amounts and target-resource rules remain separate future work.
+3. Moving, stationary, and positional state. This is the next mechanic family.
 4. Party size, nearby allies, aura ownership, and recipient rules.
 5. Skill-use, control, weaken, collision, and active-weapon state.
 6. Stacks, proc chance, cooldown, duration, refresh, and uptime policy.

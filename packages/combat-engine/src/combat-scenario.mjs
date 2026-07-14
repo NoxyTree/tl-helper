@@ -13,7 +13,14 @@ import {
 } from "./contract-primitives.mjs";
 
 export const COMBAT_SCENARIO_SCHEMA = "tl-helper.combat-scenario";
-export const COMBAT_SCENARIO_SCHEMA_VERSION = 1;
+export const COMBAT_SCENARIO_SCHEMA_VERSION = 2;
+
+export const SCENARIO_RESOURCE = Object.freeze({
+  HEALTH: "health",
+  MANA: "mana",
+});
+
+export const SCENARIO_RESOURCE_BPS_SCALE = 10000;
 
 export const SCENARIO_TIME_OF_DAY = Object.freeze({
   UNSPECIFIED: "unspecified",
@@ -57,13 +64,13 @@ export function normalizeCombatScenario(input, { expectedGameBuild } = {}) {
     "participants", "source", "target", "actions", "rng",
   ], "Combat scenario");
   if (value.schema !== COMBAT_SCENARIO_SCHEMA) throw new Error(`Unsupported combat scenario schema: ${String(value.schema)}`);
-  if (value.schemaVersion !== COMBAT_SCENARIO_SCHEMA_VERSION) {
+  if (![1, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
     throw new Error(`Unsupported combat scenario schemaVersion: ${String(value.schemaVersion)}`);
   }
   const gameBuild = requireBuild(value.gameBuild, "gameBuild");
   assertExpectedBuild(gameBuild, expectedGameBuild);
   const durationMs = requireNonnegativeInteger(value.durationMs, "durationMs");
-  const participants = normalizeParticipants(value.participants);
+  const participants = normalizeParticipants(value.participants, value.schemaVersion);
   const participantIds = new Set(participants.map((participant) => participant.id));
   const source = normalizeParticipantReference(value.source, "source", participantIds);
   const target = normalizeTarget(value.target, participantIds);
@@ -100,16 +107,18 @@ function normalizeEnvironment(input) {
   };
 }
 
-function normalizeParticipants(input) {
+function normalizeParticipants(input, inputSchemaVersion) {
   if (!Array.isArray(input) || input.length === 0) throw new TypeError("participants must be a nonempty array.");
   const seen = new Set();
   const participants = input.map((entry, index) => {
     const label = `participants[${index}]`;
     const value = requireRecord(entry, label);
-    assertOnlyKeys(value, [
+    const allowedKeys = [
       "id", "relationship", "buildSnapshotId", "buildSnapshotHash",
       "equippedWeaponTypes", "activeWeaponType",
-    ], label);
+      ...(inputSchemaVersion >= 2 ? ["resources"] : []),
+    ];
+    assertOnlyKeys(value, allowedKeys, label);
     const id = requireId(value.id, `${label}.id`);
     if (seen.has(id)) throw new Error(`Duplicate participant id: ${id}`);
     seen.add(id);
@@ -140,9 +149,30 @@ function normalizeParticipants(input) {
       ...(buildSnapshotHash === undefined ? {} : { buildSnapshotHash }),
       equippedWeaponTypes,
       ...(activeWeaponType === undefined ? {} : { activeWeaponType }),
+      resources: normalizeParticipantResources(value.resources, `${label}.resources`),
     };
   });
   return participants.sort((left, right) => compareCodeUnits(left.id, right.id));
+}
+
+function normalizeParticipantResources(input, label) {
+  if (input === undefined) return {};
+  const value = requireRecord(input, label);
+  assertOnlyKeys(value, Object.values(SCENARIO_RESOURCE), label);
+  return {
+    ...(value.health === undefined ? {} : { health: normalizeResourceRatio(value.health, `${label}.health`) }),
+    ...(value.mana === undefined ? {} : { mana: normalizeResourceRatio(value.mana, `${label}.mana`) }),
+  };
+}
+
+function normalizeResourceRatio(input, label) {
+  const value = requireRecord(input, label);
+  assertOnlyKeys(value, ["currentRatioBps"], label);
+  const currentRatioBps = requireNonnegativeInteger(value.currentRatioBps, `${label}.currentRatioBps`);
+  if (currentRatioBps > SCENARIO_RESOURCE_BPS_SCALE) {
+    throw new RangeError(`${label}.currentRatioBps must not exceed ${SCENARIO_RESOURCE_BPS_SCALE}.`);
+  }
+  return { currentRatioBps };
 }
 
 function normalizeParticipantReference(input, label, participantIds) {

@@ -2260,6 +2260,11 @@ export function activeScenarioSources(build, progression = effectiveProgression(
     .filter(({ loadoutType }) => loadoutType === "passive")
     .map(({ skill, selection }) => ({ id: skill.id, level: Number(selection.level || 1), selected: true }));
   const masteryIds = progression.masteries.map(({ masteryId }) => masteryId);
+  const masteries = progression.masteries.map(({ masteryId, selection }) => ({
+    id: masteryId,
+    level: Number(selection.level || 1),
+    selected: true,
+  }));
   const itemEffects = [];
   for (const { item, selection } of selections) {
     if (item?.passives?.id) itemEffects.push({ id: item.passives.id, sourceKind: "innate", itemId: item.id });
@@ -2270,6 +2275,7 @@ export function activeScenarioSources(build, progression = effectiveProgression(
     equippedWeaponTypes: [...(progression.equippedWeaponTypes ?? equippedWeaponTypes(build))],
     passiveSkills,
     masteryIds,
+    masteries,
     itemEffects,
   };
 }
@@ -2278,7 +2284,21 @@ export function activeDistanceScenarioSources(build, progression = effectiveProg
   return activeScenarioSources(build, progression, selections);
 }
 
-export function createBuildScenario(build, { targetDistanceMeters, timeOfDay = "unspecified" } = {}) {
+function participantResources({ healthRatioBps, manaRatioBps } = {}) {
+  return {
+    ...(healthRatioBps === undefined ? {} : { health: { currentRatioBps: healthRatioBps } }),
+    ...(manaRatioBps === undefined ? {} : { mana: { currentRatioBps: manaRatioBps } }),
+  };
+}
+
+export function createBuildScenario(build, {
+  targetDistanceMeters,
+  timeOfDay = "unspecified",
+  sourceHealthRatioBps,
+  sourceManaRatioBps,
+  targetHealthRatioBps,
+  targetManaRatioBps,
+} = {}) {
   if (!data?.gameBuild) throw new Error("Game data must be initialized before creating a combat scenario.");
   const equipped = [...equippedWeaponTypes(build)].sort();
   return normalizeCombatScenario({
@@ -2289,8 +2309,20 @@ export function createBuildScenario(build, { targetDistanceMeters, timeOfDay = "
     durationMs: 0,
     environment: { timeOfDay, weather: "unspecified" },
     participants: [
-      { id: "source", relationship: "self", buildSnapshotId: "calculation-build", equippedWeaponTypes: equipped },
-      { id: "target", relationship: "enemy", buildSnapshotId: "scenario-target", equippedWeaponTypes: [] },
+      {
+        id: "source",
+        relationship: "self",
+        buildSnapshotId: "calculation-build",
+        equippedWeaponTypes: equipped,
+        resources: participantResources({ healthRatioBps: sourceHealthRatioBps, manaRatioBps: sourceManaRatioBps }),
+      },
+      {
+        id: "target",
+        relationship: "enemy",
+        buildSnapshotId: "scenario-target",
+        equippedWeaponTypes: [],
+        resources: participantResources({ healthRatioBps: targetHealthRatioBps, manaRatioBps: targetManaRatioBps }),
+      },
     ],
     source: { participantId: "source" },
     target: { participantId: "target", distanceMeters: targetDistanceMeters },
@@ -2383,6 +2415,19 @@ export function evaluateBuildScenario(build, scenario, progression = effectivePr
   }
   const activeSources = activeScenarioSources(build, progression, selections);
   const sourceParticipant = normalizedScenario.participants.find((participant) => participant.id === normalizedScenario.source.participantId);
+  const targetParticipant = normalizedScenario.participants.find((participant) => participant.id === normalizedScenario.target.participantId);
+  if (sourceParticipant?.relationship !== "self") {
+    return Object.freeze({
+      overlayRows: Object.freeze([]),
+      trace: Object.freeze([]),
+      errors: Object.freeze([Object.freeze({
+        code: "scenario_source_relationship_mismatch",
+        sourceId: normalizedScenario.source.participantId,
+        message: "Scenario source participant must have the self relationship for build calculation.",
+      })]),
+      scenario: normalizedScenario,
+    });
+  }
   const scenarioWeapons = [...(sourceParticipant?.equippedWeaponTypes ?? [])].sort();
   const actualWeapons = [...activeSources.equippedWeaponTypes].sort();
   if (JSON.stringify(scenarioWeapons) !== JSON.stringify(actualWeapons)) {
@@ -2402,6 +2447,8 @@ export function evaluateBuildScenario(build, scenario, progression = effectivePr
     scenario: {
       targetDistanceMeters: scenarioTargetDistance(normalizedScenario),
       timeOfDay: normalizedScenario.environment.timeOfDay,
+      sourceResources: sourceParticipant.resources,
+      targetResources: targetParticipant?.resources ?? {},
     },
   });
   return Object.freeze({ ...evaluated, scenario: normalizedScenario });
@@ -2440,6 +2487,11 @@ function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) 
       scenarioEffectId: effect.effectId,
       scenarioDistanceMeters: effect.scenario?.targetDistanceMeters,
       scenarioTimeOfDay: effect.scenario?.timeOfDay,
+      scenarioResource: effect.scenario?.resource,
+      scenarioResourceRatioBps: effect.scenario?.currentRatioBps,
+      scenarioResourceThresholdRatioBps: effect.scenario?.thresholdRatioBps,
+      scenarioResourceOperator: effect.scenario?.operator,
+      scenarioResourceBranch: effect.scenario?.branch,
       sourceKinds: effect.sourceKinds,
       precision: effect.precision,
       provenance: effect.provenance,
@@ -2657,16 +2709,22 @@ export function calculateBuild(build, attributes, options = {}) {
     const evaluated = evaluateBuildScenario(build, options.scenario, progression, selections);
     const distanceMeters = scenarioTargetDistance(evaluated.scenario ?? options.scenario);
     const timeOfDay = evaluated.scenario?.environment?.timeOfDay ?? options.scenario?.environment?.timeOfDay;
+    const sourceParticipant = evaluated.scenario?.participants?.find((participant) => participant.id === evaluated.scenario?.source?.participantId);
+    const targetParticipant = evaluated.scenario?.participants?.find((participant) => participant.id === evaluated.scenario?.target?.participantId);
+    const sourceResources = sourceParticipant?.resources ?? {};
+    const targetResources = targetParticipant?.resources ?? {};
     const executable = evaluated.errors.length === 0;
     result.scenarioEffects = {
       schema: "tl-helper.build-scenario-effects",
-      schemaVersion: 2,
+      schemaVersion: 3,
       gameBuild: String(data?.gameBuild ?? ""),
       kind: "combat_scenario",
       ruleset: evaluated.ruleset ?? { id: SCENARIO_EFFECT_RULESET_ID, version: SCENARIO_EFFECT_RULESET_VERSION },
       targetDistanceMeters: distanceMeters,
       timeOfDay,
-      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay },
+      sourceResources,
+      targetResources,
+      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources },
       status: executable ? "applied" : "unsupported",
       scenario: evaluated.scenario,
       evaluatedRows: evaluated.overlayRows,

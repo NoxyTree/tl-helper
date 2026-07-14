@@ -37,8 +37,8 @@
       "setBreakpointConditional": 23
     },
     "bySupportState": {
-      "catalogued_unmodeled": 501,
-      "scenario_executable_decoded": 6,
+      "catalogued_unmodeled": 499,
+      "scenario_executable_decoded": 8,
       "unsupported_static_calculator": 9,
       "static_component_only": 14
     }
@@ -32443,12 +32443,13 @@
       "weaponRequirements": [
         "orb"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_resource_threshold",
+        "executable": true,
+        "limitation": "Threshold operator, selected-mastery rank values, source recipient, equipped-weapon gate, and integer basis-point comparison are decoded and reviewed."
       },
       "provenance": [
         {
@@ -32460,6 +32461,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-resource-threshold-scenario-effects.js",
+          "selector": "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS[Orb_Rare_Util_Skill]"
         }
       ],
       "sourceEdges": [
@@ -32470,21 +32476,33 @@
           "projectionPath": "data.masteries[id=Orb_Rare_Util_Skill].passives",
           "rankCount": 1,
           "selectedDescriptionRank": 1
+        },
+        {
+          "from": "Orb_Rare_Util_Skill",
+          "relation": "executed_by_reviewed_rule",
+          "to": "resource-threshold:Orb_Rare_Util_Skill",
+          "modulePath": "web/tl-resource-threshold-scenario-effects.js",
+          "evaluatorExport": "evaluateResourceThresholdScenarioEffects",
+          "definitionKey": "Orb_Rare_Util_Skill"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "resource-threshold:Orb_Rare_Util_Skill",
+        "mechanic": "source_resource_threshold",
+        "modulePath": "web/tl-resource-threshold-scenario-effects.js",
+        "evaluatorExport": "evaluateResourceThresholdScenarioEffects",
+        "definitionsExport": "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS",
+        "definitionKey": "Orb_Rare_Util_Skill",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].resources.mana.currentRatioBps"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_threshold",
+        "precisionSemantics": "reviewed_source_resource_threshold",
+        "precisionLimitation": "Threshold operator, selected-mastery rank values, source recipient, equipped-weapon gate, and integer basis-point comparison are decoded and reviewed."
+      }
     },
     {
       "catalogId": "masteryNonStructured:Spear_Hero_Attack_01",
@@ -34151,12 +34169,13 @@
       "weaponRequirements": [
         "sword2h"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_resource_threshold",
+        "executable": true,
+        "limitation": "Threshold operator, selected-mastery rank values, source recipient, equipped-weapon gate, and integer basis-point comparison are decoded and reviewed."
       },
       "provenance": [
         {
@@ -34168,6 +34187,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-resource-threshold-scenario-effects.js",
+          "selector": "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS[Sword2h_Hero_Attack_01]"
         }
       ],
       "sourceEdges": [
@@ -34178,21 +34202,33 @@
           "projectionPath": "data.masteries[id=Sword2h_Hero_Attack_01].passives",
           "rankCount": 10,
           "selectedDescriptionRank": 10
+        },
+        {
+          "from": "Sword2h_Hero_Attack_01",
+          "relation": "executed_by_reviewed_rule",
+          "to": "resource-threshold:Sword2h_Hero_Attack_01",
+          "modulePath": "web/tl-resource-threshold-scenario-effects.js",
+          "evaluatorExport": "evaluateResourceThresholdScenarioEffects",
+          "definitionKey": "Sword2h_Hero_Attack_01"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "resource-threshold:Sword2h_Hero_Attack_01",
+        "mechanic": "source_resource_threshold",
+        "modulePath": "web/tl-resource-threshold-scenario-effects.js",
+        "evaluatorExport": "evaluateResourceThresholdScenarioEffects",
+        "definitionsExport": "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS",
+        "definitionKey": "Sword2h_Hero_Attack_01",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].resources.health.currentRatioBps"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_threshold",
+        "precisionSemantics": "reviewed_source_resource_threshold",
+        "precisionLimitation": "Threshold operator, selected-mastery rank values, source recipient, equipped-weapon gate, and integer basis-point comparison are decoded and reviewed."
+      }
     },
     {
       "catalogId": "masteryNonStructured:Sword2h_Hero_Defense_03",
