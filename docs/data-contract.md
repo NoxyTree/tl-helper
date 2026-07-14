@@ -2,6 +2,10 @@
 
 Version 1 · applies from game build 24118850 · implemented by `scripts/build-warehouse.mjs` → `TL_DATA_ROOT\warehouse\tl-<build>.sqlite`
 
+The warehouse and table inventory are derived products. Their builders replace
+the same-build output paths during a full rebuild. Source snapshots remain
+outside those paths and must pass orchestrator preflight before a rebuild starts.
+
 ## Store decision
 
 **SQLite** (via `node:sqlite`, no external dependencies) is the normalized query store:
@@ -107,3 +111,59 @@ that are not yet materialized.
 2. Unknown/unsupported decoded fields stay in `raw_json` (`{"unsupported": ...}` markers); they are never dropped.
 3. Every record must be traceable: build + source path + sha256 + decoder version are NOT NULL.
 4. Rebuilding the warehouse for the same build is idempotent (full rebuild, same content).
+
+## Data build receipt
+
+Before either derived output is rebuilt, the decoded directory must match the
+reviewed baseline at `data-build-baselines/<game-build>.json`. That baseline
+pins the complete decoded table and row universe, decoder-version set,
+source-table semantic hash, and decoded-artifact hash. Missing tables or
+unexplained decoder output changes therefore fail preflight instead of becoming
+a smaller but internally self-consistent warehouse. Updating a baseline is an
+evidence-review decision, not an automatic build step. Its contract is
+`schemas/decoded-data-baseline.schema.json`.
+
+A successful orchestrated rebuild of both the warehouse and table inventory
+produces a reviewable receipt at:
+
+```text
+data-build-receipts/<game-build>.json
+```
+
+The receipt contract is `schemas/data-build-receipt.schema.json`. It records:
+
+- Decoded table and row counts plus aggregate source and artifact hashes.
+- The reviewed decoded-baseline file and hash that authorized that source set.
+- Localization and Questlog snapshot hashes.
+- The extracted texture path-set count and hash.
+- The `game_tables.csv` hash.
+- Warehouse build, table, record, reference, asset, localization, source-set,
+  file-size, and file-hash identities, plus independently recomputed hashes for
+  the decoded manifest, every record field, references, assets, and FTS tuples.
+- Inventory build, discovered-table, family, decoded-table, decoded-row,
+  file-size, and file-hash identities.
+- The clean Git commit and Node.js version, plus SHA-256 identities for critical
+  generator entrypoints, direct data dependencies, validators, and schemas.
+- The successful update-run report that authorized the receipt.
+
+The orchestrator writes this receipt only when the same run rebuilt and
+semantically validated both outputs and the complete selected run passed. A
+receipt can also be regenerated from that successful report with:
+
+```powershell
+node scripts/generate-data-build-receipt.mjs --run-report D:\TL_Data\reports\<build>\update-runs\<timestamp>.json
+```
+
+Receipt-producing rebuilds require a clean committed worktree before any stage
+starts, so the commit pins the complete tracked source tree. Receipt issuance
+rechecks the runtime and critical generator files, and rejects every new Git
+dirty path except declared generated data locations.
+The generator rejects a failed, incomplete, stale, dirty, or mismatched report. The
+repository intentionally contains no receipt for a build that has not completed
+this process. Do not hand-author counts or hashes from the current stale store.
+
+Before a collector, decode, warehouse, inventory, or stat-source mutation can
+run, the current receipt is archived under
+`data-build-receipts/superseded/<build>/`. The run report remains
+`awaiting-receipt` until the replacement receipt is issued, preventing an old
+receipt or an interrupted run from acting as a current release marker.

@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tlhelper.org/schemas/data-build-receipt.schema.json",
+  "title": "TL Helper data build receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "gameBuild",
+    "generatedAtUtc",
+    "schemaPath",
+    "sourceRun",
+    "generator",
+    "inputs",
+    "outputs"
+  ],
+  "properties": {
+    "schema": { "const": "tl-helper.data-build-receipt" },
+    "schemaVersion": { "const": 1 },
+    "gameBuild": { "type": "string", "pattern": "^[0-9]+$" },
+    "generatedAtUtc": { "type": "string", "format": "date-time" },
+    "schemaPath": { "const": "schemas/data-build-receipt.schema.json" },
+    "sourceRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startedAtUtc", "finishedAtUtc", "mode", "status", "reportPath"],
+      "properties": {
+        "startedAtUtc": { "type": "string", "format": "date-time" },
+        "finishedAtUtc": { "type": "string", "format": "date-time" },
+        "mode": { "const": "run" },
+        "status": { "const": "passed" },
+        "reportPath": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generator": { "$ref": "#/$defs/generatorIdentity" },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decodedTables", "decodedBaseline", "localization", "texturePaths", "questlogEquipment", "questlogSkills", "gameTablesIndex"],
+      "properties": {
+        "decodedTables": { "$ref": "#/$defs/decodedIdentity" },
+        "decodedBaseline": { "$ref": "#/$defs/fileIdentity" },
+        "localization": { "$ref": "#/$defs/fileIdentity" },
+        "texturePaths": { "$ref": "#/$defs/pathSetIdentity" },
+        "questlogEquipment": { "$ref": "#/$defs/fileIdentity" },
+        "questlogSkills": { "$ref": "#/$defs/fileIdentity" },
+        "gameTablesIndex": { "$ref": "#/$defs/fileIdentity" }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["warehouse", "inventory"],
+      "properties": {
+        "warehouse": { "$ref": "#/$defs/warehouseIdentity" },
+        "inventory": { "$ref": "#/$defs/inventoryIdentity" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "generatorIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gitCommit", "worktreeDirty", "dirtyPaths", "nodeVersion", "sourceSetSha256", "files"],
+      "properties": {
+        "gitCommit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "worktreeDirty": { "const": false },
+        "dirtyPaths": { "type": "array", "maxItems": 0 },
+        "nodeVersion": { "type": "string", "pattern": "^v[0-9]+" },
+        "sourceSetSha256": { "$ref": "#/$defs/sha256" },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "pattern": "^[^\\\\]+$" },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        }
+      }
+    },
+    "fileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exists", "path", "sha256"],
+      "properties": {
+        "exists": { "const": true },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "pathSetIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exists", "path", "fileCount", "pathSetSha256"],
+      "properties": {
+        "exists": { "const": true },
+        "path": { "type": "string", "minLength": 1 },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "pathSetSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "decodedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exists", "path", "tableCount", "rowCount", "decoderVersions", "sourceSetSha256", "artifactSetSha256"],
+      "properties": {
+        "exists": { "const": true },
+        "path": { "type": "string", "minLength": 1 },
+        "tableCount": { "type": "integer", "minimum": 1 },
+        "rowCount": { "type": "integer", "minimum": 0 },
+        "decoderVersions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "sourceSetSha256": { "$ref": "#/$defs/sha256" },
+        "artifactSetSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "warehouseIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exists", "path", "sha256", "bytes", "gameBuild", "gameVersion", "contract", "integrity", "decodedManifestPresent", "localizationSha256", "texturePathSetSha256", "questlogEquipmentSha256", "questlogSkillsSha256", "decodedBaselineSha256", "sourceManifestSha256", "semanticHashSchema", "decodedTablesSemanticSha256", "recordsSemanticSha256", "refsSemanticSha256", "assetsSemanticSha256", "ftsSemanticSha256", "computedDecodedTablesSemanticSha256", "computedRecordsSemanticSha256", "computedRefsSemanticSha256", "computedAssetsSemanticSha256", "computedFtsSemanticSha256", "tableCount", "recordCount", "ftsRecordCount", "refCount", "assetCount", "localizedRecordCount", "sourceSetSha256"],
+      "properties": {
+        "exists": { "const": true },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "gameBuild": { "type": "string", "pattern": "^[0-9]+$" },
+        "gameVersion": { "type": "string", "minLength": 1 },
+        "contract": { "const": "docs/data-contract.md v1" },
+        "integrity": { "const": "ok" },
+        "decodedManifestPresent": { "const": true },
+        "localizationSha256": { "$ref": "#/$defs/sha256" },
+        "texturePathSetSha256": { "$ref": "#/$defs/sha256" },
+        "questlogEquipmentSha256": { "$ref": "#/$defs/sha256" },
+        "questlogSkillsSha256": { "$ref": "#/$defs/sha256" },
+        "decodedBaselineSha256": { "$ref": "#/$defs/sha256" },
+        "sourceManifestSha256": { "$ref": "#/$defs/sha256" },
+        "semanticHashSchema": { "const": "length-prefixed-json-tuples-v1" },
+        "decodedTablesSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "recordsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "refsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "assetsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "ftsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedDecodedTablesSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedRecordsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedRefsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedAssetsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedFtsSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "tableCount": { "type": "integer", "minimum": 1 },
+        "recordCount": { "type": "integer", "minimum": 0 },
+        "ftsRecordCount": { "type": "integer", "minimum": 0 },
+        "refCount": { "type": "integer", "minimum": 0 },
+        "assetCount": { "type": "integer", "minimum": 0 },
+        "localizedRecordCount": { "type": "integer", "minimum": 0 },
+        "sourceSetSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "inventoryIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exists", "path", "sha256", "bytes", "gameBuild", "decoderVersion", "tableCount", "familyCount", "decodedTableCount", "decodedRowCount", "rawBytes", "semanticSha256", "computedSemanticSha256", "semanticExcludes", "repositoryCopy"],
+      "properties": {
+        "exists": { "const": true },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "gameBuild": { "type": "string", "pattern": "^[0-9]+$" },
+        "decoderVersion": { "type": ["string", "null"] },
+        "tableCount": { "type": "integer", "minimum": 1 },
+        "familyCount": { "type": "integer", "minimum": 1 },
+        "decodedTableCount": { "type": "integer", "minimum": 1 },
+        "decodedRowCount": { "type": "integer", "minimum": 0 },
+        "rawBytes": { "type": "integer", "minimum": 0 },
+        "semanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "semanticExcludes": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "generatedAtUtc" },
+            { "const": "semanticIdentity" }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "repositoryCopy": { "$ref": "#/$defs/inventoryCopyIdentity" }
+      }
+    },
+    "inventoryCopyIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exists", "path", "sha256", "bytes", "gameBuild", "decoderVersion", "tableCount", "familyCount", "decodedTableCount", "decodedRowCount", "rawBytes", "semanticSha256", "computedSemanticSha256", "semanticExcludes"],
+      "properties": {
+        "exists": { "const": true },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "gameBuild": { "type": "string" },
+        "decoderVersion": { "type": ["string", "null"] },
+        "tableCount": { "type": "number" },
+        "familyCount": { "type": "number" },
+        "decodedTableCount": { "type": "number" },
+        "decodedRowCount": { "type": "number" },
+        "rawBytes": { "type": "number" },
+        "semanticSha256": { "$ref": "#/$defs/sha256" },
+        "computedSemanticSha256": { "$ref": "#/$defs/sha256" },
+        "semanticExcludes": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "generatedAtUtc" },
+            { "const": "semanticIdentity" }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    }
+  }
+}

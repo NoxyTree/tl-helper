@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import path from "node:path";
+import os from "node:os";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import {
-  STAGE_ORDER, parseArgs, parseSteamBuild, resolveContext, selectedStages, stageDefinitions,
+  RECEIPT_MUTATING_STAGES, STAGE_ORDER, dataReceiptAllowedDirtyPaths, invalidateCurrentDataBuildReceipt, parseArgs, parseSteamBuild, resolveContext, runtimeStageInputErrors, safetySummary, selectedStages, stageDefinitions, stageEnvironment,
 } from "../update-tl-helper.mjs";
 
 test("parses Steam appmanifest build IDs", () => {
@@ -21,13 +23,116 @@ test("rejects unknown stages and arguments", () => {
 });
 
 test("explicit context overrides environment and stays build scoped", () => {
-  const options = parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]);
-  const context = resolveContext(options, {});
+  const options = parseArgs([
+    "--build", "999",
+    "--data-root", "D:\\TL_Test_Data",
+    "--questlog-root", "D:\\TL_Questlog_Argument",
+  ]);
+  const context = resolveContext(options, { TL_QUESTLOG_ROOT: "D:\\TL_Questlog_Environment" });
   assert.equal(context.build, "999");
   assert.equal(context.dataRoot, path.resolve("D:\\TL_Test_Data"));
   assert.equal(context.extractRoot, path.join(context.dataRoot, "raw", "999", "extracted"));
+  assert.equal(context.questlogRoot, path.resolve("D:\\TL_Questlog_Argument"));
+  assert.equal(context.decodedBaselinePath, path.join(path.resolve("."), "data-build-baselines", "999.json"));
   const definitions = stageDefinitions(context);
   assert.equal(definitions.warehouse.output, path.join(context.dataRoot, "warehouse", "tl-999.sqlite"));
+  assert.deepEqual(definitions.warehouse.command.args.slice(-4), [
+    "--questlog-root", context.questlogRoot,
+    "--decoded-baseline", context.decodedBaselinePath,
+  ]);
+});
+
+test("Questlog root uses environment before the worktree-local fallback", () => {
+  const options = parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]);
+  assert.equal(
+    resolveContext(options, { TL_QUESTLOG_ROOT: "D:\\TL_Questlog_Environment" }).questlogRoot,
+    path.resolve("D:\\TL_Questlog_Environment"),
+  );
+  assert.equal(
+    resolveContext(options, {}).questlogRoot,
+    path.join(path.resolve("."), "out", "questlog-public"),
+  );
+});
+
+test("every pipeline stage receives one explicit Questlog snapshot root", () => {
+  const context = resolveContext(parseArgs([
+    "--build", "999",
+    "--data-root", "D:\\TL_Test_Data",
+    "--questlog-root", "D:\\TL_Questlog",
+  ]), {});
+  const environment = stageEnvironment(context, { PRESERVE: "yes" });
+  assert.equal(environment.TL_QUESTLOG_ROOT, context.questlogRoot);
+  assert.equal(environment.TL_QUESTLOG_PUBLIC_DIR, context.questlogRoot);
+  assert.equal(environment.PRESERVE, "yes");
+});
+
+test("warehouse and inventory preflight declare every input their builders consume", () => {
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definitions = stageDefinitions(context);
+  assert.deepEqual(definitions.warehouse.required, [
+    path.join(context.dataRoot, "decoded", "999", "tables"),
+    path.join(context.extractRoot, "localization", "csv", "en.csv"),
+    path.join(context.extractRoot, "textures", "TL", "Content"),
+    path.join(context.questlogRoot, "characterBuilder.getEquipmentItems.json"),
+    path.join(context.questlogRoot, "skillBuilder.getSkillSets.json"),
+    context.decodedBaselinePath,
+  ]);
+  assert.deepEqual(definitions.inventory.required, [
+    path.join(context.extractRoot, "indexes", "game_tables.csv"),
+    path.join(context.dataRoot, "decoded", "999", "tables"),
+    context.decodedBaselinePath,
+  ]);
+});
+
+test("warehouse and inventory revalidate the reviewed decoded baseline immediately before execution", () => {
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  assert.match(
+    runtimeStageInputErrors(context, "warehouse", { required: [] })[0],
+    /baseline does not exist/,
+  );
+  assert.deepEqual(runtimeStageInputErrors(context, "evidence", { required: [] }), []);
+});
+
+test("safety summary identifies replaceable derived outputs without claiming source deletion", () => {
+  const context = resolveContext(parseArgs(["--build", "999", "--data-root", "D:\\TL_Test_Data"]), {});
+  const definitions = stageDefinitions(context);
+  assert.deepEqual(safetySummary(["warehouse", "inventory"], definitions), {
+    deletesSourceData: false,
+    uploads: false,
+    publishes: false,
+    commits: false,
+    replacesDerivedOutputs: [definitions.warehouse.output, definitions.inventory.output],
+  });
+});
+
+test("a prior receipt is atomically superseded before a data rebuild can replace outputs", () => {
+  assert.deepEqual([...RECEIPT_MUTATING_STAGES].sort(), ["collector", "decode", "inventory", "stat-sources", "warehouse"]);
+  const repoRoot = mkdtempSync(path.join(os.tmpdir(), "tl-receipt-invalidation-"));
+  try {
+    const current = path.join(repoRoot, "data-build-receipts", "999.json");
+    mkdirSync(path.dirname(current), { recursive: true });
+    writeFileSync(current, "prior receipt\n", "utf8");
+    const result = invalidateCurrentDataBuildReceipt(repoRoot, "999", "run-id");
+    assert.equal(result.path, current);
+    assert.equal(readFileSync(result.archivedAt, "utf8"), "prior receipt\n");
+    assert.equal(result.archivedAt, path.join(repoRoot, "data-build-receipts", "superseded", "999", "run-id.json"));
+    assert.equal(invalidateCurrentDataBuildReceipt(repoRoot, "999", "another-run"), null);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("receipt issuance allows only selected generated repository paths", () => {
+  assert.deepEqual(dataReceiptAllowedDirtyPaths(["warehouse", "inventory"]), [
+    "data-build-receipts/",
+    "out/coverage-audit/table-inventory.json",
+  ]);
+  assert.deepEqual(dataReceiptAllowedDirtyPaths(["warehouse", "inventory", "web-data"]), [
+    "data-build-receipts/",
+    "out/coverage-audit/table-inventory.json",
+    "web/data/app-data.json",
+    "web/data/projections/",
+  ]);
 });
 
 test("TL_DOTNET explicitly selects the SDK host", () => {
