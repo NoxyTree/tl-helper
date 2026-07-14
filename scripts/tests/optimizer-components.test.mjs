@@ -91,3 +91,24 @@ test("complete artifact sets survive a tight result limit", () => {
   const candidates = generateArtifactCandidates({ items, artifactSets: sets, scoreItem: (item) => item.setId === "mixed" ? 100 : 0, limit: 1 });
   assert.deepEqual(candidates.map((row) => row.key), ["set:alpha"]);
 });
+
+test("artifact candidates select and score three max-tier traits plus resonance", () => {
+  const items = types.map((type, index) => ({
+    ...artifact("alpha", type, index + 1),
+    itemStats: {
+      artifact: { 0: { power: index + 1 } },
+      traits: { wanted: [10, 20], second: [5, 15], third: [4, 14], ignored: [100, 200] },
+      resonance: { wanted: { tiers: [30, 40] }, ignored: { tiers: [300, 400] } },
+    },
+  }));
+  const [candidate] = generateArtifactCandidates({
+    items,
+    scoreStat: (id, value) => id === "wanted" || id === "second" || id === "third" || id === "power" ? value : 0,
+    limit: 1,
+  });
+  for (const selection of Object.values(candidate.selections)) {
+    assert.deepEqual(selection.traits, [{ statId: "wanted", tier: 2 }, { statId: "second", tier: 2 }, { statId: "third", tier: 2 }]);
+    assert.deepEqual(selection.resonance, [{ statId: "wanted", tier: 2 }]);
+  }
+  assert.ok(candidate.score > 0);
+});

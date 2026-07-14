@@ -16,6 +16,7 @@ import {
   modelHitChance,
   modelSkillDamageMultiplier,
 } from "./vendor/combat-engine/pvp-models.mjs";
+import { compareModeledExpectedDamage, modelExpectedPvpDamage } from "./vendor/combat-engine/expected-damage.mjs";
 
 export const HEALING_OUTCOMES = Object.freeze([
   { id: "normal", label: "Forced normal" },
@@ -83,6 +84,38 @@ export function resolvePvpMatchup(input) {
     skillDamageMultiplier: skillDamage.value,
     operations: { hit, critical, heavy, skillDamage },
   });
+}
+
+export function resolveExpectedPvpDamage(input) {
+  const projection = projectAbilityRange({
+    ability: input.ability,
+    componentId: input.componentId,
+    globalLevel: input.globalLevel,
+    minimum: input.minimum,
+    maximum: input.maximum,
+    outcomeId: FORCED_ABILITY_OUTCOME.COEFFICIENT_ONLY,
+  });
+  if (!projection.supported) throw new Error(projection.warnings[0] ?? "The selected ability component cannot be projected.");
+  const result = modelExpectedPvpDamage({
+    ...input,
+    preResolutionMinimum: projection.result.minimum,
+    preResolutionMaximum: projection.result.maximum,
+    coefficientPrecision: projection.precision.coefficient,
+  });
+  return Object.freeze({ ...result, abilityProjection: projection });
+}
+
+export function resolveCustomExpectedPvpDamage(input) {
+  return modelExpectedPvpDamage({
+    ...input,
+    preResolutionMinimum: input.minimum,
+    preResolutionMaximum: input.maximum,
+    coefficientPrecision: "modeled_user_input_100_percent_weapon_packet",
+  });
+}
+
+export function compareExpectedPvpDamage(left, right) {
+  return compareModeledExpectedDamage(left, right);
 }
 
 export function projectAbilityRange({ ability, componentId, globalLevel, minimum, maximum, outcomeId }) {

@@ -99,3 +99,8 @@ export {
   modelGlanceChance,
   modelHeavyAttackChance,
 } from "./pvp-models.mjs";
+export {
+  EXPECTED_DAMAGE_MODEL_VERSION,
+  modelExpectedPvpDamage,
+  compareModeledExpectedDamage,
+} from "./expected-damage.mjs";

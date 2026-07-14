@@ -10,6 +10,8 @@ import {
   projectAbilityRange,
   resolveCombatLabBuildContext,
   resolveCombatLabHealing,
+  resolveCustomExpectedPvpDamage,
+  resolveExpectedPvpDamage,
   resolvePvpMatchup,
   TIER_MAPPINGS,
 } from "../../web/combat-lab-model.js";
@@ -88,6 +90,49 @@ test("Combat Lab projects a saved-build Base Damage range without resolving outc
   assert.equal(heavy.completeness.isFinalCombatOutcome, false);
   assert.equal(heavy.precision.coefficientBasis, "verified_exact");
   assert.equal(heavy.traces.length, 2);
+});
+
+test("Combat Lab composes a reviewed damage component into a modeled pre-Defense expectation", () => {
+  const ability = data.abilities.find(({ id }) => id === "judgment-lightning");
+  const result = resolveExpectedPvpDamage({
+    ability,
+    componentId: "first-cast-per-hit-damage",
+    globalLevel: 11,
+    minimum: "399",
+    maximum: "640",
+    pvpMode: "general",
+    attackType: "magic",
+    hit: "1500",
+    evasion: "1000",
+    criticalHit: "1500",
+    endurance: "1000",
+    heavyAttackChance: "800",
+    heavyAttackEvasion: "300",
+    skillDamageBoost: "500",
+    skillDamageResistance: "200",
+    criticalDamage: "40",
+    criticalDamageResistance: "10",
+    heavyDamage: "30",
+    heavyDamageResistance: "10",
+  });
+  assert.equal(result.status, "modeled");
+  assert.equal(result.abilityProjection.result.minimum, "3692.6");
+  assert.equal(result.completeness.isFinalCombatOutcome, false);
+  assert.ok(Number(result.expectedDamage) > 0);
+  assert.ok(Number(result.sensitivityInterval.maximum) >= Number(result.sensitivityInterval.minimum));
+});
+
+test("Combat Lab supports a provenance-labeled generic 100 percent weapon packet", () => {
+  const result = resolveCustomExpectedPvpDamage({
+    minimum: "400", maximum: "700", pvpMode: "general", attackType: "melee",
+    hit: "1200", evasion: "1000", criticalHit: "1500", endurance: "1000",
+    heavyAttackChance: "700", heavyAttackEvasion: "300", skillDamageBoost: "500",
+    skillDamageResistance: "200", criticalDamage: "35", criticalDamageResistance: "10",
+    heavyDamage: "25", heavyDamageResistance: "10",
+  });
+  assert.equal(result.preResolutionRange.minimum, "400");
+  assert.equal(result.precision.coefficientRange, "modeled_user_input_100_percent_weapon_packet");
+  assert.equal(result.completeness.isFinalCombatOutcome, false);
 });
 
 test("Combat Lab keeps Distortion Veil shield magnitude explicitly non-final", () => {

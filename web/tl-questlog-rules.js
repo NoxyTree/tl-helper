@@ -18,6 +18,11 @@ Object.assign(STAT_UNIT_MODIFIERS,{
   side_all_critical_attack:.1,
   rear_all_critical_attack:.1,
 });
+// Every typed PvP contest rating uses the same raw-to-sheet 0.1 scale. Keep
+// this complete so optimizer inputs, result formatting, and Combat Lab agree.
+for(const family of ["accuracy","critical_attack","critical_defense","double_attack","double_defense","evasion"]){
+  for(const type of ["melee","range","magic"]) STAT_UNIT_MODIFIERS[`pvp_${type}_${family}`]=.1;
+}
 // Absolute effective-value caps from official global patch notes. Update 2.22.0
 // introduced the three speed/duration limits; Update 4.0.0 raised attributes
 // to 130 and capped Range increase at 100%. PvP contest difference caps are

@@ -3,6 +3,7 @@ import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
 import { inferBuildAttackType, isLegalBuildSnapshot, resolveVisibleMatchupInputs, selectAbilityWeaponHand } from "./combat-lab-build-inputs.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
 import {
+  compareExpectedPvpDamage,
   HEALING_CASTS,
   HEALING_OUTCOMES,
   isHealingResolverAbility,
@@ -12,12 +13,14 @@ import {
   projectAbilityRange,
   resolveCombatLabBuildContext,
   resolveCombatLabHealing,
+  resolveCustomExpectedPvpDamage,
+  resolveExpectedPvpDamage,
   resolvePvpMatchup,
   TIER_MAPPINGS,
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-context","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-source-note","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","comparison-build","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","pvp-critical-damage","pvp-critical-resistance","pvp-heavy-damage","pvp-heavy-resistance","matchup-title","matchup-context","matchup-results","matchup-note","expected-ability","expected-weapon","expected-level-field","expected-level","expected-damage-results","expected-damage-verdict","expected-damage-limits","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-source-note","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
 const state = { data: null, builds: [], excludedBuilds: [] };
 const ABILITY_ART = Object.freeze({
   "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
@@ -43,6 +46,8 @@ async function boot() {
   state.builds = collectBuilds(reference);
   populateBuilds();
   populateStaticOptions();
+  syncCustomExpectedWeapon();
+  updateExpectedAbilityControls();
   bindEvents();
   setupPortraitUpload();
   populateComponents();
@@ -85,9 +90,11 @@ function collectBuilds(reference) {
 function populateBuilds() {
   ui["source-build"].innerHTML = "";
   ui["target-build"].innerHTML = '<option value="">Choose an opponent</option>';
+  ui["comparison-build"].innerHTML = '<option value="">No comparison build</option>';
   for (const build of state.builds) {
     ui["source-build"].add(new Option(build.label, build.id));
     ui["target-build"].add(new Option(build.label, build.id));
+    ui["comparison-build"].add(new Option(build.label, build.id));
   }
   if (!state.builds.length) {
     ui["source-build"].add(new Option("Manual inputs only", ""));
@@ -97,6 +104,12 @@ function populateBuilds() {
 
 function populateStaticOptions() {
   state.data.abilities.forEach((ability) => ui.ability.add(new Option(`${ability.name} · ${ability.weapon}`, ability.id)));
+  ui["expected-ability"].add(new Option("Generic 100% weapon-damage packet", "custom-packet"));
+  state.data.abilities.filter(isExpectedDamageAbility).forEach((ability) => ui["expected-ability"].add(new Option(`${ability.name} · ${ability.weapon}`, ability.id)));
+  for (const weapon of ["sword", "sword2h", "dagger", "spear", "gauntlet", "bow", "crossbow", "staff", "wand", "orb"]) ui["expected-weapon"].add(new Option(title(weapon), weapon));
+  ui["expected-ability"].value = "custom-packet";
+  for (let level = 1; level <= 20; level += 1) ui["expected-level"].add(new Option(`Global Lv. ${level}`, String(level)));
+  ui["expected-level"].value = "20";
   if (state.data.abilities.some(({ id }) => id === "judgment-lightning")) ui.ability.value = "judgment-lightning";
   TIER_MAPPINGS.forEach((tier) => ui.tier.add(new Option(tier.label, tier.id)));
   ui.tier.value = "epic";
@@ -111,14 +124,18 @@ function bindEvents() {
   ui.tier.addEventListener("change", () => { populateLevels(); render(); });
   ui.level.addEventListener("change", render);
   ui.outcome.addEventListener("change", render);
-  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); syncDamageSourceToAbility(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); syncCustomExpectedWeapon(); syncDamageSourceToAbility(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["comparison-build"].addEventListener("change", render);
   ui["source-questlog-import"].addEventListener("click", () => importQuestlog("source"));
   ui["target-questlog-import"].addEventListener("click", () => importQuestlog("target"));
   ui["swap-builds"].addEventListener("click", swapBuilds);
   ui["attack-type"].addEventListener("change", () => { byId("attack-type-note").textContent = `Manual override: ${title(ui["attack-type"].value)} attacks.`; prefillMatchup(); render(); });
   ui["pvp-mode"].addEventListener("change", render);
-  for (const id of ["pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr"]) ui[id].addEventListener("input", render);
+  for (const id of ["pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","pvp-critical-damage","pvp-critical-resistance","pvp-heavy-damage","pvp-heavy-resistance"]) ui[id].addEventListener("input", render);
+  ui["expected-ability"].addEventListener("change", () => { updateExpectedAbilityControls(); syncExpectedAttackType(); render(); });
+  ui["expected-weapon"].addEventListener("change", () => { syncExpectedAttackType(); render(); });
+  ui["expected-level"].addEventListener("change", render);
   ui["damage-source"].addEventListener("change", () => {
     if (ui["damage-source"].value !== "manual") syncDamageSourceToAbility();
     ui["damage-source-note"].textContent = ui["damage-source"].value === "manual" ? "Manual Base Damage values are being used." : ui["damage-source-note"].textContent;
@@ -163,6 +180,7 @@ function selectView(view) {
     renderFighters();
     render();
   }
+  if (view === "matchup") { syncExpectedAttackType(); render(); }
   for (const name of ["ability", "matchup"]) {
     const active = name === view;
     ui[`${name}-tab`].classList.toggle("active", active);
@@ -172,6 +190,8 @@ function selectView(view) {
 }
 
 function selectedAbility() { return state.data.abilities.find((entry) => entry.id === ui.ability.value); }
+function selectedExpectedAbility() { return state.data.abilities.find((entry) => entry.id === ui["expected-ability"].value); }
+function isExpectedDamageAbility(ability) { return String(ability?.kind ?? "").toLowerCase() === "damage"; }
 function selectedBuild(id) { return state.builds.find((entry) => entry.id === id); }
 
 async function importQuestlog(side) {
@@ -196,6 +216,7 @@ async function importQuestlog(side) {
         state.builds.push(candidate);
         ui["source-build"].add(new Option(candidate.label, candidate.id));
         ui["target-build"].add(new Option(candidate.label, candidate.id));
+        ui["comparison-build"].add(new Option(candidate.label, candidate.id));
       }
     }
     ui[`${side}-build`].value = importedCandidates[0].id;
@@ -375,6 +396,29 @@ function updateBuildSummaries() {
   ui["target-summary"].classList.remove("hidden");
 }
 
+function syncExpectedAttackType() {
+  const ability = selectedExpectedAbility();
+  const weapon = ability?.weapon ?? ui["expected-weapon"].value;
+  if (!weapon) return;
+  ui["attack-type"].value = attackTypeForWeapon(weapon);
+  byId("attack-type-note").textContent = `Using ${title(ui["attack-type"].value)} because the damage packet uses ${title(weapon)}.`;
+  prefillMatchup();
+}
+
+function syncCustomExpectedWeapon() {
+  if (ui["expected-ability"].value !== "custom-packet") return;
+  const source = selectedBuild(ui["source-build"].value);
+  const inferred = inferBuildAttackType(source?.state?.build, (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "");
+  if (inferred && [...ui["expected-weapon"].options].some(({ value }) => value === inferred.weaponType)) ui["expected-weapon"].value = inferred.weaponType;
+}
+
+function updateExpectedAbilityControls() {
+  const ability = selectedExpectedAbility();
+  ui["expected-weapon"].disabled = Boolean(ability);
+  if (ability) ui["expected-weapon"].value = ability.weapon;
+  ui["expected-level-field"].classList.toggle("hidden", !ability);
+}
+
 function buildSummary(snapshot) {
   const stellarite = snapshot.loadout.supportSlots?.stellarite?.itemId;
   const calculationContext = resolveCombatLabBuildContext(snapshot);
@@ -427,6 +471,10 @@ function prefillMatchup() {
   const target = selectedBuild(ui["target-build"].value);
   const values = resolveVisibleMatchupInputs({ sourceSnapshot: source?.snapshot, targetSnapshot: target?.snapshot, attackType: ui["attack-type"].value, readStat: snapshotStat });
   for (const [id, key] of Object.entries({ "pvp-hit":"hit", "pvp-evasion":"evasion", "pvp-critical":"criticalHit", "pvp-endurance":"endurance", "pvp-heavy":"heavyAttackChance", "pvp-heavy-evasion":"heavyAttackEvasion", "pvp-sdb":"skillDamageBoost", "pvp-sdr":"skillDamageResistance" })) ui[id].value = String(values[key]);
+  ui["pvp-critical-damage"].value = displayStat(source?.snapshot, "critical_damage_dealt_modifier", 0.01);
+  ui["pvp-critical-resistance"].value = displayStat(target?.snapshot, "critical_damage_taken_modifier", 0.01);
+  ui["pvp-heavy-damage"].value = displayStat(source?.snapshot, "double_damage_dealt_modifier", 0.01);
+  ui["pvp-heavy-resistance"].value = displayStat(target?.snapshot, "double_damage_taken_modifier", 0.01);
 }
 
 function syncAttackTypeFromSource() {
@@ -515,6 +563,112 @@ function renderMatchup() {
   ];
   ui["matchup-results"].innerHTML = rows.map(([label,value,note], index) => `<div style="--meter:${matchupMeter(result,index)}"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><span>${escapeHtml(note)}</span></div>`).join("");
   ui["matchup-note"].textContent = "Hit uses the established one-sided Evasion rule. Heavy and glancing remain evidence-scoped models. Final damage, block, Defense, modifier order, and rounding are not applied here.";
+  renderExpectedDamageComparison();
+}
+
+function renderExpectedDamageComparison() {
+  const output = ui["expected-damage-results"];
+  const verdict = ui["expected-damage-verdict"];
+  const limits = ui["expected-damage-limits"];
+  try {
+    const source = selectedBuild(ui["source-build"].value);
+    const target = selectedBuild(ui["target-build"].value);
+    const alternative = selectedBuild(ui["comparison-build"].value);
+    const ability = selectedExpectedAbility();
+    const customPacket = ui["expected-ability"].value === "custom-packet";
+    if (!source) throw new Error("Choose a legal attacker build.");
+    if (!target) throw new Error("Choose an opponent build for a damage comparison.");
+    if (!customPacket && !ability) throw new Error("No reviewed damage ability is available.");
+    const components = ability?.formulaComponents?.filter((entry) => stripEnum(entry.formulaType) === "kAmountFromAttackPower") ?? [];
+    if (!customPacket && components.length !== 1) throw new Error(`${ability.name} requires an explicit component choice because it has ${components.length} reviewed attack-power components.`);
+    const [component] = components;
+    const requiredWeapon = ability?.weapon ?? ui["expected-weapon"].value;
+    const packetName = ability?.name ?? "Generic weapon-damage packet";
+    const attackType = attackTypeForWeapon(requiredWeapon);
+    if (ui["attack-type"].value !== attackType) throw new Error(`${packetName} requires ${title(attackType)} matchup stats. Select that attack type or reselect the packet.`);
+    const resolveBuild = (build) => {
+      const hand = selectAbilityWeaponHand(build.state.build, requiredWeapon, (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "");
+      if (!hand) throw new Error(`${build.label} does not equip the ${title(requiredWeapon)} required by ${packetName}.`);
+      const prefix = hand.hand === "off" ? "attack_power_off_hand" : "attack_power_main_hand";
+      const automatic = resolveVisibleMatchupInputs({ sourceSnapshot: build.snapshot, targetSnapshot: target.snapshot, attackType, readStat: snapshotStat });
+      const targetContest = {
+        evasion: ui["pvp-evasion"].value,
+        endurance: ui["pvp-endurance"].value,
+        heavyAttackEvasion: ui["pvp-heavy-evasion"].value,
+        skillDamageResistance: ui["pvp-sdr"].value,
+      };
+      const contest = build.id === source.id ? {
+        hit: ui["pvp-hit"].value,
+        criticalHit: ui["pvp-critical"].value,
+        heavyAttackChance: ui["pvp-heavy"].value,
+        skillDamageBoost: ui["pvp-sdb"].value,
+        ...targetContest,
+      } : { ...automatic, ...targetContest };
+      const request = {
+        minimum: snapshotStat(build.snapshot, `${prefix}_min`),
+        maximum: snapshotStat(build.snapshot, `${prefix}_max`),
+        pvpMode: ui["pvp-mode"].value,
+        attackType,
+        ...contest,
+        criticalDamage: build.id === source.id ? ui["pvp-critical-damage"].value : displayStat(build.snapshot, "critical_damage_dealt_modifier", 0.01),
+        criticalDamageResistance: ui["pvp-critical-resistance"].value,
+        heavyDamage: build.id === source.id ? ui["pvp-heavy-damage"].value : displayStat(build.snapshot, "double_damage_dealt_modifier", 0.01),
+        heavyDamageResistance: ui["pvp-heavy-resistance"].value,
+      };
+      return customPacket
+        ? resolveCustomExpectedPvpDamage(request)
+        : resolveExpectedPvpDamage({ ...request, ability, componentId: component.id, globalLevel: Number(ui["expected-level"].value) });
+    };
+    const primary = resolveBuild(source);
+    const rows = [[source.label, primary]];
+    let comparison = null;
+    if (alternative) {
+      comparison = resolveBuild(alternative);
+      rows.push([alternative.label, comparison]);
+    }
+    output.innerHTML = rows.map(([label, result]) => {
+      const interval = result.sensitivityInterval.minimum === result.sensitivityInterval.maximum
+        ? formatNumber(result.expectedDamage)
+        : `${formatNumber(result.sensitivityInterval.minimum)} to ${formatNumber(result.sensitivityInterval.maximum)}`;
+      return `<div style="--meter:${Math.min(100, Number(result.probabilities.hit) * 100).toFixed(2)}%"><small>${escapeHtml(label)}</small><strong>${escapeHtml(interval)}</strong><span>${escapeHtml(`${title(attackType)} · Crit ${percent(result.probabilities.critical)} · Heavy ${percent(result.probabilities.heavy)} · SDB ${Number(result.multipliers.skillDamage).toFixed(3)}×`)}</span></div>`;
+    }).join("");
+    if (!comparison) {
+      verdict.textContent = "Select an Alternative attacker above to compare the included pre-Defense stages against this same opponent.";
+    } else {
+      const result = compareExpectedPvpDamage(primary, comparison);
+      if (result.winner === "overlap") {
+        verdict.textContent = "Model-sensitive: the included-stage intervals overlap, so this model cannot identify a stable leader.";
+      } else {
+        const winningLabel = result.winner === "left" ? source.label : alternative.label;
+        const differences = rankingSensitiveDifferences(source, alternative, attackType);
+        verdict.textContent = differences.length
+          ? `${winningLabel} leads the included pre-Defense stages by at least ${result.guaranteedDifferencePercent}%, but the full ranking remains unsupported because omitted build inputs differ: ${differences.join(", ")}.`
+          : `${winningLabel} leads the included pre-Defense stages under every Heavy-plus-glance sensitivity variant by at least ${result.guaranteedDifferencePercent}%. This is model-stable for the included stages, not a final server-damage claim.`;
+      }
+    }
+    limits.innerHTML = [...primary.assumptions, ...primary.unsupportedStages].map((text) => `<div class="warning-item">${escapeHtml(text)}</div>`).join("");
+  } catch (error) {
+    output.innerHTML = "";
+    verdict.textContent = String(error?.message ?? error);
+    limits.innerHTML = '<div class="warning-item">No numeric comparison was produced.</div>';
+  }
+}
+
+function attackTypeForWeapon(weaponType) {
+  const weapon = String(weaponType ?? "").toLowerCase();
+  const types = { bow: "range", crossbow: "range", staff: "magic", wand: "magic", orb: "magic", sword: "melee", sword2h: "melee", dagger: "melee", spear: "melee", gauntlet: "melee" };
+  if (!(weapon in types)) throw new RangeError(`Unsupported weapon family for damage comparison: ${weapon || "missing"}.`);
+  return types[weapon];
+}
+
+function rankingSensitiveDifferences(left, right, attackType) {
+  const candidates = [
+    ["damage_reduction_penetration", "Bonus Damage"],
+    [`${attackType}_damage_dealt_modifier`, `${title(attackType)} Damage modifier`],
+    ["pvp_damage_dealt_modifier", "PvP Damage modifier"],
+    ["shield_block_chance_penetration", "Shield Block Penetration"],
+  ];
+  return candidates.filter(([statId]) => snapshotStat(left.snapshot, statId) !== snapshotStat(right.snapshot, statId)).map(([, label]) => label);
 }
 
 function contestNote(operation, offense, defense, offenseLabel, defenseLabel) {

@@ -187,6 +187,16 @@ function itemSelection(core, item) {
   return { ...core.emptyEquipmentSelection(), itemId: item.id, level: core.itemMaxLevel(item) };
 }
 
+export function sourceStatObjectiveScore(statId, value, rankedGoals, scales) {
+  const reachable = expandedStatIds(statId);
+  return rankedGoals.reduce((sum, goal) => {
+    const components = goal.components?.length ? goal.components : [goal.id];
+    const matched = components.filter((id) => reachable.has(id)).length;
+    if (!matched) return sum;
+    return sum + Number(value || 0) * goal.weight / Math.max(1, Number(scales[goal.id] ?? 0)) * matched / components.length;
+  }, 0);
+}
+
 export function optimizerItemSelection(core, item, current = null) {
   const selection = itemSelection(core, item);
   // Item Potentials are excluded from scoring, but reconfiguring the same
@@ -231,11 +241,10 @@ function itemCandidateId(itemId, selection, kind = "generated") {
 }
 
 function optimizedNormalTraits(item, rankedGoals, scales) {
-  const byId = componentWeightMap(rankedGoals, scales);
   return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
     const values = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
     return { statId, tier: Math.max(1, values.length), value: Number(values.at(-1) ?? 0) };
-  }).sort((a, b) => Number(byId.get(b.statId) ?? 0) * b.value - Number(byId.get(a.statId) ?? 0) * a.value || a.statId.localeCompare(b.statId)).slice(0, 3).map(({ statId, tier }) => ({ statId, tier }));
+  }).sort((a, b) => sourceStatObjectiveScore(b.statId, b.value, rankedGoals, scales) - sourceStatObjectiveScore(a.statId, a.value, rankedGoals, scales) || a.statId.localeCompare(b.statId)).slice(0, 3).map(({ statId, tier }) => ({ statId, tier }));
 }
 
 function itemName(core, selection) {
@@ -378,6 +387,14 @@ function diverseFinalists(rows, rankedGoals, limit = 16) {
     add(row);
   }
   return [...retained.values()].slice(0, limit);
+}
+
+export function optimizedResonanceSelection(item, rankedGoals, scales) {
+  return Object.entries(item.itemStats?.resonance ?? {}).map(([statId, row]) => {
+    const tiers = row?.tiers ?? row;
+    const values = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+    return { statId, tier: Math.max(1, values.length), value: Number(values.at(-1) ?? 0) };
+  }).sort((a, b) => sourceStatObjectiveScore(b.statId, b.value, rankedGoals, scales) - sourceStatObjectiveScore(a.statId, a.value, rankedGoals, scales) || a.statId.localeCompare(b.statId)).slice(0, 1).map(({ statId, tier }) => ({ statId, tier }));
 }
 
 function finalistMatchesSetRoute(row, route) {
@@ -971,6 +988,7 @@ export async function createOptimizerAdapter(deps = {}) {
           if (scratch && rules.allowUnownedHeroics === false && item.grade === core.HEROIC_GRADE) continue;
           let selection = optimizerItemSelection(core, item, current);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
+          selection.resonance = optimizedResonanceSelection(item, rankedGoals, generationScales);
           if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
           if (rules.bestHeroicConfiguration && item.grade === core.HEROIC_GRADE) {
             selection = { ...selection, ...optimizeHeroicPotential(item, { allowDuplicateEffects: false, frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
@@ -981,8 +999,7 @@ export async function createOptimizerAdapter(deps = {}) {
             const chaosMode = rules.runes.mode === "normal" ? "none" : rules.runes.allowUnownedChaos ? "all" : "owned";
             let runeRows = runeCandidatesByCategory.get(category);
             if (!runeRows) {
-              const goalWeights = componentWeightMap(rankedGoals, generationScales);
-              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: profile.runeCandidateLimit });
+              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => sourceStatObjectiveScore(id, value, rankedGoals, generationScales), limit: profile.runeCandidateLimit });
               runeCandidatesByCategory.set(category, runeRows);
             }
             if (runeRows[0]) selection.runes = runeRows[0].selection;
@@ -1030,8 +1047,7 @@ export async function createOptimizerAdapter(deps = {}) {
       }
 
       if (rules.artifacts?.mode && rules.artifacts.mode !== "keep") {
-        const goalWeights = componentWeightMap(rankedGoals, generationScales);
-        const bundles = generateArtifactCandidates({ items: core.data.items, artifactSets: core.data.artifactSets, scoreItem: (item) => weight(core.itemStatContribution(item, item.equipmentType, core.itemMaxLevel(item), source.build, source.attributes, scenario == null ? {} : { scenario })), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: profile.artifactBundleLimit });
+        const bundles = generateArtifactCandidates({ items: core.data.items, artifactSets: core.data.artifactSets, scoreItem: (item) => weight(core.itemStatContribution(item, item.equipmentType, core.itemMaxLevel(item), source.build, source.attributes, scenario == null ? {} : { scenario })), scoreStat: (id, value) => sourceStatObjectiveScore(id, value, rankedGoals, generationScales), limit: profile.artifactBundleLimit });
         candidatesBySlot.artifact_bundle = bundles.map((row) => ({ id: row.key, selection: row, scoreHint: row.score, stateKeys: row.setState.map((set) => `${set.setId}:${set.count}`) }));
         slots.push("artifact_bundle");
       }

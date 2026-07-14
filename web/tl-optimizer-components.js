@@ -131,7 +131,30 @@ function maxItemLevel(item) {
 function artifactSelection(item, scoreStat) {
   const inherent = item.itemStats?.artifact?.[0] ?? item.itemStats?.artifact?.["0"] ?? {};
   const artifactStatId = Object.entries(inherent).sort((a, b) => scoreStat(b[0], b[1]) - scoreStat(a[0], a[1]) || a[0].localeCompare(b[0]))[0]?.[0] ?? "";
-  return { itemId: item.id, level: maxItemLevel(item), artifactStatId, traits: [], resonance: [], runes: [] };
+  const traits = Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
+    const values = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+    return { statId, tier: Math.max(1, values.length), value: Number(values.at(-1) ?? 0) };
+  }).sort((a, b) => Number(scoreStat(b.statId, b.value) || 0) - Number(scoreStat(a.statId, a.value) || 0) || a.statId.localeCompare(b.statId)).slice(0, 3).map(({ statId, tier }) => ({ statId, tier }));
+  const resonance = Object.entries(item.itemStats?.resonance ?? {}).map(([statId, row]) => {
+    const tiers = row?.tiers ?? row;
+    const values = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+    return { statId, tier: Math.max(1, values.length), value: Number(values.at(-1) ?? 0) };
+  }).sort((a, b) => Number(scoreStat(b.statId, b.value) || 0) - Number(scoreStat(a.statId, a.value) || 0) || a.statId.localeCompare(b.statId)).slice(0, 1).map(({ statId, tier }) => ({ statId, tier }));
+  return { itemId: item.id, level: maxItemLevel(item), artifactStatId, traits, resonance, runes: [] };
+}
+
+function artifactSelectionScore(item, selection, scoreStat) {
+  const inherent = item.itemStats?.artifact?.[0] ?? item.itemStats?.artifact?.["0"] ?? {};
+  let score = Number(scoreStat(selection.artifactStatId, inherent[selection.artifactStatId] ?? 0) || 0);
+  for (const row of selection.traits ?? []) {
+    const tiers = item.itemStats?.traits?.[row.statId] ?? [];
+    score += Number(scoreStat(row.statId, tiers[Math.max(0, Number(row.tier) - 1)] ?? 0) || 0);
+  }
+  for (const row of selection.resonance ?? []) {
+    const tiers = item.itemStats?.resonance?.[row.statId]?.tiers ?? item.itemStats?.resonance?.[row.statId] ?? [];
+    score += Number(scoreStat(row.statId, tiers[Math.max(0, Number(row.tier) - 1)] ?? 0) || 0);
+  }
+  return score;
 }
 
 function artifactSetState(selections, artifactSets) {
@@ -156,13 +179,16 @@ export function generateArtifactCandidates({
   const artifacts = (items ?? []).filter((item) => ARTIFACT_SLOT_TYPES.includes(item.equipmentType));
   const byId = new Map(artifacts.map((item) => [item.id, item]));
   const slots = Object.fromEntries(ARTIFACT_SLOT_TYPES.map((type) => [type, ranked(
-    artifacts.filter((item) => item.equipmentType === type).map((item) => ({ item, key: item.id, score: Number(scoreItem(item) || 0) })),
+    artifacts.filter((item) => item.equipmentType === type).map((item) => {
+      const selection = artifactSelection(item, scoreStat);
+      return { item, selection, key: item.id, score: Number(scoreItem(item) || 0) + artifactSelectionScore(item, selection, scoreStat) };
+    }),
     perSlot,
   )]));
   let beam = [{ selections: {}, score: 0, key: "" }];
   for (const slot of ARTIFACT_SLOT_TYPES) {
-    beam = ranked(beam.flatMap((state) => slots[slot].map(({ item, score }) => ({
-      selections: { ...state.selections, [slot]: artifactSelection(item, scoreStat) },
+    beam = ranked(beam.flatMap((state) => slots[slot].map(({ item, selection, score }) => ({
+      selections: { ...state.selections, [slot]: selection },
       score: state.score + score,
       key: `${state.key}|${item.id}`,
     }))), beamWidth);
@@ -172,7 +198,7 @@ export function generateArtifactCandidates({
     const members = (set.memberItemIds ?? []).map((id) => byId.get(id)).filter(Boolean);
     if (members.length !== ARTIFACT_SLOT_TYPES.length || new Set(members.map((item) => item.equipmentType)).size !== ARTIFACT_SLOT_TYPES.length) continue;
     const selections = Object.fromEntries(members.map((item) => [item.equipmentType, artifactSelection(item, scoreStat)]));
-    completeSets.push({ selections, score: members.reduce((sum, item) => sum + Number(scoreItem(item) || 0), 0), key: `set:${set.id}` });
+    completeSets.push({ selections, score: members.reduce((sum, item) => sum + Number(scoreItem(item) || 0) + artifactSelectionScore(item, selections[item.equipmentType], scoreStat), 0), key: `set:${set.id}` });
   }
   const deduped = new Map([...beam, ...completeSets].map((row) => [Object.values(row.selections).map((x) => x.itemId).join("|"), row]));
   const candidates = [...deduped.values()].map((row) => {

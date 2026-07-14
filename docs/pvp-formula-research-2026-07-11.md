@@ -42,11 +42,9 @@ TL Codex datamined tooltip strings (https://tlcodex.com/en/stats/):
   Critical Hit" → CritMult = 1 + max(CritDamage − CritResistance, 0). Floor confirmed
   by client data; additive subtraction is the natural reading but strictly inferred.
 - Heavy Attack Damage Resistance: "Cannot reduce Heavy Attack Damage below 150% of Base
-  Damage" → HeavyMult = max(base + HD% − HR%, 1.5).
-- IMPORTANT re our 2.284× observation with "+128.4% Heavy Attack Damage": that matches
-  1 + 1.284, i.e. the character sheet likely already includes the 100% baseline of the
-  2× heavy. Re-read the stat panel screenshot — if 128.4% was the sheet TOTAL, display
-  is base-inclusive and no in-game test is needed for this.
+  Damage" → HeavyMult = max(2 + HD% − HR%, 1.5). The canonical calculator field
+  `double_damage_dealt_modifier` is a bonus-only value, so its raw percentage must not
+  be reinterpreted as a base-inclusive character-sheet total.
 - Aragon: heavy = the hit applied twice; flat Bonus Damage is NOT doubled — it is split
   across the two hits. Bonus Damage nets against target's flat Damage Reduction.
 
@@ -123,7 +121,8 @@ Bonus Damage after the heavy multiplier, split across heavy's two hits per Arago
 
 ## Checkable against EXISTING data (no guildmates needed)
 
-- The 128.4% heavy stat-panel reading (base-inclusive vs bonus-only) — re-read panel.
+- Historical character-sheet screenshots may still need UI-label interpretation, but
+  the decoded static calculator field used by TL Helper is bonus-only.
 - Bonus-damage-split-across-heavy-hits — refit the 531 PvE log records.
 - Per-skill monster damage amplification values — extract from client data; also
   explains any PvE-vs-tooltip residuals in the calibration set.

@@ -97,17 +97,16 @@ export function modelCriticalDamageMultiplier({ criticalDamage, resistance } = {
   });
 }
 
-/** Heavy bonus and resistance are percentage points; client tooltip establishes a 150% floor. */
+/** Heavy bonus and resistance are percentage points around the 200% Heavy base; client tooltip establishes a 150% floor. */
 export function modelHeavyDamageMultiplier({ heavyDamageBonus, resistance } = {}) {
   const fixed = context();
   const bonus = nonNegative(fixed, heavyDamageBonus, "heavyDamageBonus");
   const resisted = nonNegative(fixed, resistance, "resistance");
-  const netBonus = bonus > resisted ? bonus - resisted : 0n;
   const floor = fixed.from("1.5");
-  const candidate = fixed.from(1) + fixed.divide(netBonus, fixed.from(100));
+  const candidate = fixed.from(2) + fixed.divide(bonus - resisted, fixed.from(100));
   const multiplier = candidate > floor ? candidate : floor;
   return result(fixed, multiplier, {
-    operation: "base_plus_heavy_bonus_minus_resistance_with_floor",
+    operation: "double_base_plus_heavy_bonus_minus_resistance_with_floor",
     inputs: { heavyDamageBonus: fixed.format(bonus), resistance: fixed.format(resisted) },
     evidence: "datamined_floor_additive_interaction_inferred",
     floor: "1.5",

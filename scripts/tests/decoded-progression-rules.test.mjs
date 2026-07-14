@@ -37,6 +37,9 @@ test("decoded directional, off-hand, and Base Damage unit mappings are exact", (
   assert.equal(STAT_UNIT_MODIFIERS.rear_all_critical_attack, 0.1);
   assert.equal(STAT_UNIT_MODIFIERS.attack_power_off_hand, 1);
   assert.equal(STAT_UNIT_MODIFIERS.attack_power_modifier, 0.01);
+  for (const family of ["accuracy", "critical_attack", "critical_defense", "double_attack", "double_defense", "evasion"]) {
+    for (const type of ["melee", "range", "magic"]) assert.equal(STAT_UNIT_MODIFIERS[`pvp_${type}_${family}`], 0.1, `${type} ${family}`);
+  }
   assert.equal(statRawValue("rear_all_accuracy", 120), 1200);
   assert.equal(statRawValue("attack_power_modifier", -16), -1600);
 });

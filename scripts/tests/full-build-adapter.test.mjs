@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, diverseFinalistsWithSetRoutes, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizeProgressionFinalistTask, optimizerItemSelection, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, diverseFinalistsWithSetRoutes, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizeProgressionFinalistTask, optimizedResonanceSelection, optimizerItemSelection, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals, sourceStatObjectiveScore } from "../../web/tl-full-build-adapter.js";
 
 test("set-route representatives survive bounded downstream finalist selection", () => {
   const rows = [
@@ -23,6 +23,22 @@ test("same-item scratch and refit candidates preserve excluded potentials withou
   const current = { itemId: "same", potentialId: "Potential_Stored", traits: [{ statId: "hp_max" }] };
   assert.equal(optimizerItemSelection(core, { id: "same" }, current).potentialId, "Potential_Stored");
   assert.equal(optimizerItemSelection(core, { id: "different" }, current).potentialId, "");
+});
+
+test("generated equipment candidates select one max-tier goal-aware resonance", () => {
+  const item = { itemStats: { resonance: { wanted: { tiers: [10, 20] }, ignored: { tiers: [100, 200] } } } };
+  const goals = normalizeRankedGoals({ increase: ["wanted"] });
+  assert.deepEqual(optimizedResonanceSelection(item, goals, { wanted: 1 }), [{ statId: "wanted", tier: 2 }]);
+});
+
+test("candidate option scoring follows parent stats into typed PvP goals once", () => {
+  const goals = expandCompositeGoals(normalizeRankedGoals({ increase: ["pvp_melee_critical_defense"] }));
+  const scales = { pvp_melee_critical_defense: 100 };
+  assert.equal(sourceStatObjectiveScore("all_critical_defense", 100, goals, scales), 1);
+  assert.equal(sourceStatObjectiveScore("melee_critical_defense", 100, goals, scales), 1);
+  assert.equal(sourceStatObjectiveScore("pvp_melee_critical_defense", 100, goals, scales), 1);
+  const item = { itemStats: { resonance: { all_critical_defense: { tiers: [100] }, ignored: { tiers: [1000] } } } };
+  assert.deepEqual(optimizedResonanceSelection(item, goals, scales), [{ statId: "all_critical_defense", tier: 1 }]);
 });
 
 test("composite goals preserve one goal weight across typed leaf totals", () => {
