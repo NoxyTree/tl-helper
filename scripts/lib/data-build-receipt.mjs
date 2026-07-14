@@ -182,7 +182,12 @@ export function warehouseSemanticIdentity(file) {
         SELECT table_name tableName, source_sha256 sourceSha256, COUNT(*) rowCount
         FROM records GROUP BY table_name, source_sha256 ORDER BY table_name, source_sha256
       `).all();
-    const normalizedSourceRows = sourceRows.map((row) => ({ table: row.tableName, decodedRows: Number(row.rowCount), sourceSha256: row.sourceSha256 }));
+    // decodedSemanticIdentity and the reviewed baseline intentionally use
+    // localeCompare ordering. Reapply that contract after SQLite extraction;
+    // SQLite BINARY order differs for names such as TLPC* and TLPc*.
+    const normalizedSourceRows = sourceRows
+      .map((row) => ({ table: row.tableName, decodedRows: Number(row.rowCount), sourceSha256: row.sourceSha256 }))
+      .sort((left, right) => left.table.localeCompare(right.table));
     const integrityRows = db.prepare("PRAGMA integrity_check").all().map((row) => String(Object.values(row)[0]));
     const ftsPresent = Boolean(db.prepare("SELECT 1 present FROM sqlite_master WHERE name='records_fts'").get()?.present);
     const computedSemanticHashes = decodedManifestPresent && ftsPresent ? databaseSemanticHashes(db) : {};

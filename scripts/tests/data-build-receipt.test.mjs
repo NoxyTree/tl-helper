@@ -42,8 +42,8 @@ function fixture() {
   const decodedDir = path.join(root, "decoded");
   mkdirSync(decodedDir, { recursive: true });
   const rows = [
-    { table: "TableA", sha256: "a".repeat(64), decodedRowCount: 2, rows: { a: {}, b: {} } },
-    { table: "TableB", sha256: "b".repeat(64), decodedRowCount: 1, rows: { c: {} } },
+    { table: "TLPCInitialStat", sha256: "a".repeat(64), decodedRowCount: 2, rows: { a: {}, b: {} } },
+    { table: "TLPcDynamicStat", sha256: "b".repeat(64), decodedRowCount: 1, rows: { c: {} } },
   ];
   for (const row of rows) writeFileSync(path.join(decodedDir, `${row.table}.json`), JSON.stringify({ ...row, decoderVersion: "1" }));
   const dbFile = path.join(root, "warehouse.sqlite");
@@ -96,7 +96,7 @@ function fixture() {
       db.prepare("INSERT INTO records_fts VALUES (?, ?, ?)").run(recordId, String(i), "");
     }
   }
-  db.prepare("INSERT INTO refs VALUES ('TableA:0', 'Target', 'row')").run();
+  db.prepare("INSERT INTO refs VALUES ('TLPCInitialStat:0', 'Target', 'row')").run();
   db.prepare("INSERT INTO assets VALUES ('asset', '/Game/asset', 1, 0)").run();
   const semanticHashes = databaseSemanticHashes(db);
   for (const [key, value] of Object.entries({
@@ -297,7 +297,7 @@ test("receipt requires successful warehouse and inventory stages with unchanged 
     }), /Git commit differs/);
 
     const db = new DatabaseSync(files.dbFile);
-    db.prepare("UPDATE records SET raw_json='corrupt' WHERE record_id='TableA:0'").run();
+    db.prepare("UPDATE records SET raw_json='corrupt' WHERE record_id='TLPCInitialStat:0'").run();
     db.close();
     const corruptedWarehouse = warehouseSemanticIdentity(files.dbFile);
     assert.match(
