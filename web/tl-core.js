@@ -345,6 +345,7 @@ export function buildIndexes(source) {
   const itemSetById = Object.fromEntries([...source.itemSets, ...normalizedArtifactSets].map((set) => [set.id, set]));
   const skillById = Object.fromEntries((source.skills ?? []).map((skill) => [skill.id, skill]));
   const skillTraitById = Object.fromEntries((source.skillTraits ?? []).map((trait) => [trait.id, trait]));
+  const masteryById = Object.fromEntries((source.masteries ?? []).map((mastery) => [mastery.id, mastery]));
   const itemsByType = {};
   for (const item of source.items) {
     if (!itemsByType[item.equipmentType]) itemsByType[item.equipmentType] = [];
@@ -361,7 +362,7 @@ export function buildIndexes(source) {
   for (const list of Object.values(runesByCategory)) {
     list.sort((a, b) => a.runeType.localeCompare(b.runeType) || (b.grade ?? 0) - (a.grade ?? 0) || a.name.localeCompare(b.name));
   }
-  return { itemById, runeById, itemSetById, skillById, skillTraitById, itemsByType, runesByCategory };
+  return { itemById, runeById, itemSetById, skillById, skillTraitById, masteryById, itemsByType, runesByCategory };
 }
 
 // ---------- build state helpers ----------
@@ -1289,8 +1290,126 @@ export function availableSkillsForWeapons(weapons) {
 export function selectedSkillRows(build) {
   return normalizeSkillSelections(build.skills).map((selection) => {
     const skill = indexes.skillById[selection.skillId];
-    return { skill, selection, loadoutType: selection.loadoutType ?? skillLoadoutType(skill) };
+    return { skill, selection, loadoutType: skillLoadoutType(skill) };
   }).filter((row) => row.skill);
+}
+
+// Canonical, non-mutating projection of the progression that is allowed to
+// affect a build. Stored selections are deliberately retained on the build so
+// swapping weapons does not destroy work, but only selections belonging to an
+// equipped weapon family are active. Unified mastery is global and therefore
+// has no weapon-family gate.
+export function effectiveProgression(build) {
+  const weaponTypes = equippedWeaponTypes(build);
+  const weaponSet = new Set(weaponTypes);
+  const skills = [];
+  const inactiveSkills = [];
+  const masteries = [];
+  const inactiveMasteries = [];
+  const unifiedMasteries = [];
+  const inactiveUnifiedMasteries = [];
+  const issues = [];
+  const issue = (code, message, severity = "error", basis = "dataBacked") => issues.push({ code, message, severity, basis });
+
+  for (const row of selectedSkillRows(build)) {
+    const storedType = row.selection.loadoutType;
+    if (storedType && storedType !== row.loadoutType) {
+      issue(
+        "skill_type_mismatch",
+        `${row.skill.name} is stored as ${label(storedType)} but canonical skill data classifies it as ${label(row.loadoutType)}. Calculations use ${label(row.loadoutType)}.`,
+      );
+    }
+    if (!weaponSet.has(row.skill.mainCategory)) {
+      inactiveSkills.push({ ...row, reason: "foreign_weapon" });
+      issue(
+        "foreign_weapon_skill",
+        `${row.skill.name} requires ${label(row.skill.mainCategory)}, which is not equipped. The stored selection is inactive and excluded from calculations.`,
+      );
+      continue;
+    }
+    skills.push(row);
+  }
+
+  for (const type of ["active", "passive", "defensive"]) {
+    const count = skills.filter((row) => row.loadoutType === type).length;
+    const cap = skillCapForType(type);
+    if (count > cap) {
+      issue(
+        "skill_cap_exceeded",
+        `${label(type)} skill cap exceeded: ${count}/${cap}. All equipped-weapon selections remain active until deterministic truncation rules are defined.`,
+        "error",
+        type === "passive" ? "assumed" : "dataBacked",
+      );
+    }
+  }
+
+  for (const [masteryId, stored] of Object.entries(build.masteries ?? {})) {
+    const mastery = indexes?.masteryById?.[masteryId];
+    if (!mastery) {
+      inactiveMasteries.push({ masteryId, selection: stored, mastery: null, reason: "unknown" });
+      issue("unknown_mastery", `Unknown mastery node ${masteryId} is inactive and excluded from calculations.`);
+      continue;
+    }
+    const selection = { level: clamp(Number(stored?.level || 1), 1, masteryMaxLevel(mastery)) };
+    if (!["normal", "synergy"].includes(mastery.specializationType)) {
+      inactiveMasteries.push({ masteryId, selection, mastery, reason: "wrong_category" });
+      issue(
+        "wrong_category_mastery",
+        `${mastery.name} is ${label(mastery.specializationType)} mastery and cannot be selected as weapon mastery. It is excluded from calculations.`,
+      );
+      continue;
+    }
+    if (!weaponSet.has(mastery.mainCategory)) {
+      inactiveMasteries.push({ masteryId, selection, mastery, reason: "foreign_weapon" });
+      issue(
+        "foreign_weapon_mastery",
+        `${mastery.name} requires ${label(mastery.mainCategory)}, which is not equipped. The stored selection is inactive and excluded from calculations.`,
+      );
+      continue;
+    }
+    masteries.push({ masteryId, mastery, selection });
+  }
+
+  issues.push(...validateMasterySelections(build, { activeWeaponTypes: weaponTypes }).issues);
+
+  const seenUnified = new Set();
+  for (const masteryId of selectedUnifiedMasteries(build)) {
+    if (seenUnified.has(masteryId)) {
+      inactiveUnifiedMasteries.push({ masteryId, mastery: indexes?.masteryById?.[masteryId] ?? null, reason: "duplicate" });
+      issue("duplicate_unified_mastery", `Unified mastery ${masteryId} is selected more than once. Duplicate entries are excluded from calculations.`);
+      continue;
+    }
+    seenUnified.add(masteryId);
+    const mastery = indexes?.masteryById?.[masteryId];
+    if (!mastery) {
+      inactiveUnifiedMasteries.push({ masteryId, mastery: null, reason: "unknown" });
+      issue("unknown_unified_mastery", `Unknown unified mastery node ${masteryId} is inactive and excluded from calculations.`);
+      continue;
+    }
+    if (mastery.specializationType !== "unified") {
+      inactiveUnifiedMasteries.push({ masteryId, mastery, reason: "wrong_category" });
+      issue("wrong_category_unified_mastery", `${mastery.name} is not a unified mastery node and is excluded from unified mastery calculations.`);
+      continue;
+    }
+    unifiedMasteries.push({ masteryId, mastery });
+  }
+  if (unifiedMasteries.length > UNIFIED_MASTERY_CAP) {
+    issue(
+      "unified_mastery_cap_exceeded",
+      `Unified mastery cap exceeded: ${unifiedMasteries.length}/${UNIFIED_MASTERY_CAP}. Selections are not truncated automatically.`,
+    );
+  }
+
+  return {
+    equippedWeaponTypes: weaponTypes,
+    skills,
+    inactiveSkills,
+    masteries,
+    inactiveMasteries,
+    unifiedMasteries,
+    inactiveUnifiedMasteries,
+    issues,
+  };
 }
 
 export function selectedSkillSelection(skillId, build) {
@@ -1498,6 +1617,160 @@ export function masteryWeaponPointState(weapon, build) {
   return { tierTotals, categoryTierTotals, categoryTotals, totalPoints, nonEpicPoints, selectedNormal, selectedSynergy, synergyCountByTier, epicSelected };
 }
 
+// Pure validation authority for persisted weapon-mastery allocations. This
+// intentionally reads the raw saved levels instead of normalizeMasterySelections,
+// masterySelectedLevel, masteryLockInfo, or reconcileMasterySelections: those UI
+// helpers clamp, accept existing picks, or mutate the build. The shipped game
+// guide defines the 30-point tier gates, 20-point Achievement threshold,
+// highest-category priority, two-per-tier/six-per-weapon limits, and the
+// 80/120-point Epic gates. TLWeaponSpecializationLevel contains levels 0..220,
+// proving the per-weapon point budget for build 24118850.
+export function validateMasterySelections(build, options = {}) {
+  const activeWeaponSet = new Set(options.activeWeaponTypes ?? equippedWeaponTypes(build));
+  const issues = [];
+  const groups = new Map();
+  const addIssue = (weapon, code, message) => issues.push({
+    code,
+    message,
+    severity: activeWeaponSet.has(weapon) ? "error" : "warning",
+    basis: "dataBacked",
+  });
+
+  for (const [masteryId, stored] of Object.entries(build?.masteries ?? {})) {
+    const mastery = indexes?.masteryById?.[masteryId];
+    if (!mastery || !["normal", "synergy"].includes(mastery.specializationType)) continue;
+    const weapon = mastery.mainCategory;
+    if (!groups.has(weapon)) groups.set(weapon, []);
+    const rawLevel = Number(stored?.level ?? 1);
+    const requiredLevel = mastery.specializationType === "synergy" ? 1 : masteryMaxLevel(mastery);
+    const validLevel = Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= requiredLevel
+      && (mastery.specializationType !== "synergy" || rawLevel === 1);
+    if (!validLevel) {
+      addIssue(
+        weapon,
+        "invalid_mastery_level",
+        `${mastery.name} has invalid stored level ${String(stored?.level)}; ${label(mastery.specializationType)} mastery requires ${mastery.specializationType === "synergy" ? "level 1" : `an integer level from 1 to ${requiredLevel}`}. Calculated totals clamp the value and are provisional.`,
+      );
+    }
+    if (mastery.isDisabled) {
+      addIssue(weapon, "disabled_mastery_selected", `${mastery.name} is disabled in the decoded mastery table and cannot be selected.`);
+    }
+    groups.get(weapon).push({ masteryId, mastery, rawLevel, validLevel });
+  }
+
+  for (const [weapon, rows] of groups) {
+    const validRows = rows.filter((row) => row.validLevel && !row.mastery.isDisabled);
+    const normals = validRows.filter((row) => row.mastery.specializationType === "normal");
+    const synergies = validRows.filter((row) => row.mastery.specializationType === "synergy");
+    const tierTotals = {};
+    const categoryTierTotals = {};
+    let totalNormalPoints = 0;
+    let nonEpicNormalPoints = 0;
+    for (const row of normals) {
+      const grade = Number(row.mastery.grade);
+      tierTotals[grade] = (tierTotals[grade] ?? 0) + row.rawLevel;
+      totalNormalPoints += row.rawLevel;
+      if (grade !== 41) nonEpicNormalPoints += row.rawLevel;
+      for (const category of masteryCategoryKeys(row.mastery)) {
+        const key = `${grade}:${category}`;
+        categoryTierTotals[key] = (categoryTierTotals[key] ?? 0) + row.rawLevel;
+      }
+    }
+
+    if (totalNormalPoints > MASTERY_POINT_BUDGET) {
+      addIssue(
+        weapon,
+        "mastery_budget_exceeded",
+        `${label(weapon)} mastery budget exceeded: ${totalNormalPoints}/${MASTERY_POINT_BUDGET}. Selections are not truncated automatically.`,
+      );
+    }
+    for (const row of normals) {
+      const grade = Number(row.mastery.grade);
+      const priorGrade = grade === 21 ? 11 : grade === 31 ? 21 : null;
+      if (priorGrade && (tierTotals[priorGrade] ?? 0) < 30) {
+        addIssue(
+          weapon,
+          "mastery_tier_prerequisite_missing",
+          `${row.mastery.name} requires 30 ${label(priorGrade === 11 ? "common" : "uncommon")} normal-node points; ${label(weapon)} has ${tierTotals[priorGrade] ?? 0}.`,
+        );
+      }
+    }
+
+    for (const grade of [11, 21, 31]) {
+      const eligible = [...new Set(
+        masteryRowsForWeapon(weapon)
+          .filter((mastery) => mastery.specializationType === "synergy" && Number(mastery.grade) === grade)
+          .flatMap((mastery) => masteryCategoryKeys(mastery)),
+      )]
+        .map((category) => ({ category, points: categoryTierTotals[`${grade}:${category}`] ?? 0 }))
+        .filter((row) => row.points >= 20)
+        .sort((a, b) => b.points - a.points || a.category.localeCompare(b.category));
+      const selectedCategories = new Set(
+        synergies
+          .filter((row) => Number(row.mastery.grade) === grade)
+          .flatMap((row) => masteryCategoryKeys(row.mastery)),
+      );
+      const slotCount = Math.min(2, eligible.length);
+      if (selectedCategories.size !== slotCount) {
+        addIssue(
+          weapon,
+          "mastery_synergy_count_invalid",
+          `${label(weapon)} ${label(grade === 11 ? "common" : grade === 21 ? "uncommon" : "rare")} mastery must activate ${slotCount} Achievement effect${slotCount === 1 ? "" : "s"}; ${selectedCategories.size} are stored.`,
+        );
+      }
+      if (!slotCount) continue;
+      const cutoff = eligible[slotCount - 1].points;
+      const requiredAboveCutoff = eligible.filter((row) => row.points > cutoff);
+      const eligibleCategorySet = new Set(eligible.filter((row) => row.points >= cutoff).map((row) => row.category));
+      for (const row of requiredAboveCutoff) {
+        if (!selectedCategories.has(row.category)) {
+          addIssue(
+            weapon,
+            "mastery_synergy_priority_invalid",
+            `${label(weapon)} ${label(row.category)} has ${row.points} points and must activate before a lower-point Achievement effect at this tier.`,
+          );
+        }
+      }
+      for (const category of selectedCategories) {
+        if (!eligibleCategorySet.has(category)) {
+          addIssue(
+            weapon,
+            "mastery_synergy_priority_invalid",
+            `${label(weapon)} ${label(category)} is not within the highest eligible Achievement categories at this tier.`,
+          );
+        }
+      }
+    }
+
+    if (synergies.length > 6) {
+      addIssue(weapon, "mastery_synergy_weapon_cap_exceeded", `${label(weapon)} has ${synergies.length}/6 Achievement effects selected.`);
+    }
+    const epics = normals.filter((row) => Number(row.mastery.grade) === 41);
+    if (epics.length > 2) {
+      addIssue(weapon, "mastery_epic_cap_exceeded", `${label(weapon)} has ${epics.length}/2 Epic mastery nodes selected.`);
+    }
+    const epicPointRequirement = epics.length >= 2 ? 120 : epics.length === 1 ? 80 : 0;
+    if (nonEpicNormalPoints < epicPointRequirement) {
+      addIssue(
+        weapon,
+        "mastery_epic_points_missing",
+        `${label(weapon)} has ${nonEpicNormalPoints}/${epicPointRequirement} non-Epic normal-node points required for ${epics.length} Epic node${epics.length === 1 ? "" : "s"}.`,
+      );
+    }
+    for (const epic of epics) {
+      if (!synergies.some((synergy) => masterySynergyMatches(synergy.mastery, epic.mastery))) {
+        addIssue(
+          weapon,
+          "mastery_epic_synergy_missing",
+          `${epic.mastery.name} requires a matching selected Achievement effect from any non-Epic tier.`,
+        );
+      }
+    }
+  }
+
+  return { issues };
+}
+
 export function masterySynergyMatches(synergy, mastery) {
   return masteryCategoryKeys(synergy).includes(mastery.subCategory)
     || masteryCategoryKeys(mastery).includes(synergy.subCategory);
@@ -1626,8 +1899,9 @@ export function adjustMasterySelection(build, masteryId, adjustment = 1, options
 }
 
 // ---------- unified mastery ----------
-// WM_Common_SKILL_* nodes are shared across weapons. The cap of 4 active
-// nodes is assumed from imported reference builds (not extracted data).
+// WM_Common_SKILL_* nodes are shared across weapons. Shipped build-24118850
+// localization explicitly permits up to four Overall Mastery Skills and says
+// they apply regardless of weapon (en.csv TEXT_TOOLTIP and game-guide rows).
 
 export const UNIFIED_MASTERY_CAP = 4;
 
@@ -1698,6 +1972,7 @@ export function applyArtifactSet(build, setId) {
 
 export function calculateBuild(build, attributes, options = {}) {
   const includeSetEffects = options.includeSetEffects !== false;
+  const progression = effectiveProgression(build);
   const totals = new Map();
   const sourceMap = new Map();
   const add = (statId, value, sourceLabel, sourceType = "source", grade = 0, icon = "", metadata = {}) => {
@@ -1794,13 +2069,12 @@ export function calculateBuild(build, attributes, options = {}) {
     }
   }
 
-  for (const [masteryId, selected] of Object.entries(build.masteries ?? {})) {
-    const mastery = data.masteries.find((entry) => entry.id === masteryId);
+  for (const { mastery, selection: selected } of progression.masteries) {
     const stats = mastery?.stats?.[Math.max(0, Number(selected.level || 1) - 1)];
     for (const row of values(stats)) add(row.statId, row.value, `Weapon Mastery: ${mastery.name}`, "weapon_specialization", mastery.grade, mastery.imageUrl);
   }
 
-  const applyPhase = (phase) => applyQuestlogPhase(phase, build, selections, totalsObject, add, includeSetEffects, setEffectTrace);
+  const applyPhase = (phase) => applyQuestlogPhase(phase, progression, selections, totalsObject, add, includeSetEffects, setEffectTrace);
   applyPhase(1);
 
   for (const [attributeId] of ATTRIBUTES) {
@@ -1866,8 +2140,8 @@ export function calculateBuild(build, attributes, options = {}) {
     const ratio = attackPowerModifier / 10000;
     const maxDamage = totals.get("attack_power_main_hand") ?? 0;
     const minDamage = totals.get("bonus_attack_power_main_hand") ?? 0;
-    add("attack_power_main_hand", Math.floor(maxDamage * ratio) - Math.floor(minDamage * ratio), "Stellarite", "attack_power");
-    add("bonus_attack_power_main_hand", Math.floor(minDamage * ratio), "Stellarite Bonus", "attack_power");
+    add("attack_power_main_hand", Math.floor(maxDamage * ratio) - Math.floor(minDamage * ratio), "Base Damage Modifier", "attack_power");
+    add("bonus_attack_power_main_hand", Math.floor(minDamage * ratio), "Base Damage Modifier", "attack_power");
   }
 
   addDerivedTotal("attack_power_main_hand_min", totals.get("bonus_attack_power_main_hand") ?? 0, totals, sourceMap);
@@ -1886,7 +2160,7 @@ export function calculateBuild(build, attributes, options = {}) {
     stats: [...totals.entries()].map(([id, total]) => ({ id, total, uncappedTotal: total + (capOverflow.get(id) ?? 0), overflow: capOverflow.get(id) ?? 0, hardCap: statHardCap(id), sources: sourceMap.get(id) ?? [] })),
     setEffects: finalizeSetEffectTrace(setEffectTrace, sourceMap, includeSetEffects),
     runeSynergies,
-    validation: validateBuild(runeSynergies, build),
+    validation: validateBuild(runeSynergies, build, progression),
   };
 }
 
@@ -2111,7 +2385,7 @@ export function setEffectBreakpointSummary(breakpoint) {
   return description || "Set bonus unavailable";
 }
 
-function applyQuestlogPhase(phase, build, selections, totalsObject, add, includeSetEffects = true, setEffectTrace = null) {
+function applyQuestlogPhase(phase, progression, selections, totalsObject, add, includeSetEffects = true, setEffectTrace = null) {
   for (const { slotId, selection, item } of selections) {
     const itemRule = ITEM_PASSIVE_RULES[item?.passives?.id];
     if (itemRule?.phase === phase) for (const row of itemRule.effect(totalsObject())) add(row.statId, row.value, item.passives.name, slotId, item.grade, item.passives.imageUrl);
@@ -2120,7 +2394,8 @@ function applyQuestlogPhase(phase, build, selections, totalsObject, add, include
     // Guard: a rule id present in both tables (SkillSet_Unique_Accessory_Skill_01)
     // must not fire twice for the same item via innate passive AND slotted perk.
     const alreadyAppliedAsItemPassive = itemRule && perk?.passive?.id === item?.passives?.id;
-    if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
+    const requiredWeaponEquipped = !perkRule?.requiredWeapon || progression.equippedWeaponTypes.includes(perkRule.requiredWeapon);
+    if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive && requiredWeaponEquipped) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
   }
   if (includeSetEffects) {
     const active = activeSetCounts(selections);
@@ -2142,20 +2417,17 @@ function applyQuestlogPhase(phase, build, selections, totalsObject, add, include
       }
     }
   }
-  const masteryBuild = { specialization: Object.entries(build.masteries ?? {}).map(([id, row]) => ({ id, lvl: Number(row.level || 1) })) };
-  for (const { skill, selection } of selectedSkillRows(build)) {
+  const masteryBuild = { specialization: progression.masteries.map(({ masteryId, selection }) => ({ id: masteryId, lvl: Number(selection.level || 1) })) };
+  for (const { skill, selection, loadoutType } of progression.skills) {
     const rule = PASSIVE_SKILL_RULES[skill.id];
-    if (rule?.phase === phase) for (const row of rule.effect(selection.level, masteryBuild, totalsObject())) add(row.statId, row.value, skill.name, "skill_passive", skill.grade, skill.imageUrl);
+    if (loadoutType === "passive" && rule?.phase === phase) for (const row of rule.effect(selection.level, masteryBuild, totalsObject())) add(row.statId, row.value, skill.name, "skill_passive", skill.grade, skill.imageUrl);
   }
-  for (const [masteryId, selected] of Object.entries(build.masteries ?? {})) {
+  for (const { masteryId, mastery, selection: selected } of progression.masteries) {
     const rule = MASTERY_SYNERGY_RULES[masteryId];
-    const mastery = data.masteries.find((entry) => entry.id === masteryId);
     if (rule?.phase === phase) for (const row of rule.effect(Number(selected.level || 1), totalsObject())) add(row.statId, row.value, mastery?.name ?? masteryId, "weapon_specialization_synergy", mastery?.grade, mastery?.imageUrl);
   }
-  const unifiedIds = Array.isArray(build.unifiedMasteries) ? build.unifiedMasteries : Object.values(build.unifiedMasteries ?? {});
-  for (const masteryId of unifiedIds) {
+  for (const { masteryId, mastery } of progression.unifiedMasteries) {
     const rule = UNIFIED_MASTERY_RULES[masteryId];
-    const mastery = data.masteries.find((entry) => entry.id === masteryId);
     if (rule?.phase === phase) for (const row of rule.effect(1, totalsObject())) add(row.statId, row.value, mastery?.name ?? masteryId, "weapon_specialization_synergy", mastery?.grade, mastery?.imageUrl);
   }
 }
@@ -2188,6 +2460,7 @@ export function calculateCombatPower(build) {
 }
 
 export function combatPowerBreakdown(build) {
+  const progression = effectiveProgression(build);
   let equipmentPower = COMBAT_POWER.equipmentBase;
   const items = [];
   for (const { slotId, selection, item } of allBuildSelectionEntries(build)) {
@@ -2196,8 +2469,8 @@ export function combatPowerBreakdown(build) {
     equipmentPower += power;
     items.push({ slotId, itemId: item.id, name: item.name, power });
   }
-  const skillPower = selectedSkillRows(build).reduce((total, row) => total + Number(row.selection.level || 0) * COMBAT_POWER.skillPerLevel, 0);
-  const masteryLevels = Object.values(build.masteries ?? {}).reduce((total, row) => total + Number(row.level || 0), 0);
+  const skillPower = progression.skills.reduce((total, row) => total + Number(row.selection.level || 0) * COMBAT_POWER.skillPerLevel, 0);
+  const masteryLevels = progression.masteries.reduce((total, row) => total + Number(row.selection.level || 0), 0);
   const masteryThresholdPower = COMBAT_POWER.masteryThresholds.filter((threshold) => masteryLevels >= threshold).length * COMBAT_POWER.masteryThresholdBonus;
   const masteryPower = masteryLevels * COMBAT_POWER.masteryPerLevel + masteryThresholdPower;
   // All components are integer-valued (itemCombatPower floors its fractional
@@ -2313,6 +2586,33 @@ export function slotSelectionContribution(slotId, selection, build, attributes, 
   return delta;
 }
 
+// Total-stat delta of replacing the current selection in `slotId`. Weapon
+// comparison surfaces must use this form so removing the current weapon does
+// not deactivate that weapon family's shared skills and mastery in the
+// baseline, falsely attributing all progression to every same-family item.
+export function slotReplacementDelta(slotId, selection, build, attributes, options = {}) {
+  const cache = slotDeltaCacheFor(build, attributes);
+  const setMode = options.includeSetEffects === false ? "no-sets" : "sets";
+  const current = slotSelection(slotId, build);
+  const currentKey = JSON.stringify(current ?? null);
+  const prefix = `${setMode}|replacement|${slotId}|${currentKey}`;
+  let baseline = cache.get(`${prefix}|<current>`);
+  if (!baseline) {
+    baseline = totalsWithSlotSelection(build, attributes, slotId, current, options);
+    cache.set(`${prefix}|<current>`, baseline);
+  }
+  const candidateKey = `${prefix}|${JSON.stringify(selection ?? null)}`;
+  if (cache.has(candidateKey)) return cache.get(candidateKey);
+  const withSelection = selection?.itemId ? totalsWithSlotSelection(build, attributes, slotId, selection, options) : totalsWithSlotSelection(build, attributes, slotId, null, options);
+  const delta = {};
+  for (const id of new Set([...Object.keys(baseline), ...Object.keys(withSelection)])) {
+    const value = (withSelection[id] ?? 0) - (baseline[id] ?? 0);
+    if (Math.abs(value) > 1e-9) delta[id] = value;
+  }
+  cache.set(candidateKey, delta);
+  return delta;
+}
+
 // Contribution of equipping `item` bare (as equipItem does) at `level`.
 export function itemStatContribution(item, slotId, level, build, attributes, options = {}) {
   if (!item) return {};
@@ -2325,9 +2625,13 @@ export function statTotal(calc, statId) {
 
 // ---------- validation ----------
 
-export function validateBuild(runeSynergies, build) {
+export function validateBuild(runeSynergies, build, progression = effectiveProgression(build)) {
   const dataBacked = [];
   const assumed = [];
+  for (const issue of progression.issues) {
+    const target = issue.basis === "assumed" ? assumed : dataBacked;
+    target.push({ severity: issue.severity, message: issue.message, code: issue.code });
+  }
   const mainWeapon = indexes.itemById[build.equipment.main_hand?.itemId];
   const offWeapon = indexes.itemById[build.equipment.off_hand?.itemId];
   if (mainWeapon && offWeapon && mainWeapon.equipmentType === offWeapon.equipmentType) {
@@ -2345,6 +2649,34 @@ export function validateBuild(runeSynergies, build) {
     assumed.push({
       severity: "warning",
       message: `${indexes.itemById[itemId]?.name ?? itemId} is selected in multiple slots (${slots.map((slot) => slotById(slot)?.label ?? slot).join(", ")}). Duplicate copies count once toward set thresholds.`,
+    });
+  }
+
+  const passiveSources = new Map();
+  const equippedWeaponSet = new Set(progression.equippedWeaponTypes);
+  for (const { slotId, selection, item } of allBuildSelectionEntries(build)) {
+    if (!item) continue;
+    const perk = values(item.availablePerks).find((entry) => entry.id === (selection?.perkId ?? selection?.perk));
+    const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
+    if (perkRule?.requiredWeapon && !equippedWeaponSet.has(perkRule.requiredWeapon)) {
+      dataBacked.push({
+        severity: "error",
+        code: "perk_required_weapon_missing",
+        message: `${perk.passive?.name ?? perk.name} requires an equipped ${label(perkRule.requiredWeapon)}. Its stored core is inactive and excluded from calculations.`,
+      });
+    }
+    const ids = new Set([item.passives?.id, perk?.passive?.id].filter(Boolean));
+    for (const passiveId of ids) {
+      if (!passiveSources.has(passiveId)) passiveSources.set(passiveId, []);
+      passiveSources.get(passiveId).push(slotById(slotId)?.label ?? slotId);
+    }
+  }
+  for (const [passiveId, sourceSlots] of passiveSources) {
+    if (sourceSlots.length < 2) continue;
+    dataBacked.push({
+      severity: "error",
+      code: "repeated_passive_stacking_unresolved",
+      message: `${passiveId} is selected from multiple slots (${sourceSlots.join(", ")}). Same-core stacking is unresolved, so these totals are provisional and must not be treated as exact.`,
     });
   }
 
@@ -2393,12 +2725,14 @@ export function validateBuild(runeSynergies, build) {
     }
   }
 
+  // Stored selections remain editable even while their weapon is unequipped,
+  // so report an over-budget saved loadout independently of activation.
   const specSpent = skillSpecSpent(build);
   if (specSpent > SPEC_BUDGET) {
     dataBacked.push({ severity: "warning", message: `Skill specialization budget is over the assumed budget: ${specSpent}/${SPEC_BUDGET}.` });
   }
 
-  const unmapped = unmappedRuleIssues(build);
+  const unmapped = unmappedRuleIssues(build, progression);
   const setEffectContracts = setEffectContractIssues(build);
   dataBacked.push(...setEffectContracts);
   const issues = [...dataBacked, ...assumed, ...unmapped];
@@ -2429,7 +2763,7 @@ function setEffectContractIssues(build) {
 // transcribed from Questlog's client, which applies the same allowlists, so
 // an unmapped effect usually matches Questlog — but it must be visible, not
 // silent. Grouped into one message per category to keep the panel compact.
-function unmappedRuleIssues(build) {
+function unmappedRuleIssues(build, progression = effectiveProgression(build)) {
   const info = (message) => ({ severity: "info", message });
   const issues = [];
   const grouped = (label, names) => {
@@ -2488,24 +2822,22 @@ function unmappedRuleIssues(build) {
   grouped("set passives", setPassives);
 
   const passiveSkills = [];
-  for (const { skill, loadoutType } of selectedSkillRows(build)) {
+  for (const { skill, loadoutType } of progression.skills) {
     if (loadoutType === "passive" && !PASSIVE_SKILL_RULES[skill.id]) passiveSkills.push(skill.name);
   }
   grouped("passive skills", passiveSkills);
 
   const synergyNodes = [];
-  for (const [masteryId, selected] of Object.entries(build.masteries ?? {})) {
-    const mastery = data.masteries.find((entry) => entry.id === masteryId);
-    if (!mastery || MASTERY_SYNERGY_RULES[masteryId]) continue;
+  for (const { masteryId, mastery, selection: selected } of progression.masteries) {
+    if (MASTERY_SYNERGY_RULES[masteryId]) continue;
     const stats = values(mastery.stats?.[Math.max(0, Number(selected.level || 1) - 1)]);
     if (!stats.length) synergyNodes.push(mastery.name);
   }
   grouped("mastery nodes", synergyNodes);
 
-  const unifiedIds = Array.isArray(build.unifiedMasteries) ? build.unifiedMasteries : Object.values(build.unifiedMasteries ?? {});
-  const unifiedNodes = unifiedIds
-    .filter((id) => id && !UNIFIED_MASTERY_RULES[id])
-    .map((id) => data.masteries.find((entry) => entry.id === id)?.name ?? id);
+  const unifiedNodes = progression.unifiedMasteries
+    .filter(({ masteryId }) => !UNIFIED_MASTERY_RULES[masteryId])
+    .map(({ mastery }) => mastery.name);
   grouped("unified mastery nodes", unifiedNodes);
 
   return issues;

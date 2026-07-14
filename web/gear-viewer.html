@@ -279,6 +279,13 @@
       return { build: core.createInitialBuild(), attributes: ZERO_ATTRS };
     }
 
+    function candidateContribution(slotId, selection, build, attributes) {
+      const options = { includeSetEffects: state.includeSetEffects };
+      return state.mode !== "bare" && core.WEAPON_SLOTS.includes(slotId)
+        ? core.slotReplacementDelta(slotId, selection, build, attributes, options)
+        : core.slotSelectionContribution(slotId, selection, build, attributes, options);
+    }
+
     function equippedWeaponSlots(build = scoringContext().build) {
       return ["main_hand", "off_hand"].map((slotId) => {
         const selection = core.slotSelection(slotId, build);
@@ -409,13 +416,13 @@
       });
       const finalists = potential.finalists.map((candidate) => {
         const selection = { ...core.emptyEquipmentSelection(), ...candidate.selection, itemId: item.id, level };
-        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+        const contribution = candidateContribution(slotId, selection, build, attributes);
         return { ...candidate, selection, contribution };
       });
       const maxima = Object.fromEntries(state.columns.map((statId) => [statId, Math.max(0, ...finalists.map((row) => Number(row.contribution[statId] ?? 0)))]));
       const equipped = state.mode === "bare" ? null : core.slotSelection(slotId, build);
       const equippedContribution = equipped?.itemId
-        ? core.slotSelectionContribution(slotId, equipped, build, attributes, { includeSetEffects: state.includeSetEffects })
+        ? candidateContribution(slotId, equipped, build, attributes)
         : {};
       for (const row of finalists) {
         row.exactScore = state.columns.length
@@ -465,7 +472,7 @@
             selection = potential.selection;
             contribution = potential.contribution;
           } else {
-            contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
+            contribution = candidateContribution(slotId, selection, build, attributes);
           }
           const availableStatIds = potentialStatIds(item, contribution);
           rows.push({
@@ -569,7 +576,7 @@
           if (!currentBySlot.has(row.slotId)) {
             const equipped = core.slotSelection(row.slotId, context.build);
             currentBySlot.set(row.slotId, equipped?.itemId
-              ? core.slotSelectionContribution(row.slotId, equipped, context.build, context.attributes, { includeSetEffects: state.includeSetEffects })
+              ? candidateContribution(row.slotId, equipped, context.build, context.attributes)
               : {});
           }
           const equippedContribution = currentBySlot.get(row.slotId);

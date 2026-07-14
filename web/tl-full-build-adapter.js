@@ -498,12 +498,43 @@ export async function createOptimizerAdapter(deps = {}) {
       const rules = request.rules ?? {};
       const goals = request.goals ?? { increase: [], protect: [] };
       const rankedGoals = expandCompositeGoals(normalizeRankedGoals(goals));
-      const weaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
+      const requestedWeaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
+      const weaponTypeConstraints = { ...requestedWeaponTypeConstraints };
+      if (!scratch) {
+        for (const slot of core.WEAPON_SLOTS ?? []) {
+          const currentSelection = selectionFor(source.build, slot);
+          const currentType = core.indexes.itemById[currentSelection?.itemId]?.equipmentType ?? "";
+          const requestedType = requestedWeaponTypeConstraints[slot] ?? "";
+          if (requestedType && requestedType !== currentType) {
+            throw new Error("Changing weapon families while preserving source progression is unsupported. Use Build from Scratch for a different weapon pair.");
+          }
+          if (currentType) weaponTypeConstraints[slot] = currentType;
+        }
+      }
       const attributePointBudget = request.attributePointBudget;
       if (attributePointBudget != null && (!scratch || !Number.isInteger(attributePointBudget) || attributePointBudget < 0)) {
         throw new RangeError(!scratch ? "attributePointBudget is only supported for scratch builds." : "attributePointBudget must be a nonnegative integer.");
       }
-      let baseline = withCompositeTotals(totalMap(calculate(source, rules.includeSetEffects !== false)), rankedGoals);
+      const sourceCalculation = calculate(source, rules.includeSetEffects !== false);
+      if (!scratch) {
+        const inactiveButExactCodes = new Set([
+          "skill_type_mismatch",
+          "foreign_weapon_skill",
+          "foreign_weapon_mastery",
+          "unknown_mastery",
+          "wrong_category_mastery",
+          "duplicate_unified_mastery",
+          "unknown_unified_mastery",
+          "wrong_category_unified_mastery",
+          "perk_required_weapon_missing",
+        ]);
+        const blockingIssues = (sourceCalculation.validation?.issues ?? [])
+          .filter((issue) => issue.severity === "error" && !inactiveButExactCodes.has(issue.code));
+        if (blockingIssues.length) {
+          throw new Error(`Source build is not calculation-legal for optimization: ${blockingIssues.map((issue) => issue.message).join(" ")}`);
+        }
+      }
+      let baseline = withCompositeTotals(totalMap(sourceCalculation), rankedGoals);
       let progression = null;
       if (scratch && request.progression?.enabled === true) {
         const initialScales = deriveObjectiveScales(core, rankedGoals, baseline);
@@ -548,8 +579,9 @@ export async function createOptimizerAdapter(deps = {}) {
         const current = selectionFor(source.build, slot);
         const currentItem = core.indexes.itemById[current?.itemId];
         const requiredWeaponType = weaponTypeConstraints[slot];
+        const lockEmptyExistingWeaponSlot = !scratch && core.WEAPON_SLOTS.includes(slot) && !requiredWeaponType;
         const keepCurrentHeroic = !scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
-        if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic) {
+        if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic || lockEmptyExistingWeaponSlot) {
           if (requiredWeaponType && currentItem?.equipmentType !== requiredWeaponType) throw new Error(`Locked ${core.slotById(slot).label ?? slot} does not match the chosen ${requiredWeaponType} weapon type.`);
           candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
           continue;
@@ -711,7 +743,7 @@ export async function createOptimizerAdapter(deps = {}) {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : []), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,

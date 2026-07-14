@@ -62,6 +62,32 @@ test("Gear Viewer slot contribution equals the complete calculator delta when a 
   assert.equal(contribution.critical_damage_dealt_modifier, 2000);
 });
 
+test("Gear Viewer weapon replacement delta does not attribute shared family progression to the item", () => {
+  const [equippedItem, candidateItem] = data.items.filter((item) => item.equipmentType === "dagger").slice(0, 2);
+  assert.ok(equippedItem && candidateItem, "two dagger fixtures are required");
+  const selectionFor = (item) => ({ ...core.emptyEquipmentSelection(), itemId: item.id, level: core.itemMaxLevel(item) });
+  const build = core.createInitialBuild();
+  build.equipment.main_hand = selectionFor(equippedItem);
+  build.skills = [{ skillId: "SkillSet_WP_DA_S_CriticalDamageUp", level: 20, loadoutType: "passive" }];
+
+  assert.deepEqual(core.slotReplacementDelta("main_hand", build.equipment.main_hand, build, attributes), {});
+
+  const candidate = selectionFor(candidateItem);
+  const before = totals(core.calculateBuild(build, attributes));
+  const replaced = core.deepClone(build);
+  replaced.equipment.main_hand = candidate;
+  const after = totals(core.calculateBuild(replaced, attributes));
+  const expected = {};
+  for (const id of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    const delta = (after[id] ?? 0) - (before[id] ?? 0);
+    if (Math.abs(delta) > 1e-9) expected[id] = delta;
+  }
+
+  assert.deepEqual(core.slotReplacementDelta("main_hand", candidate, build, attributes), expected);
+  assert.ok(core.slotSelectionContribution("main_hand", candidate, build, attributes).critical_damage_dealt_modifier >= 1950);
+  assert.equal(expected.critical_damage_dealt_modifier ?? 0, after.critical_damage_dealt_modifier - before.critical_damage_dealt_modifier);
+});
+
 test("Build Optimizer reads the same set-aware totals through its adapter", async () => {
   const build = buildWithPieces(4);
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
@@ -135,7 +161,9 @@ test("all public calculation surfaces use the shared set-aware engine and data m
   assert.match(files["tracker.html"], /resolveBuildSnapshot\(/);
   assert.match(files["combat-lab.js"], /resolveBuildSnapshot\(/);
   assert.match(files["gear-viewer.html"], /includeSetEffects: true/);
-  assert.match(files["gear-viewer.html"], /slotSelectionContribution\([^;]+includeSetEffects: state\.includeSetEffects/);
+  assert.match(files["gear-viewer.html"], /function candidateContribution/);
+  assert.match(files["gear-viewer.html"], /slotSelectionContribution/);
+  assert.match(files["gear-viewer.html"], /slotReplacementDelta/);
   assert.match(files["full-build-optimizer.html"], /id="include-sets"[^>]+checked/);
   assert.match(files["full-build-optimizer.html"], /includeSetEffects:\$\("include-sets"\)\.checked/);
   assert.match(files["build-from-scratch.html"], /rules: \{ endgame: true, heroic: false, traits: true, sets: true/);

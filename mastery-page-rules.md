@@ -11,8 +11,8 @@ The Mastery Page does not use `nodeNumber` as a prerequisite chain. The field co
 - **Common nodes:** Available immediately.
 - **Uncommon nodes:** Require 30 points spent in Common normal nodes for that weapon.
 - **Rare nodes:** Require 30 points spent in Uncommon normal nodes for that weapon.
-- **First Epic node:** Requires 80 total normal-node points for that weapon and at least one selected Synergy node matching the Epic node's category.
-- **Second Epic node:** Requires 120 total normal-node points for that weapon and at least one selected Synergy node matching its category.
+- **First Epic node:** Requires 80 non-Epic normal-node points for that weapon and at least one selected Synergy node matching the Epic node's category.
+- **Second Epic node:** Requires 120 non-Epic normal-node points for that weapon and at least one selected Synergy node matching its category.
 - **Epic limit:** A maximum of two Epic nodes can be selected per weapon.
 
 Normal nodes do not require the node immediately before them. Any qualifying allocation within the required preceding rarity tier contributes towards the threshold.
@@ -81,11 +81,16 @@ The relevant logic defines:
 - 30 preceding-tier points for Uncommon and Rare nodes
 - 20 matching category-and-tier points for Synergy nodes
 - Two Synergy nodes per rarity tier
-- 80 total points for the first Epic node
-- 120 total points for the second Epic node
+- 80 non-Epic normal-node points for the first Epic node
+- 120 non-Epic normal-node points for the second Epic node
 - A matching Synergy requirement for Epic nodes
 - Two Epic nodes per weapon
 - A 220-point weapon budget
+
+The recovered client calculation excludes selected Epic-node levels from the
+80/120 prerequisite total. This prevents an Epic node from satisfying part of
+its own unlock condition and is preserved in both UI reconciliation and raw
+persisted-build validation.
 
 ### Local installed-game assets
 

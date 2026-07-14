@@ -346,6 +346,44 @@ test("chosen main and off-hand weapon types are enforced during candidate genera
   assert.equal(result.build.equipment.off_hand.itemId, "dagger");
 });
 
+test("existing-build optimization locks weapon families while preserving source progression", async () => {
+  const items = {
+    bow: { id: "bow", name: "Bow", grade: 41, equipmentType: "bow", power: 5 },
+    bow2: { id: "bow2", name: "Better Bow", grade: 41, equipmentType: "bow", power: 10 },
+    staff: { id: "staff", name: "Staff", grade: 41, equipmentType: "staff", power: 100 },
+    dagger: { id: "dagger", name: "Dagger", grade: 41, equipmentType: "dagger", power: 5 },
+    dagger2: { id: "dagger2", name: "Better Dagger", grade: 41, equipmentType: "dagger", power: 10 },
+    sword: { id: "sword", name: "Sword", grade: 41, equipmentType: "sword", power: 100 },
+  };
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} },
+    EQUIPMENT_SLOTS: [{ id: "main_hand", label: "Main" }, { id: "off_hand", label: "Off" }], ARTIFACT_SLOTS: [],
+    WEAPON_SLOTS: ["main_hand", "off_hand"], WEAPON_TYPES: ["bow", "staff", "dagger", "sword"], HEROIC_GRADE: 51,
+    calculateBuild(build) {
+      const total = Object.values(build.equipment).reduce((sum, selection) => sum + Number(items[selection?.itemId]?.power ?? 0), 0);
+      return { stats: [{ id: "attack", total }] };
+    },
+    slotSelectionContribution(_slot, selection) { return { attack: Number(items[selection?.itemId]?.power ?? 0) }; },
+    slotItems: () => Object.values(items), slotById: (id) => ({ id, label: id, types: core.WEAPON_TYPES }),
+    emptyEquipmentSelection: empty, itemMaxLevel: () => 12, heroicSlotGroupForSlot: () => "",
+    statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff", label: (id) => id,
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const source = { build: { equipment: { main_hand: { ...empty(), itemId: "bow" }, off_hand: { ...empty(), itemId: "dagger" } }, artifacts: {}, supportSlots: {}, skills: [{ skillId: "bow-passive" }], masteries: { bow: { level: 1 } } }, attributes: {}, sourceKind: "armory" };
+  const result = await adapter.optimize({ build: source, goals: { increase: ["attack"] }, rules: {} });
+
+  assert.equal(result.build.equipment.main_hand.itemId, "bow2");
+  assert.equal(result.build.equipment.off_hand.itemId, "dagger2");
+  assert.ok(result.assumptions.some((text) => text.includes("Weapon families were locked")));
+  await assert.rejects(() => adapter.optimize({ build: source, weaponTypes: ["staff", "dagger"], goals: { increase: ["attack"] }, rules: {} }), /Changing weapon families/);
+
+  const calculateBuild = core.calculateBuild;
+  core.calculateBuild = (...args) => ({ ...calculateBuild(...args), validation: { issues: [{ severity: "error", code: "mastery_budget_exceeded", message: "Bow mastery budget exceeded." }] } });
+  await assert.rejects(() => adapter.optimize({ build: source, goals: { increase: ["attack"] }, rules: {} }), /not calculation-legal.*mastery budget exceeded/i);
+});
+
 test("saved Armory state is returned with build and attributes", async () => {
   const core = { data: { gameBuild: "test", statLabels: {} }, indexes: {} };
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: true, data: { build: { name: "Mine" }, attributes: { str: 4 } } }) });
