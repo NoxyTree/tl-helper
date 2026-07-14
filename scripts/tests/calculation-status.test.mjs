@@ -25,14 +25,15 @@ test("foreign retained progression is inactive without making totals non-legal",
   assert.ok(result.status.ignoredIssues.some((issue) => issue.code === "foreign_weapon_skill"));
 });
 
-test("a recoverable but unresolved build is provisional", () => {
+test("identical equipped item IDs are invalid", () => {
   const build = core.createInitialBuild();
   const ring = data.items.find((item) => item.equipmentType === "ring");
   build.equipment.ring_1 = { ...core.emptyEquipmentSelection(), itemId: ring.id, level: core.itemMaxLevel(ring) };
   build.equipment.ring_2 = { ...core.emptyEquipmentSelection(), itemId: ring.id, level: core.itemMaxLevel(ring) };
   const result = core.calculateBuild(build, attributes);
-  assert.equal(result.status.state, "provisional");
-  assert.ok(result.status.provisionalIssues.some((issue) => issue.code === "duplicate_item_selection"));
+  assert.equal(result.status.state, "invalid");
+  assert.ok(result.status.invalidIssues.some((issue) => issue.code === "duplicate_item_selection"));
+  assert.equal(core.itemCompatibility("ring_2", ring, build).allowed, false);
 });
 
 test("an impossible loadout is invalid and invalid outranks provisional", () => {
@@ -44,7 +45,7 @@ test("an impossible loadout is invalid and invalid outranks provisional", () => 
   const result = core.calculateBuild(build, attributes);
   assert.equal(result.status.state, "invalid");
   assert.ok(result.status.invalidIssues.some((issue) => issue.code === "duplicate_weapon_types"));
-  assert.ok(result.status.provisionalIssues.some((issue) => issue.code === "duplicate_item_selection"));
+  assert.ok(result.status.invalidIssues.some((issue) => issue.code === "duplicate_item_selection"));
 });
 
 test("calculationStatus uses explicit impact rather than severity alone", () => {

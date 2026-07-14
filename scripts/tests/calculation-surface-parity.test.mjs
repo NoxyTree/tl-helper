@@ -145,7 +145,7 @@ test("inactive and dynamic set hover values come from the authoritative trace", 
   assert.match(model.setInfo.bonuses.find((row) => row.required === "6 pc").computedText, new RegExp(`Max Health \\+${sourceValue}`));
 });
 
-test("duplicate item selections use the same unique-member set count everywhere", () => {
+test("illegal duplicate item selections stay invalid and cannot inflate set count", () => {
   const build = core.createInitialBuild();
   for (const [slotId, itemId] of Object.entries({
     ring_1: "ring_aa_t2_upgrade_001",
@@ -158,6 +158,8 @@ test("duplicate item selections use the same unique-member set count everywhere"
   }
 
   const calc = core.calculateBuild(build, attributes);
+  assert.equal(calc.status.state, "invalid");
+  assert.ok(calc.status.invalidIssues.some((row) => row.code === "duplicate_item_selection"));
   const setSources = calc.stats.flatMap((row) => row.sources).filter((row) => row.type === "set_bonus" && row.setId === "Set_acc_t2_upgrade_001");
   assert.equal(setSources.length, 0, "three unique Pledge members must not activate its four-piece bonus");
   assert.ok(calc.validation.issues.some((row) => /selected in multiple slots/.test(row.message)));

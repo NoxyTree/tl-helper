@@ -47,7 +47,7 @@ Every applied source is linked to its set ID and piece breakpoint. Dynamic value
 
 ### Set counting
 
-Set thresholds count unique member item IDs consistently. Selecting the same ring in both ring slots no longer creates an extra set piece. The build validation report identifies duplicate selections and explains that they count once.
+Set thresholds count unique member item IDs consistently as a defensive safeguard. Shipped equip text explicitly forbids simultaneously equipping the same item ID, including identical rings, so a duplicate-equipped build is invalid and cannot enter item ranking or optimizer results. Multiple owned copies remain legal.
 
 ### Cross-set exclusivity
 

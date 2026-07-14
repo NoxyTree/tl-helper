@@ -234,7 +234,7 @@ High-confidence persistent sheet candidates are:
 | `SkillSet_WP_Item_A08_kAA_BO` | Mind's Eye: Range +9% to self and nearby party | Exact one personal application; exclude party propagation |
 | `SkillSet_WP_Item_A07_kA_CR` | Malakar's Eye of Storm: Movement Speed +8% to self and nearby party | Exact one personal application; exclude party propagation |
 | `SkillSet_WP_Item_Nix_Field_CR_01` | Wind's Guidance: Movement Speed +8% and all three Evasions +160 to self and party | Exact one personal application; exclude party propagation |
-| `SkillSet_WP_Item_FieldBoss_T3_CR_02` | Malakar's Blazing Wind: Base Damage +2.5% to party members | Modeled owner application only pending target-filter confirmation |
+| `SkillSet_WP_Item_FieldBoss_T3_CR_02` | Malakar's Blazing Wind: Base Damage +2.5% to party members | Exact party aura; owner application unsupported pending target-filter confirmation, so no personal stat is added |
 | `SkillSet_WP_Item_Field_NIX_GT_02` | Southpaw: Off-hand Weapon Damage +90 | Exact, but requires an off-hand Bonus Attack Power rule and unit mapping |
 | `SkillSet_WP_Item_Field_NIX_GT_01` | Orthodox: projected Main Weapon Damage +90, decoded formula row 40 | Source conflict; keep out of exact scoring |
 | `SkillSet_Unique_Armor_Skill_01` | Dark Wing's Bulwark: Max Health +2,000 and Magic Defense +300 | Exact selected-perk rule; currently unreachable |

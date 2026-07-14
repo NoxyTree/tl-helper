@@ -144,7 +144,7 @@ Final candidate legality is checked on complete builds. Gear Viewer no longer va
 - Rune IDs, stats, levels, equipment category, Chaos cap, and three-socket cap are checked across equipment, artifacts, and support slots.
 - Three equal normal runes remain legal by design; only more than three sockets or multiple Chaos runes are rejected.
 - Malformed skill levels, specialization collections, duplicate specializations, mastery levels, and unified mastery IDs become non-legal.
-- Duplicate item IDs remain provisional because unique-copy legality is not represented by the current catalogue.
+- Duplicate equipped item IDs are invalid. Shipped system text says the same item can be equipped only once, and the ring-specific equip text confirms that identical rings cannot be equipped together. Owning multiple copies remains legal; this rule concerns simultaneous equipment only.
 - Repeated Equipment Skills and Skill Cores are legal but only one copy, or the highest-level copy when levels differ, activates. Build `24118850` projects one fixed rule per complex ID and no per-copy levels, so the shared calculator performs exact one-copy deduplication across innate and selected-core sources.
 - The shipped Heroic equipment cap is enforced as one weapon, one armor item, and one accessory; conflicts are invalid.
 
@@ -225,6 +225,7 @@ These are explicit and do not silently enter exact item ranking:
 
 - Passive slot schedule: `D:\TL_Data\raw\24118850\extracted\data\TL\Content\Game\Client\Table\TLGlobalCommon.uasset`, row `GlobalCommonData`, field `PassiveSkillSlotCountLevelLimits`. The AGS override contains the identical schedule.
 - Duplicate Equipment Skill behavior: `D:\TL_Data\raw\24118850\extracted\localization\csv\en.csv`, keys `TEXT_TOOLTIP_SKILL_MAIN_DESCRIPTION_Description`, `TEXT_TOOLTIP_SKILL_SPECIAL_SKILL_HELP_Description`, and `TEXT_RES_TUTORIAL_PC_MESSAGE_POTENTIAL_01`. All state that only one or the highest-level repeated skill activates.
+- Duplicate item legality: the same localization projection, keys `TEXT_MSG_ITEM_EQUIP_CHANGESLOT_SAMEITEM_Msg`, `TEXT_MSG_ITEM_EQUIP_FAIL_IDENTICAL_Msg`, `TEXT_MSG_ITEM_EQUIP_INVALID_IDENTICAL_Msg`, and `ring_common_Description`, corroborated by the Korean projection. They distinguish legal duplicate ownership from illegal simultaneous equipment and explicitly forbid identical rings.
 - Heroic group cap: the same localization projection, key `TEXT_MSG_PERK_FAIL_EQUIP_LIMITS`, corroborated by all eight shipped locales plus the weapon, armor, and accessory partitions decoded from `TLPerkSocket.uasset` and `TLPerkOption.uasset`.
 - Orthodox: `TLFormulaParameterNew.json` row `WP_Item_Field_NIX_GT_01` has `min=max=tooltip1=40`; `WP_Item_GT.json` and `TLEffectProperty.json` prove the persistent join. Korean, Japanese, and Traditional Chinese bind `_GT_01`; the affected western strings bind `_GT_02` incorrectly.
 - Primal Brothers: `WP_Item_ORB.json` uses lowercase `fieldBoss` in the complex ID and joins to `WP_Item_FieldBoss_T2_ORB_01`. Its decoded effect graph is a delayed conditional direct-damage proc with a `300%` Base Damage formula.

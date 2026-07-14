@@ -679,6 +679,11 @@ export function heroicSlotGroupForSlot(slotId) {
 
 export function itemCompatibility(slotId, item, build) {
   if (!item) return { allowed: true, reason: "" };
+  const identicalSlot = allBuildSelectionEntries(build)
+    .find(({ slotId: otherSlot, item: otherItem }) => otherSlot !== slotId && otherItem?.id === item.id)?.slotId;
+  if (identicalSlot) {
+    return { allowed: false, reason: `same item in ${slotById(identicalSlot)?.label ?? identicalSlot}` };
+  }
   const slotGroup = heroicSlotGroupForSlot(slotId);
   if (WEAPON_SLOTS.includes(slotId)) {
     const otherSlot = slotId === "main_hand" ? "off_hand" : "main_hand";
@@ -3233,11 +3238,11 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
   }
   for (const [itemId, slots] of slotsByItem) {
     if (slots.length < 2) continue;
-    assumed.push({
-      severity: "warning",
+    dataBacked.push({
+      severity: "error",
       code: "duplicate_item_selection",
-      calculationImpact: "provisional",
-      message: `${indexes.itemById[itemId]?.name ?? itemId} is selected in multiple slots (${slots.map((slot) => slotById(slot)?.label ?? slot).join(", ")}). Duplicate copies count once toward set thresholds.`,
+      calculationImpact: "invalid",
+      message: `${indexes.itemById[itemId]?.name ?? itemId} is selected in multiple slots (${slots.map((slot) => slotById(slot)?.label ?? slot).join(", ")}). Shipped equip rules allow only one copy of the same item.`,
     });
   }
 
