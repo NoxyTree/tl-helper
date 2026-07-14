@@ -140,13 +140,15 @@ test("event scenario output declares the current schema and ruleset", () => {
     scenario: scenario(build, activation("bow", ["mobility"])),
   });
   assert.equal(calculated.scenarioEffects.schema, "tl-helper.build-scenario-effects");
-  assert.equal(calculated.scenarioEffects.schemaVersion, 5);
+  assert.equal(calculated.scenarioEffects.schemaVersion, 6);
   assert.deepEqual(calculated.scenarioEffects.ruleset, {
     id: SCENARIO_EFFECT_RULESET_ID,
     version: SCENARIO_EFFECT_RULESET_VERSION,
   });
-  assert.equal(SCENARIO_EFFECT_RULESET_VERSION, 5);
+  assert.equal(SCENARIO_EFFECT_RULESET_VERSION, 6);
   assert.deepEqual(calculated.scenarioEffects.dimensions.sourceEventHistory, activation("bow", ["mobility"]));
+  assert.deepEqual(calculated.scenarioEffects.dimensions.sourceParty, { state: "unspecified" });
+  assert.deepEqual(calculated.scenarioEffects.dimensions.sourceProximity, { state: "unspecified" });
 });
 
 test("canonical cache identity includes event history and normalizes equivalent ordering", () => {

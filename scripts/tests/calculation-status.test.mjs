@@ -98,10 +98,23 @@ test("decoded Overall Mastery exclusivity and supplied unlock level are enforced
   assert.ok(core.calculateBuild(mutuallyExclusive, attributes).status.invalidIssues.some((issue) => issue.code === "unified_mastery_mutual_exclusion"));
 
   const gated = core.createInitialBuild();
-  const unified = data.masteries.find((row) => row.specializationType === "unified" && Number(row.requiredLevel) > 0);
+  const unified = data.masteries.find((row) => row.id === "WM_Common_SKILL_007");
   gated.unifiedMasteries = [unified.id];
   gated.overallMasteryLevel = Number(unified.requiredLevel) - 1;
-  assert.ok(core.calculateBuild(gated, attributes).status.invalidIssues.some((issue) => issue.code === "unified_mastery_level_missing"));
+  const gatedCalculation = core.calculateBuild(gated, attributes);
+  assert.ok(gatedCalculation.status.invalidIssues.some((issue) => issue.code === "unified_mastery_level_missing"));
+  assert.deepEqual(core.effectiveProgression(gated).unifiedMasteries, []);
+  assert.equal(gatedCalculation.stats.find((row) => row.id === "str")?.total, 11);
+
+  for (const invalidLevel of [-1, "bad"]) {
+    const malformed = core.createInitialBuild();
+    malformed.unifiedMasteries = [unified.id];
+    malformed.overallMasteryLevel = invalidLevel;
+    const malformedCalculation = core.calculateBuild(malformed, attributes);
+    assert.ok(malformedCalculation.status.invalidIssues.some((issue) => issue.code === "invalid_overall_mastery_level"));
+    assert.deepEqual(core.effectiveProgression(malformed).unifiedMasteries, []);
+    assert.equal(malformedCalculation.stats.find((row) => row.id === "str")?.total, 11);
+  }
 
   const unknownLevel = core.createInitialBuild();
   const mappedUnified = data.masteries.find((row) => row.id === "WM_Common_SKILL_007");

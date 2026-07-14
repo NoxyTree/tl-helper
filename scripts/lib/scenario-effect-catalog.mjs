@@ -46,6 +46,7 @@ const EXECUTABLE_TIME_UNRESOLVED_FIELDS = Object.freeze(["eclipseState"]);
 const EXECUTABLE_RESOURCE_UNRESOLVED_FIELDS = Object.freeze([]);
 const EXECUTABLE_MOTION_UNRESOLVED_FIELDS = Object.freeze([]);
 const EXECUTABLE_EVENT_UNRESOLVED_FIELDS = Object.freeze(["duration"]);
+const EXECUTABLE_SOCIAL_UNRESOLVED_FIELDS = Object.freeze([]);
 
 const distanceRule = (sourceId) => Object.freeze({
   ruleId: `distance:${sourceId}`,
@@ -122,6 +123,22 @@ const eventRule = (sourceId) => Object.freeze({
   precisionLimitation: "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed.",
 });
 
+const socialRule = (sourceId) => Object.freeze({
+  ruleId: `social-proximity:${sourceId}`,
+  mechanic: "source_party_proximity",
+  modulePath: "web/tl-social-scenario-effects.js",
+  evaluatorExport: "evaluateSocialScenarioEffects",
+  definitionsExport: "SOCIAL_EFFECT_DEFINITIONS",
+  definitionKey: sourceId,
+  gameBuild: SCENARIO_EFFECT_GAME_BUILD,
+  requiredScenarioInputs: Object.freeze(["participants[source].proximity"]),
+  optionalScenarioInputs: Object.freeze(["participants[source].party"]),
+  unresolvedFields: EXECUTABLE_SOCIAL_UNRESOLVED_FIELDS,
+  precisionStage: "decoded_exact_social_count",
+  precisionSemantics: "reviewed_source_party_proximity_scenario",
+  precisionLimitation: "Proximity counts are direct selected-timestamp observations. Party total is optional context used to validate roster bounds when supplied. Missing cohorts remain unknown, never zero; no aura activation, recipient propagation, duration, or uptime is inferred.",
+});
+
 // Each promotion is an explicit reviewed binding. Absence from this registry
 // always remains non-executable. In particular, Predator's Focus is omitted
 // because its nearby-opponent replacement scenario is not represented yet.
@@ -131,6 +148,7 @@ export const EXECUTABLE_SCENARIO_RULE_REFERENCES = Object.freeze({
   "Crossbow_Hero_Defense_03": eventRule("Crossbow_Hero_Defense_03"),
   "Spear_Rare_Def_Skill": eventRule("Spear_Rare_Def_Skill"),
   "SkillSet_WP_BO_S_InplaceAttack": motionRule("SkillSet_WP_BO_S_InplaceAttack"),
+  "SkillSet_WP_BO_S_AuraDefenceUp": socialRule("SkillSet_WP_BO_S_AuraDefenceUp"),
   "SkillSet_WP_BO_S_DistanceCritical": distanceRule("SkillSet_WP_BO_S_DistanceCritical"),
   "SkillSet_WP_CR_CR_S_DistanceRangeAcc": distanceRule("SkillSet_WP_CR_CR_S_DistanceRangeAcc"),
   "SkillSet_WP_DA_DA_S_MoveSkillEvasion": eventRule("SkillSet_WP_DA_DA_S_MoveSkillEvasion"),
@@ -143,6 +161,7 @@ export const EXECUTABLE_SCENARIO_RULE_REFERENCES = Object.freeze({
   "SkillSet_WP_SW2_S_SkillMaster": eventRule("SkillSet_WP_SW2_S_SkillMaster"),
   "Sword2h_Hero_Attack_01": resourceThresholdRule("Sword2h_Hero_Attack_01", "health"),
   "Sword2h_Normal_Tac_Skill": eventRule("Sword2h_Normal_Tac_Skill"),
+  "WM_Common_SKILL_020": socialRule("WM_Common_SKILL_020"),
   "Orb_Rare_Util_Skill": resourceThresholdRule("Orb_Rare_Util_Skill", "mana"),
   "set_aa_t4_Plate_002:4": eventRule("set_aa_t4_Plate_002:4"),
   "set_aa_t4_leather_001:4": motionRule("set_aa_t4_leather_001:4"),
@@ -165,6 +184,7 @@ export const SET_CONDITIONAL_COMPONENTS = Object.freeze([
   Object.freeze({ key: "set_aa_t3_lether_003:4", componentKind: "whole_breakpoint", reason: "Enemy Endurance reduction and movement-triggered Evasion are conditional combat effects." }),
   Object.freeze({ key: "set_aa_t4_fabric_005:2", componentKind: "whole_breakpoint", reason: "Skill damage-over-time and the triggered resistance debuff require a combat-stage model." }),
   Object.freeze({ key: "set_aa_T2_plate_004:2", componentKind: "conditional_remainder", staticComponent: "Block Chance +8%." }),
+  Object.freeze({ key: "set_aa_t3_fabric_002:4", componentKind: "conditional_remainder", staticComponent: "Continuous Healing +30%.", reason: "The separate outgoing Block Penetration aura applies to allies within 5m, up to six recipients; it does not modify the source build's own retained stats." }),
   Object.freeze({ key: "set_aa_t3_fabric_003:4", componentKind: "conditional_remainder", staticComponent: "Skill Damage Resistance +100." }),
   Object.freeze({ key: "set_aa_t3_leather_004:4", componentKind: "conditional_remainder", staticComponent: "Skill Damage Boost +80." }),
   Object.freeze({ key: "set_aa_t3_lether_001:4", componentKind: "conditional_remainder", staticComponent: "Bonus Damage +40." }),
@@ -330,7 +350,9 @@ function weaponPassiveEffects(skills, contract) {
       description: last.description,
       carriers: [Object.freeze({ kind: "passive_skill", id: row.id, name: clean(row.name) })],
       weaponRequirements: [row.mainCategory],
-      supportState: SCENARIO_EFFECT_SUPPORT_STATES.cataloguedUnmodeled,
+      supportState: component
+        ? SCENARIO_EFFECT_SUPPORT_STATES.staticComponentOnly
+        : SCENARIO_EFFECT_SUPPORT_STATES.cataloguedUnmodeled,
       scenarioRule: EXECUTABLE_SCENARIO_RULE_REFERENCES[row.id] ?? null,
       componentKind: component?.componentKind ?? null,
       staticComponent: component?.staticComponent ?? null,
@@ -524,7 +546,7 @@ export function buildScenarioEffectCatalog({
   ].sort((left, right) => codepointSort(left.catalogId, right.catalogId));
 
   if (new Set(effects.map((row) => row.catalogId)).size !== effects.length) fail("catalog IDs must be unique");
-  if (effects.length !== 531) fail(`expected 531 conditional effect shells, received ${effects.length}`);
+  if (effects.length !== 534) fail(`expected 534 conditional effect shells, received ${effects.length}`);
 
   return Object.freeze({
     schema: SCENARIO_EFFECT_CATALOG_SCHEMA,

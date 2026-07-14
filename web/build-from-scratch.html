@@ -323,6 +323,26 @@
                 <span style="color:#687991;font-size:9px;">Must be one of the two weapon families selected above.</span>
               </label>
             </sc-if>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Total party including self</span>
+              <input type="number" min="1" max="6" step="1" value="{{ scenarioPartyTotal }}" onInput="{{ setScenarioPartyTotal }}" aria-label="Scenario total party members including self" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Blank means unspecified.</span>
+            </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Other party within 4m</span>
+              <input type="number" min="0" max="5" step="1" value="{{ scenarioPartyWithin4 }}" onInput="{{ setScenarioPartyWithin4 }}" aria-label="Scenario other party members within 4 metres" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Enter 0 only when there are none.</span>
+            </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Additional other party, 4m to 16m</span>
+              <input type="number" min="0" max="5" step="1" value="{{ scenarioPartyAdditional4To16 }}" onInput="{{ setScenarioPartyAdditional4To16 }}" aria-label="Scenario additional other party members beyond 4 metres through 16 metres" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Blank means unspecified.</span>
+            </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Allied nonparty players within 4m</span>
+              <input type="number" min="0" step="1" value="{{ scenarioAlliedNonpartyWithin4 }}" onInput="{{ setScenarioAlliedNonpartyWithin4 }}" aria-label="Scenario allied nonparty players within 4 metres" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
+              <span style="color:#687991;font-size:9px;">Separate from your party.</span>
+            </label>
             <sc-if value="{{ scenarioMotionStationary }}" hint-placeholder-val="{{ false }}">
               <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
                 <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Stationary duration</span>
@@ -1114,7 +1134,7 @@ class Component extends DCLogic {
     dragInsertAfter: false,
     weaponTypes: { main:'', off:'' },
     progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, includePotential:false },
-    scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified', stationaryBand:'under_2s', movingBand:'unspecified', priorStationaryBand:'unspecified', eventMode:'unspecified', eventWeaponType:'' },
+    scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified', stationaryBand:'under_2s', movingBand:'unspecified', priorStationaryBand:'unspecified', eventMode:'unspecified', eventWeaponType:'', partyTotal:'', partyWithin4:'', partyAdditional4To16:'', alliedNonpartyWithin4:'' },
     openStatSource: null,
     source: null,
     result: null,
@@ -1140,13 +1160,14 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls]) => {
+    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls]) => {
       this.core = core;
       this.rulesData = rulesData;
       this.tuner = tuner;
       this.persistence = persistence;
       this.motionControls = motionControls;
       this.eventControls = eventControls;
+      this.socialControls = socialControls;
       const factory = adapterModule.createOptimizerAdapter || adapterModule.default;
       this.adapter = await factory();
       const source = await this.adapter.createScratchBuild();
@@ -1780,6 +1801,10 @@ class Component extends DCLogic {
     this.setState({scenario:{...this.state.scenario,eventMode,eventWeaponType}});
   };
   setScenarioEventWeaponType = (event) => this.setState({scenario:{...this.state.scenario,eventWeaponType:event.target.value}});
+  setScenarioPartyTotal = (event) => this.setState({scenario:{...this.state.scenario,partyTotal:event.target.value}});
+  setScenarioPartyWithin4 = (event) => this.setState({scenario:{...this.state.scenario,partyWithin4:event.target.value}});
+  setScenarioPartyAdditional4To16 = (event) => this.setState({scenario:{...this.state.scenario,partyAdditional4To16:event.target.value}});
+  setScenarioAlliedNonpartyWithin4 = (event) => this.setState({scenario:{...this.state.scenario,alliedNonpartyWithin4:event.target.value}});
   scenarioPercentToBps(value,label) {
     const text=String(value??'').trim();
     if(!text)return null;
@@ -1802,14 +1827,16 @@ class Component extends DCLogic {
     const timeLabel=time==='unspecified'?'time unspecified':String(time||'time unspecified');
     const motion=this.motionControls?.formatSourceMotion(this.motionControls.scenarioSourceMotion(scenario))||'motion unspecified';
     const sourceEvent=this.eventControls?.formatSourceEventHistory(this.eventControls.scenarioSourceEventHistory(scenario),weapon=>this.core?.label(weapon)||weapon)||'skill event unspecified';
-    return `Selected timestamp · Target ${Number.isFinite(distance)?distance:'?'}m · ${timeLabel} · Health ${this.scenarioRatioLabel(scenario,'health')} · Mana ${this.scenarioRatioLabel(scenario,'mana')} · ${motion} · ${sourceEvent}`;
+    const social=this.socialControls?.formatSourceSocial({party:this.socialControls.scenarioSourceParty(scenario),proximity:this.socialControls.scenarioSourceProximity(scenario)})||'social state unspecified';
+    return `Selected timestamp · Target ${Number.isFinite(distance)?distance:'?'}m · ${timeLabel} · Health ${this.scenarioRatioLabel(scenario,'health')} · Mana ${this.scenarioRatioLabel(scenario,'mana')} · ${motion} · ${sourceEvent} · ${social}`;
   }
   scenarioStateFromCanonical(scenario) {
     if(!scenario)return {...this.state.scenario,enabled:false};
     const controls=this.motionControls.motionControlsFromSourceMotion(this.motionControls.scenarioSourceMotion(scenario));
     const eventControls=this.eventControls.eventControlsFromSourceEventHistory(this.eventControls.scenarioSourceEventHistory(scenario));
+    const socialControls=this.socialControls.socialControlsFromSourceState({party:this.socialControls.scenarioSourceParty(scenario),proximity:this.socialControls.scenarioSourceProximity(scenario)});
     const distance=Number(scenario?.target?.distanceMeters),timeOfDay=scenario?.environment?.timeOfDay;
-    return {enabled:true,distance:Number.isFinite(distance)?String(distance):'10',timeOfDay:['day','night'].includes(timeOfDay)?timeOfDay:'unspecified',healthPercent:this.scenarioRatioLabel(scenario,'health').replace('unspecified','').replace('%',''),manaPercent:this.scenarioRatioLabel(scenario,'mana').replace('unspecified','').replace('%',''),motionMode:controls.mode,stationaryBand:controls.stationaryBand,movingBand:controls.movingBand,priorStationaryBand:controls.priorStationaryBand,eventMode:eventControls.mode,eventWeaponType:eventControls.weaponType};
+    return {enabled:true,distance:Number.isFinite(distance)?String(distance):'10',timeOfDay:['day','night'].includes(timeOfDay)?timeOfDay:'unspecified',healthPercent:this.scenarioRatioLabel(scenario,'health').replace('unspecified','').replace('%',''),manaPercent:this.scenarioRatioLabel(scenario,'mana').replace('unspecified','').replace('%',''),motionMode:controls.mode,stationaryBand:controls.stationaryBand,movingBand:controls.movingBand,priorStationaryBand:controls.priorStationaryBand,eventMode:eventControls.mode,eventWeaponType:eventControls.weaponType,partyTotal:socialControls.totalPartyMembersIncludingSelf,partyWithin4:socialControls.otherPartyPlayersWithin4m,partyAdditional4To16:socialControls.additionalOtherPartyPlayersAbove4mThrough16m,alliedNonpartyWithin4:socialControls.alliedNonpartyPlayersWithin4m};
   }
   scenarioCarrierBuild(build) {
     const carrier=this.core.deepClone(build);
@@ -1833,10 +1860,12 @@ class Component extends DCLogic {
     const selectedWeapons=[this.state.weaponTypes.main,this.state.weaponTypes.off].filter(Boolean);
     if(input.eventMode!=='unspecified'&&!selectedWeapons.includes(input.eventWeaponType))throw new Error('Choose one of the two selected weapon families as the triggering weapon.');
     const sourceEventHistory=this.eventControls.sourceEventHistoryFromControls({mode:input.eventMode,weaponType:input.eventWeaponType});
+    const social=this.socialControls.sourceSocialFromControls({totalPartyMembersIncludingSelf:input.partyTotal,otherPartyPlayersWithin4m:input.partyWithin4,additionalOtherPartyPlayersAbove4mThrough16m:input.partyAdditional4To16,alliedNonpartyPlayersWithin4m:input.alliedNonpartyWithin4});
+    const sourceParty=social.sourceParty??social.party,sourceProximity=social.sourceProximity??social.proximity;
     const scenarioBuild=input.eventMode==='unspecified'?build:this.scenarioCarrierBuild(build);
     return this.core.createBuildScenario(scenarioBuild,{targetDistanceMeters,timeOfDay,
       ...(sourceHealthRatioBps==null?{}:{sourceHealthRatioBps}),
-      ...(sourceManaRatioBps==null?{}:{sourceManaRatioBps}),sourceMotion,sourceEventHistory});
+      ...(sourceManaRatioBps==null?{}:{sourceManaRatioBps}),sourceMotion,sourceEventHistory,sourceParty,sourceProximity});
   }
   setGoalMode(id,event) { this.setState({goalModes:{...this.state.goalModes,[id]:event.target.value}}); }
   setGoalValue(id,event) { const value=event.target.value;this.setState({goalValues:{...this.state.goalValues,[id]:value===''?null:Number(value)}}); }
@@ -2342,7 +2371,8 @@ class Component extends DCLogic {
       scenarioEnabled:s.scenario.enabled,scenarioDistance:s.scenario.distance,scenarioTimeOfDay:s.scenario.timeOfDay,scenarioHealthPercent:s.scenario.healthPercent,scenarioManaPercent:s.scenario.manaPercent,
       scenarioMotionMode:s.scenario.motionMode,scenarioStationaryBand:s.scenario.stationaryBand,scenarioMovingBand:s.scenario.movingBand,scenarioPriorStationaryBand:s.scenario.priorStationaryBand,scenarioMotionStationary:s.scenario.motionMode==='stationary',scenarioMotionMoving:s.scenario.motionMode==='moving_ordinary'||s.scenario.motionMode==='moving_skill',
       scenarioEventMode:s.scenario.eventMode,scenarioEventWeaponType:s.scenario.eventWeaponType,scenarioEventSpecified:s.scenario.eventMode!=='unspecified',scenarioEventWeaponOptions,
-      toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,
+      scenarioPartyTotal:s.scenario.partyTotal,scenarioPartyWithin4:s.scenario.partyWithin4,scenarioPartyAdditional4To16:s.scenario.partyAdditional4To16,scenarioAlliedNonpartyWithin4:s.scenario.alliedNonpartyWithin4,
+      toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
       rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,

@@ -12,13 +12,13 @@ The repository now has one durable, deterministic inventory for every currently 
 
 | Source family | Effect shells |
 | --- | ---: |
-| Weapon passive components | 63 |
+| Weapon passive components | 65 |
 | Non-structured mastery nodes | 159 |
 | Item passives and Skill Core complexes | 286 |
-| Conditional set components | 23 |
-| **Total** | **531** |
+| Conditional set components | 24 |
+| **Total** | **534** |
 
-The 23 set components consist of nine breakpoints that are wholly unsupported by the static calculator and fourteen conditional remainders whose persistent component is already calculated separately. This avoids treating a mixed set breakpoint as either wholly implemented or wholly absent.
+The 24 set components consist of nine breakpoints that are wholly unsupported by the static calculator and fifteen conditional remainders whose persistent component is already calculated separately. This avoids treating a mixed set breakpoint as either wholly implemented or wholly absent.
 
 ## What each shell records
 
@@ -34,18 +34,18 @@ Every entry contains:
 - A fixed list of unresolved semantic fields.
 - Either `executableSemantics: null` or one explicit reviewed module/export/definition reference.
 
-The catalogue does not parse description prose into triggers, formulas, proc rates, durations or stacking rules. Four decoded distance effects, two decoded ordinary day/night item effects, two decoded self-resource threshold masteries, five decoded source-motion components, and seven decoded evaluation-instant source-event components now point to separately reviewed scenario implementations. The other 511 entries remain non-executable until their fields are independently decoded, reviewed and represented by a separate scenario rule. There is no default classification or fallback rule.
+The catalogue does not parse description prose into triggers, formulas, proc rates, durations or stacking rules. Four decoded distance effects, two decoded ordinary day/night item effects, two decoded self-resource threshold masteries, five decoded source-motion components, seven decoded evaluation-instant source-event components, and two decoded source-party/proximity components now point to separately reviewed scenario implementations. The other 512 entries remain non-executable until their fields are independently decoded, reviewed and represented by a separate scenario rule. There is no default classification or fallback rule.
 
 ## Support-state meanings
 
 | State | Count | Meaning |
 | --- | ---: | --- |
-| `catalogued_unmodeled` | 490 | The source and carrier are known, but no executable scenario semantics are claimed. |
-| `scenario_executable_decoded` | 20 | A reviewed decoded rule has an exact module, evaluator export and definition key. |
+| `catalogued_unmodeled` | 489 | The source and carrier are known, but no executable scenario semantics are claimed. |
+| `scenario_executable_decoded` | 22 | A reviewed decoded rule has an exact module, evaluator export and definition key. |
 | `unsupported_static_calculator` | 9 | The complete set breakpoint is outside persistent sheet totals. |
-| `static_component_only` | 12 | The persistent set component is calculated elsewhere; only the conditional remainder is represented here. |
+| `static_component_only` | 14 | The persistent component is calculated elsewhere; only the conditional remainder is represented here. |
 
-These are work-queue states, not final-damage confidence claims. The four distance rules use decoded exact coefficients and reviewed source gating, but retain `serverRounding` as an explicit unresolved field. The two ordinary day/night rules use decoded fixed amounts with no arithmetic rounding. The two self-resource rules use decoded exact threshold operators and integer basis-point comparisons with no unresolved arithmetic fields. The five source-motion rules use decoded duration thresholds, raw values, carrier gates, replacement behavior, and integer arithmetic without estimating uptime. The seven source-event rules are exact only for a confirmed successful qualifying activation at `occurredAgoMs: 0`. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed. Every other entry uses an `unsupported` precision stage and explicitly sets executable precision to false.
+These are work-queue states, not final-damage confidence claims. The four distance rules use decoded exact coefficients and reviewed source gating, but retain `serverRounding` as an explicit unresolved field. The two ordinary day/night rules use decoded fixed amounts with no arithmetic rounding. The two self-resource rules use decoded exact threshold operators and integer basis-point comparisons with no unresolved arithmetic fields. The five source-motion rules use decoded duration thresholds, raw values, carrier gates, replacement behavior, and integer arithmetic without estimating uptime. The seven source-event rules are exact only for a confirmed successful qualifying activation at `occurredAgoMs: 0`. The two social rules use direct selected-timestamp proximity observations and integer raw values. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, aura propagation, and uptime estimates fail closed. Every other entry uses an `unsupported` precision stage and explicitly sets executable precision to false.
 
 ## Reviewed distance promotions
 
@@ -102,6 +102,17 @@ The following components reference `web/tl-event-scenario-effects.js`, `evaluate
 
 CombatScenario v4 stores participant-owned observed event history. Only records with `outcome: successful_activation` and `occurredAgoMs: 0` can activate these rules. The contract does not infer that an ability fired successfully from current movement state. It does not model elapsed duration, positive Buff Duration, cooldown availability, activation locks, refresh behavior, or uptime.
 
+## Reviewed source-party and proximity promotions
+
+The following components reference `web/tl-social-scenario-effects.js`, `evaluateSocialScenarioEffects` and their exact `SOCIAL_EFFECT_DEFINITIONS` key:
+
+- `SkillSet_WP_BO_S_AuraDefenceUp`, Distorted Sanctuary: the persistent calculator owns the one-member source baseline; the scenario adds the exact selected-level remainder for observed other party players within 16m.
+- `WM_Common_SKILL_020`, Shielded by Unity: grants raw `500` Shield Received per observed allied player within 4m, excluding the source and capped at raw `1500`.
+
+`Bow_Normal_Tac_Skill`, Combat Sanctuary, is an exact mastery replacement of Distorted Sanctuary's stats. Both its persistent source baseline and social remainder use the decoded level 1 through 20 Accuracy and Attack Range curves. Proximity is the required observation. Party total is optional context used to validate roster bounds when supplied.
+
+CombatScenario v5 stores participant-owned party and proximity unions. Missing cohort rows remain unknown, explicit zero remains zero, impossible count relationships fail validation, and invalid page controls block scoring rather than reverting to static totals. The evaluator does not infer aura recipients, propagation, duration, or uptime.
+
 ## Drift and reproducibility gates
 
 Run:
@@ -113,17 +124,17 @@ node --test scripts/tests/scenario-effect-catalog.test.mjs
 
 The tests prove:
 
-1. Exact equality with the 62 conditional weapon-passive IDs, one mixed weapon-passive remainder, 159 mastery IDs and 286 item or Skill Core IDs in `web/tl-passive-effect-contract.js`.
+1. Exact equality with the 62 conditional weapon-passive IDs, three mixed weapon-passive remainders, 159 mastery IDs and 286 item or Skill Core IDs in `web/tl-passive-effect-contract.js`.
 2. Exact equality between the nine wholly unsupported set breakpoints and `UNSUPPORTED_SET_BREAKPOINTS`.
-3. An explicit, unique registry of fourteen mixed conditional set remainders.
-4. Exactly 531 unique components and the expected family/support-state counts.
+3. An explicit, unique registry of fifteen mixed conditional set remainders.
+4. Exactly 534 unique components and the expected family/support-state counts.
 5. Codepoint-stable ordering and byte-for-byte regeneration of the checked-in browser artifact.
 6. Every shell has carriers, provenance, source edges and unresolved fields, with no executable semantic defaults.
 7. Missing projection records and game-build mismatches fail closed.
-8. Exactly the twenty reviewed distance, ordinary day/night, self-resource, source-motion, and evaluation-instant event IDs resolve to present executable definitions; Predator's Focus and unresolved event branches remain unsupported.
+8. Exactly the twenty-two reviewed distance, ordinary day/night, self-resource, source-motion, evaluation-instant event, and source-social IDs resolve to present executable definitions; Predator's Focus and unresolved event branches remain unsupported.
 
 ## Boundary of this milestone
 
-This foundation answers which effects remain and where each comes from. For the twenty promoted rules it also identifies the reviewed executable authority without copying that arithmetic into the catalogue.
+This foundation answers which effects remain and where each comes from. For the twenty-two promoted rules it also identifies the reviewed executable authority without copying that arithmetic into the catalogue.
 
 The next safe implementation step is to preserve the same explicit promotion process for elapsed event duration, Buff Duration, cooldown-bearing triggers, activation locks, and the remaining conditional mechanic families. Static build totals must remain separate from every scenario overlay.

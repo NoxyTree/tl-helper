@@ -105,11 +105,27 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
       },
       "scenarioComponents": [
         {
+          "sourceId": "SkillSet_WP_BO_S_AuraDefenceUp",
+          "componentKind": "conditional_remainder",
+          "staticComponent": {
+            "summary": "The decoded one-member self minimum is calculated at the selected passive level; additional party-member bands require an explicit proximity scenario.",
+            "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_BO_S_AuraDefenceUp"
+          }
+        },
+        {
           "sourceId": "SkillSet_WP_ST_S_ManaRegenBuff",
           "componentKind": "conditional_remainder",
           "staticComponent": {
             "summary": "The always-active Mana Regen curve is calculated at the selected passive level.",
             "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff"
+          }
+        },
+        {
+          "sourceId": "SkillSet_WP_SW_SH_S_AroundCountBuff",
+          "componentKind": "conditional_remainder",
+          "staticComponent": {
+            "summary": "The decoded two-or-fewer-target minimum All Defense value is calculated; higher nearby-target bands require an explicit target-count scenario.",
+            "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_SW_SH_S_AroundCountBuff"
           }
         }
       ]

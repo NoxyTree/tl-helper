@@ -29,18 +29,18 @@
     "limitation": "Only entries with an explicit executableSemantics reference may be evaluated. Every other entry remains a non-executable work-queue shell, and descriptions never create rules."
   },
   "counts": {
-    "total": 531,
+    "total": 534,
     "byFamily": {
-      "weaponPassive": 63,
+      "weaponPassive": 65,
       "masteryNonStructured": 159,
       "itemPerkComplex": 286,
-      "setBreakpointConditional": 23
+      "setBreakpointConditional": 24
     },
     "bySupportState": {
-      "catalogued_unmodeled": 490,
-      "scenario_executable_decoded": 20,
+      "catalogued_unmodeled": 489,
+      "scenario_executable_decoded": 22,
       "unsupported_static_calculator": 9,
-      "static_component_only": 12
+      "static_component_only": 14
     }
   },
   "effects": [
@@ -36813,12 +36813,13 @@
         }
       ],
       "weaponRequirements": [],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_social_count",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_party_proximity_scenario",
+        "executable": true,
+        "limitation": "Proximity counts are direct selected-timestamp observations. Party total is optional context used to validate roster bounds when supplied. Missing cohorts remain unknown, never zero; no aura activation, recipient propagation, duration, or uptime is inferred."
       },
       "provenance": [
         {
@@ -36830,6 +36831,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-social-scenario-effects.js",
+          "selector": "SOCIAL_EFFECT_DEFINITIONS[WM_Common_SKILL_020]"
         }
       ],
       "sourceEdges": [
@@ -36840,21 +36846,36 @@
           "projectionPath": "data.masteries[id=WM_Common_SKILL_020].passives",
           "rankCount": 1,
           "selectedDescriptionRank": 1
+        },
+        {
+          "from": "WM_Common_SKILL_020",
+          "relation": "executed_by_reviewed_rule",
+          "to": "social-proximity:WM_Common_SKILL_020",
+          "modulePath": "web/tl-social-scenario-effects.js",
+          "evaluatorExport": "evaluateSocialScenarioEffects",
+          "definitionKey": "WM_Common_SKILL_020"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "social-proximity:WM_Common_SKILL_020",
+        "mechanic": "source_party_proximity",
+        "modulePath": "web/tl-social-scenario-effects.js",
+        "evaluatorExport": "evaluateSocialScenarioEffects",
+        "definitionsExport": "SOCIAL_EFFECT_DEFINITIONS",
+        "definitionKey": "WM_Common_SKILL_020",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].proximity"
+        ],
+        "optionalScenarioInputs": [
+          "participants[source].party"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_social_count",
+        "precisionSemantics": "reviewed_source_party_proximity_scenario",
+        "precisionLimitation": "Proximity counts are direct selected-timestamp observations. Party total is optional context used to validate roster bounds when supplied. Missing cohorts remain unknown, never zero; no aura activation, recipient propagation, duration, or uptime is inferred."
+      }
     },
     {
       "catalogId": "masteryNonStructured:WM_Common_SKILL_021",
@@ -38742,6 +38763,99 @@
       "unsupportedReason": "Mobility-skill move range is scoped behavior, not a global sheet stat."
     },
     {
+      "catalogId": "setBreakpointConditional:set_aa_t3_fabric_002:4",
+      "sourceFamily": "setBreakpointConditional",
+      "sourceId": "set_aa_t3_fabric_002:4",
+      "name": "Divine Apostle Set 4-piece conditional component",
+      "description": "Skill Healing over Time +30% Block Penetration Chance for allies within 5m +15%. Up to 6 players.",
+      "carriers": [
+        {
+          "kind": "set_piece",
+          "itemId": "chest_fabric_aa_t3_normal_003",
+          "itemName": "Ethereal Hero Robes",
+          "equipmentType": "chest"
+        },
+        {
+          "kind": "set_piece",
+          "itemId": "feet_fabric_aa_t3_normal_003",
+          "itemName": "Ethereal Hero Shoes",
+          "equipmentType": "feet"
+        },
+        {
+          "kind": "set_piece",
+          "itemId": "hands_fabric_aa_t3_normal_003",
+          "itemName": "Ethereal Hero Gloves",
+          "equipmentType": "hands"
+        },
+        {
+          "kind": "set_piece",
+          "itemId": "head_fabric_aa_t3_normal_003",
+          "itemName": "Ethereal Hero Visage",
+          "equipmentType": "head"
+        },
+        {
+          "kind": "set_piece",
+          "itemId": "legs_fabric_aa_t3_normal_003",
+          "itemName": "Ethereal Hero Pants",
+          "equipmentType": "legs"
+        }
+      ],
+      "weaponRequirements": [],
+      "supportState": "static_component_only",
+      "precision": {
+        "stage": "unsupported",
+        "source": "projected",
+        "semantics": "unresolved",
+        "executable": false
+      },
+      "provenance": [
+        {
+          "kind": "projection",
+          "path": "web/data/projections/equipment.json",
+          "selector": "data.itemSets[id=set_aa_t3_fabric_002].itemSetBonus[set_count=4]"
+        },
+        {
+          "kind": "static_calculation_boundary",
+          "path": "web/tl-core.js",
+          "selector": "set breakpoint set_aa_t3_fabric_002:4"
+        },
+        {
+          "kind": "audit",
+          "path": "docs/set-effect-audit-2026-07-13.md",
+          "selector": "conditional_remainder"
+        }
+      ],
+      "sourceEdges": [
+        {
+          "from": "set_aa_t3_fabric_002",
+          "relation": "activates_breakpoint",
+          "to": "set_aa_t3_fabric_002:4",
+          "projectionPath": "data.itemSets[id=set_aa_t3_fabric_002].itemSetBonus[1]",
+          "requiredPieces": 4
+        }
+      ],
+      "unresolvedFields": [
+        "activationCondition",
+        "applicationOrder",
+        "cooldown",
+        "duration",
+        "formula",
+        "procProbability",
+        "recipient",
+        "stacking",
+        "trigger",
+        "uptime"
+      ],
+      "executableSemantics": null,
+      "componentKind": "conditional_remainder",
+      "staticComponent": {
+        "status": "calculated_separately",
+        "summary": "Continuous Healing +30%.",
+        "authority": "web/tl-core.js set-effect trace"
+      },
+      "unsupportedReason": "The separate outgoing Block Penetration aura applies to allies within 5m, up to six recipients; it does not modify the source build's own retained stats."
+    },
+    {
       "catalogId": "setBreakpointConditional:set_aa_t3_fabric_003:4",
       "sourceFamily": "setBreakpointConditional",
       "sourceId": "set_aa_t3_fabric_003:4",
@@ -40271,6 +40385,96 @@
         "uptime"
       ],
       "executableSemantics": null
+    },
+    {
+      "catalogId": "weaponPassive:SkillSet_WP_BO_S_AuraDefenceUp",
+      "sourceFamily": "weaponPassive",
+      "sourceId": "SkillSet_WP_BO_S_AuraDefenceUp",
+      "name": "Distorted Sanctuary",
+      "description": "Magic, Melee, and Ranged Endurance increase by 66, and Continuous Health Recovery from skills increase by 6.6% per party member (including the user) within 16m radius.",
+      "carriers": [
+        {
+          "kind": "passive_skill",
+          "id": "SkillSet_WP_BO_S_AuraDefenceUp",
+          "name": "Distorted Sanctuary"
+        }
+      ],
+      "weaponRequirements": [
+        "bow"
+      ],
+      "supportState": "scenario_executable_decoded",
+      "precision": {
+        "stage": "decoded_exact_social_count",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_party_proximity_scenario",
+        "executable": true,
+        "limitation": "Proximity counts are direct selected-timestamp observations. Party total is optional context used to validate roster bounds when supplied. Missing cohorts remain unknown, never zero; no aura activation, recipient propagation, duration, or uptime is inferred."
+      },
+      "provenance": [
+        {
+          "kind": "projection",
+          "path": "web/data/projections/skills.json",
+          "selector": "data.skills[id=SkillSet_WP_BO_S_AuraDefenceUp]"
+        },
+        {
+          "kind": "classification_contract",
+          "path": "web/tl-passive-effect-contract.js",
+          "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.scenarioComponents"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-social-scenario-effects.js",
+          "selector": "SOCIAL_EFFECT_DEFINITIONS[SkillSet_WP_BO_S_AuraDefenceUp]"
+        }
+      ],
+      "sourceEdges": [
+        {
+          "from": "SkillSet_WP_BO_S_AuraDefenceUp",
+          "relation": "has_level_descriptions",
+          "to": "SkillSet_WP_BO_S_AuraDefenceUp:levels",
+          "projectionPath": "data.skills[id=SkillSet_WP_BO_S_AuraDefenceUp].levels",
+          "levelRange": {
+            "minimum": 1,
+            "maximum": 20,
+            "count": 20
+          },
+          "selectedDescriptionLevel": 20
+        },
+        {
+          "from": "SkillSet_WP_BO_S_AuraDefenceUp",
+          "relation": "executed_by_reviewed_rule",
+          "to": "social-proximity:SkillSet_WP_BO_S_AuraDefenceUp",
+          "modulePath": "web/tl-social-scenario-effects.js",
+          "evaluatorExport": "evaluateSocialScenarioEffects",
+          "definitionKey": "SkillSet_WP_BO_S_AuraDefenceUp"
+        }
+      ],
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "social-proximity:SkillSet_WP_BO_S_AuraDefenceUp",
+        "mechanic": "source_party_proximity",
+        "modulePath": "web/tl-social-scenario-effects.js",
+        "evaluatorExport": "evaluateSocialScenarioEffects",
+        "definitionsExport": "SOCIAL_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_BO_S_AuraDefenceUp",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].proximity"
+        ],
+        "optionalScenarioInputs": [
+          "participants[source].party"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_social_count",
+        "precisionSemantics": "reviewed_source_party_proximity_scenario",
+        "precisionLimitation": "Proximity counts are direct selected-timestamp observations. Party total is optional context used to validate roster bounds when supplied. Missing cohorts remain unknown, never zero; no aura activation, recipient propagation, duration, or uptime is inferred."
+      },
+      "componentKind": "conditional_remainder",
+      "staticComponent": {
+        "status": "calculated_separately",
+        "summary": "The decoded one-member self minimum is calculated at the selected passive level; additional party-member bands require an explicit proximity scenario.",
+        "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_BO_S_AuraDefenceUp"
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_BO_S_BindAccuracyBoost",
@@ -43447,6 +43651,75 @@
         "uptime"
       ],
       "executableSemantics": null
+    },
+    {
+      "catalogId": "weaponPassive:SkillSet_WP_SW_SH_S_AroundCountBuff",
+      "sourceFamily": "weaponPassive",
+      "sourceId": "SkillSet_WP_SW_SH_S_AroundCountBuff",
+      "name": "Impenetrable",
+      "description": "Increases Magic, Melee, and Ranged Defense proportional to the number of targets within a 10.5m radius. Magic, Melee, and Ranged Defense increase by 179 if there are 2 or fewer targets within range; by 280 if there are 3 to 6 targets; and increase by 700 if there are 7 or more targets.",
+      "carriers": [
+        {
+          "kind": "passive_skill",
+          "id": "SkillSet_WP_SW_SH_S_AroundCountBuff",
+          "name": "Impenetrable"
+        }
+      ],
+      "weaponRequirements": [
+        "sword"
+      ],
+      "supportState": "static_component_only",
+      "precision": {
+        "stage": "unsupported",
+        "source": "projected",
+        "semantics": "unresolved",
+        "executable": false
+      },
+      "provenance": [
+        {
+          "kind": "projection",
+          "path": "web/data/projections/skills.json",
+          "selector": "data.skills[id=SkillSet_WP_SW_SH_S_AroundCountBuff]"
+        },
+        {
+          "kind": "classification_contract",
+          "path": "web/tl-passive-effect-contract.js",
+          "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.scenarioComponents"
+        }
+      ],
+      "sourceEdges": [
+        {
+          "from": "SkillSet_WP_SW_SH_S_AroundCountBuff",
+          "relation": "has_level_descriptions",
+          "to": "SkillSet_WP_SW_SH_S_AroundCountBuff:levels",
+          "projectionPath": "data.skills[id=SkillSet_WP_SW_SH_S_AroundCountBuff].levels",
+          "levelRange": {
+            "minimum": 1,
+            "maximum": 20,
+            "count": 20
+          },
+          "selectedDescriptionLevel": 20
+        }
+      ],
+      "unresolvedFields": [
+        "activationCondition",
+        "applicationOrder",
+        "cooldown",
+        "duration",
+        "formula",
+        "procProbability",
+        "recipient",
+        "stacking",
+        "trigger",
+        "uptime"
+      ],
+      "executableSemantics": null,
+      "componentKind": "conditional_remainder",
+      "staticComponent": {
+        "status": "calculated_separately",
+        "summary": "The decoded two-or-fewer-target minimum All Defense value is calculated; higher nearby-target bands require an explicit target-count scenario.",
+        "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_SW_SH_S_AroundCountBuff"
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_SW_SH_S_BlockSuccecsToleranceUp",

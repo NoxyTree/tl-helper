@@ -4,6 +4,12 @@ import {
   scenarioSourceEventHistory,
   sourceEventHistoryFromControls,
 } from "./tl-event-scenario-controls.js";
+import {
+  formatSourceSocial,
+  scenarioSourceParty,
+  scenarioSourceProximity,
+  sourceSocialFromControls,
+} from "./tl-social-scenario-controls.js";
 
 export const OPTIMIZER_RESOURCE_BPS_SCALE = 10000;
 
@@ -30,7 +36,13 @@ export function optimizerScenarioOptions({
   sourceManaRatioBps = null,
   sourceMotion,
   sourceEvent,
+  sourceSocial,
 }) {
+  const social = sourceSocial === undefined ? null : sourceSocialFromControls(sourceSocial);
+  const socialOptions = social === null ? {} : {
+    sourceParty: social.sourceParty ?? social.party,
+    sourceProximity: social.sourceProximity ?? social.proximity,
+  };
   return {
     targetDistanceMeters,
     timeOfDay,
@@ -38,6 +50,7 @@ export function optimizerScenarioOptions({
     ...(sourceManaRatioBps === null ? {} : { sourceManaRatioBps }),
     ...(sourceMotion === undefined ? {} : { sourceMotion: sourceMotionFromControls(sourceMotion) }),
     ...(sourceEvent === undefined ? {} : { sourceEventHistory: sourceEventHistoryFromControls(sourceEvent) }),
+    ...socialOptions,
   };
 }
 
@@ -67,5 +80,6 @@ export function formatOptimizerScenario(scenario) {
   const mana = formatRatioBps(scenarioSourceResourceBps(scenario, "mana"));
   const motion = formatSourceMotion(scenarioSourceMotion(scenario));
   const sourceEvent = formatSourceEventHistory(scenarioSourceEventHistory(scenario));
-  return [`target ${Number.isFinite(distance) ? distance : "?"}m`, time, `Health ${health}`, `Mana ${mana}`, motion, sourceEvent].join(" · ");
+  const social = formatSourceSocial({ party: scenarioSourceParty(scenario), proximity: scenarioSourceProximity(scenario) });
+  return [`target ${Number.isFinite(distance) ? distance : "?"}m`, time, `Health ${health}`, `Mana ${mana}`, motion, sourceEvent, social].join(" · ");
 }

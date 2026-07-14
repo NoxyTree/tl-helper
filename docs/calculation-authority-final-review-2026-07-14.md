@@ -42,7 +42,7 @@ semantic hashes match values recomputed from live content.
 - Normal and Heroic traits
 - Selected Heroic effects and levels
 - Trait Resonance
-- Item Potential
+- Selected stat Item Potential outcomes
 - Normal and Chaos runes
 - Rune synergies
 - Artifacts and artifact sets
@@ -161,7 +161,7 @@ BuildSnapshot v2 stores raw build state and allocated attributes while treating 
 
 ## Exact scenario extensions
 
-The conditional-effect work queue now contains `531` deterministic source components: `62` conditional weapon passives plus Asceticism's mixed conditional remainder, `159` non-structured masteries, `286` item or Skill Core complexes, and `23` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
+The conditional-effect work queue now contains `534` deterministic source components: `62` conditional weapon passives plus three mixed persistent-passive remainders, `159` non-structured masteries, `286` item or Skill Core complexes, and `24` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
 
 The first eight decoded rules executable through an explicit combat scenario are:
 
@@ -192,6 +192,13 @@ Seven additional decoded source-event components are executable at the evaluatio
 - Mirage Dancer's Mobility branch, with its rank-specific Magic and Ranged Evasion curves; the evasion-on-dodge Move Speed branch remains unsupported
 - Blizzard Overture 4-piece, with raw `1000` Attack Speed and raw `1400` Heavy Attack Damage after Mobility activation in addition to the separately calculated persistent raw `1000` Cooldown Speed
 
+Two decoded social components are now executable from exact selected-timestamp proximity observations:
+
+- Distorted Sanctuary adds only the selected-level remainder for observed other party players within 16m; its one-member source baseline remains persistent static state.
+- Shielded by Unity grants raw `500` Shield Received per observed allied player within 4m, excluding the source and capped at raw `1500`.
+
+Combat Sanctuary replaces both the persistent and social Distorted Sanctuary stats with the decoded level 1 through 20 Accuracy and Attack Range curves.
+
 Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the current scenario does not yet model. Kowazan Eclipse behavior also remains fail-closed because distinct Eclipse rows exist but their activation graph is not decoded. Absolute-current-Health effects such as Adentus remain unsupported because a percentage-only scenario cannot represent their decoded scaling semantics honestly.
 
 Scenario calculation is deliberately an overlay rather than a mutation of persistent totals:
@@ -200,7 +207,7 @@ Scenario calculation is deliberately an overlay rather than a mutation of persis
 - A valid scenario adds `scenarioEffects` and `scenarioStats`.
 - An invalid, unsupported, weapon-mismatched, or wrong-build scenario applies no partial overlay.
 - The exact combat-scenario contract is closed-world and versioned. Unknown fields, missing schemas, invalid participants, and mismatched game builds fail validation.
-- CombatScenario v2 introduced optional source and target Health or Mana ratios as integer basis points. CombatScenario v3 added the closed-world source-motion union. CombatScenario v4 adds participant-owned observed event history, with v1 through v3 inputs migrating to unspecified event history.
+- CombatScenario v2 introduced optional source and target Health or Mana ratios as integer basis points. CombatScenario v3 added the closed-world source-motion union. CombatScenario v4 added participant-owned observed event history. CombatScenario v5 adds participant-owned party and proximity observations, with earlier inputs migrating to unspecified later-version state.
 - Evaluation-instant event rules require `outcome: successful_activation` and `occurredAgoMs: 0`. Their exact activation-instant magnitudes do not claim elapsed duration or positive Buff Duration boundaries. Aged events, cooldown-bearing triggers, activation locks, refresh behavior, and uptime estimates fail closed.
 - Browser contract modules are byte-exact mirrors of the authored combat-engine modules and are protected by a synchronization test.
 - Decoded distance rules are pinned to game build `24118850`; they cannot execute against a future projection until they are re-audited.
@@ -210,7 +217,7 @@ Scenario calculation is deliberately an overlay rather than a mutation of persis
 - Scenario fingerprints and slot caches use the normalized closed-world contract, so non-semantic participant, action, or weapon ordering cannot split cache identity.
 - Scratch optimization rebinds the scenario source weapons for progression evaluation, every concrete candidate, attribute and rune refinement, and the final result.
 
-Gear Viewer, Full Build Optimizer, and Build From Scratch expose target-distance, ordinary day/night, nullable source Health or Mana, source-motion, and evaluation-instant event scoring as explicit scenario inputs. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, tuning, and optimizer handoff use the same canonical scenario when enabled.
+Gear Viewer, Full Build Optimizer, and Build From Scratch expose target-distance, ordinary day/night, nullable source Health or Mana, source-motion, evaluation-instant event, party, and nearby-ally scoring as explicit scenario inputs. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, tuning, and optimizer handoff use the same canonical scenario when enabled. Invalid social controls block scoring instead of reverting to static totals.
 
 ## Cross-surface behavior
 
@@ -244,13 +251,19 @@ Only legal BuildSnapshots can prefill. Ability data and static data must use the
 
 Combat Lab remains a reviewed coefficient and scenario surface, not an exact final-damage authority.
 
+## Remaining release P0
+
+Item potentials currently expose both stat outcomes and skill outcomes in projected data, but the selection and calculation paths apply only stat potentials. Potential skill outcomes must be decoded, classified, represented as mutually exclusive item-potential choices, applied through the shared passive authority, and enumerated by every optimizer before the broader calculation release can be called complete.
+
+Build From Scratch must then enumerate eligible unified mastery choices, including scenario-valued nodes such as Shielded by Unity, and perform the documented bounded gear-aware progression second pass before claiming best progression choices.
+
 ## Remaining evidence-dependent uncertainties
 
 These are explicit and do not silently enter exact item ranking:
 
 1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
 2. `GT_Hero_Attack_01`, Instinct and Restraint, has exact level rates and an exact Eclipse reversal, but percentage All Defense materialization, Base Damage hand scope, stacking order, and rounding are not present in the decoded client rows. It remains provisional rather than receiving invented endpoint totals.
-3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Twenty decoded distance, ordinary day/night, self-resource threshold, source-motion, and evaluation-instant event components are currently executable. Event elapsed duration and positive Buff Duration remain unresolved even where the activation-instant magnitude is exact.
+3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Twenty-two decoded distance, ordinary day/night, self-resource threshold, source-motion, evaluation-instant event, and source-social components are currently executable. Event elapsed duration, positive Buff Duration, aura propagation and recipient state remain unresolved where not explicitly modeled.
 4. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
 5. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
 
@@ -266,21 +279,21 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `647/647`
+- Node test suite: `676/676`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
 - Set audit: `78` sets, `151` breakpoints, no incorrect or review classifications
 - Passive-effect contract: `80 + 193 + 294 = 567` effects, every ID classified exactly once
-- Conditional scenario catalogue: `531/531` source components, with `20` decoded rules executable and `511` explicitly non-executable
+- Conditional scenario catalogue: `534/534` source components, with `22` decoded rules executable and `512` explicitly non-executable
 - Closed-world scenario, game-build drift, source-weapon binding, scratch-candidate rebinding, canonical cache identity, day/night separation, shared-abnormal conflict handling, derived-stat reconstruction, hard-cap reconstruction, and unsupported-current-stat regressions: passed
 - Browser combat-engine contract synchronization: passed
 - Passive registry binding audit: passed
 - Complete candidate legality regressions: passed
 - Diff whitespace check: passed
-- Event pre-implementation snapshot: annotated tag `snapshot/movement-skill-events-pre-implementation-20260714`, resolving to commit `8902942`
-- Local HTTP smoke: Gear Viewer, Full Build Optimizer, Build From Scratch, the scenario-aware calculator, the scenario aggregator, the event evaluator and controls, the browser combat contract, and the generated scenario catalogue returned `200`
-- Module loading and inline syntax: authored and browser combat contracts, event controls, event evaluator, scenario aggregator, calculator, optimizer module, handoff module, Gear Viewer, Full Build Optimizer, and Build From Scratch passed
+- Party/aura pre-implementation snapshot: annotated tag `snapshot/party-aura-pre-implementation-20260714`, resolving to commit `97b50be`
+- Local HTTP smoke: Gear Viewer, Full Build Optimizer, Build From Scratch, the scenario-aware calculator, social evaluator and controls, decoded social data, and the generated scenario catalogue returned `200` from a clean worktree-local server
+- Module and inline syntax: authored and browser combat contracts, social controls, social evaluator, decoded social data, scenario aggregator, calculator, optimizer module, handoff module, Gear Viewer, Full Build Optimizer, and Build From Scratch passed
 - In-app visual smoke: not completed because the browser-control transport was unavailable
 
 ## Primary review files
@@ -293,6 +306,9 @@ These are explicit and do not silently enter exact item ranking:
 - `web/tl-time-of-day-scenario-effects.js`
 - `web/tl-motion-scenario-effects.js`
 - `web/tl-event-scenario-effects.js`
+- `web/tl-distorted-sanctuary-data.js`
+- `web/tl-social-scenario-effects.js`
+- `web/tl-social-scenario-controls.js`
 - `web/tl-scenario-effects.js`
 - `web/tl-full-build-adapter.js`
 - `web/tl-progression-optimizer.js`
@@ -307,6 +323,7 @@ These are explicit and do not silently enter exact item ranking:
 - `scripts/tests/calculation-status.test.mjs`
 - `scripts/tests/gear-viewer-calculation-status.test.mjs`
 - `scripts/tests/build-distance-scenario-integration.test.mjs`
+- `scripts/tests/build-social-scenario-integration.test.mjs`
 - `scripts/tests/combat-scenario-contract.test.mjs`
 - `scripts/tests/scenario-effect-catalog.test.mjs`
 - `scripts/verify-build-snapshot.mjs`

@@ -26,7 +26,7 @@ test("Full Build Optimizer keeps scenario scoring explicit and opt-in", () => {
 
 test("Full Build Optimizer creates one strict scenario for requests, results, hover, and tuning", () => {
   assert.match(html, /import \{ formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps \} from "\.\/full-build-optimizer\.js"/);
-  assert.match(html, /optimizerScenarioOptions\(\{targetDistanceMeters:inputs\.targetDistanceMeters,timeOfDay:\$\("scenario-time"\)\.value,sourceHealthRatioBps:inputs\.sourceHealthRatioBps,sourceManaRatioBps:inputs\.sourceManaRatioBps,sourceMotion:inputs\.sourceMotion,sourceEvent:inputs\.sourceEvent\}\)/);
+  assert.match(html, /optimizerScenarioOptions\(\{targetDistanceMeters:inputs\.targetDistanceMeters,timeOfDay:\$\("scenario-time"\)\.value,sourceHealthRatioBps:inputs\.sourceHealthRatioBps,sourceManaRatioBps:inputs\.sourceManaRatioBps,sourceMotion:inputs\.sourceMotion,sourceEvent:inputs\.sourceEvent,sourceSocial:inputs\.sourceSocial\}\)/);
   assert.match(html, /state\.core\.createBuildScenario\(state\.build\.build\?\?state\.build,options\)/);
   assert.match(html, /currentStats\(state\.build,\{includeSetEffects:\$\("include-sets"\)\.checked,\.\.\.scenarioRequestFields\(\)\}\)/);
   assert.match(html, /function request\(\) \{ return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);

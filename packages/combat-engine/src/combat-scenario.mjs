@@ -13,7 +13,7 @@ import {
 } from "./contract-primitives.mjs";
 
 export const COMBAT_SCENARIO_SCHEMA = "tl-helper.combat-scenario";
-export const COMBAT_SCENARIO_SCHEMA_VERSION = 4;
+export const COMBAT_SCENARIO_SCHEMA_VERSION = 5;
 
 export const SCENARIO_RESOURCE = Object.freeze({
   HEALTH: "health",
@@ -66,6 +66,29 @@ export const SCENARIO_ABILITY_CATEGORY = Object.freeze({
   MOVEMENT: "movement",
 });
 
+export const SCENARIO_PARTY_STATE = Object.freeze({
+  UNSPECIFIED: "unspecified",
+  OBSERVED: "observed",
+});
+
+export const SCENARIO_PROXIMITY_STATE = Object.freeze({
+  UNSPECIFIED: "unspecified",
+  OBSERVED: "observed",
+});
+
+// These cohorts are deliberately disjoint and exclude the participant whose
+// proximity record contains them. An evaluator may combine the cohorts only
+// when a decoded recipient rule requires that wider population.
+export const SCENARIO_PROXIMITY_COHORT = Object.freeze({
+  SAME_PARTY_PLAYER_OTHER: "same_party_player_other",
+  ALLIED_NONPARTY_PLAYER: "allied_nonparty_player",
+});
+
+export const SCENARIO_PROXIMITY_COMPARATOR = Object.freeze({
+  LESS_THAN: "lt",
+  LESS_THAN_OR_EQUAL: "lte",
+});
+
 export const SCENARIO_TIME_OF_DAY = Object.freeze({
   UNSPECIFIED: "unspecified",
   DAY: "day",
@@ -107,6 +130,14 @@ const EVENT_HISTORY_STATES = new Set(Object.values(SCENARIO_EVENT_HISTORY_STATE)
 const RECENT_EVENT_KINDS = new Set(Object.values(SCENARIO_RECENT_EVENT_KIND));
 const RECENT_EVENT_OUTCOMES = new Set(Object.values(SCENARIO_RECENT_EVENT_OUTCOME));
 const ABILITY_CATEGORIES = new Set(Object.values(SCENARIO_ABILITY_CATEGORY));
+const PARTY_STATES = new Set(Object.values(SCENARIO_PARTY_STATE));
+const PROXIMITY_STATES = new Set(Object.values(SCENARIO_PROXIMITY_STATE));
+const PROXIMITY_COHORTS = new Set(Object.values(SCENARIO_PROXIMITY_COHORT));
+const PROXIMITY_COMPARATORS = new Set(Object.values(SCENARIO_PROXIMITY_COMPARATOR));
+const PROXIMITY_COMPARATOR_ORDER = Object.freeze({
+  [SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN]: 0,
+  [SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN_OR_EQUAL]: 1,
+});
 const SHA256 = /^(?:sha256:)?[a-fA-F0-9]{64}$/;
 
 /** Validate, detach, canonically order, and deeply freeze a scenario. */
@@ -117,7 +148,7 @@ export function normalizeCombatScenario(input, { expectedGameBuild } = {}) {
     "participants", "source", "target", "actions", "rng",
   ], "Combat scenario");
   if (value.schema !== COMBAT_SCENARIO_SCHEMA) throw new Error(`Unsupported combat scenario schema: ${String(value.schema)}`);
-  if (![1, 2, 3, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
+  if (![1, 2, 3, 4, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
     throw new Error(`Unsupported combat scenario schemaVersion: ${String(value.schemaVersion)}`);
   }
   const gameBuild = requireBuild(value.gameBuild, "gameBuild");
@@ -172,6 +203,7 @@ function normalizeParticipants(input, inputSchemaVersion) {
       ...(inputSchemaVersion >= 2 ? ["resources"] : []),
       ...(inputSchemaVersion >= 3 ? ["motion"] : []),
       ...(inputSchemaVersion >= 4 ? ["eventHistory"] : []),
+      ...(inputSchemaVersion >= 5 ? ["party", "proximity"] : []),
     ];
     assertOnlyKeys(value, allowedKeys, label);
     const id = requireId(value.id, `${label}.id`);
@@ -207,9 +239,120 @@ function normalizeParticipants(input, inputSchemaVersion) {
       resources: normalizeParticipantResources(value.resources, `${label}.resources`),
       motion: normalizeParticipantMotion(value.motion, `${label}.motion`),
       eventHistory: normalizeParticipantEventHistory(value.eventHistory, `${label}.eventHistory`, equippedWeaponTypes),
+      party: normalizeParticipantParty(value.party, `${label}.party`),
+      proximity: normalizeParticipantProximity(value.proximity, `${label}.proximity`, value.party, `${label}.party`),
     };
   });
   return participants.sort((left, right) => compareCodeUnits(left.id, right.id));
+}
+
+function normalizeParticipantParty(input, label) {
+  if (input === undefined) return { state: SCENARIO_PARTY_STATE.UNSPECIFIED };
+  const value = requireRecord(input, label);
+  const state = requireEnum(value.state, PARTY_STATES, `${label}.state`);
+  if (state === SCENARIO_PARTY_STATE.UNSPECIFIED) {
+    assertOnlyKeys(value, ["state"], label);
+    return { state };
+  }
+  assertOnlyKeys(value, ["state", "totalMembersIncludingSelf"], label);
+  return {
+    state,
+    totalMembersIncludingSelf: requirePositiveInteger(
+      value.totalMembersIncludingSelf,
+      `${label}.totalMembersIncludingSelf`,
+    ),
+  };
+}
+
+function normalizeParticipantProximity(input, label, partyInput, partyLabel) {
+  if (input === undefined) return { state: SCENARIO_PROXIMITY_STATE.UNSPECIFIED };
+  const value = requireRecord(input, label);
+  const state = requireEnum(value.state, PROXIMITY_STATES, `${label}.state`);
+  if (state === SCENARIO_PROXIMITY_STATE.UNSPECIFIED) {
+    assertOnlyKeys(value, ["state"], label);
+    return { state };
+  }
+  assertOnlyKeys(value, ["state", "counts"], label);
+  if (!Array.isArray(value.counts)) throw new TypeError(`${label}.counts must be an array.`);
+
+  const observedParty = normalizeParticipantParty(partyInput, partyLabel);
+  const maximumOtherPartyMembers = observedParty.state === SCENARIO_PARTY_STATE.OBSERVED
+    ? observedParty.totalMembersIncludingSelf - 1
+    : null;
+  const keys = new Set();
+  const counts = value.counts.map((entry, index) => {
+    const countLabel = `${label}.counts[${index}]`;
+    const countValue = requireRecord(entry, countLabel);
+    assertOnlyKeys(countValue, ["cohort", "comparator", "radiusMeters", "count"], countLabel);
+    const cohort = requireEnum(countValue.cohort, PROXIMITY_COHORTS, `${countLabel}.cohort`);
+    const comparator = requireEnum(countValue.comparator, PROXIMITY_COMPARATORS, `${countLabel}.comparator`);
+    const radiusMeters = normalizeDecimal(countValue.radiusMeters, `${countLabel}.radiusMeters`, { nonnegative: true });
+    const count = requireNonnegativeInteger(countValue.count, `${countLabel}.count`);
+    const key = `${cohort}\u0000${comparator}\u0000${radiusMeters}`;
+    if (keys.has(key)) throw new Error(`${label}.counts contains a duplicate cohort, comparator, and radius observation.`);
+    keys.add(key);
+    if (
+      maximumOtherPartyMembers !== null
+      && cohort === SCENARIO_PROXIMITY_COHORT.SAME_PARTY_PLAYER_OTHER
+      && count > maximumOtherPartyMembers
+    ) {
+      throw new RangeError(`${countLabel}.count exceeds ${partyLabel}.totalMembersIncludingSelf minus the participant.`);
+    }
+    return { cohort, comparator, radiusMeters, count };
+  });
+
+  counts.sort(compareProximityCounts);
+  validateProximityMonotonicity(counts, label);
+  return { state, counts };
+}
+
+function compareProximityCounts(left, right) {
+  return compareCodeUnits(left.cohort, right.cohort)
+    || compareNonnegativeDecimals(left.radiusMeters, right.radiusMeters)
+    || PROXIMITY_COMPARATOR_ORDER[left.comparator] - PROXIMITY_COMPARATOR_ORDER[right.comparator];
+}
+
+function validateProximityMonotonicity(counts, label) {
+  const countsByCohortAndRadius = new Map();
+  for (const entry of counts) {
+    const radiusKey = `${entry.cohort}\u0000${entry.radiusMeters}`;
+    const pair = countsByCohortAndRadius.get(radiusKey) ?? {};
+    pair[entry.comparator] = entry.count;
+    countsByCohortAndRadius.set(radiusKey, pair);
+  }
+  for (let leftIndex = 0; leftIndex < counts.length; leftIndex += 1) {
+    const left = counts[leftIndex];
+    for (let rightIndex = leftIndex + 1; rightIndex < counts.length; rightIndex += 1) {
+      const right = counts[rightIndex];
+      if (left.cohort !== right.cohort) break;
+      if (compareNonnegativeDecimals(left.radiusMeters, right.radiusMeters) < 0 && left.count > right.count) {
+        throw new RangeError(`${label}.counts must not decrease as radius increases for the same cohort.`);
+      }
+    }
+  }
+  for (const pair of countsByCohortAndRadius.values()) {
+    if (
+      pair[SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN] !== undefined
+      && pair[SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN_OR_EQUAL] !== undefined
+      && pair[SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN] > pair[SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN_OR_EQUAL]
+    ) {
+      throw new RangeError(`${label}.counts cannot contain a greater lt count than lte count at the same radius.`);
+    }
+  }
+}
+
+function compareNonnegativeDecimals(left, right) {
+  if (left === right) return 0;
+  const [leftWhole, leftFraction = ""] = left.split(".");
+  const [rightWhole, rightFraction = ""] = right.split(".");
+  if (leftWhole.length !== rightWhole.length) return leftWhole.length - rightWhole.length;
+  const wholeComparison = compareCodeUnits(leftWhole, rightWhole);
+  if (wholeComparison) return wholeComparison;
+  const fractionLength = Math.max(leftFraction.length, rightFraction.length);
+  return compareCodeUnits(
+    leftFraction.padEnd(fractionLength, "0"),
+    rightFraction.padEnd(fractionLength, "0"),
+  );
 }
 
 function normalizeParticipantEventHistory(input, label, equippedWeaponTypes) {

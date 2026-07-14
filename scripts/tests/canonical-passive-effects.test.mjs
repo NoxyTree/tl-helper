@@ -71,15 +71,36 @@ test("all 80 projected weapon passives have one explicit semantic class", () => 
 
 test("mixed weapon passives declare conditional remainders without breaking the source partition", () => {
   const family = contract.families.weaponPassive;
-  assert.deepEqual(family.scenarioComponents, [{
-    sourceId: "SkillSet_WP_ST_S_ManaRegenBuff",
-    componentKind: "conditional_remainder",
-    staticComponent: {
-      summary: "The always-active Mana Regen curve is calculated at the selected passive level.",
-      authority: "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff",
+  assert.deepEqual(family.scenarioComponents, [
+    {
+      sourceId: "SkillSet_WP_BO_S_AuraDefenceUp",
+      componentKind: "conditional_remainder",
+      staticComponent: {
+        summary: "The decoded one-member self minimum is calculated at the selected passive level; additional party-member bands require an explicit proximity scenario.",
+        authority: "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_BO_S_AuraDefenceUp",
+      },
     },
-  }]);
+    {
+      sourceId: "SkillSet_WP_ST_S_ManaRegenBuff",
+      componentKind: "conditional_remainder",
+      staticComponent: {
+        summary: "The always-active Mana Regen curve is calculated at the selected passive level.",
+        authority: "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff",
+      },
+    },
+    {
+      sourceId: "SkillSet_WP_SW_SH_S_AroundCountBuff",
+      componentKind: "conditional_remainder",
+      staticComponent: {
+        summary: "The decoded two-or-fewer-target minimum All Defense value is calculated; higher nearby-target bands require an explicit target-count scenario.",
+        authority: "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_SW_SH_S_AroundCountBuff",
+      },
+    },
+  ]);
   for (const component of family.scenarioComponents) {
+    assert.equal(component.componentKind, "conditional_remainder");
+    assert.ok(component.staticComponent?.summary);
+    assert.equal(component.staticComponent?.authority, `web/tl-questlog-rules.js PASSIVE_SKILL_RULES.${component.sourceId}`);
     assert.equal(family.classes.persistentStatic.includes(component.sourceId), true);
     assert.equal(family.classes.conditional.includes(component.sourceId), false);
     assert.equal(PASSIVE_SKILL_RULES[component.sourceId] !== undefined, true);

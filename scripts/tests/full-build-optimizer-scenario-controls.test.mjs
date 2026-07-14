@@ -77,6 +77,33 @@ test("optimizer scenario options preserve unspecified resources and exact event 
   );
 });
 
+test("optimizer scenario options preserve independent social blanks and explicit zeroes", () => {
+  assert.deepEqual(
+    optimizerScenarioOptions({
+      targetDistanceMeters: 10,
+      timeOfDay: "unspecified",
+      sourceSocial: {
+        totalPartyMembersIncludingSelf: "",
+        otherPartyPlayersWithin4m: "0",
+        additionalOtherPartyPlayersAbove4mThrough16m: "",
+        alliedNonpartyPlayersWithin4m: "0",
+      },
+    }),
+    {
+      targetDistanceMeters: 10,
+      timeOfDay: "unspecified",
+      sourceParty: { state: "unspecified" },
+      sourceProximity: {
+        state: "observed",
+        counts: [
+          { cohort: "allied_nonparty_player", comparator: "lte", radiusMeters: "4", count: 0 },
+          { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "4", count: 0 },
+        ],
+      },
+    },
+  );
+});
+
 test("scenario resource reads identify the source participant by id", () => {
   const scenario = {
     source: { participantId: "player" },
@@ -104,7 +131,7 @@ test("canonical scenario text reports each resource and event independently", ()
   };
   assert.equal(
     formatOptimizerScenario(scenario),
-    "target 7.5m · night · Health 33.33% · Mana unspecified · motion unspecified · skill event unspecified",
+    "target 7.5m · night · Health 33.33% · Mana unspecified · motion unspecified · skill event unspecified · nearby allies unspecified",
   );
 
   scenario.participants[0].eventHistory = {
@@ -120,5 +147,5 @@ test("canonical scenario text reports each resource and event independently", ()
       categories: ["mobility"],
     }],
   };
-  assert.match(formatOptimizerScenario(scenario), /Mobility activation now \(crossbow\)$/);
+  assert.match(formatOptimizerScenario(scenario), /Mobility activation now \(crossbow\) · nearby allies unspecified$/);
 });

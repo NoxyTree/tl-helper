@@ -7,6 +7,10 @@ import {
   COMBAT_SCENARIO_SCHEMA,
   COMBAT_SCENARIO_SCHEMA_VERSION,
   SCENARIO_EVENT_HISTORY_STATE,
+  SCENARIO_PARTY_STATE,
+  SCENARIO_PROXIMITY_COHORT,
+  SCENARIO_PROXIMITY_COMPARATOR,
+  SCENARIO_PROXIMITY_STATE,
   SCENARIO_RECENT_EVENT_KIND,
   SCENARIO_RECENT_EVENT_OUTCOME,
   assertCombatEffectMatchesScenario,
@@ -74,6 +78,15 @@ function scenario(overrides = {}) {
               weaponType: "longbow",
               categories: ["movement", "mobility"],
             },
+          ],
+        },
+        party: { state: "observed", totalMembersIncludingSelf: 6 },
+        proximity: {
+          state: "observed",
+          counts: [
+            { cohort: "same_party_player_other", comparator: "lte", radiusMeters: 16, count: 3 },
+            { cohort: "allied_nonparty_player", comparator: "lte", radiusMeters: 4.0, count: 2 },
+            { cohort: "same_party_player_other", comparator: "lte", radiusMeters: 4, count: 1 },
           ],
         },
       },
@@ -168,11 +181,15 @@ test("combat scenarios normalize deterministic build-scoped state and deeply fre
   assert.ok(Object.isFrozen(normalized.participants[0].resources.health));
   assert.ok(Object.isFrozen(normalized.participants[0].motion));
   assert.ok(Object.isFrozen(normalized.participants[0].eventHistory.events[0].categories));
+  assert.ok(Object.isFrozen(normalized.participants[0].party));
+  assert.ok(Object.isFrozen(normalized.participants[0].proximity.counts));
   assert.throws(() => { normalized.target.distanceMeters = "99"; }, TypeError);
   input.environment.weather = "clear";
   input.participants[1].equippedWeaponTypes.push("staff");
   input.participants[1].motion.stationaryBand = "under_2s";
   input.participants[1].eventHistory.events[1].categories[0] = "changed";
+  input.participants[1].party.totalMembersIncludingSelf = 1;
+  input.participants[1].proximity.counts[0].count = 0;
   assert.equal(normalized.environment.weather, "rain");
   assert.deepEqual(normalized.participants[0].equippedWeaponTypes, ["dagger", "longbow"]);
   assert.deepEqual(normalized.participants[0].resources, {
@@ -208,6 +225,20 @@ test("combat scenarios normalize deterministic build-scoped state and deeply fre
       },
     ],
   });
+  assert.deepEqual(normalized.participants[0].party, {
+    state: "observed",
+    totalMembersIncludingSelf: 6,
+  });
+  assert.deepEqual(normalized.participants[0].proximity, {
+    state: "observed",
+    counts: [
+      { cohort: "allied_nonparty_player", comparator: "lte", radiusMeters: "4", count: 2 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "4", count: 1 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "16", count: 3 },
+    ],
+  });
+  assert.deepEqual(normalized.participants[1].party, { state: "unspecified" });
+  assert.deepEqual(normalized.participants[1].proximity, { state: "unspecified" });
 });
 
 test("combat scenarios validate exact participant resource ratios", () => {
@@ -229,57 +260,117 @@ test("combat scenarios validate exact participant resource ratios", () => {
   assert.throws(() => normalizeCombatScenario(unknownRatioField), /unknown field/);
 });
 
-test("combat scenario v1 migrates to canonical v4 without resource, motion, or event semantics", () => {
+test("combat scenario v1 migrates to canonical v5 without later participant semantics", () => {
   const input = scenario({ schemaVersion: 1 });
   for (const participant of input.participants) {
     delete participant.resources;
     delete participant.motion;
     delete participant.eventHistory;
+    delete participant.party;
+    delete participant.proximity;
   }
   const migrated = normalizeCombatScenario(input);
-  assert.equal(migrated.schemaVersion, 4);
+  assert.equal(migrated.schemaVersion, 5);
   assert.ok(migrated.participants.every((participant) => Object.keys(participant.resources).length === 0));
   assert.ok(migrated.participants.every((participant) => participant.motion.state === "unspecified"));
   assert.ok(migrated.participants.every((participant) => participant.eventHistory.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.party.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.proximity.state === "unspecified"));
 
   const smuggled = scenario({ schemaVersion: 1 });
   assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
-  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 5 })), /Unsupported combat scenario schemaVersion/);
+  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 6 })), /Unsupported combat scenario schemaVersion/);
 });
 
-test("combat scenario v2 migrates resources to canonical v4 without motion or event semantics", () => {
+test("combat scenario v2 migrates resources to canonical v5 without later participant semantics", () => {
   const input = scenario({ schemaVersion: 2 });
   for (const participant of input.participants) {
     delete participant.motion;
     delete participant.eventHistory;
+    delete participant.party;
+    delete participant.proximity;
   }
   const migrated = normalizeCombatScenario(input);
-  assert.equal(migrated.schemaVersion, 4);
+  assert.equal(migrated.schemaVersion, 5);
   assert.deepEqual(migrated.participants[0].resources, {
     health: { currentRatioBps: 5000 },
     mana: { currentRatioBps: 3300 },
   });
   assert.ok(migrated.participants.every((participant) => participant.motion.state === "unspecified"));
   assert.ok(migrated.participants.every((participant) => participant.eventHistory.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.party.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.proximity.state === "unspecified"));
 
   const smuggled = scenario({ schemaVersion: 2 });
   assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
 });
 
-test("combat scenario v3 migrates resources and motion to canonical v4 without event semantics", () => {
+test("combat scenario v3 migrates resources and motion to canonical v5 without later participant semantics", () => {
   const input = scenario({ schemaVersion: 3 });
-  for (const participant of input.participants) delete participant.eventHistory;
+  for (const participant of input.participants) {
+    delete participant.eventHistory;
+    delete participant.party;
+    delete participant.proximity;
+  }
   const migrated = normalizeCombatScenario(input);
-  assert.equal(migrated.schemaVersion, 4);
+  assert.equal(migrated.schemaVersion, 5);
   assert.deepEqual(migrated.participants[0].resources, {
     health: { currentRatioBps: 5000 },
     mana: { currentRatioBps: 3300 },
   });
   assert.deepEqual(migrated.participants[0].motion, { state: "stationary", stationaryBand: "4s_or_more" });
   assert.ok(migrated.participants.every((participant) => participant.eventHistory.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.party.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.proximity.state === "unspecified"));
 
   const smuggled = scenario({ schemaVersion: 3 });
   assert.throws(() => normalizeCombatScenario(smuggled), /eventHistory/);
+});
+
+test("combat scenario v4 migrates event history to canonical v5 without social semantics", () => {
+  const input = scenario({ schemaVersion: 4 });
+  for (const participant of input.participants) {
+    delete participant.party;
+    delete participant.proximity;
+  }
+  const migrated = normalizeCombatScenario(input);
+  assert.equal(migrated.schemaVersion, 5);
+  assert.deepEqual(migrated.participants[0].eventHistory.events.map(({ id }) => id), [
+    "recent-mobility",
+    "older-movement",
+  ]);
+  assert.ok(migrated.participants.every((participant) => participant.party.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.proximity.state === "unspecified"));
+
+  for (const field of ["party", "proximity"]) {
+    const smuggled = structuredClone(input);
+    smuggled.participants[1][field] = field === "party"
+      ? { state: "observed", totalMembersIncludingSelf: 1 }
+      : { state: "observed", counts: [] };
+    assert.throws(() => normalizeCombatScenario(smuggled), new RegExp(field));
+  }
+});
+
+test("combat scenario v1 through v4 reject v5 social fields instead of smuggling them", () => {
+  for (const schemaVersion of [1, 2, 3, 4]) {
+    const baseline = scenario({ schemaVersion });
+    for (const participant of baseline.participants) {
+      if (schemaVersion < 2) delete participant.resources;
+      if (schemaVersion < 3) delete participant.motion;
+      if (schemaVersion < 4) delete participant.eventHistory;
+      delete participant.party;
+      delete participant.proximity;
+    }
+    assert.equal(normalizeCombatScenario(baseline).schemaVersion, 5);
+    for (const [field, value] of [
+      ["party", { state: "observed", totalMembersIncludingSelf: 1 }],
+      ["proximity", { state: "observed", counts: [] }],
+    ]) {
+      const smuggled = structuredClone(baseline);
+      smuggled.participants[1][field] = value;
+      assert.throws(() => normalizeCombatScenario(smuggled), new RegExp(field));
+    }
+  }
 });
 
 test("combat scenario v4 validates the participant-owned motion union exactly", () => {
@@ -400,6 +491,140 @@ test("combat scenario v4 rejects partial, inconsistent, and open-world event his
   }
 });
 
+test("combat scenario v5 validates participant-owned party observations exactly", () => {
+  assert.equal(SCENARIO_PARTY_STATE.OBSERVED, "observed");
+  assert.equal(SCENARIO_PROXIMITY_STATE.OBSERVED, "observed");
+  assert.equal(SCENARIO_PROXIMITY_COHORT.SAME_PARTY_PLAYER_OTHER, "same_party_player_other");
+  assert.equal(SCENARIO_PROXIMITY_COMPARATOR.LESS_THAN_OR_EQUAL, "lte");
+
+  for (const totalMembersIncludingSelf of [1, 2, 6, Number.MAX_SAFE_INTEGER]) {
+    const input = scenario();
+    input.participants[1].party = { state: "observed", totalMembersIncludingSelf };
+    input.participants[1].proximity = { state: "observed", counts: [] };
+    assert.deepEqual(normalizeCombatScenario(input).participants[0].party, {
+      state: "observed",
+      totalMembersIncludingSelf,
+    });
+  }
+
+  const omitted = scenario();
+  delete omitted.participants[1].party;
+  delete omitted.participants[1].proximity;
+  const normalizedOmitted = normalizeCombatScenario(omitted).participants[0];
+  assert.deepEqual(normalizedOmitted.party, { state: "unspecified" });
+  assert.deepEqual(normalizedOmitted.proximity, { state: "unspecified" });
+
+  for (const invalidParty of [
+    { state: "unknown" },
+    { state: "unspecified", totalMembersIncludingSelf: 1 },
+    { state: "observed" },
+    { state: "observed", totalMembersIncludingSelf: 0 },
+    { state: "observed", totalMembersIncludingSelf: -1 },
+    { state: "observed", totalMembersIncludingSelf: 1.5 },
+    { state: "observed", totalMembersIncludingSelf: "1" },
+    { state: "observed", totalMembersIncludingSelf: Number.MAX_SAFE_INTEGER + 1 },
+    { state: "observed", totalMembersIncludingSelf: 1, extra: true },
+  ]) {
+    const input = scenario();
+    input.participants[1].party = invalidParty;
+    assert.throws(() => normalizeCombatScenario(input));
+  }
+});
+
+test("combat scenario v5 canonicalizes exact source-centered proximity counts", () => {
+  const input = scenario();
+  input.participants[1].party = { state: "observed", totalMembersIncludingSelf: 5 };
+  input.participants[1].proximity = {
+    state: "observed",
+    counts: [
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "10.00", count: 3 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: 2, count: 1 },
+      { cohort: "allied_nonparty_player", comparator: "lte", radiusMeters: "4.0", count: 2 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "4", count: 2 },
+      { cohort: "same_party_player_other", comparator: "lt", radiusMeters: "4.000", count: 1 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "100000000000000000000", count: 4 },
+    ],
+  };
+  assert.deepEqual(normalizeCombatScenario(input).participants[0].proximity, {
+    state: "observed",
+    counts: [
+      { cohort: "allied_nonparty_player", comparator: "lte", radiusMeters: "4", count: 2 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "2", count: 1 },
+      { cohort: "same_party_player_other", comparator: "lt", radiusMeters: "4", count: 1 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "4", count: 2 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "10", count: 3 },
+      { cohort: "same_party_player_other", comparator: "lte", radiusMeters: "100000000000000000000", count: 4 },
+    ],
+  });
+});
+
+test("combat scenario v5 rejects partial, contradictory, and open-world proximity observations", () => {
+  const validCount = {
+    cohort: "same_party_player_other",
+    comparator: "lte",
+    radiusMeters: 4,
+    count: 1,
+  };
+  const invalidProximities = [
+    { state: "unknown" },
+    { state: "unspecified", counts: [] },
+    { state: "observed" },
+    { state: "observed", counts: null },
+    { state: "observed", counts: [null] },
+    { state: "observed", counts: [{ ...validCount, cohort: "allied_player" }] },
+    { state: "observed", counts: [{ ...validCount, comparator: "eq" }] },
+    { state: "observed", counts: [{ ...validCount, radiusMeters: -1 }] },
+    { state: "observed", counts: [{ ...validCount, radiusMeters: NaN }] },
+    { state: "observed", counts: [{ ...validCount, radiusMeters: Infinity }] },
+    { state: "observed", counts: [{ ...validCount, count: -1 }] },
+    { state: "observed", counts: [{ ...validCount, count: 1.5 }] },
+    { state: "observed", counts: [{ ...validCount, count: "1" }] },
+    { state: "observed", counts: [{ ...validCount, extra: true }] },
+    { state: "observed", counts: [validCount, { ...validCount, radiusMeters: "4.0" }] },
+    {
+      state: "observed",
+      counts: [validCount, { ...validCount, radiusMeters: 16, count: 0 }],
+    },
+    {
+      state: "observed",
+      counts: [
+        { ...validCount, comparator: "lte", radiusMeters: 4, count: 2 },
+        { ...validCount, comparator: "lt", radiusMeters: 5, count: 1 },
+      ],
+    },
+    {
+      state: "observed",
+      counts: [
+        { ...validCount, comparator: "lt", count: 2 },
+        { ...validCount, comparator: "lte", count: 1 },
+      ],
+    },
+    { state: "observed", counts: [], extra: true },
+  ];
+  for (const proximity of invalidProximities) {
+    const input = scenario();
+    input.participants[1].party = { state: "observed", totalMembersIncludingSelf: 6 };
+    input.participants[1].proximity = proximity;
+    assert.throws(() => normalizeCombatScenario(input));
+  }
+
+  const exceedsRoster = scenario();
+  exceedsRoster.participants[1].party = { state: "observed", totalMembersIncludingSelf: 2 };
+  exceedsRoster.participants[1].proximity = {
+    state: "observed",
+    counts: [{ ...validCount, count: 2 }],
+  };
+  assert.throws(() => normalizeCombatScenario(exceedsRoster), /exceeds/);
+
+  const explicitZero = scenario();
+  explicitZero.participants[1].party = { state: "observed", totalMembersIncludingSelf: 1 };
+  explicitZero.participants[1].proximity = {
+    state: "observed",
+    counts: [{ ...validCount, count: 0 }],
+  };
+  assert.equal(normalizeCombatScenario(explicitZero).participants[0].proximity.counts[0].count, 0);
+});
+
 test("scenario normalization is deterministic across non-semantic input ordering", () => {
   const left = normalizeCombatScenario(scenario());
   const reordered = scenario();
@@ -409,6 +634,7 @@ test("scenario normalization is deterministic across non-semantic input ordering
   reorderedPlayer.equippedWeaponTypes.reverse();
   reorderedPlayer.eventHistory.events.reverse();
   reorderedPlayer.eventHistory.events[0].categories.reverse();
+  reorderedPlayer.proximity.counts.reverse();
   const right = normalizeCombatScenario(reordered);
   assert.deepEqual(right, left);
 });

@@ -1662,6 +1662,7 @@ export function effectiveProgression(build, options = {}) {
     );
   }
   const overallMasteryLevel = build.overallMasteryLevel;
+  const lockedUnifiedIds = new Set();
   if ((overallMasteryLevel == null || overallMasteryLevel === "") && unifiedMasteries.length) {
     issue(
       "overall_mastery_level_unknown",
@@ -1671,13 +1672,20 @@ export function effectiveProgression(build, options = {}) {
     const level = Number(overallMasteryLevel);
     if (!Number.isInteger(level) || level < 0) {
       issue("invalid_overall_mastery_level", `Overall Mastery Level ${String(overallMasteryLevel)} is invalid.`, "error", "dataBacked", "invalid");
+      for (const { masteryId } of unifiedMasteries) lockedUnifiedIds.add(masteryId);
     } else {
       for (const { masteryId, mastery } of unifiedMasteries) {
         if (Number(mastery.requiredLevel ?? 0) > level) {
           issue("unified_mastery_level_missing", `${mastery.name} requires Overall Mastery Level ${mastery.requiredLevel}; the build stores ${level}.`, "error", "dataBacked", "invalid");
+          lockedUnifiedIds.add(masteryId);
         }
       }
     }
+  }
+
+  const activeUnifiedMasteries = unifiedMasteries.filter(({ masteryId }) => !lockedUnifiedIds.has(masteryId));
+  for (const row of unifiedMasteries) {
+    if (lockedUnifiedIds.has(row.masteryId)) inactiveUnifiedMasteries.push({ ...row, reason: "unlock_level_missing" });
   }
 
   return {
@@ -1686,7 +1694,7 @@ export function effectiveProgression(build, options = {}) {
     inactiveSkills,
     masteries,
     inactiveMasteries,
-    unifiedMasteries,
+    unifiedMasteries: activeUnifiedMasteries,
     inactiveUnifiedMasteries,
     issues,
   };
@@ -2265,6 +2273,12 @@ export function activeScenarioSources(build, progression = effectiveProgression(
     level: Number(selection.level || 1),
     selected: true,
   }));
+  const unifiedMasteryIds = progression.unifiedMasteries.map(({ masteryId }) => masteryId);
+  const unifiedMasteries = progression.unifiedMasteries.map(({ masteryId }) => ({
+    id: masteryId,
+    level: 1,
+    selected: true,
+  }));
   const itemEffects = [];
   for (const { item, selection } of selections) {
     if (item?.passives?.id) itemEffects.push({ id: item.passives.id, sourceKind: "innate", itemId: item.id });
@@ -2282,6 +2296,8 @@ export function activeScenarioSources(build, progression = effectiveProgression(
     passiveSkills,
     masteryIds,
     masteries,
+    unifiedMasteryIds,
+    unifiedMasteries,
     itemEffects,
     setBreakpoints,
   };
@@ -2309,6 +2325,10 @@ export function createBuildScenario(build, {
   targetMotion = { state: "unspecified" },
   sourceEventHistory = { state: "unspecified" },
   targetEventHistory = { state: "unspecified" },
+  sourceParty = { state: "unspecified" },
+  targetParty = { state: "unspecified" },
+  sourceProximity = { state: "unspecified" },
+  targetProximity = { state: "unspecified" },
 } = {}) {
   if (!data?.gameBuild) throw new Error("Game data must be initialized before creating a combat scenario.");
   const equipped = [...equippedWeaponTypes(build)].sort();
@@ -2328,6 +2348,8 @@ export function createBuildScenario(build, {
         resources: participantResources({ healthRatioBps: sourceHealthRatioBps, manaRatioBps: sourceManaRatioBps }),
         motion: sourceMotion,
         eventHistory: sourceEventHistory,
+        party: sourceParty,
+        proximity: sourceProximity,
       },
       {
         id: "target",
@@ -2337,6 +2359,8 @@ export function createBuildScenario(build, {
         resources: participantResources({ healthRatioBps: targetHealthRatioBps, manaRatioBps: targetManaRatioBps }),
         motion: targetMotion,
         eventHistory: targetEventHistory,
+        party: targetParty,
+        proximity: targetProximity,
       },
     ],
     source: { participantId: "source" },
@@ -2468,6 +2492,10 @@ export function evaluateBuildScenario(build, scenario, progression = effectivePr
       targetMotion: targetParticipant?.motion ?? { state: "unspecified" },
       sourceEventHistory: sourceParticipant.eventHistory,
       targetEventHistory: targetParticipant?.eventHistory ?? { state: "unspecified" },
+      sourceParty: sourceParticipant.party,
+      targetParty: targetParticipant?.party ?? { state: "unspecified" },
+      sourceProximity: sourceParticipant.proximity,
+      targetProximity: targetParticipant?.proximity ?? { state: "unspecified" },
     },
   });
   return Object.freeze({ ...evaluated, scenario: normalizedScenario });
@@ -2518,6 +2546,13 @@ function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) 
       scenarioSourceEventOutcome: effect.scenario?.outcome,
       scenarioSourceEventWeaponType: effect.scenario?.weaponType,
       scenarioSourceEventMatchedCategories: effect.scenario?.matchedCategories,
+      scenarioPartyTotalMembersIncludingSelf: effect.scenario?.totalMembersIncludingSelf,
+      scenarioProximityCohort: effect.scenario?.cohort,
+      scenarioProximityComparator: effect.scenario?.comparator,
+      scenarioProximityRadiusMeters: effect.scenario?.radiusMeters,
+      scenarioProximityCount: effect.scenario?.count,
+      scenarioSamePartyPlayerOtherCount: effect.scenario?.samePartyPlayerOtherCount,
+      scenarioAlliedNonpartyPlayerCount: effect.scenario?.alliedNonpartyPlayerCount,
       sourceKinds: effect.sourceKinds,
       precision: effect.precision,
       provenance: effect.provenance,
@@ -2743,10 +2778,14 @@ export function calculateBuild(build, attributes, options = {}) {
     const targetMotion = targetParticipant?.motion ?? { state: "unspecified" };
     const sourceEventHistory = sourceParticipant?.eventHistory ?? { state: "unspecified" };
     const targetEventHistory = targetParticipant?.eventHistory ?? { state: "unspecified" };
+    const sourceParty = sourceParticipant?.party ?? { state: "unspecified" };
+    const targetParty = targetParticipant?.party ?? { state: "unspecified" };
+    const sourceProximity = sourceParticipant?.proximity ?? { state: "unspecified" };
+    const targetProximity = targetParticipant?.proximity ?? { state: "unspecified" };
     const executable = evaluated.errors.length === 0;
     result.scenarioEffects = {
       schema: "tl-helper.build-scenario-effects",
-      schemaVersion: 5,
+      schemaVersion: 6,
       gameBuild: String(data?.gameBuild ?? ""),
       kind: "combat_scenario",
       ruleset: evaluated.ruleset ?? { id: SCENARIO_EFFECT_RULESET_ID, version: SCENARIO_EFFECT_RULESET_VERSION },
@@ -2758,7 +2797,11 @@ export function calculateBuild(build, attributes, options = {}) {
       targetMotion,
       sourceEventHistory,
       targetEventHistory,
-      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources, sourceMotion, targetMotion, sourceEventHistory, targetEventHistory },
+      sourceParty,
+      targetParty,
+      sourceProximity,
+      targetProximity,
+      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources, sourceMotion, targetMotion, sourceEventHistory, targetEventHistory, sourceParty, targetParty, sourceProximity, targetProximity },
       status: executable ? "applied" : "unsupported",
       scenario: evaluated.scenario,
       evaluatedRows: evaluated.overlayRows,

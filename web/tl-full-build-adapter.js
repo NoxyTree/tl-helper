@@ -437,6 +437,10 @@ function scenarioEvaluatorInput(scenario) {
     targetMotion: target?.motion ?? { state: "unspecified" },
     sourceEventHistory: source?.eventHistory ?? { state: "unspecified" },
     targetEventHistory: target?.eventHistory ?? { state: "unspecified" },
+    sourceParty: source?.party ?? { state: "unspecified" },
+    targetParty: target?.party ?? { state: "unspecified" },
+    sourceProximity: source?.proximity ?? { state: "unspecified" },
+    targetProximity: target?.proximity ?? { state: "unspecified" },
   };
 }
 
@@ -453,6 +457,8 @@ function scenarioSetCompletionRows(set, scenario) {
       passiveSkills: [],
       masteries: [],
       masteryIds: [],
+      unifiedMasteries: [],
+      unifiedMasteryIds: [],
       itemEffects: [],
       setBreakpoints,
     },

@@ -11,6 +11,10 @@ import {
   STAT_UNIT_MODIFIERS,
   statRawValue,
 } from "../../web/tl-questlog-rules.js";
+import {
+  COMBAT_SANCTUARY_ACCURACY_RAW_PER_MEMBER,
+  COMBAT_SANCTUARY_ATTACK_RANGE_RAW_PER_MEMBER,
+} from "../../web/tl-distorted-sanctuary-data.js";
 
 const totals = (values = {}) => Object.fromEntries(
   Object.entries(values).map(([statId, total]) => [statId, { statId, total }]),
@@ -92,11 +96,13 @@ test("the four other missing persistent weapon passives use exact decoded values
 });
 
 test("mastery transformations replace or augment the passive exactly once", () => {
-  const sanctuary = passiveRows("SkillSet_WP_BO_S_AuraDefenceUp", 20, ["Bow_Normal_Tac_Skill"]);
-  assert.equal(only(sanctuary, "all_accuracy"), 440);
-  assert.equal(only(sanctuary, "attack_range_modifier"), 75);
-  lacks(sanctuary, "all_critical_defense");
-  lacks(sanctuary, "continuous_heal_modifier");
+  for (let level = 1; level <= 20; level += 1) {
+    const sanctuary = passiveRows("SkillSet_WP_BO_S_AuraDefenceUp", level, ["Bow_Normal_Tac_Skill"]);
+    assert.equal(only(sanctuary, "all_accuracy"), COMBAT_SANCTUARY_ACCURACY_RAW_PER_MEMBER[level - 1]);
+    assert.equal(only(sanctuary, "attack_range_modifier"), COMBAT_SANCTUARY_ATTACK_RANGE_RAW_PER_MEMBER[level - 1]);
+    lacks(sanctuary, "all_critical_defense");
+    lacks(sanctuary, "continuous_heal_modifier");
+  }
 
   const ambidexterity = passiveRows("SkillSet_WP_CR_S_OffHandMaxDmg", 20, ["Crossbow_High_Attack_Skill"]);
   assert.equal(only(ambidexterity, "attack_power_off_hand"), 30);

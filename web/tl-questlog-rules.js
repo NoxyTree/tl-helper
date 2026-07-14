@@ -1,3 +1,10 @@
+import {
+  COMBAT_SANCTUARY_ACCURACY_RAW_PER_MEMBER,
+  COMBAT_SANCTUARY_ATTACK_RANGE_RAW_PER_MEMBER,
+  DISTORTED_SANCTUARY_ENDURANCE_RAW_PER_MEMBER,
+  DISTORTED_SANCTUARY_HEAL_OVER_TIME_RAW_PER_MEMBER,
+} from "./tl-distorted-sanctuary-data.js";
+
 // Questlog-compatible calculation rules captured from the public character builder.
 // These tables are kept separate from tl-core.js so the ordered calculator remains readable.
 
@@ -63,8 +70,6 @@ const decodedHasMastery=(build,id)=>Boolean(build?.specialization?.find(row=>row
 const forbiddenDirectionalCritical=[48,51,54,57,60,63,66,69,72,75,78,81,84,87,90,92,94,96,98,100];
 const earthHealthRegen=[12,20,28,36,44,52,60,68,76,84,92,100,108,116,124,128,132,136,140,144];
 const earthContinuousHealRaw=[1500,1650,1800,1950,2100,2250,2400,2550,2700,2850,3000,3150,3300,3450,3600,3660,3720,3780,3840,3900];
-const sanctuaryEnduranceRaw=[180,210,240,270,300,330,360,390,420,450,480,510,540,570,600,612,624,636,648,660];
-const sanctuaryContinuousHealRaw=[180,210,240,270,300,330,360,390,420,450,480,510,540,570,600,612,624,636,648,660];
 const ambidexterityMaxDamage=[12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,41,42,43,44,45];
 const physiqueHealth=[470,590,710,830,950,1070,1190,1310,1430,1550,1670,1790,1910,2030,2150,2210,2270,2330,2390,2450];
 const physiqueStamina=[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,17,18,18,19,19];
@@ -113,11 +118,11 @@ Object.assign(PASSIVE_SKILL_RULES,{
     {statId:"continuous_heal_modifier",value:decodedLevelValue(earthContinuousHealRaw,level)},
   ]},
   SkillSet_WP_BO_S_AuraDefenceUp:{phase:1,effect:(level,build)=>decodedHasMastery(build,"Bow_Normal_Tac_Skill")?[
-    {statId:"all_accuracy",value:z("all_accuracy",44)},
-    {statId:"attack_range_modifier",value:z("attack_range_modifier",.75)},
+    {statId:"all_accuracy",value:decodedLevelValue(COMBAT_SANCTUARY_ACCURACY_RAW_PER_MEMBER,level)},
+    {statId:"attack_range_modifier",value:decodedLevelValue(COMBAT_SANCTUARY_ATTACK_RANGE_RAW_PER_MEMBER,level)},
   ]:[
-    {statId:"all_critical_defense",value:decodedLevelValue(sanctuaryEnduranceRaw,level)},
-    {statId:"continuous_heal_modifier",value:decodedLevelValue(sanctuaryContinuousHealRaw,level)},
+    {statId:"all_critical_defense",value:decodedLevelValue(DISTORTED_SANCTUARY_ENDURANCE_RAW_PER_MEMBER,level)},
+    {statId:"continuous_heal_modifier",value:decodedLevelValue(DISTORTED_SANCTUARY_HEAL_OVER_TIME_RAW_PER_MEMBER,level)},
   ]},
   SkillSet_WP_CR_S_OffHandMaxDmg:{phase:1,effect:(level,build)=>decodedHasMastery(build,"Crossbow_High_Attack_Skill")?[
     {statId:"attack_power_off_hand",value:z("attack_power_off_hand",30)},

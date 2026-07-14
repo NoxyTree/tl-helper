@@ -33,18 +33,18 @@ test("catalogue covers the exact conditional source universe", () => {
   assert.equal(catalog.schemaVersion, SCENARIO_EFFECT_CATALOG_SCHEMA_VERSION);
   assert.equal(catalog.gameBuild, "24118850");
   assert.deepEqual(catalog.counts, {
-    total: 531,
+    total: 534,
     byFamily: {
-      weaponPassive: 63,
+      weaponPassive: 65,
       masteryNonStructured: 159,
       itemPerkComplex: 286,
-      setBreakpointConditional: 23,
+      setBreakpointConditional: 24,
     },
     bySupportState: {
-      catalogued_unmodeled: 490,
-      scenario_executable_decoded: 20,
+      catalogued_unmodeled: 489,
+      scenario_executable_decoded: 22,
       unsupported_static_calculator: 9,
-      static_component_only: 12,
+      static_component_only: 14,
     },
   });
 
@@ -59,12 +59,12 @@ test("catalogue covers the exact conditional source universe", () => {
   );
 });
 
-test("set component registry separates nine whole unsupported breakpoints from fourteen calculated-static remainders", () => {
+test("set component registry separates nine whole unsupported breakpoints from fifteen calculated-static remainders", () => {
   const whole = SET_CONDITIONAL_COMPONENTS.filter((row) => row.componentKind === "whole_breakpoint");
   const remainder = SET_CONDITIONAL_COMPONENTS.filter((row) => row.componentKind === "conditional_remainder");
   assert.equal(whole.length, 9);
-  assert.equal(remainder.length, 14);
-  assert.equal(new Set(SET_CONDITIONAL_COMPONENTS.map((row) => row.key)).size, 23);
+  assert.equal(remainder.length, 15);
+  assert.equal(new Set(SET_CONDITIONAL_COMPONENTS.map((row) => row.key)).size, 24);
   assert.deepEqual(sorted(whole.map((row) => row.key)), sorted(Object.keys(UNSUPPORTED_SET_BREAKPOINTS)));
   assert.equal(whole.every((row) => row.reason && !Object.hasOwn(row, "staticComponent")), true);
   assert.equal(remainder.every((row) => row.staticComponent), true);
@@ -76,7 +76,7 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   assert.equal(catalog.policy.descriptionInference, false);
   assert.equal(Object.hasOwn(catalog, "defaultEffect"), false);
   assert.equal(Object.hasOwn(catalog, "defaultSupportState"), false);
-  assert.equal(new Set(catalog.effects.map((row) => row.catalogId)).size, 531);
+  assert.equal(new Set(catalog.effects.map((row) => row.catalogId)).size, 534);
   for (const effect of catalog.effects) {
     assert.ok(effect.sourceId);
     assert.ok(effect.name);
@@ -89,8 +89,8 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
     assert.equal(Object.hasOwn(effect, "trigger"), false);
     assert.equal(Object.hasOwn(effect, "formula"), false);
     if (effect.supportState === "scenario_executable_decoded") {
-      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount", "decoded_exact_threshold", "decoded_exact_motion_threshold", "decoded_exact_evaluation_instant"].includes(effect.precision.stage));
-      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario", "reviewed_source_resource_threshold", "reviewed_source_motion_scenario", "reviewed_successful_activation_event"].includes(effect.precision.semantics));
+      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount", "decoded_exact_threshold", "decoded_exact_motion_threshold", "decoded_exact_evaluation_instant", "decoded_exact_social_count"].includes(effect.precision.stage));
+      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario", "reviewed_source_resource_threshold", "reviewed_source_motion_scenario", "reviewed_successful_activation_event", "reviewed_source_party_proximity_scenario"].includes(effect.precision.semantics));
       assert.equal(effect.precision.executable, true);
       assert.ok(effect.executableSemantics);
       assert.ok(effect.unresolvedFields.length === 0
@@ -106,7 +106,7 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   }
 });
 
-test("only the twenty reviewed decoded scenario rules are promoted to deterministic executable references", () => {
+test("only the twenty-two reviewed decoded scenario rules are promoted to deterministic executable references", () => {
   const catalog = buildScenarioEffectCatalog(inputs());
   const expectedIds = sorted([
     "Bow_High_Tac_Skill",
@@ -115,6 +115,7 @@ test("only the twenty reviewed decoded scenario rules are promoted to determinis
     "Orb_Rare_Util_Skill",
     "Spear_Rare_Def_Skill",
     "SkillSet_WP_BO_S_DistanceCritical",
+    "SkillSet_WP_BO_S_AuraDefenceUp",
     "SkillSet_WP_BO_S_InplaceAttack",
     "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
     "SkillSet_WP_DA_DA_S_MoveSkillEvasion",
@@ -127,6 +128,7 @@ test("only the twenty reviewed decoded scenario rules are promoted to determinis
     "SkillSet_WP_SW2_S_SkillMaster",
     "Sword2h_Hero_Attack_01",
     "Sword2h_Normal_Tac_Skill",
+    "WM_Common_SKILL_020",
     "set_aa_t4_Plate_002:4",
     "set_aa_t4_leather_001:4",
   ]);
@@ -139,7 +141,7 @@ test("only the twenty reviewed decoded scenario rules are promoted to determinis
     assert.deepEqual(reference, EXECUTABLE_SCENARIO_RULE_REFERENCES[effect.sourceId]);
     assert.equal(reference.definitionKey, effect.sourceId);
     assert.equal(reference.gameBuild, "24118850");
-    assert.ok(["target_distance", "time_of_day", "source_resource_threshold", "source_motion", "source_event_activation_instant"].includes(reference.mechanic));
+    assert.ok(["target_distance", "time_of_day", "source_resource_threshold", "source_motion", "source_event_activation_instant", "source_party_proximity"].includes(reference.mechanic));
     assert.ok(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId]);
     assert.notEqual(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId].executable, false);
     if (reference.mechanic === "target_distance") {
@@ -167,7 +169,7 @@ test("only the twenty reviewed decoded scenario rules are promoted to determinis
       assert.equal(reference.definitionsExport, "MOTION_EFFECT_DEFINITIONS");
       assert.deepEqual(reference.requiredScenarioInputs, ["participants[source].motion"]);
       assert.deepEqual(reference.unresolvedFields, []);
-    } else {
+    } else if (reference.mechanic === "source_event_activation_instant") {
       assert.equal(reference.modulePath, "web/tl-event-scenario-effects.js");
       assert.equal(reference.evaluatorExport, "evaluateEventScenarioEffects");
       assert.equal(reference.definitionsExport, "EVENT_EFFECT_DEFINITIONS");
@@ -175,6 +177,14 @@ test("only the twenty reviewed decoded scenario rules are promoted to determinis
       assert.deepEqual(reference.unresolvedFields, ["duration"]);
       assert.match(reference.precisionLimitation, /occurredAgoMs 0/);
       assert.match(reference.precisionLimitation, /Buff Duration/);
+    } else {
+      assert.equal(reference.modulePath, "web/tl-social-scenario-effects.js");
+      assert.equal(reference.evaluatorExport, "evaluateSocialScenarioEffects");
+      assert.equal(reference.definitionsExport, "SOCIAL_EFFECT_DEFINITIONS");
+      assert.deepEqual(reference.requiredScenarioInputs, ["participants[source].proximity"]);
+      assert.deepEqual(reference.optionalScenarioInputs, ["participants[source].party"]);
+      assert.deepEqual(reference.unresolvedFields, []);
+      assert.match(reference.precisionLimitation, /Missing cohorts remain unknown/);
     }
     assert.equal(effect.provenance.some((row) => row.kind === "decoded_executable_rule" && row.path === reference.modulePath), true);
     assert.equal(effect.sourceEdges.some((row) => row.relation === "executed_by_reviewed_rule" && row.to === reference.ruleId), true);
@@ -191,6 +201,18 @@ test("only the twenty reviewed decoded scenario rules are promoted to determinis
 
 test("mixed static and scenario components retain both calculation authorities", () => {
   const catalog = buildScenarioEffectCatalog(inputs());
+  const distorted = catalog.effects.find((row) => row.catalogId === "weaponPassive:SkillSet_WP_BO_S_AuraDefenceUp");
+  assert.ok(distorted);
+  assert.equal(distorted.supportState, "scenario_executable_decoded");
+  assert.equal(distorted.componentKind, "conditional_remainder");
+  assert.equal(distorted.staticComponent.status, "calculated_separately");
+  assert.match(distorted.staticComponent.summary, /one-member self minimum/);
+
+  const impenetrable = catalog.effects.find((row) => row.catalogId === "weaponPassive:SkillSet_WP_SW_SH_S_AroundCountBuff");
+  assert.ok(impenetrable);
+  assert.equal(impenetrable.supportState, "static_component_only");
+  assert.match(impenetrable.staticComponent.summary, /two-or-fewer-target minimum/);
+
   const asceticism = catalog.effects.find((row) => row.catalogId === "weaponPassive:SkillSet_WP_ST_S_ManaRegenBuff");
   assert.ok(asceticism);
   assert.equal(asceticism.supportState, "scenario_executable_decoded");
@@ -223,6 +245,15 @@ test("mixed static and scenario components retain both calculation authorities",
     authority: "web/tl-core.js set-effect trace",
   });
   assert.match(blizzard.precision.limitation, /Elapsed duration/);
+
+  const divineApostle = catalog.effects.find((row) => row.catalogId === "setBreakpointConditional:set_aa_t3_fabric_002:4");
+  assert.ok(divineApostle);
+  assert.equal(divineApostle.supportState, "static_component_only");
+  assert.deepEqual(divineApostle.staticComponent, {
+    status: "calculated_separately",
+    summary: "Continuous Healing +30%.",
+    authority: "web/tl-core.js set-effect trace",
+  });
 });
 
 test("catalogue and checked-in browser artifact are deterministically ordered and byte reproducible", () => {

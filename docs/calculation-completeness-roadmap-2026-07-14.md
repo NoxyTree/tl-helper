@@ -18,7 +18,7 @@ Current closed-world inventories are:
 | Weapon passives | 80 | Every ID classified exactly once |
 | Non-structured mastery | 193 | Every ID classified exactly once; 33 persistent mappings across unified and weapon mastery |
 | Innate item and selectable perk complexes | 294 | Every ID classified exactly once |
-| Conditional source components | 531 | 20 exact scenario rules executable; 511 explicitly non-executable and fail-closed |
+| Conditional source components | 534 | 22 exact scenario rules executable; 512 explicitly non-executable and fail-closed |
 
 Selected skills and masteries are active only for equipped weapon families. Unified mastery is global. Build From Scratch can temporarily supply its requested weapon families to the same calculator while it constructs progression before concrete weapons are equipped. That override is local to scratch evaluation and does not change normal build calculation.
 
@@ -41,14 +41,26 @@ The scenario contract must grow by evidence-backed dimensions, not by parsing to
 2. Self Health or Mana thresholds. CombatScenario v2 and the three optimizer-facing pages now carry optional participant-owned resource ratios. Critical Equilibrium and Tranquil Will are exact and executable. Absolute resource amounts and target-resource rules remain separate future work.
 3. Source moving and stationary state is now exact for Rapidfire Stance, Battle Tempo, Asceticism, Aridus's Fury, and Stigma Executor. Position remains excluded because no remaining direction-only source is executable from direction alone.
 4. Seven deterministic source-event effects are now exact at the evaluation instant for a confirmed successful qualifying activation: Shadow Walker, Nimble Steps, Barbarian's Dash, its Steadfast Rush augmentation, Enduring Dash, Mirage Dancer's Mobility branch, and Blizzard Overture 4-piece. CombatScenario v4 records observed event history, and these rules execute only at `occurredAgoMs: 0`. Elapsed duration and positive Buff Duration are not modeled, so aged events fail closed. Cooldown-bearing triggers, activation locks, refresh behavior, and uptime also remain unsupported.
-5. Party size, nearby allies, aura ownership, and recipient rules.
+5. Party size and nearby allies are now represented by CombatScenario v5. Distorted Sanctuary and Shielded by Unity are exact. Aura ownership, recipient propagation, and other social effects remain separate future work.
 6. Skill-use, control, weaken, collision, and active-weapon state.
 7. Stacks, proc chance, cooldown, duration, refresh, and uptime policy.
 8. Target defenses, resistances, debuffs, immunities, and PvE or PvP mode.
 
 For each family, add a closed-world schema, decoded rule definitions, source-weapon gating, legality behavior, cache fingerprinting, exact trace output, cross-page integration tests, and fail-closed handling for every unresolved member.
 
-### 3. Add final combat resolution as a separate calibrated layer
+### 3. Implement item-potential skill outcomes
+
+The item-potential projection contains both stat outcomes and skill outcomes. Current selection, validation and calculation paths apply only stat potentials, so skill outcomes cannot yet influence build totals or optimizer choices. Before final release:
+
+1. Decode and classify every potential skill outcome as persistent, scenario-conditional or unsupported.
+2. Extend the item selection schema so a potential outcome is one mutually exclusive stat or skill choice.
+3. Apply selected persistent potential skills through the same passive-effect authority and weapon/item gates.
+4. Enumerate legal potential skill choices in Gear Viewer, Full Build Optimizer and Build From Scratch.
+5. Add canonical cross-page, import, snapshot, legality and optimizer-finalist fixtures.
+
+No potential skill may receive value from tooltip prose or an optimistic hint before it has an executable decoded rule.
+
+### 4. Add final combat resolution as a separate calibrated layer
 
 Static stats and scenario overlays are inputs to combat resolution, not substitutes for it. The following still need decoded or controlled-test evidence:
 
@@ -61,7 +73,7 @@ Static stats and scenario overlays are inputs to combat resolution, not substitu
 
 Each formula stage must be labeled exact, derived, calibrated, modeled, or unsupported. Server-only behavior must not be presented as exact.
 
-### 4. Make progression choice finalist-aware
+### 5. Make progression choice finalist-aware
 
 Scratch progression now scores all mapped persistent mastery effects and mastery-to-passive interactions through the canonical calculator. The next deterministic improvement is:
 
@@ -72,7 +84,9 @@ Scratch progression now scores all mapped persistent mastery effects and mastery
 
 This closes the known weakness where a gear-dependent or attribute-threshold mastery is initially valued against a naked zero-attribute scratch build.
 
-### 5. Separate exact arithmetic from search optimality
+The progression allocator must also enumerate every eligible unified mastery. It currently needs an explicit search path for scenario-valued nodes such as Shielded by Unity rather than relying on a source build already containing the selection.
+
+### 6. Separate exact arithmetic from search optimality
 
 Every retained finalist is already recalculated by the canonical calculator. The search itself uses bounded candidate caps, beam width, attribute seeds, set-completion hints, and rune refinement. Therefore the present UI correctly says `best loadout found`, not `global optimum`.
 
@@ -83,7 +97,7 @@ To claim an absolute item choice for a fixed scenario and objective, implement e
 
 The objective must name the scenario, ranked stats, caps, minimums, attribute budget, owned-item restrictions, rune policy, weapon pair, progression budget, and game build. There is no scenario-independent universally best build.
 
-### 6. Certify every consuming page and data boundary
+### 7. Certify every consuming page and data boundary
 
 Maintain one page matrix that proves:
 
