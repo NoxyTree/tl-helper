@@ -1,6 +1,6 @@
 # Project status: TL data platform
 
-Updated 2026-07-11 after PvP formula research and modeled-operation updates. Current snapshot:
+Updated 2026-07-14 after the persistent-calculation authority review and receipted canonical data rebuild. Current snapshot:
 game version `1.431.22.7761`, Steam build `24118850`, decoder `0.2.0`.
 
 Public-beta release preparation was completed locally on 2026-07-12. The
@@ -38,14 +38,15 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | Layer | Current state | Entry point or evidence |
 | --- | --- | --- |
 | Web application | Armory, tracker, achievements, static build calculator, and first Combat Lab | `web/` |
-| BuildSnapshot v1 | Immutable, versioned static-build contract used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
+| BuildSnapshot v2 | Immutable, versioned raw-build contract with authoritative recalculation, used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
 | Static calculation regression | 69/69 assertions across 3 fixtures; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
 | Coverage audit | All four stated counts validate from the new data root | `node scripts/audit-questlog-coverage.mjs` |
-| `TLJsonDataTable` decoder | RowStruct-validated tagged-property decoding; 30 curated tables clean, including `TLEffectProperty` and all weapon abnormal states | `node scripts/decode-tljson-table.mjs --all-priority` |
+| `TLJsonDataTable` decoder | RowStruct-validated tagged-property decoding; 55 reviewed tables clean, including `TLEffectProperty` and all weapon abnormal states | `node scripts/decode-tljson-table.mjs --all-priority` |
 | Collector | 92 tests; deterministic rerun, resume, build-scoped output, `TL_DATA_ROOT` | `dotnet run --project src/TlCollector/App -- sample` |
-| Normalized warehouse | **140,591 records across 48 decoded tables**, with provenance and FTS5 | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
+| Normalized warehouse | **159,448 records across 55 decoded tables**, with provenance, FTS5, full semantic hashes, and atomic promotion | `D:\TL_Data\warehouse\tl-24118850.sqlite` |
 | Stat-source index | 293,446 level/rank rows across 2,394 named static sources and 110 canonical metrics | `scripts/build-stat-sources.mjs` |
 | Table inventory | 1,387 tables across 680 families inventoried and prioritized | `D:\TL_Data\reports\24118850\table-inventory.json` |
+| Data build receipt | Clean-commit provenance for the canonical warehouse, inventory, stat sources, and exact input hashes | `data-build-receipts/24118850.json` |
 | Asset casing | App-only 2,692 references: 2,269 exact and 423 case-insensitive; no missing references | `node --test scripts/tests/asset-case-index.test.mjs` |
 | Discovery evidence | Ascended Ramux and WP_CL evidence packets | `D:\TL_Data\reports\24118850\evidence\` |
 | Combat data audit | Milestone 0 complete; 4 deliverables and 7 initial validation abilities | `plans/combat-simulator/combat-data-audit.md` |
@@ -69,10 +70,10 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 
 ## Verified data snapshot
 
-The following values were checked against the warehouse, inventory JSON, and
-coverage summary on 2026-07-10:
+The following values were checked against the receipted warehouse, inventory
+JSON, and refreshed coverage summary on 2026-07-14:
 
-- Warehouse: **140,591 records**, **48 distinct decoded tables**, 8,564 records with resolved English names.
+- Warehouse: **159,448 records**, **55 decoded tables**, 159,448 matching FTS rows, 5,613 references, 3,491 assets, and 8,564 records with resolved English names. Stored hashes for the decoded manifest, records, references, assets, and FTS all match hashes freshly recomputed from SQLite.
 - Newly decoded combat coverage: `TLEffectProperty` contributes 54,205 client-visible effect-property rows; all eleven weapon abnormal-state tables are decoded, including 174 Staff rows. This improves effect and buff evidence, but does not prove server modifier order, mitigation, contests, or rounding.
 - Inventory: 1,387 tables, 680 families, 676,769,295 raw bytes indexed.
 - Formula system: `TLFormulaParameterNew` has 10,656 rows and 26 formula types.
@@ -90,17 +91,18 @@ coverage summary on 2026-07-10:
   and SHA-256 hashes.
 - Live browser verification: Armory and Tracker both passed against the
   projected dataset.
-- BuildSnapshot: schema `tl-helper.build-snapshot` v1, ruleset
-  `questlog-static-v1`, with immutable resolved output and canonical JSON
-  round-trip verification.
+- BuildSnapshot: schema `tl-helper.build-snapshot` v2, ruleset
+  `questlog-static-v1`, with immutable raw state, authoritative recalculation,
+  and canonical JSON round-trip verification.
 - Stat sources: 293,446 build-scoped rows, 2,394 named sources, 193 raw stat
   IDs, and 110 canonical metrics. Heavy Attack Chance has 15,247 rows across
   490 named sources. Fixed curves, selectable traits, randomized rune and
   resonance rolls, direct synergies and sets, attributes, threshold bonuses,
   material rules, and mastery ranks remain distinct.
-- Latest verification gate: BuildSnapshot passed, 69/69 assertions across 3
-  fixtures, all 12 edge checks passed, JavaScript tests 197/197, collector tests
-  92/92.
+- Latest verification gate: BuildSnapshot v2 passed, 69/69 assertions across 3
+  fixtures, all 12 edge checks passed, JavaScript tests 547/547, and all four
+  refreshed coverage validations passed. Collector tests remain 92/92 from the
+  prior collector gate; the receipted run did not rerun collection.
 
 ## Combat milestones
 
@@ -126,10 +128,11 @@ live outcome.
 
 Combat Simulator Milestone 1 is also complete. The Armory and tracker both use
 `resolveBuildSnapshot()` as the stable browser boundary around
-`calculateBuild()`. BuildSnapshot v1 includes normalized attributes and loadout,
-resolved stats and sources, combat power, rune synergies, validation, ruleset,
-calculator version, and game-data build. Snapshots are deeply immutable,
-versioned, validated, and canonically serializable.
+`calculateBuild()`. BuildSnapshot v2 stores normalized raw attributes and
+loadout while recalculating resolved stats, sources, combat power, rune
+synergies, and validation through the current ruleset, calculator version, and
+game-data build. Snapshots are deeply immutable, versioned, validated, and
+canonically serializable.
 
 Combat Simulator Milestone 2 is complete in `packages/combat-engine`. The
 engine is independent of the DOM and existing calculator, uses BigInt

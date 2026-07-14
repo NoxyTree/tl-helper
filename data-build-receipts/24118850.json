@@ -1,0 +1,203 @@
+{
+  "schema": "tl-helper.data-build-receipt",
+  "schemaVersion": 1,
+  "gameBuild": "24118850",
+  "generatedAtUtc": "2026-07-14T07:06:03.367Z",
+  "schemaPath": "schemas/data-build-receipt.schema.json",
+  "sourceRun": {
+    "startedAtUtc": "2026-07-14T07:01:19.589Z",
+    "finishedAtUtc": "2026-07-14T07:06:03.367Z",
+    "mode": "run",
+    "status": "passed",
+    "reportPath": "D:\\TL_Data\\reports\\24118850\\update-runs\\2026-07-14T07-01-19-589Z.json"
+  },
+  "generator": {
+    "gitCommit": "8365c0046fea968355245ea90c67c023efdddee3",
+    "worktreeDirty": false,
+    "dirtyPaths": [],
+    "nodeVersion": "v24.14.1",
+    "sourceSetSha256": "e4fb25faeec6f213abcb9c872fccfdff6e4d8547df237ebcb86b85a8384ef0b8",
+    "files": [
+      {
+        "path": "scripts/update-tl-helper.mjs",
+        "sha256": "87804e230c1d7797fe8562486bca8c8969e419d8dfbc58943bf642f7c1dfabea"
+      },
+      {
+        "path": "scripts/build-warehouse.mjs",
+        "sha256": "84134f042341329433cb9c76cbbe788de898a1b8d35d42035f3a321fc861e516"
+      },
+      {
+        "path": "scripts/build-table-inventory.mjs",
+        "sha256": "c310bd7a209ca15f3158d9cdc4ed8da951175c2b0ebabe1c4b0fe4a12c5d22c7"
+      },
+      {
+        "path": "scripts/generate-data-build-receipt.mjs",
+        "sha256": "037d04fd1679cd33cd6bd55f71efa813afeab58a408cbda95bd660546e011830"
+      },
+      {
+        "path": "scripts/build-stat-sources.mjs",
+        "sha256": "f498f7612b1adf32a85383d277eada59f5ad408fb29cc324bc83b2b59727666d"
+      },
+      {
+        "path": "scripts/lib/asset-case-index.mjs",
+        "sha256": "c6219771ee322b286acd14e3aaf592449d5ac057cb57d1bb0f19f2cc48a4fa39"
+      },
+      {
+        "path": "scripts/lib/data-build-receipt.mjs",
+        "sha256": "057766b2dec66f7842768c04ee839072d0f4adda71e2ecc1d032ea3a9f671cef"
+      },
+      {
+        "path": "scripts/lib/json-schema-validator.mjs",
+        "sha256": "892fa97deff2749158c2ed66feff5ed86f42548f2fbeb27a73e448d02348d235"
+      },
+      {
+        "path": "scripts/lib/stat-sources.mjs",
+        "sha256": "05fd93f187cc34a9f61d4a3ca013392dbeb382309b60a08edef42b794059ecd7"
+      },
+      {
+        "path": "scripts/lib/stat-sources-progression.mjs",
+        "sha256": "5accccf6e6330e1fb1bc785539b8fe7700ddb6dc663f2cf3dae2f82dd7863a87"
+      },
+      {
+        "path": "scripts/lib/stat-sources-runes.mjs",
+        "sha256": "9ec5398baca23a525e102a58b3cdbedc49c96fc9088acd3bf7d0cd2207161129"
+      },
+      {
+        "path": "scripts/lib/stat-taxonomy.mjs",
+        "sha256": "070427551fca3f1c7ceb18b9256eb9ad717e424d47025ff087fe1f6f9b9fd46a"
+      },
+      {
+        "path": "schemas/data-build-receipt.schema.json",
+        "sha256": "796e2db3cd4fc0060530ffeb06604520abdcec151c8ef2971ac6a2d3e93ee5f2"
+      },
+      {
+        "path": "schemas/decoded-data-baseline.schema.json",
+        "sha256": "55370644d26848c52d718b8e58eec680ccb6875b66a822c85c7f18cad5f4ba9e"
+      },
+      {
+        "path": "web/tl-questlog-rules.js",
+        "sha256": "4a08024bfb0aa21a383d2957cfc002056b9d627f77887fbb911a2b7ad533999c"
+      }
+    ]
+  },
+  "inputs": {
+    "decodedTables": {
+      "exists": true,
+      "path": "D:\\TL_Data\\decoded\\24118850\\tables",
+      "tableCount": 55,
+      "rowCount": 159448,
+      "decoderVersions": [
+        "0.1.0",
+        "0.2.0"
+      ],
+      "sourceSetSha256": "8ac42fc1a3089c703ff84903394098fcf31c9b432c6dc061bdae89eaaf36ea0e",
+      "artifactSetSha256": "bb0787a2eb8e39673700e20aaa2418f575ed0f0f02643d90198a2c6fd458a8a2"
+    },
+    "decodedBaseline": {
+      "exists": true,
+      "path": "D:\\TL_Helper-calculation-release\\data-build-baselines\\24118850.json",
+      "sha256": "829916d93ced306a8526de1908035eace33c5929bb3ef45da1e989f07d495a65"
+    },
+    "localization": {
+      "exists": true,
+      "path": "D:\\TL_Data\\raw\\24118850\\extracted\\localization\\csv\\en.csv",
+      "sha256": "f3886f590ef15955a68f0ac9f4c50ed7eab38b533fa89c4756aaa5e3b1e8664b"
+    },
+    "texturePaths": {
+      "exists": true,
+      "path": "D:\\TL_Data\\raw\\24118850\\extracted\\textures\\TL\\Content",
+      "fileCount": 15020,
+      "pathSetSha256": "2eab096d8a78f0401210c5719f1b9e388567bdfbe112a627537e5ef60358950d"
+    },
+    "questlogEquipment": {
+      "exists": true,
+      "path": "D:\\TL_Helper\\out\\questlog-public\\characterBuilder.getEquipmentItems.json",
+      "sha256": "9fc2f08f4ea364d6c5293842877b0f421959d5a733b6803256adc95ce246088c"
+    },
+    "questlogSkills": {
+      "exists": true,
+      "path": "D:\\TL_Helper\\out\\questlog-public\\skillBuilder.getSkillSets.json",
+      "sha256": "d38532d584b64457b50867df6d1f35610ccb3abf7b128d49ca6ed0611122d1bf"
+    },
+    "gameTablesIndex": {
+      "exists": true,
+      "path": "D:\\TL_Data\\raw\\24118850\\extracted\\indexes\\game_tables.csv",
+      "sha256": "ed88583368cbc3a3f73a1ee005bc279fd62392569a2c0376860b7a67aedd2ddb"
+    }
+  },
+  "outputs": {
+    "warehouse": {
+      "exists": true,
+      "path": "D:\\TL_Data\\warehouse\\tl-24118850.sqlite",
+      "sha256": "a484a8f5c4f59c968f157bcf1d0345890060483fad609856d76608488f6e75b8",
+      "bytes": 564629504,
+      "gameBuild": "24118850",
+      "gameVersion": "1.431.22.7761",
+      "contract": "docs/data-contract.md v1",
+      "integrity": "ok",
+      "decodedManifestPresent": true,
+      "localizationSha256": "f3886f590ef15955a68f0ac9f4c50ed7eab38b533fa89c4756aaa5e3b1e8664b",
+      "texturePathSetSha256": "2eab096d8a78f0401210c5719f1b9e388567bdfbe112a627537e5ef60358950d",
+      "questlogEquipmentSha256": "9fc2f08f4ea364d6c5293842877b0f421959d5a733b6803256adc95ce246088c",
+      "questlogSkillsSha256": "d38532d584b64457b50867df6d1f35610ccb3abf7b128d49ca6ed0611122d1bf",
+      "decodedBaselineSha256": "829916d93ced306a8526de1908035eace33c5929bb3ef45da1e989f07d495a65",
+      "sourceManifestSha256": "1ff60e80105cc35804489a9d4a63f8c85c1a4b0a0c3d0c53b1fdf30389275e4e",
+      "semanticHashSchema": "length-prefixed-json-tuples-v1",
+      "decodedTablesSemanticSha256": "13b4f71e06fcbacee344a27f26f4b955ae8f7e41a00f0f91950dc54212fd64cd",
+      "recordsSemanticSha256": "251779abe992c00482db7d4f0b59812d88996197fe3f3a052291902a2489abf0",
+      "refsSemanticSha256": "a084e7aa766d116732bd8a02cb44753c0e3b290a5a36721c4806821071f92456",
+      "assetsSemanticSha256": "eead2eb315ba32cd2d6b9ed31ef48d33560df02d6b81562ad7ab7904f2aaf14c",
+      "ftsSemanticSha256": "68b63c72265edbbc3d40388a3a8d6058d8ba8b3f6fd06faff0775982cdab7156",
+      "computedDecodedTablesSemanticSha256": "13b4f71e06fcbacee344a27f26f4b955ae8f7e41a00f0f91950dc54212fd64cd",
+      "computedRecordsSemanticSha256": "251779abe992c00482db7d4f0b59812d88996197fe3f3a052291902a2489abf0",
+      "computedRefsSemanticSha256": "a084e7aa766d116732bd8a02cb44753c0e3b290a5a36721c4806821071f92456",
+      "computedAssetsSemanticSha256": "eead2eb315ba32cd2d6b9ed31ef48d33560df02d6b81562ad7ab7904f2aaf14c",
+      "computedFtsSemanticSha256": "68b63c72265edbbc3d40388a3a8d6058d8ba8b3f6fd06faff0775982cdab7156",
+      "tableCount": 55,
+      "recordCount": 159448,
+      "ftsRecordCount": 159448,
+      "refCount": 5613,
+      "assetCount": 3491,
+      "localizedRecordCount": 8564,
+      "sourceSetSha256": "8ac42fc1a3089c703ff84903394098fcf31c9b432c6dc061bdae89eaaf36ea0e"
+    },
+    "inventory": {
+      "exists": true,
+      "path": "D:\\TL_Data\\reports\\24118850\\table-inventory.json",
+      "sha256": "76437852176767cb718eb9e014c6a06e52cdae39f25acb23f4701eda0d5333ff",
+      "bytes": 346938,
+      "gameBuild": "24118850",
+      "decoderVersion": "mixed",
+      "tableCount": 1387,
+      "familyCount": 680,
+      "decodedTableCount": 55,
+      "decodedRowCount": 159448,
+      "rawBytes": 676769295,
+      "semanticSha256": "fa4913bbb73740d49e495fd43f343303332f51280080d938c50ba192ec83bce6",
+      "computedSemanticSha256": "fa4913bbb73740d49e495fd43f343303332f51280080d938c50ba192ec83bce6",
+      "semanticExcludes": [
+        "generatedAtUtc",
+        "semanticIdentity"
+      ],
+      "repositoryCopy": {
+        "exists": true,
+        "path": "D:\\TL_Helper-calculation-release\\out\\coverage-audit\\table-inventory.json",
+        "sha256": "76437852176767cb718eb9e014c6a06e52cdae39f25acb23f4701eda0d5333ff",
+        "bytes": 346938,
+        "gameBuild": "24118850",
+        "decoderVersion": "mixed",
+        "tableCount": 1387,
+        "familyCount": 680,
+        "decodedTableCount": 55,
+        "decodedRowCount": 159448,
+        "rawBytes": 676769295,
+        "semanticSha256": "fa4913bbb73740d49e495fd43f343303332f51280080d938c50ba192ec83bce6",
+        "computedSemanticSha256": "fa4913bbb73740d49e495fd43f343303332f51280080d938c50ba192ec83bce6",
+        "semanticExcludes": [
+          "generatedAtUtc",
+          "semanticIdentity"
+        ]
+      }
+    }
+  }
+}

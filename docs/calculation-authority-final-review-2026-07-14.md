@@ -14,6 +14,26 @@ Every projected set breakpoint and passive-like effect has an explicit machine-c
 
 The release claim is intentionally limited to persistent static build state. It does not claim exact live encounter outcomes for triggers, target state, party state, position, active buffs, procs, damage mitigation order, or server rounding.
 
+## Certified data baseline
+
+The static authority now rests on a receipted canonical rebuild rather than a
+stale warehouse:
+
+- Source run: `D:\TL_Data\reports\24118850\update-runs\2026-07-14T07-01-19-589Z.json`
+- Receipt: `data-build-receipts/24118850.json`
+- Clean generator commit: `8365c0046fea968355245ea90c67c023efdddee3`
+- Decoded universe: `55` tables and `159,448` records
+- Full inventory: `1,387` tables across `680` families
+- Stat-source materialization: `293,446` rows across `2,394` named sources
+- Warehouse SHA-256 after stat-source materialization: `a484a8f5c4f59c968f157bcf1d0345890060483fad609856d76608488f6e75b8`
+- Inventory semantic SHA-256: `fa4913bbb73740d49e495fd43f343303332f51280080d938c50ba192ec83bce6`
+
+The run atomically rebuilt and validated the warehouse and inventory, then
+materialized stat sources and regenerated evidence before issuing the receipt.
+SQLite integrity is `ok`, journal mode is `DELETE`, FTS count equals record
+count, both inventory copies are byte-identical, and all five stored warehouse
+semantic hashes match values recomputed from live content.
+
 ## What is included in persistent static totals
 
 - Equipped items and exact item levels
@@ -212,7 +232,7 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `512/512`
+- Node test suite: `547/547`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
