@@ -28,7 +28,7 @@ test("resource percentages are validated and converted to integer basis points",
 
 test("the canonical scenario is sent to the optimizer only when enabled", () => {
   assert.match(html, /if\(!input\.enabled\)return null/);
-  assert.match(html, /this\.core\.createBuildScenario\(build,\{targetDistanceMeters,timeOfDay/);
+  assert.match(html, /this\.core\.createBuildScenario\(scenarioBuild,\{targetDistanceMeters,timeOfDay/);
   assert.match(html, /const scenario=this\.buildScenario\(source\.build\)/);
   assert.match(html, /\.\.\.\(scenario\?\{scenario\}:\{\}\)/);
 });
@@ -56,5 +56,5 @@ test("scenario-adjusted results visibly explain their context and static Armory 
   assert.match(html, /Number\.isInteger\(bps\)/);
   assert.match(html, /Health \$\{this\.scenarioRatioLabel\(scenario,'health'\)\}/);
   assert.match(html, /Mana \$\{this\.scenarioRatioLabel\(scenario,'mana'\)\}/);
-  assert.match(html, /Armory recalculates persistent static totals without this combat scenario\./);
+  assert.match(html, /Armory recalculates persistent static totals without this combat scenario or its evaluation-instant skill event\./);
 });

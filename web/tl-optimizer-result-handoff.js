@@ -1,11 +1,21 @@
-export const IMPROVED_RESULT_HANDOFF_KEY = "tlhelper.optimizer.improved-result.v1";
+import { normalizeCombatScenario } from "./vendor/combat-engine/combat-scenario.mjs";
+
+export const IMPROVED_RESULT_HANDOFF_KEY = "tlhelper.optimizer.improved-result.v2";
+export const IMPROVED_RESULT_HANDOFF_SCHEMA_VERSION = 2;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
 function validResult(result) {
-  return Boolean(result && typeof result === "object" && result.build && Array.isArray(result.goalResults) && Array.isArray(result.allStats));
+  if (!(result && typeof result === "object" && result.build && Array.isArray(result.goalResults) && Array.isArray(result.allStats))) return false;
+  if (result.scenario == null) return true;
+  try {
+    normalizeCombatScenario(result.scenario);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function keptSlotsFromResult(result) {
@@ -22,7 +32,7 @@ export function storeImprovedResult(storage, { result, priorities = [], includeS
   if (!validResult(result)) throw new TypeError("The optimizer result is incomplete and cannot be opened in the shared result screen.");
   const document = {
     schema: "tl-helper.improved-result-handoff",
-    schemaVersion: 1,
+    schemaVersion: IMPROVED_RESULT_HANDOFF_SCHEMA_VERSION,
     createdAt: new Date().toISOString(),
     returnUrl,
     priorities: [...new Set(priorities.filter((id) => typeof id === "string" && id))],
@@ -38,6 +48,6 @@ export function loadImprovedResult(storage) {
   if (!storage?.getItem) return null;
   let document;
   try { document = JSON.parse(storage.getItem(IMPROVED_RESULT_HANDOFF_KEY) ?? "null"); } catch { return null; }
-  if (document?.schema !== "tl-helper.improved-result-handoff" || document?.schemaVersion !== 1 || !validResult(document.result)) return null;
+  if (document?.schema !== "tl-helper.improved-result-handoff" || document?.schemaVersion !== IMPROVED_RESULT_HANDOFF_SCHEMA_VERSION || !validResult(document.result)) return null;
   return clone(document);
 }

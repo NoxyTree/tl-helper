@@ -10,6 +10,8 @@ test("Builder worker owns optimization and forwards progress", () => {
   assert.match(worker, /onProgress/);
   assert.match(worker, /type: "progress"/);
   assert.match(worker, /type: "result"/);
+  assert.match(worker, /adapter\.optimize\(event\.data\.request,/);
+  assert.doesNotMatch(worker, /delete\s+event\.data\.request\.scenario|\{\s*\.\.\.event\.data\.request\s*,\s*scenario\s*:/);
 });
 
 test("Builder worker supports cancellation and reports real errors", () => {

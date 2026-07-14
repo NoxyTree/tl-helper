@@ -25,7 +25,7 @@ test("optional percentage inputs reject lossy or out-of-range values", () => {
   }
 });
 
-test("optimizer scenario options preserve unspecified resources by omission", () => {
+test("optimizer scenario options preserve unspecified resources and exact event controls", () => {
   assert.deepEqual(
     optimizerScenarioOptions({
       targetDistanceMeters: 10,
@@ -54,11 +54,25 @@ test("optimizer scenario options preserve unspecified resources by omission", ()
       targetDistanceMeters: 10,
       timeOfDay: "unspecified",
       sourceMotion: { mode: "stationary", stationaryBand: "4s_or_more" },
+      sourceEvent: { mode: "mobility_movement_now", weaponType: "dagger" },
     }),
     {
       targetDistanceMeters: 10,
       timeOfDay: "unspecified",
       sourceMotion: { state: "stationary", stationaryBand: "4s_or_more" },
+      sourceEventHistory: {
+        state: "observed",
+        lookbackMs: 0,
+        events: [{
+          id: "source-ability-activation-now",
+          sequence: 0,
+          occurredAgoMs: 0,
+          kind: "ability_use",
+          outcome: "successful_activation",
+          weaponType: "dagger",
+          categories: ["mobility", "movement"],
+        }],
+      },
     },
   );
 });
@@ -81,20 +95,30 @@ test("scenario resource reads identify the source participant by id", () => {
   assert.equal(scenarioSourceResourceBps(scenario, "mana"), 0);
 });
 
-test("canonical scenario text reports each resource independently", () => {
+test("canonical scenario text reports each resource and event independently", () => {
   const scenario = {
     source: { participantId: "player" },
     target: { distanceMeters: 7.5 },
     environment: { timeOfDay: "night" },
-    participants: [
-      {
-        id: "player",
-        resources: { health: { currentRatioBps: 3333 } },
-      },
-    ],
+    participants: [{ id: "player", resources: { health: { currentRatioBps: 3333 } } }],
   };
   assert.equal(
     formatOptimizerScenario(scenario),
-    "target 7.5m · night · Health 33.33% · Mana unspecified · motion unspecified",
+    "target 7.5m · night · Health 33.33% · Mana unspecified · motion unspecified · skill event unspecified",
   );
+
+  scenario.participants[0].eventHistory = {
+    state: "observed",
+    lookbackMs: 0,
+    events: [{
+      id: "source-ability-activation-now",
+      sequence: 0,
+      occurredAgoMs: 0,
+      kind: "ability_use",
+      outcome: "successful_activation",
+      weaponType: "crossbow",
+      categories: ["mobility"],
+    }],
+  };
+  assert.match(formatOptimizerScenario(scenario), /Mobility activation now \(crossbow\)$/);
 });

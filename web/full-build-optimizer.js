@@ -1,4 +1,9 @@
 import { formatSourceMotion, scenarioSourceMotion, sourceMotionFromControls } from "./tl-motion-scenario-controls.js";
+import {
+  formatSourceEventHistory,
+  scenarioSourceEventHistory,
+  sourceEventHistoryFromControls,
+} from "./tl-event-scenario-controls.js";
 
 export const OPTIMIZER_RESOURCE_BPS_SCALE = 10000;
 
@@ -24,6 +29,7 @@ export function optimizerScenarioOptions({
   sourceHealthRatioBps = null,
   sourceManaRatioBps = null,
   sourceMotion,
+  sourceEvent,
 }) {
   return {
     targetDistanceMeters,
@@ -31,6 +37,7 @@ export function optimizerScenarioOptions({
     ...(sourceHealthRatioBps === null ? {} : { sourceHealthRatioBps }),
     ...(sourceManaRatioBps === null ? {} : { sourceManaRatioBps }),
     ...(sourceMotion === undefined ? {} : { sourceMotion: sourceMotionFromControls(sourceMotion) }),
+    ...(sourceEvent === undefined ? {} : { sourceEventHistory: sourceEventHistoryFromControls(sourceEvent) }),
   };
 }
 
@@ -59,5 +66,6 @@ export function formatOptimizerScenario(scenario) {
   const health = formatRatioBps(scenarioSourceResourceBps(scenario, "health"));
   const mana = formatRatioBps(scenarioSourceResourceBps(scenario, "mana"));
   const motion = formatSourceMotion(scenarioSourceMotion(scenario));
-  return `target ${Number.isFinite(distance) ? distance : "?"}m · ${time} · Health ${health} · Mana ${mana} · ${motion}`;
+  const sourceEvent = formatSourceEventHistory(scenarioSourceEventHistory(scenario));
+  return [`target ${Number.isFinite(distance) ? distance : "?"}m`, time, `Health ${health}`, `Mana ${mana}`, motion, sourceEvent].join(" · ");
 }

@@ -3,8 +3,12 @@ import test from "node:test";
 import {
   COMBAT_EFFECT_DEFINITION_SCHEMA,
   COMBAT_EFFECT_DEFINITION_SCHEMA_VERSION,
+  SCENARIO_ABILITY_CATEGORY,
   COMBAT_SCENARIO_SCHEMA,
   COMBAT_SCENARIO_SCHEMA_VERSION,
+  SCENARIO_EVENT_HISTORY_STATE,
+  SCENARIO_RECENT_EVENT_KIND,
+  SCENARIO_RECENT_EVENT_OUTCOME,
   assertCombatEffectMatchesScenario,
   normalizeCombatEffectDefinition,
   normalizeCombatScenario,
@@ -47,6 +51,31 @@ function scenario(overrides = {}) {
           mana: { currentRatioBps: 3300 },
         },
         motion: { state: "stationary", stationaryBand: "4s_or_more" },
+        eventHistory: {
+          state: "observed",
+          lookbackMs: 4000,
+          events: [
+            {
+              id: "older-movement",
+              sequence: 2,
+              occurredAgoMs: 2000,
+              kind: "ability_use",
+              outcome: "successful_activation",
+              abilityId: "ability.movement",
+              weaponType: "dagger",
+              categories: ["movement"],
+            },
+            {
+              id: "recent-mobility",
+              sequence: 1,
+              occurredAgoMs: 500,
+              kind: "ability_use",
+              outcome: "successful_activation",
+              weaponType: "longbow",
+              categories: ["movement", "mobility"],
+            },
+          ],
+        },
       },
     ],
     source: { participantId: "player" },
@@ -138,10 +167,12 @@ test("combat scenarios normalize deterministic build-scoped state and deeply fre
   assert.ok(Object.isFrozen(normalized.participants[0].equippedWeaponTypes));
   assert.ok(Object.isFrozen(normalized.participants[0].resources.health));
   assert.ok(Object.isFrozen(normalized.participants[0].motion));
+  assert.ok(Object.isFrozen(normalized.participants[0].eventHistory.events[0].categories));
   assert.throws(() => { normalized.target.distanceMeters = "99"; }, TypeError);
   input.environment.weather = "clear";
   input.participants[1].equippedWeaponTypes.push("staff");
   input.participants[1].motion.stationaryBand = "under_2s";
+  input.participants[1].eventHistory.events[1].categories[0] = "changed";
   assert.equal(normalized.environment.weather, "rain");
   assert.deepEqual(normalized.participants[0].equippedWeaponTypes, ["dagger", "longbow"]);
   assert.deepEqual(normalized.participants[0].resources, {
@@ -151,6 +182,31 @@ test("combat scenarios normalize deterministic build-scoped state and deeply fre
   assert.deepEqual(normalized.participants[0].motion, {
     state: "stationary",
     stationaryBand: "4s_or_more",
+  });
+  assert.deepEqual(normalized.participants[0].eventHistory, {
+    state: "observed",
+    lookbackMs: 4000,
+    events: [
+      {
+        id: "recent-mobility",
+        sequence: 1,
+        occurredAgoMs: 500,
+        kind: "ability_use",
+        outcome: "successful_activation",
+        weaponType: "longbow",
+        categories: ["mobility", "movement"],
+      },
+      {
+        id: "older-movement",
+        sequence: 2,
+        occurredAgoMs: 2000,
+        kind: "ability_use",
+        outcome: "successful_activation",
+        abilityId: "ability.movement",
+        weaponType: "dagger",
+        categories: ["movement"],
+      },
+    ],
   });
 });
 
@@ -173,38 +229,60 @@ test("combat scenarios validate exact participant resource ratios", () => {
   assert.throws(() => normalizeCombatScenario(unknownRatioField), /unknown field/);
 });
 
-test("combat scenario v1 migrates to canonical v3 without resource or motion semantics", () => {
+test("combat scenario v1 migrates to canonical v4 without resource, motion, or event semantics", () => {
   const input = scenario({ schemaVersion: 1 });
   for (const participant of input.participants) {
     delete participant.resources;
     delete participant.motion;
+    delete participant.eventHistory;
   }
   const migrated = normalizeCombatScenario(input);
-  assert.equal(migrated.schemaVersion, 3);
+  assert.equal(migrated.schemaVersion, 4);
   assert.ok(migrated.participants.every((participant) => Object.keys(participant.resources).length === 0));
   assert.ok(migrated.participants.every((participant) => participant.motion.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.eventHistory.state === "unspecified"));
 
   const smuggled = scenario({ schemaVersion: 1 });
   assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
-  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 4 })), /Unsupported combat scenario schemaVersion/);
+  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 5 })), /Unsupported combat scenario schemaVersion/);
 });
 
-test("combat scenario v2 migrates resources to canonical v3 without motion semantics", () => {
+test("combat scenario v2 migrates resources to canonical v4 without motion or event semantics", () => {
   const input = scenario({ schemaVersion: 2 });
-  for (const participant of input.participants) delete participant.motion;
+  for (const participant of input.participants) {
+    delete participant.motion;
+    delete participant.eventHistory;
+  }
   const migrated = normalizeCombatScenario(input);
-  assert.equal(migrated.schemaVersion, 3);
+  assert.equal(migrated.schemaVersion, 4);
   assert.deepEqual(migrated.participants[0].resources, {
     health: { currentRatioBps: 5000 },
     mana: { currentRatioBps: 3300 },
   });
   assert.ok(migrated.participants.every((participant) => participant.motion.state === "unspecified"));
+  assert.ok(migrated.participants.every((participant) => participant.eventHistory.state === "unspecified"));
 
   const smuggled = scenario({ schemaVersion: 2 });
   assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
 });
 
-test("combat scenario v3 validates the participant-owned motion union exactly", () => {
+test("combat scenario v3 migrates resources and motion to canonical v4 without event semantics", () => {
+  const input = scenario({ schemaVersion: 3 });
+  for (const participant of input.participants) delete participant.eventHistory;
+  const migrated = normalizeCombatScenario(input);
+  assert.equal(migrated.schemaVersion, 4);
+  assert.deepEqual(migrated.participants[0].resources, {
+    health: { currentRatioBps: 5000 },
+    mana: { currentRatioBps: 3300 },
+  });
+  assert.deepEqual(migrated.participants[0].motion, { state: "stationary", stationaryBand: "4s_or_more" });
+  assert.ok(migrated.participants.every((participant) => participant.eventHistory.state === "unspecified"));
+
+  const smuggled = scenario({ schemaVersion: 3 });
+  assert.throws(() => normalizeCombatScenario(smuggled), /eventHistory/);
+});
+
+test("combat scenario v4 validates the participant-owned motion union exactly", () => {
   const stationaryBands = ["under_2s", "2s_to_under_3s", "3s_to_under_4s", "4s_or_more"];
   const movingBands = ["under_2s", "2s_or_more", "unspecified"];
   const movementKinds = ["ordinary", "movement_skill"];
@@ -252,12 +330,85 @@ test("combat scenario v3 validates the participant-owned motion union exactly", 
   }
 });
 
+test("combat scenario v4 validates and canonically orders participant event history", () => {
+  assert.equal(SCENARIO_EVENT_HISTORY_STATE.OBSERVED, "observed");
+  assert.equal(SCENARIO_RECENT_EVENT_KIND.ABILITY_USE, "ability_use");
+  assert.equal(SCENARIO_RECENT_EVENT_OUTCOME.SUCCESSFUL_ACTIVATION, "successful_activation");
+  assert.equal(SCENARIO_ABILITY_CATEGORY.MOBILITY, "mobility");
+
+  const normalized = normalizeCombatScenario(scenario());
+  assert.deepEqual(normalized.participants[0].eventHistory.events.map(({ id }) => id), [
+    "recent-mobility",
+    "older-movement",
+  ]);
+  assert.deepEqual(normalized.participants[0].eventHistory.events[0].categories, ["mobility", "movement"]);
+  assert.deepEqual(normalized.participants[1].eventHistory, { state: "unspecified" });
+
+  const omitted = scenario();
+  delete omitted.participants[1].eventHistory;
+  assert.deepEqual(normalizeCombatScenario(omitted).participants[0].eventHistory, { state: "unspecified" });
+
+  const emptyObserved = scenario();
+  emptyObserved.participants[1].eventHistory = { state: "observed", lookbackMs: 4000, events: [] };
+  assert.deepEqual(normalizeCombatScenario(emptyObserved).participants[0].eventHistory, {
+    state: "observed",
+    lookbackMs: 4000,
+    events: [],
+  });
+});
+
+test("combat scenario v4 rejects partial, inconsistent, and open-world event histories", () => {
+  const validEvent = {
+    id: "recent",
+    sequence: 1,
+    occurredAgoMs: 500,
+    kind: "ability_use",
+    outcome: "successful_activation",
+    abilityId: "ability.mobility",
+    weaponType: "dagger",
+    categories: ["mobility"],
+  };
+  const invalidHistories = [
+    { state: "unknown" },
+    { state: "unspecified", events: [] },
+    { state: "observed", events: [] },
+    { state: "observed", lookbackMs: 4000 },
+    { state: "observed", lookbackMs: -1, events: [] },
+    { state: "observed", lookbackMs: 1.5, events: [] },
+    { state: "observed", lookbackMs: 4000, events: [null] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, extra: true }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, id: "unsafe id" }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, sequence: -1 }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, occurredAgoMs: 4001 }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, occurredAgoMs: 1.5 }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, kind: "ability_hit" }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, outcome: undefined }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, outcome: "attempted" }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, abilityId: "unsafe ability" }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, weaponType: "staff" }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, categories: [] }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, categories: ["teleport"] }] },
+    { state: "observed", lookbackMs: 4000, events: [{ ...validEvent, categories: ["mobility", "mobility"] }] },
+    { state: "observed", lookbackMs: 4000, events: [validEvent, { ...validEvent, sequence: 2 }] },
+    { state: "observed", lookbackMs: 4000, events: [validEvent, { ...validEvent, id: "other" }] },
+    { state: "observed", lookbackMs: 4000, events: [], cooldownReady: true },
+  ];
+  for (const eventHistory of invalidHistories) {
+    const input = scenario();
+    input.participants[1].eventHistory = eventHistory;
+    assert.throws(() => normalizeCombatScenario(input));
+  }
+});
+
 test("scenario normalization is deterministic across non-semantic input ordering", () => {
   const left = normalizeCombatScenario(scenario());
   const reordered = scenario();
   reordered.participants.reverse();
   reordered.actions.reverse();
-  reordered.participants[1].equippedWeaponTypes.reverse();
+  const reorderedPlayer = reordered.participants.find(({ id }) => id === "player");
+  reorderedPlayer.equippedWeaponTypes.reverse();
+  reorderedPlayer.eventHistory.events.reverse();
+  reorderedPlayer.eventHistory.events[0].categories.reverse();
   const right = normalizeCombatScenario(reordered);
   assert.deepEqual(right, left);
 });

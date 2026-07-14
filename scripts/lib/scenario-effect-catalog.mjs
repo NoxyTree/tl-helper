@@ -45,6 +45,7 @@ const EXECUTABLE_DISTANCE_UNRESOLVED_FIELDS = Object.freeze(["serverRounding"]);
 const EXECUTABLE_TIME_UNRESOLVED_FIELDS = Object.freeze(["eclipseState"]);
 const EXECUTABLE_RESOURCE_UNRESOLVED_FIELDS = Object.freeze([]);
 const EXECUTABLE_MOTION_UNRESOLVED_FIELDS = Object.freeze([]);
+const EXECUTABLE_EVENT_UNRESOLVED_FIELDS = Object.freeze(["duration"]);
 
 const distanceRule = (sourceId) => Object.freeze({
   ruleId: `distance:${sourceId}`,
@@ -106,22 +107,44 @@ const motionRule = (sourceId) => Object.freeze({
   precisionLimitation: "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed.",
 });
 
+const eventRule = (sourceId) => Object.freeze({
+  ruleId: `event-activation-instant:${sourceId}`,
+  mechanic: "source_event_activation_instant",
+  modulePath: "web/tl-event-scenario-effects.js",
+  evaluatorExport: "evaluateEventScenarioEffects",
+  definitionsExport: "EVENT_EFFECT_DEFINITIONS",
+  definitionKey: sourceId,
+  gameBuild: SCENARIO_EFFECT_GAME_BUILD,
+  requiredScenarioInputs: Object.freeze(["participants[source].eventHistory"]),
+  unresolvedFields: EXECUTABLE_EVENT_UNRESOLVED_FIELDS,
+  precisionStage: "decoded_exact_evaluation_instant",
+  precisionSemantics: "reviewed_successful_activation_event",
+  precisionLimitation: "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed.",
+});
+
 // Each promotion is an explicit reviewed binding. Absence from this registry
 // always remains non-executable. In particular, Predator's Focus is omitted
 // because its nearby-opponent replacement scenario is not represented yet.
 export const EXECUTABLE_SCENARIO_RULE_REFERENCES = Object.freeze({
   "Bow_High_Tac_Skill": motionRule("Bow_High_Tac_Skill"),
   "Bow_Normal_Attack_Skill": distanceRule("Bow_Normal_Attack_Skill"),
+  "Crossbow_Hero_Defense_03": eventRule("Crossbow_Hero_Defense_03"),
+  "Spear_Rare_Def_Skill": eventRule("Spear_Rare_Def_Skill"),
   "SkillSet_WP_BO_S_InplaceAttack": motionRule("SkillSet_WP_BO_S_InplaceAttack"),
   "SkillSet_WP_BO_S_DistanceCritical": distanceRule("SkillSet_WP_BO_S_DistanceCritical"),
   "SkillSet_WP_CR_CR_S_DistanceRangeAcc": distanceRule("SkillSet_WP_CR_CR_S_DistanceRangeAcc"),
+  "SkillSet_WP_DA_DA_S_MoveSkillEvasion": eventRule("SkillSet_WP_DA_DA_S_MoveSkillEvasion"),
   "SkillSet_WP_Item_FieldBoss_T3_ST_02": motionRule("SkillSet_WP_Item_FieldBoss_T3_ST_02"),
   "SkillSet_WP_Item_kA_CR_61": timeOfDayRule("SkillSet_WP_Item_kA_CR_61"),
   "SkillSet_WP_Item_kA_DA_61_2": timeOfDayRule("SkillSet_WP_Item_kA_DA_61_2"),
   "SkillSet_WP_Item_kA_ST_55": distanceRule("SkillSet_WP_Item_kA_ST_55"),
+  "SkillSet_WP_SP_S_Passive_MoveBuff": eventRule("SkillSet_WP_SP_S_Passive_MoveBuff"),
   "SkillSet_WP_ST_S_ManaRegenBuff": motionRule("SkillSet_WP_ST_S_ManaRegenBuff"),
+  "SkillSet_WP_SW2_S_SkillMaster": eventRule("SkillSet_WP_SW2_S_SkillMaster"),
   "Sword2h_Hero_Attack_01": resourceThresholdRule("Sword2h_Hero_Attack_01", "health"),
+  "Sword2h_Normal_Tac_Skill": eventRule("Sword2h_Normal_Tac_Skill"),
   "Orb_Rare_Util_Skill": resourceThresholdRule("Orb_Rare_Util_Skill", "mana"),
+  "set_aa_t4_Plate_002:4": eventRule("set_aa_t4_Plate_002:4"),
   "set_aa_t4_leather_001:4": motionRule("set_aa_t4_leather_001:4"),
 });
 

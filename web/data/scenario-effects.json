@@ -37,10 +37,10 @@
       "setBreakpointConditional": 23
     },
     "bySupportState": {
-      "catalogued_unmodeled": 496,
-      "scenario_executable_decoded": 13,
+      "catalogued_unmodeled": 490,
+      "scenario_executable_decoded": 20,
       "unsupported_static_calculator": 9,
-      "static_component_only": 13
+      "static_component_only": 12
     }
   },
   "effects": [
@@ -29246,12 +29246,13 @@
       "weaponRequirements": [
         "crossbow"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -29263,6 +29264,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[Crossbow_Hero_Defense_03]"
         }
       ],
       "sourceEdges": [
@@ -29273,21 +29279,37 @@
           "projectionPath": "data.masteries[id=Crossbow_Hero_Defense_03].passives",
           "rankCount": 10,
           "selectedDescriptionRank": 10
+        },
+        {
+          "from": "Crossbow_Hero_Defense_03",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:Crossbow_Hero_Defense_03",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "Crossbow_Hero_Defense_03"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:Crossbow_Hero_Defense_03",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "Crossbow_Hero_Defense_03",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      }
     },
     {
       "catalogId": "masteryNonStructured:Crossbow_High_Tac_Skill",
@@ -33229,12 +33251,13 @@
       "weaponRequirements": [
         "spear"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -33246,6 +33269,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[Spear_Rare_Def_Skill]"
         }
       ],
       "sourceEdges": [
@@ -33256,21 +33284,37 @@
           "projectionPath": "data.masteries[id=Spear_Rare_Def_Skill].passives",
           "rankCount": 1,
           "selectedDescriptionRank": 1
+        },
+        {
+          "from": "Spear_Rare_Def_Skill",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:Spear_Rare_Def_Skill",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "Spear_Rare_Def_Skill"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:Spear_Rare_Def_Skill",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "Spear_Rare_Def_Skill",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      }
     },
     {
       "catalogId": "masteryNonStructured:Spear_Rare_Tac_Skill",
@@ -34650,12 +34694,13 @@
       "weaponRequirements": [
         "sword2h"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -34667,6 +34712,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[Sword2h_Normal_Tac_Skill]"
         }
       ],
       "sourceEdges": [
@@ -34677,21 +34727,37 @@
           "projectionPath": "data.masteries[id=Sword2h_Normal_Tac_Skill].passives",
           "rankCount": 1,
           "selectedDescriptionRank": 1
+        },
+        {
+          "from": "Sword2h_Normal_Tac_Skill",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:Sword2h_Normal_Tac_Skill",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "Sword2h_Normal_Tac_Skill"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:Sword2h_Normal_Tac_Skill",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "Sword2h_Normal_Tac_Skill",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      }
     },
     {
       "catalogId": "masteryNonStructured:Sword2h_Rare_Attack_Skill",
@@ -39546,12 +39612,13 @@
         }
       ],
       "weaponRequirements": [],
-      "supportState": "static_component_only",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -39568,6 +39635,11 @@
           "kind": "audit",
           "path": "docs/set-effect-audit-2026-07-13.md",
           "selector": "conditional_remainder"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[set_aa_t4_Plate_002:4]"
         }
       ],
       "sourceEdges": [
@@ -39577,28 +39649,43 @@
           "to": "set_aa_t4_Plate_002:4",
           "projectionPath": "data.itemSets[id=set_aa_t4_Plate_002].itemSetBonus[1]",
           "requiredPieces": 4
+        },
+        {
+          "from": "set_aa_t4_Plate_002:4",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:set_aa_t4_Plate_002:4",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "set_aa_t4_Plate_002:4"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null,
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:set_aa_t4_Plate_002:4",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "set_aa_t4_Plate_002:4",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      },
       "componentKind": "conditional_remainder",
       "staticComponent": {
         "status": "calculated_separately",
         "summary": "Cooldown Speed +10%.",
         "authority": "web/tl-core.js set-effect trace"
-      },
-      "unsupportedReason": "The persistent component is calculated separately; the conditional remainder requires a combat-stage model."
+      }
     },
     {
       "catalogId": "setBreakpointConditional:set_aa_t4_Plate_003:4",
@@ -40893,12 +40980,13 @@
       "weaponRequirements": [
         "dagger"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -40910,6 +40998,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[SkillSet_WP_DA_DA_S_MoveSkillEvasion]"
         }
       ],
       "sourceEdges": [
@@ -40924,21 +41017,37 @@
             "count": 20
           },
           "selectedDescriptionLevel": 20
+        },
+        {
+          "from": "SkillSet_WP_DA_DA_S_MoveSkillEvasion",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:SkillSet_WP_DA_DA_S_MoveSkillEvasion",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "SkillSet_WP_DA_DA_S_MoveSkillEvasion"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:SkillSet_WP_DA_DA_S_MoveSkillEvasion",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_DA_DA_S_MoveSkillEvasion",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_DA_S_CriticalOffHandAttack",
@@ -42342,12 +42451,13 @@
       "weaponRequirements": [
         "spear"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -42359,6 +42469,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[SkillSet_WP_SP_S_Passive_MoveBuff]"
         }
       ],
       "sourceEdges": [
@@ -42373,21 +42488,37 @@
             "count": 20
           },
           "selectedDescriptionLevel": 20
+        },
+        {
+          "from": "SkillSet_WP_SP_S_Passive_MoveBuff",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:SkillSet_WP_SP_S_Passive_MoveBuff",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "SkillSet_WP_SP_S_Passive_MoveBuff"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:SkillSet_WP_SP_S_Passive_MoveBuff",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_SP_S_Passive_MoveBuff",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_SP_S_Passive_TwoHandWeaponBonus",
@@ -42996,12 +43127,13 @@
       "weaponRequirements": [
         "sword2h"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_evaluation_instant",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_successful_activation_event",
+        "executable": true,
+        "limitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
       },
       "provenance": [
         {
@@ -43013,6 +43145,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-event-scenario-effects.js",
+          "selector": "EVENT_EFFECT_DEFINITIONS[SkillSet_WP_SW2_S_SkillMaster]"
         }
       ],
       "sourceEdges": [
@@ -43027,21 +43164,37 @@
             "count": 20
           },
           "selectedDescriptionLevel": 20
+        },
+        {
+          "from": "SkillSet_WP_SW2_S_SkillMaster",
+          "relation": "executed_by_reviewed_rule",
+          "to": "event-activation-instant:SkillSet_WP_SW2_S_SkillMaster",
+          "modulePath": "web/tl-event-scenario-effects.js",
+          "evaluatorExport": "evaluateEventScenarioEffects",
+          "definitionKey": "SkillSet_WP_SW2_S_SkillMaster"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "duration"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "event-activation-instant:SkillSet_WP_SW2_S_SkillMaster",
+        "mechanic": "source_event_activation_instant",
+        "modulePath": "web/tl-event-scenario-effects.js",
+        "evaluatorExport": "evaluateEventScenarioEffects",
+        "definitionsExport": "EVENT_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_SW2_S_SkillMaster",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].eventHistory"
+        ],
+        "unresolvedFields": [
+          "duration"
+        ],
+        "precisionStage": "decoded_exact_evaluation_instant",
+        "precisionSemantics": "reviewed_successful_activation_event",
+        "precisionLimitation": "Exact only for a confirmed successful qualifying activation at occurredAgoMs 0. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed."
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_SW2_S_StunBuff",

@@ -31,4 +31,7 @@ test("invalid or corrupt handoffs are ignored", () => {
   assert.equal(loadImprovedResult(target),null);
   assert.deepEqual(keptSlotsFromResult(null),[]);
   assert.throws(()=>storeImprovedResult(target,{result:{}}),/incomplete/);
+  assert.throws(()=>storeImprovedResult(target,{result:{...result,scenario:{schema:"wrong"}}}),/incomplete/);
+  target.setItem(IMPROVED_RESULT_HANDOFF_KEY,JSON.stringify({schema:"tl-helper.improved-result-handoff",schemaVersion:2,result:{...result,scenario:{schema:"wrong"}}}));
+  assert.equal(loadImprovedResult(target),null);
 });

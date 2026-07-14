@@ -13,6 +13,34 @@ import test from "node:test";
 import { applySetCompletionHints, deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
 import { optimizeFullBuild } from "../../web/tl-full-build-optimizer.js";
 
+function canonicalScenario({ motion = { state: "unspecified" }, eventHistory = { state: "unspecified" } } = {}) {
+  return {
+    source: { participantId: "source" },
+    target: { participantId: "target", distanceMeters: 2 },
+    environment: { timeOfDay: "unspecified" },
+    participants: [
+      { id: "source", equippedWeaponTypes: ["bow"], resources: {}, motion, eventHistory },
+      { id: "target", equippedWeaponTypes: [], resources: {}, motion: { state: "unspecified" }, eventHistory: { state: "unspecified" } },
+    ],
+  };
+}
+
+function mobilityNow() {
+  return {
+    state: "observed",
+    lookbackMs: 0,
+    events: [{
+      id: "mobility-now",
+      sequence: 0,
+      occurredAgoMs: 0,
+      kind: "ability_use",
+      outcome: "successful_activation",
+      weaponType: "bow",
+      categories: ["mobility"],
+    }],
+  };
+}
+
 test("completion hints combine structured bonus_stat rows and passive rules per piece", () => {
   // Real registry entry: set_aa_T2_leather_003 (Dawn Mist) 4-piece grants
   // damage_reduction_penetration 70 (decoded aa_leather_T2_003_2, min=max=70).
@@ -134,6 +162,66 @@ test("the beam keeps a zero-immediate-value set route only when candidates carry
   const withHints = await run(25);
   assert.equal(withHints.best.evaluation.score, 100, "per-piece completion hints keep the set route alive to exact evaluation");
   assert.equal(Object.values(withHints.best.selections).every((row) => row.itemId.endsWith("-set")), true);
+});
+
+test("scenario-exact set bonuses contribute completion hints only when their scenario is supported", () => {
+  const core = {
+    indexes: {
+      itemSetById: {
+        set_aa_t4_Plate_002: {
+          id: "set_aa_t4_Plate_002",
+          itemSetBonus: [{ set_count: 2, bonus_stat: [] }, { set_count: 4, bonus_stat: [] }],
+        },
+        set_aa_t4_leather_001: {
+          id: "set_aa_t4_leather_001",
+          itemSetBonus: [{ set_count: 2, bonus_stat: [] }, { set_count: 4, bonus_stat: [] }],
+        },
+      },
+    },
+  };
+  const candidatesBySlot = {
+    head: [
+      { id: "blizzard", setKeys: ["set_aa_t4_Plate_002"] },
+      { id: "stigma", setKeys: ["set_aa_t4_leather_001"] },
+    ],
+  };
+
+  const heavyGoals = expandCompositeGoals(normalizeRankedGoals({ increase: ["double_damage_dealt_modifier"] }));
+  const activeBlizzard = deriveSetCompletionHints({
+    core,
+    candidatesBySlot,
+    rankedGoals: heavyGoals,
+    scales: { double_damage_dealt_modifier: 1400 },
+    scenario: canonicalScenario({ eventHistory: mobilityNow() }),
+  });
+  assert.equal(activeBlizzard.get("set_aa_t4_Plate_002"), 0.25, "Blizzard's exact four-piece event value is shared across four pieces");
+
+  const unspecifiedBlizzard = deriveSetCompletionHints({
+    core,
+    candidatesBySlot,
+    rankedGoals: heavyGoals,
+    scales: { double_damage_dealt_modifier: 1400 },
+    scenario: canonicalScenario(),
+  });
+  assert.equal(unspecifiedBlizzard.has("set_aa_t4_Plate_002"), false, "an unsupported event duration state cannot create a hint");
+
+  const criticalGoals = expandCompositeGoals(normalizeRankedGoals({ increase: ["critical_damage_dealt_modifier"] }));
+  const activeStigma = deriveSetCompletionHints({
+    core,
+    candidatesBySlot,
+    rankedGoals: criticalGoals,
+    scales: { critical_damage_dealt_modifier: 1500 },
+    scenario: canonicalScenario({ motion: { state: "stationary", stationaryBand: "4s_or_more" } }),
+  });
+  const staticStigma = deriveSetCompletionHints({
+    core,
+    candidatesBySlot,
+    rankedGoals: criticalGoals,
+    scales: { critical_damage_dealt_modifier: 1500 },
+  });
+  assert.ok(Math.abs(
+    activeStigma.get("set_aa_t4_leather_001") - staticStigma.get("set_aa_t4_leather_001") - 0.25,
+  ) < 1e-12, "Stigma's exact conditional +15% adds a quarter-point hint across four pieces");
 });
 
 test("direct candidate stats are not duplicated as score hints", async () => {

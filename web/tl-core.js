@@ -2307,6 +2307,8 @@ export function createBuildScenario(build, {
   targetManaRatioBps,
   sourceMotion = { state: "unspecified" },
   targetMotion = { state: "unspecified" },
+  sourceEventHistory = { state: "unspecified" },
+  targetEventHistory = { state: "unspecified" },
 } = {}) {
   if (!data?.gameBuild) throw new Error("Game data must be initialized before creating a combat scenario.");
   const equipped = [...equippedWeaponTypes(build)].sort();
@@ -2325,6 +2327,7 @@ export function createBuildScenario(build, {
         equippedWeaponTypes: equipped,
         resources: participantResources({ healthRatioBps: sourceHealthRatioBps, manaRatioBps: sourceManaRatioBps }),
         motion: sourceMotion,
+        eventHistory: sourceEventHistory,
       },
       {
         id: "target",
@@ -2333,6 +2336,7 @@ export function createBuildScenario(build, {
         equippedWeaponTypes: [],
         resources: participantResources({ healthRatioBps: targetHealthRatioBps, manaRatioBps: targetManaRatioBps }),
         motion: targetMotion,
+        eventHistory: targetEventHistory,
       },
     ],
     source: { participantId: "source" },
@@ -2462,6 +2466,8 @@ export function evaluateBuildScenario(build, scenario, progression = effectivePr
       targetResources: targetParticipant?.resources ?? {},
       sourceMotion: sourceParticipant.motion,
       targetMotion: targetParticipant?.motion ?? { state: "unspecified" },
+      sourceEventHistory: sourceParticipant.eventHistory,
+      targetEventHistory: targetParticipant?.eventHistory ?? { state: "unspecified" },
     },
   });
   return Object.freeze({ ...evaluated, scenario: normalizedScenario });
@@ -2507,6 +2513,11 @@ function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) 
       scenarioResourceBranch: effect.scenario?.branch,
       scenarioSourceMotion: effect.scenario?.sourceMotion,
       scenarioMotionBranch: effect.scenario?.branch,
+      scenarioSourceEventId: effect.scenario?.eventId,
+      scenarioSourceEventOccurredAgoMs: effect.scenario?.occurredAgoMs,
+      scenarioSourceEventOutcome: effect.scenario?.outcome,
+      scenarioSourceEventWeaponType: effect.scenario?.weaponType,
+      scenarioSourceEventMatchedCategories: effect.scenario?.matchedCategories,
       sourceKinds: effect.sourceKinds,
       precision: effect.precision,
       provenance: effect.provenance,
@@ -2730,10 +2741,12 @@ export function calculateBuild(build, attributes, options = {}) {
     const targetResources = targetParticipant?.resources ?? {};
     const sourceMotion = sourceParticipant?.motion ?? { state: "unspecified" };
     const targetMotion = targetParticipant?.motion ?? { state: "unspecified" };
+    const sourceEventHistory = sourceParticipant?.eventHistory ?? { state: "unspecified" };
+    const targetEventHistory = targetParticipant?.eventHistory ?? { state: "unspecified" };
     const executable = evaluated.errors.length === 0;
     result.scenarioEffects = {
       schema: "tl-helper.build-scenario-effects",
-      schemaVersion: 4,
+      schemaVersion: 5,
       gameBuild: String(data?.gameBuild ?? ""),
       kind: "combat_scenario",
       ruleset: evaluated.ruleset ?? { id: SCENARIO_EFFECT_RULESET_ID, version: SCENARIO_EFFECT_RULESET_VERSION },
@@ -2743,7 +2756,9 @@ export function calculateBuild(build, attributes, options = {}) {
       targetResources,
       sourceMotion,
       targetMotion,
-      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources, sourceMotion, targetMotion },
+      sourceEventHistory,
+      targetEventHistory,
+      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources, sourceMotion, targetMotion, sourceEventHistory, targetEventHistory },
       status: executable ? "applied" : "unsupported",
       scenario: evaluated.scenario,
       evaluatedRows: evaluated.overlayRows,

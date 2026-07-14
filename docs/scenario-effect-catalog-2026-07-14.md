@@ -34,18 +34,18 @@ Every entry contains:
 - A fixed list of unresolved semantic fields.
 - Either `executableSemantics: null` or one explicit reviewed module/export/definition reference.
 
-The catalogue does not parse description prose into triggers, formulas, proc rates, durations or stacking rules. Four decoded distance effects, two decoded ordinary day/night item effects, two decoded self-resource threshold masteries, and five decoded source-motion components now point to separately reviewed scenario implementations. The other 518 entries remain non-executable until their fields are independently decoded, reviewed and represented by a separate scenario rule. There is no default classification or fallback rule.
+The catalogue does not parse description prose into triggers, formulas, proc rates, durations or stacking rules. Four decoded distance effects, two decoded ordinary day/night item effects, two decoded self-resource threshold masteries, five decoded source-motion components, and seven decoded evaluation-instant source-event components now point to separately reviewed scenario implementations. The other 511 entries remain non-executable until their fields are independently decoded, reviewed and represented by a separate scenario rule. There is no default classification or fallback rule.
 
 ## Support-state meanings
 
 | State | Count | Meaning |
 | --- | ---: | --- |
-| `catalogued_unmodeled` | 496 | The source and carrier are known, but no executable scenario semantics are claimed. |
-| `scenario_executable_decoded` | 13 | A reviewed decoded rule has an exact module, evaluator export and definition key. |
+| `catalogued_unmodeled` | 490 | The source and carrier are known, but no executable scenario semantics are claimed. |
+| `scenario_executable_decoded` | 20 | A reviewed decoded rule has an exact module, evaluator export and definition key. |
 | `unsupported_static_calculator` | 9 | The complete set breakpoint is outside persistent sheet totals. |
-| `static_component_only` | 13 | The persistent set component is calculated elsewhere; only the conditional remainder is represented here. |
+| `static_component_only` | 12 | The persistent set component is calculated elsewhere; only the conditional remainder is represented here. |
 
-These are work-queue states, not final-damage confidence claims. The four distance rules use decoded exact coefficients and reviewed source gating, but retain `serverRounding` as an explicit unresolved field. The two ordinary day/night rules use decoded fixed amounts with no arithmetic rounding. The two self-resource rules use decoded exact threshold operators and integer basis-point comparisons with no unresolved arithmetic fields. The five source-motion rules use decoded duration thresholds, raw values, carrier gates, replacement behavior, and integer arithmetic without estimating uptime. Every other entry uses an `unsupported` precision stage and explicitly sets executable precision to false.
+These are work-queue states, not final-damage confidence claims. The four distance rules use decoded exact coefficients and reviewed source gating, but retain `serverRounding` as an explicit unresolved field. The two ordinary day/night rules use decoded fixed amounts with no arithmetic rounding. The two self-resource rules use decoded exact threshold operators and integer basis-point comparisons with no unresolved arithmetic fields. The five source-motion rules use decoded duration thresholds, raw values, carrier gates, replacement behavior, and integer arithmetic without estimating uptime. The seven source-event rules are exact only for a confirmed successful qualifying activation at `occurredAgoMs: 0`. Elapsed duration and positive Buff Duration are not modeled; aged events, cooldown-bearing triggers, activation locks, and uptime estimates fail closed. Every other entry uses an `unsupported` precision stage and explicitly sets executable precision to false.
 
 ## Reviewed distance promotions
 
@@ -86,7 +86,21 @@ The following components reference `web/tl-motion-scenario-effects.js`, `evaluat
 - `SkillSet_WP_Item_FieldBoss_T3_ST_02`, Aridus's Fury: after 3s stationary, the exact innate item or selected Skill Core carrier grants raw `1200` Base Damage modifier and retains it for under 2s after movement.
 - `set_aa_t4_leather_001:4`, Stigma Executor: after 4s stationary, its conditional remainder grants raw `1500` Critical Damage and is removed immediately upon movement; the persistent raw `2000` component remains separately calculated.
 
-CombatScenario v3 stores the participant-owned motion union. It distinguishes stationary duration bands, ordinary movement from movement skills, moving duration, and the prior stationary band. Missing or partial relevant state fails the complete scenario overlay closed. It does not replay movement or estimate uptime.
+CombatScenario v4 retains the participant-owned motion union introduced in v3. It distinguishes stationary duration bands, ordinary movement from movement skills, moving duration, and the prior stationary band. Missing or partial relevant state fails the complete scenario overlay closed. It does not replay movement or estimate uptime.
+
+## Reviewed evaluation-instant event promotions
+
+The following components reference `web/tl-event-scenario-effects.js`, `evaluateEventScenarioEffects` and their exact `EVENT_EFFECT_DEFINITIONS` key:
+
+- `SkillSet_WP_DA_DA_S_MoveSkillEvasion`, Shadow Walker: a confirmed successful Mobility or Movement activation grants its level-specific Damage Reduction and Ranged and Magic Evasion curves.
+- `SkillSet_WP_SP_S_Passive_MoveBuff`, Nimble Steps: a confirmed successful Movement activation grants its level-specific Collision Resistance, Bind Resistance, and Ranged Evasion curves.
+- `SkillSet_WP_SW2_S_SkillMaster`, Barbarian's Dash: a confirmed successful Mobility or Movement activation grants its level-specific Move Speed curve.
+- `Sword2h_Normal_Tac_Skill`, Steadfast Rush: when selected as the Barbarian's Dash augmentation, the same confirmed successful activation also grants raw `4800` All State Tolerance. The shared stat expansion produces `+120` for each of the eight control-resistance stats.
+- `Spear_Rare_Def_Skill`, Enduring Dash: a confirmed successful Movement activation grants raw `2500` Melee, Ranged, and Magic Critical Hit Defense, displayed as `+250` Endurance for each defense family.
+- `Crossbow_Hero_Defense_03`, Mirage Dancer: its Mobility activation branch grants the rank-specific Magic and Ranged Evasion curves. Its separate evasion-on-dodge Move Speed branch remains unsupported.
+- `set_aa_t4_Plate_002:4`, Blizzard Overture 4-piece conditional remainder: a confirmed successful Mobility activation grants raw `1000` Attack Speed and raw `1400` Heavy Attack Damage. Its persistent raw `1000` Cooldown Speed component remains calculated separately.
+
+CombatScenario v4 stores participant-owned observed event history. Only records with `outcome: successful_activation` and `occurredAgoMs: 0` can activate these rules. The contract does not infer that an ability fired successfully from current movement state. It does not model elapsed duration, positive Buff Duration, cooldown availability, activation locks, refresh behavior, or uptime.
 
 ## Drift and reproducibility gates
 
@@ -106,10 +120,10 @@ The tests prove:
 5. Codepoint-stable ordering and byte-for-byte regeneration of the checked-in browser artifact.
 6. Every shell has carriers, provenance, source edges and unresolved fields, with no executable semantic defaults.
 7. Missing projection records and game-build mismatches fail closed.
-8. Exactly the thirteen reviewed distance, ordinary day/night, self-resource, and source-motion IDs resolve to present executable definitions; Predator's Focus remains unsupported.
+8. Exactly the twenty reviewed distance, ordinary day/night, self-resource, source-motion, and evaluation-instant event IDs resolve to present executable definitions; Predator's Focus and unresolved event branches remain unsupported.
 
 ## Boundary of this milestone
 
-This foundation answers which effects remain and where each comes from. For the thirteen promoted rules it also identifies the reviewed executable authority without copying that arithmetic into the catalogue.
+This foundation answers which effects remain and where each comes from. For the twenty promoted rules it also identifies the reviewed executable authority without copying that arithmetic into the catalogue.
 
-The next safe implementation step is to repeat this explicit promotion process for recent movement-skill use and other short-lived source events. Static build totals must remain separate from every scenario overlay.
+The next safe implementation step is to preserve the same explicit promotion process for elapsed event duration, Buff Duration, cooldown-bearing triggers, activation locks, and the remaining conditional mechanic families. Static build totals must remain separate from every scenario overlay.

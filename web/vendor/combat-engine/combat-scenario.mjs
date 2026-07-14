@@ -13,7 +13,7 @@ import {
 } from "./contract-primitives.mjs";
 
 export const COMBAT_SCENARIO_SCHEMA = "tl-helper.combat-scenario";
-export const COMBAT_SCENARIO_SCHEMA_VERSION = 3;
+export const COMBAT_SCENARIO_SCHEMA_VERSION = 4;
 
 export const SCENARIO_RESOURCE = Object.freeze({
   HEALTH: "health",
@@ -44,6 +44,26 @@ export const SCENARIO_MOVING_BAND = Object.freeze({
   UNDER_2S: "under_2s",
   TWO_OR_MORE: "2s_or_more",
   UNSPECIFIED: "unspecified",
+});
+
+export const SCENARIO_EVENT_HISTORY_STATE = Object.freeze({
+  UNSPECIFIED: "unspecified",
+  OBSERVED: "observed",
+});
+
+export const SCENARIO_RECENT_EVENT_KIND = Object.freeze({
+  ABILITY_USE: "ability_use",
+});
+
+// The qualifying ability activation completed and its deterministic,
+// no-cooldown trigger was accepted. This does not assert cooldown readiness.
+export const SCENARIO_RECENT_EVENT_OUTCOME = Object.freeze({
+  SUCCESSFUL_ACTIVATION: "successful_activation",
+});
+
+export const SCENARIO_ABILITY_CATEGORY = Object.freeze({
+  MOBILITY: "mobility",
+  MOVEMENT: "movement",
 });
 
 export const SCENARIO_TIME_OF_DAY = Object.freeze({
@@ -83,6 +103,10 @@ const STATIONARY_BANDS = new Set(Object.values(SCENARIO_STATIONARY_BAND));
 const MOVEMENT_KINDS = new Set(Object.values(SCENARIO_MOVEMENT_KIND));
 const MOVING_BANDS = new Set(Object.values(SCENARIO_MOVING_BAND));
 const PRIOR_STATIONARY_BANDS = new Set([SCENARIO_MOTION_STATE.UNSPECIFIED, ...STATIONARY_BANDS]);
+const EVENT_HISTORY_STATES = new Set(Object.values(SCENARIO_EVENT_HISTORY_STATE));
+const RECENT_EVENT_KINDS = new Set(Object.values(SCENARIO_RECENT_EVENT_KIND));
+const RECENT_EVENT_OUTCOMES = new Set(Object.values(SCENARIO_RECENT_EVENT_OUTCOME));
+const ABILITY_CATEGORIES = new Set(Object.values(SCENARIO_ABILITY_CATEGORY));
 const SHA256 = /^(?:sha256:)?[a-fA-F0-9]{64}$/;
 
 /** Validate, detach, canonically order, and deeply freeze a scenario. */
@@ -93,7 +117,7 @@ export function normalizeCombatScenario(input, { expectedGameBuild } = {}) {
     "participants", "source", "target", "actions", "rng",
   ], "Combat scenario");
   if (value.schema !== COMBAT_SCENARIO_SCHEMA) throw new Error(`Unsupported combat scenario schema: ${String(value.schema)}`);
-  if (![1, 2, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
+  if (![1, 2, 3, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
     throw new Error(`Unsupported combat scenario schemaVersion: ${String(value.schemaVersion)}`);
   }
   const gameBuild = requireBuild(value.gameBuild, "gameBuild");
@@ -147,6 +171,7 @@ function normalizeParticipants(input, inputSchemaVersion) {
       "equippedWeaponTypes", "activeWeaponType",
       ...(inputSchemaVersion >= 2 ? ["resources"] : []),
       ...(inputSchemaVersion >= 3 ? ["motion"] : []),
+      ...(inputSchemaVersion >= 4 ? ["eventHistory"] : []),
     ];
     assertOnlyKeys(value, allowedKeys, label);
     const id = requireId(value.id, `${label}.id`);
@@ -181,9 +206,70 @@ function normalizeParticipants(input, inputSchemaVersion) {
       ...(activeWeaponType === undefined ? {} : { activeWeaponType }),
       resources: normalizeParticipantResources(value.resources, `${label}.resources`),
       motion: normalizeParticipantMotion(value.motion, `${label}.motion`),
+      eventHistory: normalizeParticipantEventHistory(value.eventHistory, `${label}.eventHistory`, equippedWeaponTypes),
     };
   });
   return participants.sort((left, right) => compareCodeUnits(left.id, right.id));
+}
+
+function normalizeParticipantEventHistory(input, label, equippedWeaponTypes) {
+  if (input === undefined) return { state: SCENARIO_EVENT_HISTORY_STATE.UNSPECIFIED };
+  const value = requireRecord(input, label);
+  const state = requireEnum(value.state, EVENT_HISTORY_STATES, `${label}.state`);
+  if (state === SCENARIO_EVENT_HISTORY_STATE.UNSPECIFIED) {
+    assertOnlyKeys(value, ["state"], label);
+    return { state };
+  }
+  assertOnlyKeys(value, ["state", "lookbackMs", "events"], label);
+  const lookbackMs = requireNonnegativeInteger(value.lookbackMs, `${label}.lookbackMs`);
+  if (!Array.isArray(value.events)) throw new TypeError(`${label}.events must be an array.`);
+  const ids = new Set();
+  const sequences = new Set();
+  const events = value.events.map((entry, index) => {
+    const eventLabel = `${label}.events[${index}]`;
+    const event = requireRecord(entry, eventLabel);
+    assertOnlyKeys(event, [
+      "id", "sequence", "occurredAgoMs", "kind", "outcome", "abilityId", "weaponType", "categories",
+    ], eventLabel);
+    const id = requireId(event.id, `${eventLabel}.id`);
+    if (ids.has(id)) throw new Error(`Duplicate recent event id: ${id}`);
+    ids.add(id);
+    const sequence = requireNonnegativeInteger(event.sequence, `${eventLabel}.sequence`);
+    if (sequences.has(sequence)) throw new Error(`Duplicate recent event sequence: ${sequence}`);
+    sequences.add(sequence);
+    const occurredAgoMs = requireNonnegativeInteger(event.occurredAgoMs, `${eventLabel}.occurredAgoMs`);
+    if (occurredAgoMs > lookbackMs) throw new RangeError(`${eventLabel}.occurredAgoMs exceeds ${label}.lookbackMs.`);
+    const weaponType = requireId(event.weaponType, `${eventLabel}.weaponType`);
+    if (!equippedWeaponTypes.includes(weaponType)) {
+      throw new Error(`${eventLabel}.weaponType must be one of the participant's equippedWeaponTypes.`);
+    }
+    if (!Array.isArray(event.categories) || event.categories.length === 0) {
+      throw new TypeError(`${eventLabel}.categories must be a nonempty array.`);
+    }
+    const categories = event.categories.map((category, categoryIndex) => (
+      requireEnum(category, ABILITY_CATEGORIES, `${eventLabel}.categories[${categoryIndex}]`)
+    ));
+    if (new Set(categories).size !== categories.length) {
+      throw new Error(`${eventLabel}.categories contains duplicate values.`);
+    }
+    categories.sort(compareCodeUnits);
+    return {
+      id,
+      sequence,
+      occurredAgoMs,
+      kind: requireEnum(event.kind, RECENT_EVENT_KINDS, `${eventLabel}.kind`),
+      outcome: requireEnum(event.outcome, RECENT_EVENT_OUTCOMES, `${eventLabel}.outcome`),
+      ...(event.abilityId === undefined ? {} : { abilityId: requireId(event.abilityId, `${eventLabel}.abilityId`) }),
+      weaponType,
+      categories,
+    };
+  });
+  events.sort((left, right) => (
+    left.occurredAgoMs - right.occurredAgoMs
+    || left.sequence - right.sequence
+    || compareCodeUnits(left.id, right.id)
+  ));
+  return { state, lookbackMs, events };
 }
 
 function normalizeParticipantMotion(input, label) {

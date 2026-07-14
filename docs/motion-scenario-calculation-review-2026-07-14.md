@@ -10,7 +10,7 @@ Game data build: `24118850`
 
 ## Outcome
 
-Source stationary and movement state is now a closed-world CombatScenario v3 dimension. Five decoded components are exact and executable without mutating persistent static totals:
+Source stationary and movement state remains a closed-world dimension in canonical CombatScenario v4. Five decoded components are exact and executable without mutating persistent static totals:
 
 | Component | Exact activation | Exact result |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ Participant motion is one strict tagged union:
 - `stationary` with one of four duration bands
 - `moving` with ordinary or movement-skill movement, an under-2s or 2s-or-more moving band, and the prior stationary band
 
-CombatScenario v1 and v2 inputs migrate to v3 with motion unspecified. Unknown fields and invalid combinations are rejected. Motion participates in canonical scenario identity and survives build weapon rebinding.
+CombatScenario v1 and v2 inputs migrate with motion unspecified. CombatScenario v3 motion semantics remain unchanged when migrating to v4, which adds participant event history. Unknown fields and invalid combinations are rejected. Motion participates in canonical scenario identity and survives build weapon rebinding.
 
 ## Calculation authority
 
@@ -43,19 +43,19 @@ CombatScenario v1 and v2 inputs migrate to v3 with motion unspecified. Unknown f
 
 ## Page behavior
 
-Gear Viewer, Full Build Optimizer, and Build From Scratch expose the same source-motion union. Persistent static scoring remains the default. When enabled, the canonical scenario participates in current totals, candidate scoring, protected-stat checks, hover reconstruction, caches, finalist validation, tuning, worker messages, and optimizer handoffs. Armory and saved presets deliberately remain scenario-free persistent builds.
+Gear Viewer, Full Build Optimizer, and Build From Scratch expose the same source-motion union and the separate evaluation-instant event input. Persistent static scoring remains the default. When enabled, the canonical scenario participates in current totals, candidate scoring, protected-stat checks, hover reconstruction, caches, finalist validation, tuning, worker messages, and optimizer handoffs. Armory and saved presets deliberately remain scenario-free persistent builds.
 
 ## Evidence boundary
 
 Position was not added. The audited remaining positional descriptions do not produce an executable stat overlay from direction alone.
 
-Aridus's Hatred remains unsupported because the decoded raw `Damage +30` recipient stat is not proven. Recent movement-skill-use effects also remain unsupported because they require event time, duration, cooldown, and possibly proc state rather than a current moving/stationary assertion.
+Aridus's Hatred remains unsupported because the decoded raw `Damage +30` recipient stat is not proven. Seven deterministic no-cooldown event effects are now executable only for a confirmed successful qualifying activation at `occurredAgoMs: 0`. That event history is distinct from current moving or stationary state. Elapsed duration and positive Buff Duration remain unresolved, so aged events fail closed. Cooldown-bearing triggers, activation locks, refresh behavior, proc state, and uptime remain unsupported.
 
 ## Verification
 
 - Focused contract, evaluator, catalogue, build-integration, helper, and page tests passed.
-- Full Node suite: `616/616`.
+- Full Node suite: `647/647`.
 - Reference builds: `69/69`.
 - Edge cases: all `12` passed.
 - BuildSnapshot v2 verification passed.
-- Generated catalogue: `531/531`, with `13` decoded-executable and `518` explicitly non-executable components.
+- Generated catalogue: `531/531`, with `20` decoded-executable and `511` explicitly non-executable components.

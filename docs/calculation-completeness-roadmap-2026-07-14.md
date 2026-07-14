@@ -18,7 +18,7 @@ Current closed-world inventories are:
 | Weapon passives | 80 | Every ID classified exactly once |
 | Non-structured mastery | 193 | Every ID classified exactly once; 33 persistent mappings across unified and weapon mastery |
 | Innate item and selectable perk complexes | 294 | Every ID classified exactly once |
-| Conditional source components | 531 | 13 exact scenario rules executable; 518 explicitly non-executable and fail-closed |
+| Conditional source components | 531 | 20 exact scenario rules executable; 511 explicitly non-executable and fail-closed |
 
 Selected skills and masteries are active only for equipped weapon families. Unified mastery is global. Build From Scratch can temporarily supply its requested weapon families to the same calculator while it constructs progression before concrete weapons are equipped. That override is local to scratch evaluation and does not change normal build calculation.
 
@@ -40,7 +40,7 @@ The scenario contract must grow by evidence-backed dimensions, not by parsing to
 1. Time-of-day state. Ordinary day and night are now exact for Kowazan's Bombing and Kowazan's Madness. Unsupported phases and shared older Kowazan controllers fail closed.
 2. Self Health or Mana thresholds. CombatScenario v2 and the three optimizer-facing pages now carry optional participant-owned resource ratios. Critical Equilibrium and Tranquil Will are exact and executable. Absolute resource amounts and target-resource rules remain separate future work.
 3. Source moving and stationary state is now exact for Rapidfire Stance, Battle Tempo, Asceticism, Aridus's Fury, and Stigma Executor. Position remains excluded because no remaining direction-only source is executable from direction alone.
-4. Recent movement-skill use and other short-lived source events are the next mechanic family.
+4. Seven deterministic source-event effects are now exact at the evaluation instant for a confirmed successful qualifying activation: Shadow Walker, Nimble Steps, Barbarian's Dash, its Steadfast Rush augmentation, Enduring Dash, Mirage Dancer's Mobility branch, and Blizzard Overture 4-piece. CombatScenario v4 records observed event history, and these rules execute only at `occurredAgoMs: 0`. Elapsed duration and positive Buff Duration are not modeled, so aged events fail closed. Cooldown-bearing triggers, activation locks, refresh behavior, and uptime also remain unsupported.
 5. Party size, nearby allies, aura ownership, and recipient rules.
 6. Skill-use, control, weaken, collision, and active-weapon state.
 7. Stacks, proc chance, cooldown, duration, refresh, and uptime policy.

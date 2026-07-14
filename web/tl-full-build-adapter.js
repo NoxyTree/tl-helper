@@ -5,6 +5,7 @@ import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimiz
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
 import { optimizeScratchProgression } from "./tl-progression-optimizer.js";
 import { ATTRIBUTE_BREAKPOINTS, SET_PASSIVE_RULES, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue } from "./tl-questlog-rules.js";
+import { evaluateScenarioEffects } from "./tl-scenario-effects.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.scenarioStats ?? calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
@@ -422,7 +423,45 @@ export function refineRuneConfiguration({
  * contributes zero hint and that route can still be pruned. Exact finalist
  * calculation remains the sole scoring authority.
  */
-export function deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales, baseline = {} }) {
+function scenarioEvaluatorInput(scenario) {
+  if (!scenario || typeof scenario !== "object") return null;
+  if (!Array.isArray(scenario.participants)) return scenario;
+  const source = scenario.participants.find((row) => row?.id === scenario.source?.participantId);
+  const target = scenario.participants.find((row) => row?.id === scenario.target?.participantId);
+  return {
+    targetDistanceMeters: Number(scenario.target?.distanceMeters),
+    timeOfDay: scenario.environment?.timeOfDay ?? "unspecified",
+    sourceResources: source?.resources ?? {},
+    targetResources: target?.resources ?? {},
+    sourceMotion: source?.motion ?? { state: "unspecified" },
+    targetMotion: target?.motion ?? { state: "unspecified" },
+    sourceEventHistory: source?.eventHistory ?? { state: "unspecified" },
+    targetEventHistory: target?.eventHistory ?? { state: "unspecified" },
+  };
+}
+
+function scenarioSetCompletionRows(set, scenario) {
+  const dimensions = scenarioEvaluatorInput(scenario);
+  if (!dimensions) return [];
+  const source = scenario?.participants?.find((row) => row?.id === scenario.source?.participantId);
+  const setBreakpoints = (set.itemSetBonus ?? [])
+    .map((bonus) => `${set.id}:${Number(bonus.set_count ?? 0)}`)
+    .filter((id) => !id.endsWith(":0"));
+  const evaluated = evaluateScenarioEffects({
+    activeSources: {
+      equippedWeaponTypes: source?.equippedWeaponTypes ?? [],
+      passiveSkills: [],
+      masteries: [],
+      masteryIds: [],
+      itemEffects: [],
+      setBreakpoints,
+    },
+    scenario: dimensions,
+  });
+  return evaluated.errors.length ? [] : evaluated.overlayRows;
+}
+
+export function deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales, baseline = {}, scenario = null }) {
   const hints = new Map();
   const setIds = new Set(Object.values(candidatesBySlot ?? {}).flatMap((rows) => rows.flatMap((row) => row.setKeys ?? [])));
   if (!setIds.size) return hints;
@@ -445,6 +484,12 @@ export function deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, 
       const rule = SET_PASSIVE_RULES[set.id]?.[count];
       if (rule) try { for (const row of rule.effect(totalsEnv) ?? []) addExpanded(stats, row.statId, row.value); } catch { /* a dynamic rule that cannot evaluate against the baseline stays out of the hint */ }
     }
+    // Scenario-only set value must protect the route during the same search
+    // that will score it exactly. Evaluate a hypothetical full completion
+    // against the canonical scenario, without activating unrelated passives,
+    // masteries, or item effects. Any unsupported scenario state contributes
+    // no hint and remains fail-closed at exact candidate evaluation.
+    for (const row of scenarioSetCompletionRows(set, scenario)) addExpanded(stats, row.statId, row.rawValue);
     if (!pieces) continue;
     const score = scoreRankedGoals(stats, {}, scales, rankedGoals);
     if (score > 0) hints.set(setId, score / pieces);
@@ -453,7 +498,7 @@ export function deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, 
 }
 
 export function applySetCompletionHints({
-  core, candidatesBySlot, rankedGoals, scales, baseline = {}, includeSetEffects = true,
+  core, candidatesBySlot, rankedGoals, scales, baseline = {}, includeSetEffects = true, scenario = null,
 }) {
   // Preserve heuristic-only value already supplied by compound candidates
   // such as artifact bundles. Ordinary candidates have no extra hint because
@@ -462,7 +507,7 @@ export function applySetCompletionHints({
     row.scoreHint = Number(row.scoreHint ?? 0);
   }
   if (!includeSetEffects) return new Map();
-  const completionHints = deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales, baseline });
+  const completionHints = deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals, scales, baseline, scenario });
   for (const rows of Object.values(candidatesBySlot ?? {})) for (const row of rows) for (const key of row.setKeys ?? []) {
     row.scoreHint += Number(completionHints.get(key) ?? 0);
   }
@@ -721,7 +766,7 @@ export async function createOptimizerAdapter(deps = {}) {
       // beam protects set routes through to exact finalist evaluation. Not a
       // pruning guarantee — see deriveSetCompletionHints for the baseline-
       // threshold limitation.
-      applySetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline, includeSetEffects: rules.includeSetEffects !== false });
+      applySetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline, includeSetEffects: rules.includeSetEffects !== false, scenario });
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
