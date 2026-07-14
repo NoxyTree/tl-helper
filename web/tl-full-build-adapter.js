@@ -861,6 +861,7 @@ export async function createOptimizerAdapter(deps = {}) {
         for (const item of core.slotItems(core.slotById(slot))) {
           if (requiredWeaponType && item.equipmentType !== requiredWeaponType) continue;
           if (minimumItemLevel && core.itemMaxLevel(item) < minimumItemLevel) continue;
+          if (scratch && rules.allowUnownedHeroics === false && item.grade === core.HEROIC_GRADE) continue;
           let selection = optimizerItemSelection(core, item, current);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
@@ -941,6 +942,16 @@ export async function createOptimizerAdapter(deps = {}) {
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
+      const rejectionDiagnostics = { blockingByStage: new Map(), constraints: 0 };
+      const recordBlockingIssues = (stage, issues) => {
+        if (!issues?.length) return;
+        const stageIssues = rejectionDiagnostics.blockingByStage.get(stage) ?? new Map();
+        for (const issue of issues) {
+          const code = issue.code || "calculation_issue";
+          stageIssues.set(code, (stageIssues.get(code) ?? 0) + 1);
+        }
+        rejectionDiagnostics.blockingByStage.set(stage, stageIssues);
+      };
       const attributePoolSize = request.depth === "thorough" ? 64 : 48;
       const progressionPoolSize = request.depth === "thorough" ? 8 : 4;
       const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
@@ -1010,7 +1021,15 @@ export async function createOptimizerAdapter(deps = {}) {
           if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
           const candidate = preliminaryFrontier[index];
           const optimized = optimizedFinalists[index];
-          if (!optimized.blockingIssues.length && satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
+          if (optimized.blockingIssues.length) {
+            recordBlockingIssues("attribute optimization", optimized.blockingIssues);
+            continue;
+          }
+          if (!satisfiesProtectedStats(optimized.stats, protectedStats)) {
+            rejectionDiagnostics.constraints += 1;
+            continue;
+          }
+          exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
         }
         exact.sort(exactOrder);
         if (rules.runes?.mode && rules.runes.mode !== "keep" && runeCandidatesByCategory.size) {
@@ -1046,7 +1065,10 @@ export async function createOptimizerAdapter(deps = {}) {
             if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
             const candidate = refinementTargets[index];
             const refined = refinedFinalists[index];
-            if (refined.blockingIssues.length) continue;
+            if (refined.blockingIssues.length) {
+              recordBlockingIssues("rune refinement", refined.blockingIssues);
+              continue;
+            }
             const exactIndex = exact.findIndex((row) => row.key === candidate.key);
             exact[exactIndex] = { ...candidate, selections: { ...candidate.selections, ...clone(refined.build.equipment) }, evaluation: { ...candidate.evaluation, score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights } };
           }
@@ -1089,7 +1111,14 @@ export async function createOptimizerAdapter(deps = {}) {
           if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
           const candidate = progressionTargets[index];
           const refined = refinedProgression[index];
-          if (refined.blockingIssues.length || !refined.protectedStatsSatisfied || !refined.minimumsSatisfied) continue;
+          if (refined.blockingIssues.length) {
+            recordBlockingIssues("progression refinement", refined.blockingIssues);
+            continue;
+          }
+          if (!refined.protectedStatsSatisfied || !refined.minimumsSatisfied) {
+            rejectionDiagnostics.constraints += 1;
+            continue;
+          }
           exactProgression.push({
             ...candidate,
             evaluation: {
@@ -1115,7 +1144,15 @@ export async function createOptimizerAdapter(deps = {}) {
           progressionFinalistsEvaluated: progressionTargets.length,
         };
       }
-      if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
+      if (!search.best) {
+        const blockingSummary = [...rejectionDiagnostics.blockingByStage.entries()].map(([stage, issues]) => {
+          const codes = [...issues.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([code, count]) => `${code} (${count})`).join(", ");
+          return `${stage}: ${codes}`;
+        }).join("; ");
+        if (blockingSummary) throw new Error(`No calculation-legal finalist survived exact evaluation. ${blockingSummary}`);
+        if (rejectionDiagnostics.constraints || Object.keys(protectedStats).length) throw new Error("No build satisfies the protected or minimum stat constraints.");
+        throw new Error("No calculation-legal finalist survived exact evaluation.");
+      }
       const best = search.best;
       const finalStats = best.evaluation.stats;
       const finalScenario = scenarioForBuild(best.evaluation.build);

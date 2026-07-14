@@ -40,4 +40,6 @@ test("artifact set thresholds contribute to exact build totals", () => {
   const total = (id) => calc.stats.find((row) => row.id === id)?.total ?? 0;
   assert.equal(total("all_evasion"), 110);
   assert.ok(calc.stats.find((row) => row.id === "hp_max")?.sources.some((source) => source.type === "set_bonus" && source.value === 500));
+  assert.equal(calc.status.state, "legal");
+  assert.ok(!calc.status.blockingIssues.some((issue) => issue.code === "item_level_data_missing"));
 });

@@ -3514,6 +3514,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
 
   for (const { slotId: slot, selection, item } of allBuildSelectionEntries(build)) {
     if (!item) continue;
+    if (isArtifactSlot(slot)) continue;
     const levels = getItemLevels(item);
     if (!levels.length) {
       dataBacked.push({ severity: "warning", code: "item_level_data_missing", calculationImpact: "provisional", message: `${slotById(slot).label} has no item level stat rows in the cached data.` });

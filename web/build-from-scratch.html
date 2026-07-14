@@ -1645,7 +1645,7 @@ class Component extends DCLogic {
       progression:{...this.state.progression,masteryPointsByWeapon:{...this.state.progression.masteryPointsByWeapon}},
       rules:{ minimumItemLevel:this.state.rules.endgame?50:0, keepCurrentHeroics:false, reconsiderHeroics:this.state.heroicMode==='theoretical',
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
-        bestHeroicConfiguration:this.state.heroicMode==='theoretical',
+        bestHeroicConfiguration:this.state.heroicMode==='theoretical', allowUnownedHeroics:this.state.heroicMode==='theoretical',
         runes:{mode:this.state.rules.runes?'normal':'keep',chaosOwnershipRequired:true,normalDuplicateCap:3,chaosDuplicateCap:1},
         artifacts:{mode:this.state.rules.artifacts?'sets':'keep'} }, depth:'thorough',
       ...(scenario?{scenario}:{}),

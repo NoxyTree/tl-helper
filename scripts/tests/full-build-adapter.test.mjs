@@ -304,6 +304,28 @@ test("minimum item level excludes progression gear from scratch candidates", asy
   assert.ok(result.assumptions.includes("Equipment below level 50 was excluded."));
 });
 
+test("scratch builds exclude unowned Heroic items when theoretical Heroics are disabled", async () => {
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const items = {
+    normal: { id: "normal", name: "Normal", grade: 41, equipmentType: "head" },
+    heroic: { id: "heroic", name: "Heroic", grade: 51, equipmentType: "head" },
+  };
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} }, EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) { return { stats: [{ id: "attack", total: build.equipment.head.itemId === "heroic" ? 100 : 10 }] }; },
+    slotSelectionContribution(_slot, selection) { return { attack: selection?.itemId === "heroic" ? 100 : selection?.itemId === "normal" ? 10 : 0 }; },
+    slotItems: () => Object.values(items), slotById: () => ({ id: "head", types: ["head"] }), emptyEquipmentSelection: empty,
+    itemMaxLevel: () => 80, heroicSlotGroupForSlot: () => "armor", statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff",
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"] }, rules: { allowUnownedHeroics: false },
+  });
+  assert.equal(result.build.equipment.head.itemId, "normal");
+});
+
 test("candidate cap ranks direct stats without copying them into score hints", async () => {
   const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
   const itemRows = [
@@ -543,7 +565,7 @@ test("exact evaluation refuses an invalid finalist", async () => {
   await assert.rejects(() => adapter.optimize({
     build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
     sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
-  }), /No build satisfies/);
+  }), /No calculation-legal finalist survived exact evaluation/);
 });
 
 test("candidate generation excludes an unmapped persistent item before beam scoring", async () => {
@@ -719,7 +741,7 @@ test("adapter drops every progression refinement that violates protected stats o
     goals: { priorities: [{ id: "attack", rank: 1, minimum: 1 }], protect: ["attack"] },
     progression: { enabled: true },
     rules: {},
-  }), /No build satisfies the protected-stat constraints/);
+  }), /No build satisfies the protected or minimum stat constraints/);
 });
 
 test("progression finalist task keeps attributes fixed and reports protected-stat rejection", () => {

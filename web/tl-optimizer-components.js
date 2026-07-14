@@ -108,6 +108,7 @@ export function generateRuneCandidates({
     const rows = [first, second, third];
     if (rows.filter((row) => row.rune.runeType === "chaos").length > 1) continue;
     const synergy = matchingSynergy(runeSynergies, category, rows.map((row) => row.rune.runeType));
+    if (!synergy) continue;
     const selection = rows.map(({ rune, option }) => ({ runeId: rune.id, statId: option.statId, level: option.level }));
     const key = selection.map((row) => `${row.runeId}:${row.statId}:${row.level}`).join("|");
     candidates.push({
@@ -117,7 +118,7 @@ export function generateRuneCandidates({
       tierScore: rows.reduce((sum, row) => sum + row.tierScore, 0),
       key,
       assumptions: ["Three rune sockets", "Normal rune selections may repeat", `Chaos availability: ${policy.mode}`, "At most one Chaos rune per item"],
-      explanation: synergy ? `Activates ${synergy.name}` : "No matching rune synergy",
+      explanation: `Activates ${synergy.name}`,
     });
   }
   return diverseRuneCandidates(candidates, limit);
