@@ -29,6 +29,11 @@ test("Improve my build opens the exact Builder result with kept equipment contex
 
 test("setup uses real weapon, ranked goal modes, rules, and attribute contracts", () => {
   assert.match(html, /aria-label="\{\{ w\.ariaLabel \}\}"/);
+  assert.match(html, /class="tl-weapon-card"/);
+  assert.match(html, /class="tl-weapon-card-select"/);
+  assert.equal(html.match(/class="tl-weapon-pairing"/g)?.length, 1);
+  assert.match(html, /\.tl-weapon-card-select\{position:absolute;z-index:5;inset:0;width:100%;height:100%/);
+  assert.match(html, /name:selected\?this\.core\.label\(selected\):'Choose weapon'/);
   assert.match(html, /aria-label="Add a priority stat"/);
   assert.match(html, /movePriority/);
   assert.match(html, /Goal mode for \{\{ p\.name \}\}/);
