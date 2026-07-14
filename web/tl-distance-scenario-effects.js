@@ -241,7 +241,7 @@ export function evaluateDistanceScenarioEffects({ activeSources = {}, scenario =
     if (!weapons.has(definition.requiredWeapon)) {
       errors.push(error("foreign_weapon_passive", DISTANCE_EFFECT_IDS.EAGLE_VISION, "Eagle Vision requires an equipped crossbow."));
     } else if (masteries.has(DISTANCE_EFFECT_IDS.PREDATORS_FOCUS)) {
-      errors.push(error("unsupported_mastery_replacement", DISTANCE_EFFECT_IDS.PREDATORS_FOCUS, "Predator's Focus needs nearby-opponent positions and is not executable in a distance-only scenario."));
+      errors.push(error("unsupported_mastery_replacement", DISTANCE_EFFECT_IDS.PREDATORS_FOCUS, "Predator's Focus needs nearby-opponent positions, which the current combat scenario does not model."));
       traces.push(trace("effect_failed_closed", DISTANCE_EFFECT_IDS.EAGLE_VISION, { replacementId: DISTANCE_EFFECT_IDS.PREDATORS_FOCUS }));
     } else {
       const accuracyPerMeter = EAGLE_ACCURACY_RAW_PER_METER[eagle.level - 1];

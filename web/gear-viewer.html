@@ -201,7 +201,7 @@
       <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
       <span class="check-inline"><input id="set-fit-toggle" type="checkbox" checked><label for="set-fit-toggle">Include set effects in Fit</label></span>
-      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score target-distance effects at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span></span>
+      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score combat scenario at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span><select id="scenario-time" aria-label="Time of day"><option value="unspecified">Time unspecified</option><option value="day">Day</option><option value="night">Night</option></select></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -255,6 +255,7 @@
       includeSetEffects: true,
       scenarioEnabled: false,
       scenarioDistance: 10,
+      scenarioTime: "unspecified",
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -285,7 +286,7 @@
 
     function activeScenario() {
       if (!state.scenarioEnabled || state.mode === "bare") return null;
-      return core.createTargetDistanceScenario(scoringContext().build, state.scenarioDistance);
+      return core.createBuildScenario(scoringContext().build, { targetDistanceMeters: state.scenarioDistance, timeOfDay: state.scenarioTime });
     }
 
     function normalizeScenarioDistance(value, fallback = 10) {
@@ -297,6 +298,7 @@
       const unavailable = state.mode === "bare";
       $("scenario-fit-toggle").disabled = unavailable;
       $("scenario-distance").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-time").disabled = unavailable || !state.scenarioEnabled;
     }
 
     function calculationOptions() {
@@ -1047,7 +1049,7 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
-      const scenarioLabel = activeScenario() ? ` · target-distance effects at ${state.scenarioDistance}m` : "";
+      const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}` : "";
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
       if (calculationBlock) {
         const count = calculationBlock.blockingIssues?.length ?? 0;
@@ -1067,7 +1069,10 @@
       if (!state.keepHeroic) params.set("heroic", "0");
       if (state.heroicPotential) params.set("heroicPotential", "1");
       if (!state.includeSetEffects) params.set("sets", "0");
-      if (state.scenarioEnabled) params.set("distance", String(state.scenarioDistance));
+      if (state.scenarioEnabled) {
+        params.set("distance", String(state.scenarioDistance));
+        if (state.scenarioTime !== "unspecified") params.set("time", state.scenarioTime);
+      }
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
       if (state.grade !== "all") params.set("grade", state.grade);
@@ -1092,6 +1097,7 @@
           state.scenarioDistance = distance;
         }
       }
+      if (["day", "night"].includes(params.get("time"))) state.scenarioTime = params.get("time");
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
@@ -1150,6 +1156,7 @@
             if (typeof prefs.includeSetEffects === "boolean") state.includeSetEffects = prefs.includeSetEffects;
             if (typeof prefs.scenarioEnabled === "boolean") state.scenarioEnabled = prefs.scenarioEnabled;
             if (Number.isFinite(prefs.scenarioDistance) && prefs.scenarioDistance >= 0) state.scenarioDistance = prefs.scenarioDistance;
+            if (["unspecified", "day", "night"].includes(prefs.scenarioTime)) state.scenarioTime = prefs.scenarioTime;
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
@@ -1157,7 +1164,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, scenarioTime: state.scenarioTime, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -1192,6 +1199,7 @@
       $("set-fit-toggle").disabled = state.mode === "bare";
       $("scenario-fit-toggle").checked = state.scenarioEnabled;
       $("scenario-distance").value = String(state.scenarioDistance);
+      $("scenario-time").value = state.scenarioTime;
       syncScenarioControls();
 
       let searchTimer = 0;
@@ -1212,6 +1220,11 @@
       $("scenario-distance").addEventListener("change", () => {
         state.scenarioDistance = normalizeScenarioDistance($("scenario-distance").value, state.scenarioDistance);
         $("scenario-distance").value = String(state.scenarioDistance);
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-time").addEventListener("change", () => {
+        state.scenarioTime = ["day", "night"].includes($("scenario-time").value) ? $("scenario-time").value : "unspecified";
         state.limit = ROW_LIMIT;
         refresh();
       });

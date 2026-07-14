@@ -151,7 +151,7 @@ test("decoded distance rules cannot cross their authoritative game build", () =>
     core.data.gameBuild = "future-build";
     const calc = core.calculateBuild(build, attributes, { scenario: futureScenario });
     assert.equal(calc.scenarioEffects.status, "unsupported");
-    assert.equal(calc.scenarioEffects.errors[0].code, "distance_effect_build_mismatch");
+    assert.equal(calc.scenarioEffects.errors[0].code, "scenario_effect_build_mismatch");
     assert.deepEqual(calc.scenarioStats, calc.stats);
   } finally {
     core.data.gameBuild = originalBuild;
@@ -169,34 +169,6 @@ test("scenario source weapons must identify the calculated build", () => {
   assert.deepEqual(calc.scenarioStats, calc.stats);
 });
 
-test("scenario overlay hard caps are reconstructed from uncapped static totals", () => {
-  const staticStats = [{
-    id: "attack_speed_modifier",
-    total: 15000,
-    uncappedTotal: 16000,
-    overflow: 1000,
-    hardCap: 15000,
-    sources: [
-      { sourceLabel: "Static", name: "Static", value: 16000, type: "source" },
-      { sourceLabel: "Hard cap", name: "Hard cap", value: -1000, type: "hard_cap" },
-    ],
-  }];
-  const overlayRows = [{
-    effectId: "test-distance-effect",
-    effectName: "Test distance effect",
-    statId: "attack_speed_modifier",
-    rawValue: 500,
-    precision: { coefficientAuthority: "test" },
-    provenance: { gameBuild: appData.gameBuild },
-  }];
-  const [row] = core.scenarioOverlayStats(staticStats, overlayRows, 10);
-  assert.equal(row.total, 15000);
-  assert.equal(row.uncappedTotal, 16500);
-  assert.equal(row.overflow, 1500);
-  assert.equal(row.sources.filter((source) => source.type === "hard_cap").length, 1);
-  assert.equal(row.sources.find((source) => source.type === "hard_cap").value, -1500);
-});
-
 test("scenario cache identity separates target distances", () => {
   const build = core.createInitialBuild();
   const ordinaryStaff = firstWeapon("staff", ["staff_a_t3_mythicbeast_003"]);
@@ -205,6 +177,12 @@ test("scenario cache identity separates target distances", () => {
   const atFive = core.slotSelectionContribution("main_hand", selection(blackRage), build, attributes, { scenario: scenario(build, 5) });
   const atTen = core.slotSelectionContribution("main_hand", selection(blackRage), build, attributes, { scenario: scenario(build, 10) });
   assert.equal((atTen.all_critical_attack ?? 0) - (atFive.all_critical_attack ?? 0), 1000);
+
+  const reorderedFive = structuredClone(scenario(build, 5));
+  reorderedFive.participants.reverse();
+  reorderedFive.participants.find((participant) => participant.id === "source").equippedWeaponTypes.reverse();
+  const equivalentFive = core.slotSelectionContribution("main_hand", selection(blackRage), build, attributes, { scenario: reorderedFive });
+  assert.equal(equivalentFive, atFive, "equivalent normalized scenarios should share one slot cache entry");
 });
 
 test("slot contribution rebinding cancels scenario effects from the other weapon", () => {

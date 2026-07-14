@@ -4,6 +4,8 @@ Date: 2026-07-14
 
 Branch: `codex/calculation-consistency-release`
 
+Time-of-day implementation snapshot: `snapshot/time-of-day-pre-implementation-20260714` at commit `982197a6dcc581fedc8503577521a1374fbe1154`.
+
 ## What can be claimed now
 
 The shared calculator is the authority for retained persistent static build totals across Armory, Tracker, Gear Viewer, Full Build Optimizer, Build From Scratch, BuildSnapshot, and Combat Lab prefills.
@@ -16,7 +18,7 @@ Current closed-world inventories are:
 | Weapon passives | 80 | Every ID classified exactly once |
 | Non-structured mastery | 193 | Every ID classified exactly once; 33 persistent mappings across unified and weapon mastery |
 | Innate item and selectable perk complexes | 294 | Every ID classified exactly once |
-| Conditional source shells | 530 | 4 exact distance rules executable; 526 catalogued and fail-closed |
+| Conditional source shells | 530 | 6 exact scenario rules executable; 524 explicitly non-executable and fail-closed |
 
 Selected skills and masteries are active only for equipped weapon families. Unified mastery is global. Build From Scratch can temporarily supply its requested weapon families to the same calculator while it constructs progression before concrete weapons are equipped. That override is local to scratch evaluation and does not change normal build calculation.
 
@@ -35,8 +37,8 @@ Until those tests exist, both remain fail-closed or provisional. Neither can sil
 
 The scenario contract must grow by evidence-backed dimensions, not by parsing tooltip prose into guessed formulas. Recommended order:
 
-1. Time-of-day state.
-2. Self and target Health or Mana thresholds.
+1. Time-of-day state. Ordinary day and night are now exact for Kowazan's Bombing and Kowazan's Madness. Unsupported phases and shared older Kowazan controllers fail closed.
+2. Self and target Health or Mana thresholds. This is the next mechanic family.
 3. Moving, stationary, and positional state.
 4. Party size, nearby allies, aura ownership, and recipient rules.
 5. Skill-use, control, weaken, collision, and active-weapon state.

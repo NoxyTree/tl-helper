@@ -163,14 +163,16 @@ BuildSnapshot v2 stores raw build state and allocated attributes while treating 
 
 The conditional-effect work queue now contains `530` deterministic source shells: `62` weapon passives, `159` non-structured masteries, `286` item or Skill Core complexes, and `23` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
 
-Four decoded distance rules are now executable through an explicit combat scenario:
+Six decoded rules are now executable through an explicit combat scenario:
 
 - Sniper's Sense
 - Far Sight
 - Eagle Vision
 - Black Rage's Boost
+- Kowazan's Bombing, with exact ordinary day and night Attack Speed values
+- Kowazan's Madness, with exact ordinary day and night Melee Critical Hit Chance values
 
-Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the distance-only scenario does not yet model.
+Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the current scenario does not yet model. Kowazan Eclipse behavior also remains fail-closed because distinct Eclipse rows exist but their activation graph is not decoded.
 
 Scenario calculation is deliberately an overlay rather than a mutation of persistent totals:
 
@@ -181,9 +183,12 @@ Scenario calculation is deliberately an overlay rather than a mutation of persis
 - Browser contract modules are byte-exact mirrors of the authored combat-engine modules and are protected by a synchronization test.
 - Decoded distance rules are pinned to game build `24118850`; they cannot execute against a future projection until they are re-audited.
 - Equipped-weapon progression and selected Skill Core authority are reused, so foreign stored passives, foreign masteries, and unselected cores cannot reactivate through a scenario.
+- Scenario rows are applied before the shared final-derived-stat and hard-cap stage, so a modifier such as Attack Speed also updates its dependent weapon interval.
 - Hard caps are reconstructed from uncapped static totals after overlay application.
+- Scenario fingerprints and slot caches use the normalized closed-world contract, so non-semantic participant, action, or weapon ordering cannot split cache identity.
+- Scratch optimization rebinds the scenario source weapons for progression evaluation, every concrete candidate, attribute and rune refinement, and the final result.
 
-Gear Viewer and Full Build Optimizer expose target-distance scoring as an explicit opt-in. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, and optimizer handoff use the same canonical scenario when enabled.
+Gear Viewer and Full Build Optimizer expose target-distance and ordinary day/night scoring as an explicit opt-in. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, and optimizer handoff use the same canonical scenario when enabled.
 
 ## Cross-surface behavior
 
@@ -221,7 +226,7 @@ These are explicit and do not silently enter exact item ranking:
 
 1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
 2. `GT_Hero_Attack_01`, Instinct and Restraint, has exact level rates and an exact Eclipse reversal, but percentage All Defense materialization, Base Damage hand scope, stacking order, and rounding are not present in the decoded client rows. It remains provisional rather than receiving invented endpoint totals.
-3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the four decoded distance rules listed above are currently executable.
+3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the six decoded distance and ordinary day/night rules listed above are currently executable.
 4. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
 5. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
 
@@ -237,19 +242,20 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `551/551`
+- Node test suite: `562/562`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
 - Set audit: `78` sets, `151` breakpoints, no incorrect or review classifications
 - Passive-effect contract: `80 + 193 + 294 = 567` effects, every ID classified exactly once
-- Conditional scenario catalogue: `530/530` source shells, with `4` decoded distance rules executable and `526` explicitly non-executable
-- Closed-world scenario, game-build drift, source-weapon binding, cache separation, hard-cap reconstruction, and unsupported-current-stat regressions: passed
+- Conditional scenario catalogue: `530/530` source shells, with `6` decoded rules executable and `524` explicitly non-executable
+- Closed-world scenario, game-build drift, source-weapon binding, scratch-candidate rebinding, canonical cache identity, day/night separation, shared-abnormal conflict handling, derived-stat reconstruction, hard-cap reconstruction, and unsupported-current-stat regressions: passed
 - Browser combat-engine contract synchronization: passed
 - Passive registry binding audit: passed
 - Complete candidate legality regressions: passed
 - Diff whitespace check: passed
-- Local HTTP smoke: all six calculation pages, the scenario-aware calculator and adapter, distance evaluator, browser scenario contract, and generated scenario catalogue returned `200`
+- Pre-implementation snapshot: annotated tag `snapshot/time-of-day-pre-implementation-20260714`, resolving to commit `982197a6dcc581fedc8503577521a1374fbe1154`
+- Local HTTP smoke: Gear Viewer, Full Build Optimizer, the scenario-aware calculator and adapter, the scenario aggregator, the ordinary day/night evaluator, and the generated scenario catalogue returned `200`
 - Inline module syntax: Gear Viewer and Full Build Optimizer passed
 - In-app visual smoke: not completed because the browser-control transport was unavailable
 
@@ -260,6 +266,8 @@ These are explicit and do not silently enter exact item ranking:
 - `web/tl-passive-effect-contract.js`
 - `web/tl-build-snapshot.js`
 - `web/tl-distance-scenario-effects.js`
+- `web/tl-time-of-day-scenario-effects.js`
+- `web/tl-scenario-effects.js`
 - `web/tl-full-build-adapter.js`
 - `web/tl-progression-optimizer.js`
 - `web/index.html`

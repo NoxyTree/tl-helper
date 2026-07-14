@@ -5,11 +5,13 @@
 // state or the calculator's internal return shape.
 
 import {
+  canonicalCombatScenario,
   calculateBuild,
   calculateCombatPower,
   data as coreData,
 } from "./tl-core.js";
 import { CHARACTER_LEVEL } from "./tl-questlog-rules.js";
+import { SCENARIO_EFFECT_RULESET_ID, SCENARIO_EFFECT_RULESET_VERSION } from "./tl-scenario-effects.js";
 
 export const BUILD_SNAPSHOT_SCHEMA = "tl-helper.build-snapshot";
 export const BUILD_SNAPSHOT_VERSION = 2;
@@ -192,7 +194,8 @@ export function scenarioCalculationFingerprint({ build, attributes = {}, include
   }
   return JSON.stringify(sortJson({
     staticCalculation: JSON.parse(staticCalculationFingerprint({ build, attributes, includeSetEffects })),
-    scenario: cloneJson(scenario),
+    scenarioRuleset: { id: SCENARIO_EFFECT_RULESET_ID, version: SCENARIO_EFFECT_RULESET_VERSION },
+    scenario: cloneJson(canonicalCombatScenario(scenario)),
   }));
 }
 

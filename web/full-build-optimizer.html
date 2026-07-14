@@ -241,8 +241,9 @@
             <label class="toggle-row"><input id="best-heroic" type="checkbox" checked><span><strong>Best Heroic configuration</strong><small>Uses one Heroic trait and maximum-level effects for theoretical suggestions.</small></span></label>
           </div>
           <div class="scenario-controls">
-            <label for="enable-distance-scenario"><strong><input id="enable-distance-scenario" type="checkbox"> Score a target-distance scenario</strong>Opt in to distance-scaled passives, mastery replacements, and equipment effects. Static scoring remains the default.</label>
+            <label for="enable-distance-scenario"><strong><input id="enable-distance-scenario" type="checkbox"> Score a combat scenario</strong>Opt in to decoded distance and ordinary day or night effects. Static scoring remains the default.</label>
             <label for="target-distance"><strong>Target distance</strong><input id="target-distance" type="number" min="0" step="0.5" value="10" inputmode="decimal" disabled aria-describedby="distance-scenario-status"></label>
+            <label for="scenario-time"><strong>Time of day</strong><select id="scenario-time" disabled><option value="unspecified">Unspecified</option><option value="day">Day</option><option value="night">Night</option></select></label>
             <p id="distance-scenario-status" class="scenario-status" role="status">Disabled. Current stats and recommendations use persistent static totals only.</p>
           </div>
           <div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Use owned Chaos</button></div><p id="chaos-warning" class="warning hidden">Chaos runes are stronger and acquisition is chance-based. Only Chaos rune IDs already equipped in the source build are considered owned, with no more than one Chaos rune per item. Normal rune and stat choices may repeat across all three sockets.</p></div>
@@ -318,22 +319,23 @@
       const targetDistanceMeters=Number(rawDistance);
       if(!Number.isFinite(targetDistanceMeters)||targetDistanceMeters<0)return null;
       if(!state.core||!state.build)return null;
-      try{return state.core.createTargetDistanceScenario(state.build.build??state.build,targetDistanceMeters);}catch{return null;}
+      try{return state.core.createBuildScenario(state.build.build??state.build,{targetDistanceMeters,timeOfDay:$("scenario-time").value});}catch{return null;}
     }
     function scenarioDistance(scenario) { return Number(scenario?.target?.distanceMeters); }
     function scenarioRequestFields() { const scenario=activeScenario(); return scenario?{scenario}:{}; }
     function refreshScenarioControl() {
-      const enabled=$("enable-distance-scenario").checked,input=$("target-distance"); input.disabled=!enabled;
+      const enabled=$("enable-distance-scenario").checked,input=$("target-distance"); input.disabled=!enabled; $("scenario-time").disabled=!enabled;
       if(!enabled)state.scenarioError="";
       const scenario=activeScenario(),valid=!enabled||Boolean(scenario);
       input.setAttribute("aria-invalid",String(!valid));
-      $("distance-scenario-status").textContent=!enabled?"Disabled. Current stats and recommendations use persistent static totals only.":scenario?`Enabled. Current stats and recommendations are projected at ${scenarioDistance(scenario)}m.`:"Enter a finite target distance of 0m or more before optimizing.";
+      $("distance-scenario-status").textContent=!enabled?"Disabled. Current stats and recommendations use persistent static totals only.":scenario?`Enabled at ${scenarioDistance(scenario)}m${scenario.environment.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${scenario.environment.timeOfDay}`}.`:"Enter a finite target distance of 0m or more before optimizing.";
       updateReady();
       if(!valid){ state.currentStats={}; for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key); return; }
       refreshCurrentStats().catch(error=>{ $("source-status").textContent=`Scenario stats could not be refreshed: ${error.message}`; });
     }
     $("enable-distance-scenario").addEventListener("change",refreshScenarioControl);
     $("target-distance").addEventListener("input",refreshScenarioControl);
+    $("scenario-time").addEventListener("change",refreshScenarioControl);
 
     const STAT_CATEGORIES = [
       ["featured","Featured"],["offense","Offense"],["defense","Defense"],["resources","Resources"],["utility","Utility"],["pvp","PvP"],["control","Control"],["pve","Boss & PvE"],["directional","Positioning"],["species","Enemy Types"],["attributes","Attributes"]
@@ -440,7 +442,7 @@
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
       const scenario=result.scenario??activeScenario(),distance=scenarioDistance(scenario),scenarioBadge=scenario?`<span class="scenario-score-badge">Scenario scoring · target ${esc(distance)}m</span>`:"";
-      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong>${scenarioBadge}</div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">${scenario?`Scenario fit score at ${esc(distance)}m`:"Static fit score"}</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong>${scenarioBadge}</div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">${scenario?`Scenario fit score at ${esc(distance)}m${scenario.environment.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${esc(scenario.environment.timeOfDay)}`}`:"Static fit score"}</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
       $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
       $("save-result-preset").onclick=()=>{ try{saveResultAsPreset(result);$("result-status").textContent="Saved as a new Armory preset.";}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
       $("use-result-build").onclick=()=>{ try{state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };

@@ -37,8 +37,8 @@
       "setBreakpointConditional": 23
     },
     "bySupportState": {
-      "catalogued_unmodeled": 503,
-      "scenario_executable_decoded": 4,
+      "catalogued_unmodeled": 501,
+      "scenario_executable_decoded": 6,
       "unsupported_static_calculator": 9,
       "static_component_only": 14
     }
@@ -27642,12 +27642,13 @@
       "weaponRequirements": [
         "crossbow"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_fixed_amount",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_ordinary_day_night_scenario",
+        "executable": true,
+        "limitation": "Fixed ordinary day and night amounts and source gating are decoded and reviewed. Eclipse, dawn, dusk, and unspecified state fail closed."
       },
       "provenance": [
         {
@@ -27659,6 +27660,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.itemPerkComplex.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-time-of-day-scenario-effects.js",
+          "selector": "TIME_OF_DAY_EFFECT_DEFINITIONS[SkillSet_WP_Item_kA_CR_61]"
         }
       ],
       "sourceEdges": [
@@ -27667,21 +27673,37 @@
           "relation": "item_activates_complex",
           "to": "SkillSet_WP_Item_kA_CR_61",
           "projectionPath": "data.items[id=crossbow_aa_t5_boss_001].passives"
+        },
+        {
+          "from": "SkillSet_WP_Item_kA_CR_61",
+          "relation": "executed_by_reviewed_rule",
+          "to": "time-of-day:SkillSet_WP_Item_kA_CR_61",
+          "modulePath": "web/tl-time-of-day-scenario-effects.js",
+          "evaluatorExport": "evaluateTimeOfDayScenarioEffects",
+          "definitionKey": "SkillSet_WP_Item_kA_CR_61"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "eclipseState"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "time-of-day:SkillSet_WP_Item_kA_CR_61",
+        "mechanic": "time_of_day",
+        "modulePath": "web/tl-time-of-day-scenario-effects.js",
+        "evaluatorExport": "evaluateTimeOfDayScenarioEffects",
+        "definitionsExport": "TIME_OF_DAY_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_Item_kA_CR_61",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "environment.timeOfDay"
+        ],
+        "unresolvedFields": [
+          "eclipseState"
+        ],
+        "precisionStage": "decoded_exact_fixed_amount",
+        "precisionSemantics": "reviewed_ordinary_day_night_scenario",
+        "precisionLimitation": "Fixed ordinary day and night amounts and source gating are decoded and reviewed. Eclipse, dawn, dusk, and unspecified state fail closed."
+      }
     },
     {
       "catalogId": "itemPerkComplex:SkillSet_WP_Item_kA_DA_50",
@@ -27844,12 +27866,13 @@
       "weaponRequirements": [
         "dagger"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_fixed_amount",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_ordinary_day_night_scenario",
+        "executable": true,
+        "limitation": "Fixed ordinary day and night amounts and source gating are decoded and reviewed. Eclipse, dawn, dusk, and unspecified state fail closed."
       },
       "provenance": [
         {
@@ -27861,6 +27884,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.itemPerkComplex.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-time-of-day-scenario-effects.js",
+          "selector": "TIME_OF_DAY_EFFECT_DEFINITIONS[SkillSet_WP_Item_kA_DA_61_2]"
         }
       ],
       "sourceEdges": [
@@ -27869,21 +27897,37 @@
           "relation": "item_activates_complex",
           "to": "SkillSet_WP_Item_kA_DA_61_2",
           "projectionPath": "data.items[id=dagger_aa_t5_boss_001].passives"
+        },
+        {
+          "from": "SkillSet_WP_Item_kA_DA_61_2",
+          "relation": "executed_by_reviewed_rule",
+          "to": "time-of-day:SkillSet_WP_Item_kA_DA_61_2",
+          "modulePath": "web/tl-time-of-day-scenario-effects.js",
+          "evaluatorExport": "evaluateTimeOfDayScenarioEffects",
+          "definitionKey": "SkillSet_WP_Item_kA_DA_61_2"
         }
       ],
       "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
+        "eclipseState"
       ],
-      "executableSemantics": null
+      "executableSemantics": {
+        "ruleId": "time-of-day:SkillSet_WP_Item_kA_DA_61_2",
+        "mechanic": "time_of_day",
+        "modulePath": "web/tl-time-of-day-scenario-effects.js",
+        "evaluatorExport": "evaluateTimeOfDayScenarioEffects",
+        "definitionsExport": "TIME_OF_DAY_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_Item_kA_DA_61_2",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "environment.timeOfDay"
+        ],
+        "unresolvedFields": [
+          "eclipseState"
+        ],
+        "precisionStage": "decoded_exact_fixed_amount",
+        "precisionSemantics": "reviewed_ordinary_day_night_scenario",
+        "precisionLimitation": "Fixed ordinary day and night amounts and source gating are decoded and reviewed. Eclipse, dawn, dusk, and unspecified state fail closed."
+      }
     },
     {
       "catalogId": "itemPerkComplex:SkillSet_WP_Item_kA_ST_55",
@@ -27962,6 +28006,7 @@
       ],
       "executableSemantics": {
         "ruleId": "distance:SkillSet_WP_Item_kA_ST_55",
+        "mechanic": "target_distance",
         "modulePath": "web/tl-distance-scenario-effects.js",
         "evaluatorExport": "evaluateDistanceScenarioEffects",
         "definitionsExport": "DISTANCE_EFFECT_DEFINITIONS",
@@ -27969,7 +28014,13 @@
         "gameBuild": "24118850",
         "requiredScenarioInputs": [
           "targetDistanceMeters"
-        ]
+        ],
+        "unresolvedFields": [
+          "serverRounding"
+        ],
+        "precisionStage": "decoded_exact_coefficients",
+        "precisionSemantics": "reviewed_distance_scenario",
+        "precisionLimitation": "Distance coefficients and source gating are decoded and reviewed. Fractional metres are evaluated continuously; server-side rounding is not claimed."
       }
     },
     {
@@ -28758,6 +28809,7 @@
       ],
       "executableSemantics": {
         "ruleId": "distance:Bow_Normal_Attack_Skill",
+        "mechanic": "target_distance",
         "modulePath": "web/tl-distance-scenario-effects.js",
         "evaluatorExport": "evaluateDistanceScenarioEffects",
         "definitionsExport": "DISTANCE_EFFECT_DEFINITIONS",
@@ -28765,7 +28817,13 @@
         "gameBuild": "24118850",
         "requiredScenarioInputs": [
           "targetDistanceMeters"
-        ]
+        ],
+        "unresolvedFields": [
+          "serverRounding"
+        ],
+        "precisionStage": "decoded_exact_coefficients",
+        "precisionSemantics": "reviewed_distance_scenario",
+        "precisionLimitation": "Distance coefficients and source gating are decoded and reviewed. Fractional metres are evaluated continuously; server-side rounding is not claimed."
       }
     },
     {
@@ -40169,6 +40227,7 @@
       ],
       "executableSemantics": {
         "ruleId": "distance:SkillSet_WP_BO_S_DistanceCritical",
+        "mechanic": "target_distance",
         "modulePath": "web/tl-distance-scenario-effects.js",
         "evaluatorExport": "evaluateDistanceScenarioEffects",
         "definitionsExport": "DISTANCE_EFFECT_DEFINITIONS",
@@ -40176,7 +40235,13 @@
         "gameBuild": "24118850",
         "requiredScenarioInputs": [
           "targetDistanceMeters"
-        ]
+        ],
+        "unresolvedFields": [
+          "serverRounding"
+        ],
+        "precisionStage": "decoded_exact_coefficients",
+        "precisionSemantics": "reviewed_distance_scenario",
+        "precisionLimitation": "Distance coefficients and source gating are decoded and reviewed. Fractional metres are evaluated continuously; server-side rounding is not claimed."
       }
     },
     {
@@ -40373,6 +40438,7 @@
       ],
       "executableSemantics": {
         "ruleId": "distance:SkillSet_WP_CR_CR_S_DistanceRangeAcc",
+        "mechanic": "target_distance",
         "modulePath": "web/tl-distance-scenario-effects.js",
         "evaluatorExport": "evaluateDistanceScenarioEffects",
         "definitionsExport": "DISTANCE_EFFECT_DEFINITIONS",
@@ -40380,7 +40446,13 @@
         "gameBuild": "24118850",
         "requiredScenarioInputs": [
           "targetDistanceMeters"
-        ]
+        ],
+        "unresolvedFields": [
+          "serverRounding"
+        ],
+        "precisionStage": "decoded_exact_coefficients",
+        "precisionSemantics": "reviewed_distance_scenario",
+        "precisionLimitation": "Distance coefficients and source gating are decoded and reviewed. Fractional metres are evaluated continuously; server-side rounding is not claimed."
       }
     },
     {

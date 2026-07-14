@@ -1,8 +1,8 @@
 import { PASSIVE_EFFECT_CONTRACT } from "../../web/tl-passive-effect-contract.js";
 import {
-  DISTANCE_EFFECT_DEFINITIONS,
-  DISTANCE_EFFECT_GAME_BUILD,
-} from "../../web/tl-distance-scenario-effects.js";
+  SCENARIO_EFFECT_DEFINITIONS,
+  SCENARIO_EFFECT_GAME_BUILD,
+} from "../../web/tl-scenario-effects.js";
 
 export const SCENARIO_EFFECT_CATALOG_SCHEMA = "tl-helper.scenario-effect-catalog";
 export const SCENARIO_EFFECT_CATALOG_SCHEMA_VERSION = 1;
@@ -42,47 +42,48 @@ const REQUIRED_UNRESOLVED_FIELDS = Object.freeze([
 ]);
 
 const EXECUTABLE_DISTANCE_UNRESOLVED_FIELDS = Object.freeze(["serverRounding"]);
+const EXECUTABLE_TIME_UNRESOLVED_FIELDS = Object.freeze(["eclipseState"]);
+
+const distanceRule = (sourceId) => Object.freeze({
+  ruleId: `distance:${sourceId}`,
+  mechanic: "target_distance",
+  modulePath: "web/tl-distance-scenario-effects.js",
+  evaluatorExport: "evaluateDistanceScenarioEffects",
+  definitionsExport: "DISTANCE_EFFECT_DEFINITIONS",
+  definitionKey: sourceId,
+  gameBuild: SCENARIO_EFFECT_GAME_BUILD,
+  requiredScenarioInputs: Object.freeze(["targetDistanceMeters"]),
+  unresolvedFields: EXECUTABLE_DISTANCE_UNRESOLVED_FIELDS,
+  precisionStage: "decoded_exact_coefficients",
+  precisionSemantics: "reviewed_distance_scenario",
+  precisionLimitation: "Distance coefficients and source gating are decoded and reviewed. Fractional metres are evaluated continuously; server-side rounding is not claimed.",
+});
+
+const timeOfDayRule = (sourceId) => Object.freeze({
+  ruleId: `time-of-day:${sourceId}`,
+  mechanic: "time_of_day",
+  modulePath: "web/tl-time-of-day-scenario-effects.js",
+  evaluatorExport: "evaluateTimeOfDayScenarioEffects",
+  definitionsExport: "TIME_OF_DAY_EFFECT_DEFINITIONS",
+  definitionKey: sourceId,
+  gameBuild: SCENARIO_EFFECT_GAME_BUILD,
+  requiredScenarioInputs: Object.freeze(["environment.timeOfDay"]),
+  unresolvedFields: EXECUTABLE_TIME_UNRESOLVED_FIELDS,
+  precisionStage: "decoded_exact_fixed_amount",
+  precisionSemantics: "reviewed_ordinary_day_night_scenario",
+  precisionLimitation: "Fixed ordinary day and night amounts and source gating are decoded and reviewed. Eclipse, dawn, dusk, and unspecified state fail closed.",
+});
 
 // Each promotion is an explicit reviewed binding. Absence from this registry
 // always remains non-executable. In particular, Predator's Focus is omitted
 // because its nearby-opponent replacement scenario is not represented yet.
 export const EXECUTABLE_SCENARIO_RULE_REFERENCES = Object.freeze({
-  "Bow_Normal_Attack_Skill": Object.freeze({
-    ruleId: "distance:Bow_Normal_Attack_Skill",
-    modulePath: "web/tl-distance-scenario-effects.js",
-    evaluatorExport: "evaluateDistanceScenarioEffects",
-    definitionsExport: "DISTANCE_EFFECT_DEFINITIONS",
-    definitionKey: "Bow_Normal_Attack_Skill",
-    gameBuild: "24118850",
-    requiredScenarioInputs: Object.freeze(["targetDistanceMeters"]),
-  }),
-  "SkillSet_WP_BO_S_DistanceCritical": Object.freeze({
-    ruleId: "distance:SkillSet_WP_BO_S_DistanceCritical",
-    modulePath: "web/tl-distance-scenario-effects.js",
-    evaluatorExport: "evaluateDistanceScenarioEffects",
-    definitionsExport: "DISTANCE_EFFECT_DEFINITIONS",
-    definitionKey: "SkillSet_WP_BO_S_DistanceCritical",
-    gameBuild: "24118850",
-    requiredScenarioInputs: Object.freeze(["targetDistanceMeters"]),
-  }),
-  "SkillSet_WP_CR_CR_S_DistanceRangeAcc": Object.freeze({
-    ruleId: "distance:SkillSet_WP_CR_CR_S_DistanceRangeAcc",
-    modulePath: "web/tl-distance-scenario-effects.js",
-    evaluatorExport: "evaluateDistanceScenarioEffects",
-    definitionsExport: "DISTANCE_EFFECT_DEFINITIONS",
-    definitionKey: "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
-    gameBuild: "24118850",
-    requiredScenarioInputs: Object.freeze(["targetDistanceMeters"]),
-  }),
-  "SkillSet_WP_Item_kA_ST_55": Object.freeze({
-    ruleId: "distance:SkillSet_WP_Item_kA_ST_55",
-    modulePath: "web/tl-distance-scenario-effects.js",
-    evaluatorExport: "evaluateDistanceScenarioEffects",
-    definitionsExport: "DISTANCE_EFFECT_DEFINITIONS",
-    definitionKey: "SkillSet_WP_Item_kA_ST_55",
-    gameBuild: "24118850",
-    requiredScenarioInputs: Object.freeze(["targetDistanceMeters"]),
-  }),
+  "Bow_Normal_Attack_Skill": distanceRule("Bow_Normal_Attack_Skill"),
+  "SkillSet_WP_BO_S_DistanceCritical": distanceRule("SkillSet_WP_BO_S_DistanceCritical"),
+  "SkillSet_WP_CR_CR_S_DistanceRangeAcc": distanceRule("SkillSet_WP_CR_CR_S_DistanceRangeAcc"),
+  "SkillSet_WP_Item_kA_CR_61": timeOfDayRule("SkillSet_WP_Item_kA_CR_61"),
+  "SkillSet_WP_Item_kA_DA_61_2": timeOfDayRule("SkillSet_WP_Item_kA_DA_61_2"),
+  "SkillSet_WP_Item_kA_ST_55": distanceRule("SkillSet_WP_Item_kA_ST_55"),
 });
 
 const WEAPON_TYPES = new Set(["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"]);
@@ -169,10 +170,13 @@ function projectionProvenance(family, selector) {
 
 function validateScenarioRuleReference(sourceId, reference) {
   if (reference.definitionKey !== sourceId) fail(`scenario rule ${reference.ruleId} definitionKey does not match ${sourceId}`);
-  if (reference.gameBuild !== DISTANCE_EFFECT_GAME_BUILD) fail(`scenario rule ${reference.ruleId} gameBuild drifted`);
-  const definition = DISTANCE_EFFECT_DEFINITIONS[reference.definitionKey];
-  if (!definition) fail(`scenario rule ${reference.ruleId} references a missing distance definition`);
-  if (definition.executable === false) fail(`scenario rule ${reference.ruleId} references an unsupported distance definition`);
+  if (reference.gameBuild !== SCENARIO_EFFECT_GAME_BUILD) fail(`scenario rule ${reference.ruleId} gameBuild drifted`);
+  const definition = SCENARIO_EFFECT_DEFINITIONS[reference.definitionKey];
+  if (!definition) fail(`scenario rule ${reference.ruleId} references a missing definition`);
+  if (definition.executable === false) fail(`scenario rule ${reference.ruleId} references an unsupported definition`);
+  if (!reference.mechanic || !reference.precisionStage || !reference.precisionSemantics || !reference.precisionLimitation) {
+    fail(`scenario rule ${reference.ruleId} lacks explicit mechanic precision metadata`);
+  }
 }
 
 function shell({ family, sourceId, name, description, carriers, weaponRequirements, supportState, provenance, sourceEdges, scenarioRule = null, componentKind = null, staticComponent = null, reason = null }) {
@@ -205,16 +209,16 @@ function shell({ family, sourceId, name, description, carriers, weaponRequiremen
     supportState: scenarioRule ? SCENARIO_EFFECT_SUPPORT_STATES.scenarioExecutableDecoded : supportState,
     precision: scenarioRule
       ? Object.freeze({
-        stage: "decoded_exact_coefficients",
+        stage: scenarioRule.precisionStage,
         source: "decoded_game_tables",
-        semantics: "reviewed_distance_scenario",
+        semantics: scenarioRule.precisionSemantics,
         executable: true,
-        limitation: "Distance coefficients and source gating are decoded and reviewed. Fractional metres are evaluated continuously; server-side rounding is not claimed.",
+        limitation: scenarioRule.precisionLimitation,
       })
       : Object.freeze({ stage: "unsupported", source: "projected", semantics: "unresolved", executable: false }),
     provenance: Object.freeze(effectiveProvenance),
     sourceEdges: Object.freeze(effectiveSourceEdges),
-    unresolvedFields: scenarioRule ? EXECUTABLE_DISTANCE_UNRESOLVED_FIELDS : REQUIRED_UNRESOLVED_FIELDS,
+    unresolvedFields: scenarioRule ? scenarioRule.unresolvedFields : REQUIRED_UNRESOLVED_FIELDS,
     executableSemantics: scenarioRule ?? null,
     ...(componentKind ? { componentKind } : {}),
     ...(staticComponent ? {

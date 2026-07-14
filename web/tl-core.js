@@ -32,11 +32,12 @@ import {
   normalizeCombatScenario,
 } from "./vendor/combat-engine/combat-scenario.mjs";
 import {
-  DISTANCE_EFFECT_DEFINITIONS,
-  DISTANCE_EFFECT_GAME_BUILD,
-  DISTANCE_EFFECT_IDS,
-  evaluateDistanceScenarioEffects,
-} from "./tl-distance-scenario-effects.js";
+  SCENARIO_EFFECT_DEFINITIONS,
+  SCENARIO_EFFECT_GAME_BUILD,
+  SCENARIO_EFFECT_RULESET_ID,
+  SCENARIO_EFFECT_RULESET_VERSION,
+  evaluateScenarioEffects,
+} from "./tl-scenario-effects.js";
 
 export const EQUIPMENT_SLOTS = [
   { id: "main_hand", label: "Main Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
@@ -854,7 +855,7 @@ export function calculableItemPerkVariants(item, options = {}) {
   const candidates = values(item?.availablePerks)
     .filter((perk) => perk?.id && perk?.passive?.id && (
       PERK_PASSIVE_RULES[perk.passive.id]
-      || (includeScenarioEffects && DISTANCE_EFFECT_DEFINITIONS[perk.passive.id])
+      || (includeScenarioEffects && SCENARIO_EFFECT_DEFINITIONS[perk.passive.id])
     ))
     .sort((a, b) => String(a.passive.id).localeCompare(String(b.passive.id)) || String(a.id).localeCompare(String(b.id)));
   const seenPassiveIds = new Set();
@@ -868,7 +869,7 @@ export function calculableItemPerkVariants(item, options = {}) {
       perk,
       passiveId,
       requiredWeapon: PERK_PASSIVE_RULES[passiveId]?.requiredWeapon
-        ?? DISTANCE_EFFECT_DEFINITIONS[passiveId]?.requiredWeapon
+        ?? SCENARIO_EFFECT_DEFINITIONS[passiveId]?.requiredWeapon
         ?? "",
     });
   }
@@ -2254,16 +2255,16 @@ export function applyArtifactSet(build, setId) {
 // The selected/equipped source projection below reuses the same progression
 // and Skill Core authority as calculateBuild, so a scenario cannot reactivate
 // a stored foreign-weapon passive or an unselected catalogue core.
-export function activeDistanceScenarioSources(build, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+export function activeScenarioSources(build, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
   const passiveSkills = progression.skills
     .filter(({ loadoutType }) => loadoutType === "passive")
     .map(({ skill, selection }) => ({ id: skill.id, level: Number(selection.level || 1), selected: true }));
   const masteryIds = progression.masteries.map(({ masteryId }) => masteryId);
   const itemEffects = [];
   for (const { item, selection } of selections) {
-    if (item?.passives?.id) itemEffects.push({ id: item.passives.id, sourceKind: "innate" });
+    if (item?.passives?.id) itemEffects.push({ id: item.passives.id, sourceKind: "innate", itemId: item.id });
     const selectedPerk = selectedItemPerk(item, selection);
-    if (selectedPerk?.passive?.id) itemEffects.push({ id: selectedPerk.passive.id, sourceKind: "selected_core", selected: true });
+    if (selectedPerk?.passive?.id) itemEffects.push({ id: selectedPerk.passive.id, sourceKind: "selected_core", selected: true, itemId: item.id, perkId: selectedPerk.id });
   }
   return {
     equippedWeaponTypes: [...(progression.equippedWeaponTypes ?? equippedWeaponTypes(build))],
@@ -2273,16 +2274,20 @@ export function activeDistanceScenarioSources(build, progression = effectiveProg
   };
 }
 
-export function createTargetDistanceScenario(build, targetDistanceMeters) {
+export function activeDistanceScenarioSources(build, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+  return activeScenarioSources(build, progression, selections);
+}
+
+export function createBuildScenario(build, { targetDistanceMeters, timeOfDay = "unspecified" } = {}) {
   if (!data?.gameBuild) throw new Error("Game data must be initialized before creating a combat scenario.");
   const equipped = [...equippedWeaponTypes(build)].sort();
   return normalizeCombatScenario({
     schema: COMBAT_SCENARIO_SCHEMA,
     schemaVersion: COMBAT_SCENARIO_SCHEMA_VERSION,
     gameBuild: String(data.gameBuild),
-    id: "target-distance",
+    id: "build-scenario",
     durationMs: 0,
-    environment: { timeOfDay: "unspecified", weather: "unspecified" },
+    environment: { timeOfDay, weather: "unspecified" },
     participants: [
       { id: "source", relationship: "self", buildSnapshotId: "calculation-build", equippedWeaponTypes: equipped },
       { id: "target", relationship: "enemy", buildSnapshotId: "scenario-target", equippedWeaponTypes: [] },
@@ -2294,17 +2299,41 @@ export function createTargetDistanceScenario(build, targetDistanceMeters) {
   }, { expectedGameBuild: String(data.gameBuild) });
 }
 
-export function bindCombatScenarioToBuild(scenario, build) {
+export function createTargetDistanceScenario(build, targetDistanceMeters, timeOfDay = "unspecified") {
+  return createBuildScenario(build, { targetDistanceMeters, timeOfDay });
+}
+
+export function canonicalCombatScenario(scenario) {
   const gameBuild = String(data?.gameBuild ?? "");
-  const normalized = normalizeCombatScenario(scenario, { expectedGameBuild: gameBuild });
+  return normalizeCombatScenario(scenario, { expectedGameBuild: gameBuild });
+}
+
+export function combatScenarioCacheKey(scenario) {
+  return JSON.stringify(canonicalCombatScenario(scenario));
+}
+
+export function bindCombatScenarioToBuild(scenario, build, weaponTypes = null) {
+  const gameBuild = String(data?.gameBuild ?? "");
+  const normalized = canonicalCombatScenario(scenario);
   const sourceId = normalized.source.participantId;
-  const equipped = [...equippedWeaponTypes(build)].sort();
+  const equipped = [...new Set(weaponTypes ?? equippedWeaponTypes(build))].sort();
   return normalizeCombatScenario({
     ...normalized,
     participants: normalized.participants.map((participant) => participant.id === sourceId
       ? { ...participant, equippedWeaponTypes: equipped, ...(equipped.includes(participant.activeWeaponType) ? {} : { activeWeaponType: undefined }) }
       : participant),
   }, { expectedGameBuild: gameBuild });
+}
+
+function scenarioCacheIdentity(scenario) {
+  if (scenario == null) return "static";
+  try {
+    return combatScenarioCacheKey(scenario);
+  } catch {
+    // Invalid scenarios still need stable isolation until calculateBuild returns
+    // their normal fail-closed result.
+    return `invalid:${JSON.stringify(scenario)}`;
+  }
 }
 
 function calculationOptionsBoundToBuild(options, build) {
@@ -2323,7 +2352,7 @@ function scenarioTargetDistance(scenario) {
   return Number.isFinite(value) ? value : scenario?.target?.distanceMeters;
 }
 
-export function evaluateBuildDistanceScenario(build, scenario, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+export function evaluateBuildScenario(build, scenario, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
   const gameBuild = String(data?.gameBuild ?? "");
   let normalizedScenario;
   try {
@@ -2340,19 +2369,19 @@ export function evaluateBuildDistanceScenario(build, scenario, progression = eff
       scenario: null,
     });
   }
-  if (gameBuild !== DISTANCE_EFFECT_GAME_BUILD) {
+  if (gameBuild !== SCENARIO_EFFECT_GAME_BUILD) {
     return Object.freeze({
       overlayRows: Object.freeze([]),
       trace: Object.freeze([]),
       errors: Object.freeze([Object.freeze({
-        code: "distance_effect_build_mismatch",
+        code: "scenario_effect_build_mismatch",
         sourceId: null,
-        message: `Decoded distance rules are authoritative for game build ${DISTANCE_EFFECT_GAME_BUILD}, not loaded game build ${gameBuild}.`,
+        message: `Decoded scenario rules are authoritative for game build ${SCENARIO_EFFECT_GAME_BUILD}, not loaded game build ${gameBuild}.`,
       })]),
       scenario: normalizedScenario,
     });
   }
-  const activeSources = activeDistanceScenarioSources(build, progression, selections);
+  const activeSources = activeScenarioSources(build, progression, selections);
   const sourceParticipant = normalizedScenario.participants.find((participant) => participant.id === normalizedScenario.source.participantId);
   const scenarioWeapons = [...(sourceParticipant?.equippedWeaponTypes ?? [])].sort();
   const actualWeapons = [...activeSources.equippedWeaponTypes].sort();
@@ -2368,56 +2397,95 @@ export function evaluateBuildDistanceScenario(build, scenario, progression = eff
       scenario: normalizedScenario,
     });
   }
-  const evaluated = evaluateDistanceScenarioEffects({
+  const evaluated = evaluateScenarioEffects({
     activeSources,
-    scenario: { targetDistanceMeters: scenarioTargetDistance(normalizedScenario) },
+    scenario: {
+      targetDistanceMeters: scenarioTargetDistance(normalizedScenario),
+      timeOfDay: normalizedScenario.environment.timeOfDay,
+    },
   });
   return Object.freeze({ ...evaluated, scenario: normalizedScenario });
 }
 
-export function scenarioOverlayStats(staticStats, overlayRows, distanceMeters) {
-  const rows = new Map();
-  const order = [];
-  for (const row of staticStats) {
-    order.push(row.id);
-    rows.set(row.id, {
-      id: row.id,
-      rawTotal: Number(row.uncappedTotal ?? row.total) || 0,
-      sources: values(row.sources).filter((source) => source.type !== "hard_cap").map((source) => ({ ...source })),
-    });
-  }
-  const add = (statId, value, effect, expandedFrom = null) => {
+export function evaluateBuildDistanceScenario(build, scenario, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+  return evaluateBuildScenario(build, scenario, progression, selections);
+}
+
+function cloneCalculationSourceMap(sourceMap) {
+  return new Map([...sourceMap].map(([statId, sources]) => [
+    statId,
+    values(sources).map((source) => ({ ...source })),
+  ]));
+}
+
+// Final derived values and hard caps must run after scenario rows are added.
+// Keeping one finalizer for static and scenario states prevents an overlay on a
+// modifier such as Attack Speed from leaving its dependent weapon stat stale.
+function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) {
+  const totals = new Map(baseTotals);
+  const sourceMap = cloneCalculationSourceMap(baseSourceMap);
+  const add = (statId, value, sourceLabel, sourceType = "source", grade = 0, icon = "", metadata = {}) => {
     const numeric = Number(value);
-    if (!statId || !numeric || !Number.isFinite(numeric)) return;
-    if (!rows.has(statId)) {
-      order.push(statId);
-      rows.set(statId, { id: statId, rawTotal: 0, sources: [] });
+    if (!statId || !numeric || Number.isNaN(numeric)) return;
+    for (const expandedId of STAT_EXPANSIONS[statId] ?? []) {
+      add(expandedId, numeric, sourceLabel, sourceType, grade, icon, { ...metadata, expandedFrom: statId });
     }
-    const target = rows.get(statId);
-    target.rawTotal += numeric;
-    target.sources.push({
-      sourceLabel: effect.effectName,
-      name: effect.effectName,
-      value: numeric,
-      type: "scenario_effect",
+    totals.set(statId, (totals.get(statId) ?? 0) + numeric);
+    if (!sourceMap.has(statId)) sourceMap.set(statId, []);
+    sourceMap.get(statId).push({ sourceLabel, name: sourceLabel, value: numeric, type: sourceType, grade, icon, ...metadata });
+  };
+
+  for (const effect of scenarioRows) {
+    add(effect.statId, effect.rawValue, effect.effectName, "scenario_effect", 0, "", {
       scenarioEffectId: effect.effectId,
-      scenarioDistanceMeters: distanceMeters,
+      scenarioDistanceMeters: effect.scenario?.targetDistanceMeters,
+      scenarioTimeOfDay: effect.scenario?.timeOfDay,
+      sourceKinds: effect.sourceKinds,
       precision: effect.precision,
       provenance: effect.provenance,
-      ...(expandedFrom ? { expandedFrom } : {}),
+      calculation: effect.calculation,
     });
-    for (const childId of STAT_EXPANSIONS[statId] ?? []) add(childId, numeric, effect, expandedFrom ?? statId);
-  };
-  for (const effect of overlayRows) add(effect.statId, effect.rawValue, effect);
-  return order.map((id) => {
-    const row = rows.get(id);
-    const hardCap = statHardCap(id);
-    const total = hardCap == null ? row.rawTotal : Math.min(row.rawTotal, hardCap);
-    const overflow = Math.max(0, row.rawTotal - total);
-    const sources = [...row.sources];
-    if (overflow) sources.push({ sourceLabel: `Hard cap: ${formatStat(id, hardCap)}`, name: `Hard cap: ${formatStat(id, hardCap)}`, value: -overflow, type: "hard_cap" });
-    return { id, total, uncappedTotal: row.rawTotal, overflow, hardCap, sources };
-  });
+  }
+
+  const range = totals.get("attack_range_main_hand") ?? 0;
+  const rangeModifier = effectiveStatValue("attack_range_modifier", totals.get("attack_range_modifier") ?? 0);
+  if (range && rangeModifier) add("attack_range_main_hand", range * (rangeModifier / 10000), "Range Increase", "range");
+  const speed = totals.get("attack_speed_main_hand") ?? 0;
+  const speedModifier = effectiveStatValue("attack_speed_modifier", totals.get("attack_speed_modifier") ?? 0);
+  if (speed && speedModifier) {
+    const ratio = speedModifier / 10000;
+    const adjusted = speed * (1 - ratio / (1 + ratio));
+    add("attack_speed_main_hand", -(speed - adjusted), "Added Attack Speed", "attack_speed");
+  }
+  const attackPowerModifier = totals.get("attack_power_modifier") ?? 0;
+  if (attackPowerModifier) {
+    const ratio = attackPowerModifier / 10000;
+    const maxDamage = totals.get("attack_power_main_hand") ?? 0;
+    const minDamage = totals.get("bonus_attack_power_main_hand") ?? 0;
+    add("attack_power_main_hand", Math.floor(maxDamage * ratio) - Math.floor(minDamage * ratio), "Base Damage Modifier", "attack_power");
+    add("bonus_attack_power_main_hand", Math.floor(minDamage * ratio), "Base Damage Modifier", "attack_power");
+  }
+
+  addDerivedTotal("attack_power_main_hand_min", totals.get("bonus_attack_power_main_hand") ?? 0, totals, sourceMap);
+  addDerivedTotal("attack_power_main_hand_max", totals.get("attack_power_main_hand") ?? 0, totals, sourceMap);
+  addDerivedTotal("attack_power_off_hand_min", totals.get("bonus_attack_power_off_hand") ?? 0, totals, sourceMap);
+  addDerivedTotal("attack_power_off_hand_max", totals.get("attack_power_off_hand") ?? 0, totals, sourceMap);
+  const capOverflow = new Map();
+  for (const [statId, maximum] of Object.entries(STAT_HARD_CAPS)) {
+    const rawTotal = totals.get(statId) ?? 0;
+    if (rawTotal <= maximum) continue;
+    capOverflow.set(statId, rawTotal - maximum);
+    add(statId, maximum - rawTotal, `Hard cap: ${formatStat(statId, maximum)}`, "hard_cap");
+  }
+  const stats = [...totals.entries()].map(([id, total]) => ({
+    id,
+    total,
+    uncappedTotal: total + (capOverflow.get(id) ?? 0),
+    overflow: capOverflow.get(id) ?? 0,
+    hardCap: statHardCap(id),
+    sources: sourceMap.get(id) ?? [],
+  }));
+  return { totals, sourceMap, capOverflow, stats };
 }
 
 export function calculateBuild(build, attributes, options = {}) {
@@ -2574,57 +2642,31 @@ export function calculateBuild(build, attributes, options = {}) {
   applyPhase(4);
   applyPhase(5);
   applyPhase(6);
-
-  const range = totals.get("attack_range_main_hand") ?? 0;
-  const rangeModifier = effectiveStatValue("attack_range_modifier", totals.get("attack_range_modifier") ?? 0);
-  if (range && rangeModifier) add("attack_range_main_hand", range * (rangeModifier / 10000), "Range Increase", "range");
-  const speed = totals.get("attack_speed_main_hand") ?? 0;
-  const speedModifier = effectiveStatValue("attack_speed_modifier", totals.get("attack_speed_modifier") ?? 0);
-  if (speed && speedModifier) {
-    const ratio = speedModifier / 10000;
-    const adjusted = speed * (1 - ratio / (1 + ratio));
-    add("attack_speed_main_hand", -(speed - adjusted), "Added Attack Speed", "attack_speed");
-  }
-  const attackPowerModifier = totals.get("attack_power_modifier") ?? 0;
-  if (attackPowerModifier) {
-    const ratio = attackPowerModifier / 10000;
-    const maxDamage = totals.get("attack_power_main_hand") ?? 0;
-    const minDamage = totals.get("bonus_attack_power_main_hand") ?? 0;
-    add("attack_power_main_hand", Math.floor(maxDamage * ratio) - Math.floor(minDamage * ratio), "Base Damage Modifier", "attack_power");
-    add("bonus_attack_power_main_hand", Math.floor(minDamage * ratio), "Base Damage Modifier", "attack_power");
-  }
-
-  addDerivedTotal("attack_power_main_hand_min", totals.get("bonus_attack_power_main_hand") ?? 0, totals, sourceMap);
-  addDerivedTotal("attack_power_main_hand_max", totals.get("attack_power_main_hand") ?? 0, totals, sourceMap);
-  addDerivedTotal("attack_power_off_hand_min", totals.get("bonus_attack_power_off_hand") ?? 0, totals, sourceMap);
-  addDerivedTotal("attack_power_off_hand_max", totals.get("attack_power_off_hand") ?? 0, totals, sourceMap);
-  const capOverflow = new Map();
-  for (const [statId, maximum] of Object.entries(STAT_HARD_CAPS)) {
-    const rawTotal = totals.get(statId) ?? 0;
-    if (rawTotal <= maximum) continue;
-    capOverflow.set(statId, rawTotal - maximum);
-    add(statId, maximum - rawTotal, `Hard cap: ${formatStat(statId, maximum)}`, "hard_cap");
-  }
+  const persistentState = finalizeCalculationState(totals, sourceMap);
   const runeSynergies = calculateRuneSynergies(build);
   const validation = validateBuild(runeSynergies, build, progression, attributes);
-  const stats = [...totals.entries()].map(([id, total]) => ({ id, total, uncappedTotal: total + (capOverflow.get(id) ?? 0), overflow: capOverflow.get(id) ?? 0, hardCap: statHardCap(id), sources: sourceMap.get(id) ?? [] }));
+  const stats = persistentState.stats;
   const result = {
     stats,
-    setEffects: finalizeSetEffectTrace(setEffectTrace, sourceMap, includeSetEffects),
+    setEffects: finalizeSetEffectTrace(setEffectTrace, persistentState.sourceMap, includeSetEffects),
     runeSynergies,
     validation,
     status: calculationStatus(validation),
   };
   if (options.scenario != null) {
-    const evaluated = evaluateBuildDistanceScenario(build, options.scenario, progression, selections);
+    const evaluated = evaluateBuildScenario(build, options.scenario, progression, selections);
     const distanceMeters = scenarioTargetDistance(evaluated.scenario ?? options.scenario);
+    const timeOfDay = evaluated.scenario?.environment?.timeOfDay ?? options.scenario?.environment?.timeOfDay;
     const executable = evaluated.errors.length === 0;
     result.scenarioEffects = {
       schema: "tl-helper.build-scenario-effects",
-      schemaVersion: 1,
+      schemaVersion: 2,
       gameBuild: String(data?.gameBuild ?? ""),
-      kind: "target_distance",
+      kind: "combat_scenario",
+      ruleset: evaluated.ruleset ?? { id: SCENARIO_EFFECT_RULESET_ID, version: SCENARIO_EFFECT_RULESET_VERSION },
       targetDistanceMeters: distanceMeters,
+      timeOfDay,
+      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay },
       status: executable ? "applied" : "unsupported",
       scenario: evaluated.scenario,
       evaluatedRows: evaluated.overlayRows,
@@ -2635,7 +2677,7 @@ export function calculateBuild(build, attributes, options = {}) {
     // Any unsupported replacement fails the complete overlay closed. This
     // prevents an optimizer from comparing a partially evaluated scenario.
     result.scenarioStats = executable
-      ? scenarioOverlayStats(stats, evaluated.overlayRows, distanceMeters)
+      ? finalizeCalculationState(totals, sourceMap, evaluated.overlayRows).stats
       : stats;
   }
   return result;
@@ -3043,7 +3085,7 @@ function totalsWithSlotSelection(build, attributes, slotId, selection, options =
 export function slotSelectionContribution(slotId, selection, build, attributes, options = {}) {
   const cache = slotDeltaCacheFor(build, attributes);
   const setMode = options.includeSetEffects === false ? "no-sets" : "sets";
-  const scenarioKey = options.scenario == null ? "static" : JSON.stringify(options.scenario);
+  const scenarioKey = scenarioCacheIdentity(options.scenario);
   const key = `${setMode}|${scenarioKey}|${slotId}|${JSON.stringify(selection ?? null)}`;
   if (cache.has(key)) return cache.get(key);
   const baselineKey = `${setMode}|${scenarioKey}|${slotId}|<empty>`;
@@ -3069,7 +3111,7 @@ export function slotSelectionContribution(slotId, selection, build, attributes, 
 export function slotReplacementDelta(slotId, selection, build, attributes, options = {}) {
   const cache = slotDeltaCacheFor(build, attributes);
   const setMode = options.includeSetEffects === false ? "no-sets" : "sets";
-  const scenarioKey = options.scenario == null ? "static" : JSON.stringify(options.scenario);
+  const scenarioKey = scenarioCacheIdentity(options.scenario);
   const current = slotSelection(slotId, build);
   const currentKey = JSON.stringify(current ?? null);
   const prefix = `${setMode}|${scenarioKey}|replacement|${slotId}|${currentKey}`;

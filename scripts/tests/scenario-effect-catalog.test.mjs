@@ -7,6 +7,7 @@ import test from "node:test";
 import { PASSIVE_EFFECT_CONTRACT } from "../../web/tl-passive-effect-contract.js";
 import { UNSUPPORTED_SET_BREAKPOINTS } from "../../web/tl-core.js";
 import { DISTANCE_EFFECT_DEFINITIONS } from "../../web/tl-distance-scenario-effects.js";
+import { SCENARIO_EFFECT_DEFINITIONS } from "../../web/tl-scenario-effects.js";
 import { buildScenarioEffectCatalogFile } from "../build-scenario-effect-catalog.mjs";
 import {
   SCENARIO_EFFECT_CATALOG_SCHEMA,
@@ -40,8 +41,8 @@ test("catalogue covers the exact conditional source universe", () => {
       setBreakpointConditional: 23,
     },
     bySupportState: {
-      catalogued_unmodeled: 503,
-      scenario_executable_decoded: 4,
+      catalogued_unmodeled: 501,
+      scenario_executable_decoded: 6,
       unsupported_static_calculator: 9,
       static_component_only: 14,
     },
@@ -87,11 +88,11 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
     assert.equal(Object.hasOwn(effect, "trigger"), false);
     assert.equal(Object.hasOwn(effect, "formula"), false);
     if (effect.supportState === "scenario_executable_decoded") {
-      assert.equal(effect.precision.stage, "decoded_exact_coefficients");
-      assert.equal(effect.precision.semantics, "reviewed_distance_scenario");
+      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount"].includes(effect.precision.stage));
+      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario"].includes(effect.precision.semantics));
       assert.equal(effect.precision.executable, true);
       assert.ok(effect.executableSemantics);
-      assert.deepEqual(effect.unresolvedFields, ["serverRounding"]);
+      assert.ok(effect.unresolvedFields.length === 1 && ["serverRounding", "eclipseState"].includes(effect.unresolvedFields[0]));
     } else {
       assert.equal(effect.precision.stage, "unsupported");
       assert.equal(effect.precision.semantics, "unresolved");
@@ -103,12 +104,14 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   }
 });
 
-test("only the four reviewed decoded distance rules are promoted to deterministic executable references", () => {
+test("only the six reviewed decoded scenario rules are promoted to deterministic executable references", () => {
   const catalog = buildScenarioEffectCatalog(inputs());
   const expectedIds = [
     "Bow_Normal_Attack_Skill",
     "SkillSet_WP_BO_S_DistanceCritical",
     "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
+    "SkillSet_WP_Item_kA_CR_61",
+    "SkillSet_WP_Item_kA_DA_61_2",
     "SkillSet_WP_Item_kA_ST_55",
   ];
   assert.deepEqual(Object.keys(EXECUTABLE_SCENARIO_RULE_REFERENCES), expectedIds);
@@ -118,14 +121,24 @@ test("only the four reviewed decoded distance rules are promoted to deterministi
   for (const effect of executable) {
     const reference = effect.executableSemantics;
     assert.deepEqual(reference, EXECUTABLE_SCENARIO_RULE_REFERENCES[effect.sourceId]);
-    assert.equal(reference.modulePath, "web/tl-distance-scenario-effects.js");
-    assert.equal(reference.evaluatorExport, "evaluateDistanceScenarioEffects");
-    assert.equal(reference.definitionsExport, "DISTANCE_EFFECT_DEFINITIONS");
     assert.equal(reference.definitionKey, effect.sourceId);
     assert.equal(reference.gameBuild, "24118850");
-    assert.deepEqual(reference.requiredScenarioInputs, ["targetDistanceMeters"]);
-    assert.ok(DISTANCE_EFFECT_DEFINITIONS[effect.sourceId]);
-    assert.notEqual(DISTANCE_EFFECT_DEFINITIONS[effect.sourceId].executable, false);
+    assert.ok(["target_distance", "time_of_day"].includes(reference.mechanic));
+    assert.ok(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId]);
+    assert.notEqual(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId].executable, false);
+    if (reference.mechanic === "target_distance") {
+      assert.equal(reference.modulePath, "web/tl-distance-scenario-effects.js");
+      assert.equal(reference.evaluatorExport, "evaluateDistanceScenarioEffects");
+      assert.equal(reference.definitionsExport, "DISTANCE_EFFECT_DEFINITIONS");
+      assert.deepEqual(reference.requiredScenarioInputs, ["targetDistanceMeters"]);
+      assert.deepEqual(reference.unresolvedFields, ["serverRounding"]);
+    } else {
+      assert.equal(reference.modulePath, "web/tl-time-of-day-scenario-effects.js");
+      assert.equal(reference.evaluatorExport, "evaluateTimeOfDayScenarioEffects");
+      assert.equal(reference.definitionsExport, "TIME_OF_DAY_EFFECT_DEFINITIONS");
+      assert.deepEqual(reference.requiredScenarioInputs, ["environment.timeOfDay"]);
+      assert.deepEqual(reference.unresolvedFields, ["eclipseState"]);
+    }
     assert.equal(effect.provenance.some((row) => row.kind === "decoded_executable_rule" && row.path === reference.modulePath), true);
     assert.equal(effect.sourceEdges.some((row) => row.relation === "executed_by_reviewed_rule" && row.to === reference.ruleId), true);
   }

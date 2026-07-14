@@ -8,13 +8,14 @@ test("Full Build Optimizer keeps scenario scoring explicit and opt-in", () => {
   assert.match(html, /id="enable-distance-scenario" type="checkbox"/);
   assert.doesNotMatch(html, /id="enable-distance-scenario" type="checkbox" checked/);
   assert.match(html, /id="target-distance" type="number" min="0" step="0\.5" value="10"/);
+  assert.match(html, /id="scenario-time" disabled/);
   assert.match(html, /Static scoring remains the default/);
   assert.match(html, /function scenarioRequestFields\(\)/);
   assert.match(html, /return scenario\?\{scenario\}:\{\}/);
 });
 
-test("Full Build Optimizer creates a strict scenario from the source build", () => {
-  assert.match(html, /state\.core\.createTargetDistanceScenario\(state\.build\.build\?\?state\.build,targetDistanceMeters\)/);
+test("Full Build Optimizer creates a strict distance and time scenario from the source build", () => {
+  assert.match(html, /state\.core\.createBuildScenario\(state\.build\.build\?\?state\.build,\{targetDistanceMeters,timeOfDay:\$\("scenario-time"\)\.value\}\)/);
   assert.match(html, /currentStats\(state\.build,\{includeSetEffects:\$\("include-sets"\)\.checked,\.\.\.scenarioRequestFields\(\)\}\)/);
   assert.match(html, /function request\(\) \{ return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);
   assert.match(html, /result\.scenario\?\?activeScenario\(\)/);
