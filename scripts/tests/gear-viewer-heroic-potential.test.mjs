@@ -25,7 +25,7 @@ test("Gear Viewer optimizes no more than three normal traits", () => {
 
 test("goal-dependent potential selections participate in cache identity and hover rendering", () => {
   assert.match(html, /const objectiveKey = `\$\{state\.columns\.join\(","\)\}\|\$\{state\.protected\.join\(","\)\}/);
-  assert.match(html, /candidate\?\.selection/);
+  assert.match(html, /const \{ item, slotId, selection \} = candidate/);
   assert.match(html, /optionalFallback: state\.withTraits/);
   assert.match(core, /options\.optionalFallback === false \? \[\]/);
 });

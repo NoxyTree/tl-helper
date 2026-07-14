@@ -3660,7 +3660,7 @@ class Component extends DCLogic {
         hasIcon: Boolean(row.imageUrl),
       }));
 
-      const effects = core.itemTooltipEffects(previewItem).map((effect) => ({
+      const effects = core.itemTooltipEffects(previewItem, isEquippedPreview ? selection : null).map((effect) => ({
         label: effect.label,
         name: effect.name,
         text: core.plainInline(effect.text),

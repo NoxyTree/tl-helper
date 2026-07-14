@@ -392,6 +392,136 @@ test("saved Armory state is returned with build and attributes", async () => {
   assert.equal(saved.attributes.str, 4);
 });
 
+function perkOptimizerCore({ slots, items, invalidWhen = () => false }) {
+  const itemById = Object.fromEntries(items.map((item) => [item.id, item]));
+  const empty = () => ({ itemId: "", perkId: "", traits: [], heroicEffects: [], runes: [] });
+  const selectedPerk = (item, selection) => (item?.availablePerks ?? []).find((perk) => perk.id === selection?.perkId) ?? null;
+  const passiveIds = (item, selection) => [...new Set([item?.passives?.id, selectedPerk(item, selection)?.passive?.id].filter(Boolean))];
+  const selectionAttack = (selection) => {
+    const item = itemById[selection?.itemId];
+    const traitAttack = (selection?.traits ?? []).reduce((sum, trait) => {
+      const tiers = item?.itemStats?.traits?.[trait.statId] ?? [];
+      return sum + Number(tiers[Math.max(0, Number(trait.tier ?? 1) - 1)] ?? 0);
+    }, 0);
+    return Number(item?.attack ?? 0) + Number(selectedPerk(item, selection)?.attack ?? 0) + traitAttack;
+  };
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items, runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById, runeById: {} },
+    EQUIPMENT_SLOTS: slots.map((id) => ({ id, label: id })), ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) {
+      const selections = Object.values(build.equipment);
+      const seen = new Set();
+      const duplicate = selections.some((selection) => passiveIds(itemById[selection?.itemId], selection).some((id) => seen.has(id) || !seen.add(id)));
+      const invalid = selections.some((selection) => invalidWhen(selection));
+      return {
+        stats: [{ id: "attack", total: selections.reduce((sum, selection) => sum + selectionAttack(selection), 0) }],
+        validation: { issues: [
+          ...(duplicate ? [{ severity: "error", code: "repeated_passive_stacking_unresolved", message: "Repeated passive." }] : []),
+          ...(invalid ? [{ severity: "error", code: "invalid_candidate", message: "Invalid candidate." }] : []),
+        ] },
+      };
+    },
+    slotSelectionContribution(_slot, selection) { return { attack: selectionAttack(selection) }; },
+    slotItems: (slot) => items.filter((item) => item.equipmentType === slot.id),
+    slotById: (id) => ({ id, label: id, types: [id] }), emptyEquipmentSelection: empty,
+    itemMaxLevel: () => 12, heroicSlotGroupForSlot: () => "", statName: (id) => id,
+    formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff", label: (id) => id,
+    calculableItemPerkVariants(item) {
+      return [{ perkId: "", perk: null, passiveId: "", requiredWeapon: "" }, ...(item.availablePerks ?? [])
+        .filter((perk) => perk.calculable)
+        .map((perk) => ({ perkId: perk.id, perk, passiveId: perk.passive.id, requiredWeapon: "" }))];
+    },
+    itemPassiveComplexIds: passiveIds,
+  };
+  return { core, empty };
+}
+
+test("persistent Skill Core variants participate in exact optimizer scoring and survive the result", async () => {
+  const items = [
+    { id: "plain", name: "Plain", grade: 41, equipmentType: "head", attack: 12 },
+    { id: "carrier", name: "Carrier", grade: 41, equipmentType: "head", attack: 5, availablePerks: [
+      { id: "persistent-core", calculable: true, attack: 20, passive: { id: "persistent-passive", name: "Persistent" } },
+      { id: "conditional-core", calculable: false, attack: 1000, passive: { id: "conditional-passive", name: "Conditional" } },
+    ] },
+  ];
+  const { core, empty } = perkOptimizerCore({ slots: ["head"], items });
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
+  });
+
+  assert.equal(result.build.equipment.head.itemId, "carrier");
+  assert.equal(result.build.equipment.head.perkId, "persistent-core");
+  assert.notEqual(result.build.equipment.head.perkId, "conditional-core");
+  assert.ok(result.assumptions.some((text) => text.includes("decoded-proven persistent Skill Cores")));
+});
+
+test("an unsupported current core is preserved when its exact item is retained", async () => {
+  const items = [{ id: "carrier", name: "Carrier", grade: 41, equipmentType: "head", attack: 5, availablePerks: [
+    { id: "persistent-core", calculable: true, attack: 20, passive: { id: "persistent-passive" } },
+    { id: "unsupported-core", calculable: false, attack: 0, passive: { id: "unsupported-passive" } },
+  ] }];
+  const { core, empty } = perkOptimizerCore({ slots: ["head"], items });
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const sourceSelection = { ...empty(), itemId: "carrier", perkId: "unsupported-core" };
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: sourceSelection }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "armory" },
+    goals: { increase: ["attack"] }, rules: {},
+  });
+  assert.equal(result.build.equipment.head.itemId, "carrier");
+  assert.equal(result.build.equipment.head.perkId, "unsupported-core");
+});
+
+test("a generated current-item variant can improve traits without losing its selected core", async () => {
+  const items = [{
+    id: "carrier", name: "Carrier", grade: 41, equipmentType: "head", attack: 5,
+    itemStats: { traits: { attack: [3, 6, 9] } },
+    availablePerks: [{ id: "persistent-core", calculable: true, attack: 20, passive: { id: "persistent-passive" } }],
+  }];
+  const { core, empty } = perkOptimizerCore({ slots: ["head"], items });
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const sourceSelection = { ...empty(), itemId: "carrier", perkId: "persistent-core" };
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: sourceSelection }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "armory" },
+    goals: { increase: ["attack"] }, rules: { optimizeThreeTraits: true },
+  });
+
+  assert.equal(result.build.equipment.head.itemId, "carrier");
+  assert.equal(result.build.equipment.head.perkId, "persistent-core");
+  assert.deepEqual(result.build.equipment.head.traits, [{ statId: "attack", tier: 3 }]);
+});
+
+test("partial legality prevents repeated passive cores", async () => {
+  const shared = (id, type, attack) => ({ id, name: id, grade: 41, equipmentType: type, attack, availablePerks: [
+    { id: `${id}-core`, calculable: true, attack: 10, passive: { id: "shared-passive" } },
+  ] });
+  const items = [shared("head-carrier", "head", 1), shared("chest-carrier", "chest", 1)];
+  const { core, empty } = perkOptimizerCore({ slots: ["head", "chest"], items });
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: empty(), chest: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
+  });
+
+  const selectedCores = [result.build.equipment.head.perkId, result.build.equipment.chest.perkId].filter(Boolean);
+  assert.equal(selectedCores.length, 1);
+  assert.equal(core.calculateBuild(result.build).validation.issues.length, 0);
+});
+
+test("exact evaluation refuses an invalid finalist", async () => {
+  const items = [{ id: "carrier", name: "Carrier", grade: 41, equipmentType: "head", attack: 1, availablePerks: [
+    { id: "invalid-core", calculable: true, attack: 100, passive: { id: "invalid-passive" } },
+  ] }];
+  const { core, empty } = perkOptimizerCore({ slots: ["head"], items, invalidWhen: (selection) => selection.perkId === "invalid-core" });
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  await assert.rejects(() => adapter.optimize({
+    build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
+  }), /No build satisfies/);
+});
+
 test("Questlog import uses the hosted adapter and normalizes the requested build", async () => {
   let imported;
   const core = {

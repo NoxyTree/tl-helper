@@ -286,6 +286,30 @@
         : core.slotSelectionContribution(slotId, selection, build, attributes, options);
     }
 
+    function prospectiveWeaponTypes(slotId, item, build) {
+      const types = new Set();
+      for (const weaponSlot of core.WEAPON_SLOTS) {
+        if (weaponSlot === slotId) continue;
+        const selectedItem = core.indexes.itemById[core.slotSelection(weaponSlot, build)?.itemId];
+        if (selectedItem?.equipmentType) types.add(selectedItem.equipmentType);
+      }
+      if (core.WEAPON_SLOTS.includes(slotId) && item?.equipmentType) types.add(item.equipmentType);
+      return types;
+    }
+
+    function repeatsPassiveOutsideSlot(slotId, item, selection, build) {
+      const candidateIds = core.itemPassiveComplexIds(item, selection);
+      if (!candidateIds.length) return false;
+      const selectedElsewhere = new Set();
+      for (const slot of core.BUILD_SLOTS) {
+        if (slot.id === slotId) continue;
+        const otherSelection = core.slotSelection(slot.id, build);
+        const otherItem = core.indexes.itemById[otherSelection?.itemId];
+        for (const passiveId of core.itemPassiveComplexIds(otherItem, otherSelection)) selectedElsewhere.add(passiveId);
+      }
+      return candidateIds.some((passiveId) => selectedElsewhere.has(passiveId));
+    }
+
     function equippedWeaponSlots(build = scoringContext().build) {
       return ["main_hand", "off_hand"].map((slotId) => {
         const selection = core.slotSelection(slotId, build);
@@ -459,26 +483,46 @@
         const item = items[i];
         const level = core.itemMaxLevel(item);
         for (const slotId of candidateSlotsFor(item, build)) {
-          let selection = {
+          let baseSelection = {
             ...core.emptyEquipmentSelection(),
             itemId: item.id,
             level,
             traits: state.withTraits ? optimizedTraitRows(item) : [],
           };
           let potential = null;
-          let contribution;
           if (state.withTraits && state.heroicPotential && isHeroic(item)) {
             potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals);
-            selection = potential.selection;
-            contribution = potential.contribution;
-          } else {
-            contribution = candidateContribution(slotId, selection, build, attributes);
+            baseSelection = potential.selection;
           }
-          const availableStatIds = potentialStatIds(item, contribution);
-          rows.push({
-            item, slotId, level, selection, contribution, potential, availableStatIds,
-            haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
-          });
+          const actualSelection = state.mode === "bare" ? null : core.slotSelection(slotId, build);
+          const isActualItem = actualSelection?.itemId === item.id;
+          if (isActualItem) {
+            const exactSelection = core.deepClone(actualSelection);
+            const contribution = candidateContribution(slotId, exactSelection, build, attributes);
+            const availableStatIds = potentialStatIds(item, contribution);
+            const selectedPerk = core.selectedItemPerk(item, exactSelection);
+            rows.push({
+              candidateId: `current:${slotId}:${item.id}`, item, slotId, level: exactSelection.level ?? level, selection: exactSelection, contribution, potential: null, availableStatIds, isExactCurrent: true,
+              haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${selectedPerk?.passive?.name ?? ""} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
+            });
+          }
+
+          let variants = core.calculableItemPerkVariants(item)
+            .filter((variant) => !variant.requiredWeapon || prospectiveWeaponTypes(slotId, item, build).has(variant.requiredWeapon));
+          const currentCoreUnsupported = isActualItem
+            && actualSelection?.perkId
+            && !variants.some((variant) => variant.perkId === actualSelection.perkId);
+          if (currentCoreUnsupported) variants = [];
+          for (const variant of variants) {
+            const selection = { ...baseSelection, perkId: variant.perkId };
+            if (repeatsPassiveOutsideSlot(slotId, item, selection, build)) continue;
+            const contribution = candidateContribution(slotId, selection, build, attributes);
+            const availableStatIds = potentialStatIds(item, contribution);
+            rows.push({
+              candidateId: `variant:${slotId}:${item.id}:${variant.perkId || "bare"}`, item, slotId, level, selection, contribution, potential, availableStatIds, isExactCurrent: false,
+              haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${variant.perk?.passive?.name ?? ""} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
+            });
+          }
         }
         if (i % 40 === 39) {
           $("status").textContent = `Scoring items… ${i + 1} / ${items.length}`;
@@ -507,7 +551,8 @@
         }
       }
       return rows.filter((row) => {
-        row.isPinned = Boolean(contextBuild && core.slotSelection(row.slotId, contextBuild)?.itemId === row.item.id);
+        row.isEquippedItem = Boolean(contextBuild && core.slotSelection(row.slotId, contextBuild)?.itemId === row.item.id);
+        row.isPinned = Boolean(row.isEquippedItem && row.isExactCurrent);
         const structuralMatch = (!types || types.has(row.item.equipmentType))
           && (SLOT_CATEGORY[row.slotId] !== "weapons" || !equippedWeaponTypes.size || equippedWeaponTypes.has(row.item.equipmentType))
           && (!lockedHeroicBySlot.has(row.slotId) || lockedHeroicBySlot.get(row.slotId) === row.item.id)
@@ -516,7 +561,7 @@
           && (state.itemLevel === "all" || String(row.level) === state.itemLevel)
           && (!state.favoritesOnly || favorites.has(row.item.id))
           && (!query || row.haystack.includes(query));
-        return structuralMatch && (row.isPinned || ordinaryMatch);
+        return structuralMatch && (row.isEquippedItem || ordinaryMatch);
       });
     }
 
@@ -689,7 +734,7 @@
             ? `<td class="zero" title="Choose My Armory build or import Questlog to compare protected stats">Needs build</td>`
             : `<td class="${row.protectionPass ? "guard-pass" : "guard-blocked"}" title="${esc(guardDetails)}">${row.protectionPass ? "Pass" : "Blocked"}</td>`
           : "";
-        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
+        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-candidate-id="${esc(row.candidateId)}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
           <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${row.item.id}" aria-label="Toggle favourite">★</button></td>
           <td class="item-cell-td"><span class="item-cell">
             <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
@@ -822,16 +867,16 @@
     let lastRows = [];
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-    function hoverModelFor(itemId, slotId) {
+    function hoverModelFor(candidateId) {
+      const candidate = lastRows.find((row) => row.candidateId === candidateId);
+      if (!candidate) return null;
+      const { item, slotId, selection } = candidate;
       const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${state.includeSetEffects ? "sets" : "no-sets"}|${objectiveKey}|${itemId}|${slotId}`;
+      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${state.includeSetEffects ? "sets" : "no-sets"}|${objectiveKey}|${candidateId}`;
       if (hoverModelCache.has(key)) return hoverModelCache.get(key);
       const context = scoringContext();
       const beforeCalc = core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects });
       const build = core.deepClone(context.build);
-      const item = core.indexes.itemById[itemId];
-      const candidate = lastRows.find((row) => row.item.id === itemId && row.slotId === slotId);
-      const selection = candidate?.selection ?? { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(item), traits: state.withTraits ? optimizedTraitRows(item) : [] };
       core.slotCollectionForSlot(build, slotId)[slotId] = selection;
       const calc = core.calculateBuild(build, context.attributes, { includeSetEffects: state.includeSetEffects });
       const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected], optionalFallback: state.withTraits });
@@ -875,24 +920,24 @@
       card.style.bottom = flip ? `${window.innerHeight - event.clientY}px` : "";
     }
 
-    let hoverItemId = "";
+    let hoverCandidateId = "";
     let attributeGainKeyHeld = false;
     let resonanceKeyHeld = false;
     function setAttributeGainsVisible(visible) {
-      $("hover-card").classList.toggle("show-gains", Boolean(visible && hoverItemId));
+      $("hover-card").classList.toggle("show-gains", Boolean(visible && hoverCandidateId));
     }
     function setAllResonanceVisible(visible) {
-      $("hover-card").classList.toggle("show-all-resonance", Boolean(visible && hoverItemId));
+      $("hover-card").classList.toggle("show-all-resonance", Boolean(visible && hoverCandidateId));
     }
     function bindHoverCard() {
       const body = $("table-body");
       body.addEventListener("mouseover", (event) => {
         const tr = event.target.closest("tr[data-item-id]");
-        if (!tr || tr.dataset.itemId === hoverItemId) return;
-        hoverItemId = tr.dataset.itemId;
-        const model = hoverModelFor(tr.dataset.itemId, tr.dataset.slotId);
+        if (!tr || tr.dataset.candidateId === hoverCandidateId) return;
+        hoverCandidateId = tr.dataset.candidateId;
+        const model = hoverModelFor(tr.dataset.candidateId);
         if (!model) {
-          hoverItemId = "";
+          hoverCandidateId = "";
           return;
         }
         renderHoverCard(model);
@@ -903,17 +948,17 @@
         positionHoverCard(event);
       });
       body.addEventListener("mousemove", (event) => {
-        if (hoverItemId) positionHoverCard(event);
+        if (hoverCandidateId) positionHoverCard(event);
       });
       body.addEventListener("mouseleave", () => {
-        hoverItemId = "";
+        hoverCandidateId = "";
         setAttributeGainsVisible(false);
         setAllResonanceVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       });
       document.addEventListener("scroll", () => {
-        hoverItemId = "";
+        hoverCandidateId = "";
         setAttributeGainsVisible(false);
         setAllResonanceVisible(false);
         $("hover-card").classList.add("hidden");
@@ -930,7 +975,6 @@
     async function refresh({ recompute = true } = {}) {
       const rows = await computeRows();
       if (!rows) return; // superseded
-      lastRows = rows;
       const filtered = filteredRows(rows);
       lastStats = availableStats(filtered);
       state.columns = state.columns.filter((id) => lastStats.some((row) => row.statId === id) || rows.some((r) => (r.contribution[id] ?? 0) > 0));
@@ -945,6 +989,7 @@
         ? bestSlots.filter((row) => row.isPinned || row.score > 0 || state.sortKey !== "score")
         : bestSlots;
       sortRows(visible);
+      lastRows = visible;
       renderHead();
       renderBody(visible);
       renderColumnMenu(lastStats);

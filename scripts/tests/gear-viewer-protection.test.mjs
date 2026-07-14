@@ -89,8 +89,9 @@ test("Heroic comparison never stacks duplicate effects", () => {
 });
 
 test("the currently equipped item is pinned above ranked candidates", () => {
-  assert.match(html, /row\.isPinned = Boolean\(contextBuild/);
-  assert.match(html, /row\.isPinned \|\| ordinaryMatch/);
+  assert.match(html, /row\.isEquippedItem = Boolean\(contextBuild/);
+  assert.match(html, /row\.isPinned = Boolean\(row\.isEquippedItem && row\.isExactCurrent\)/);
+  assert.match(html, /row\.isEquippedItem \|\| ordinaryMatch/);
   assert.match(html, /Number\(b\.isPinned\) - Number\(a\.isPinned\)/);
   assert.match(html, /row\.isPinned \|\| row\.score > 0/);
   assert.match(html, /class="pinned-mark">● Currently equipped/);

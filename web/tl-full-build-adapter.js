@@ -175,6 +175,35 @@ function itemSelection(core, item) {
   return { ...core.emptyEquipmentSelection(), itemId: item.id, level: core.itemMaxLevel(item) };
 }
 
+const INACTIVE_SELECTION_ERROR_CODES = new Set([
+  "skill_type_mismatch",
+  "foreign_weapon_skill",
+  "foreign_weapon_mastery",
+  "unknown_mastery",
+  "wrong_category_mastery",
+  "duplicate_unified_mastery",
+  "unknown_unified_mastery",
+  "wrong_category_unified_mastery",
+  "perk_required_weapon_missing",
+]);
+
+function blockingCalculationIssues(calculation) {
+  return (calculation?.validation?.issues ?? [])
+    .filter((issue) => issue.severity === "error" && !INACTIVE_SELECTION_ERROR_CODES.has(issue.code));
+}
+
+function perkVariants(core, item) {
+  return core.calculableItemPerkVariants?.(item) ?? [{ perkId: "", perk: null, passiveId: "", requiredWeapon: "" }];
+}
+
+function passiveComplexIds(core, item, selection) {
+  return core.itemPassiveComplexIds?.(item, selection) ?? [...new Set([item?.passives?.id].filter(Boolean))];
+}
+
+function itemCandidateId(itemId, selection, kind = "generated") {
+  return `${itemId}::${selection?.perkId || "bare"}::${kind}`;
+}
+
 function optimizedNormalTraits(item, rankedGoals, scales) {
   const byId = componentWeightMap(rankedGoals, scales);
   return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
@@ -517,19 +546,7 @@ export async function createOptimizerAdapter(deps = {}) {
       }
       const sourceCalculation = calculate(source, rules.includeSetEffects !== false);
       if (!scratch) {
-        const inactiveButExactCodes = new Set([
-          "skill_type_mismatch",
-          "foreign_weapon_skill",
-          "foreign_weapon_mastery",
-          "unknown_mastery",
-          "wrong_category_mastery",
-          "duplicate_unified_mastery",
-          "unknown_unified_mastery",
-          "wrong_category_unified_mastery",
-          "perk_required_weapon_missing",
-        ]);
-        const blockingIssues = (sourceCalculation.validation?.issues ?? [])
-          .filter((issue) => issue.severity === "error" && !inactiveButExactCodes.has(issue.code));
+        const blockingIssues = blockingCalculationIssues(sourceCalculation);
         if (blockingIssues.length) {
           throw new Error(`Source build is not calculation-legal for optimization: ${blockingIssues.map((issue) => issue.message).join(" ")}`);
         }
@@ -563,10 +580,11 @@ export async function createOptimizerAdapter(deps = {}) {
         : deriveObjectiveScales(core, rankedGoals, baseline);
       const weight = (stats) => scoreStats(stats, rankedGoals, generationScales);
       const chaosOwned = equippedChaosIds(source.build, core.indexes.runeById);
-      const candidateMeta = (slot, item) => ({
+      const candidateMeta = (slot, item, selection = null) => ({
         heroicGroup: item?.grade === core.HEROIC_GRADE ? core.heroicSlotGroupForSlot(slot) : "",
         weaponType: core.WEAPON_SLOTS.includes(slot) ? item?.equipmentType ?? "" : "",
         setKeys: item?.setId ? [item.setId] : [],
+        passiveIds: passiveComplexIds(core, item, selection),
         neutralHeroicCost: item?.grade === core.HEROIC_GRADE ? 1 : 0,
         neutralItemLevel: item ? core.itemMaxLevel(item) : 0,
         neutralGrade: Number(item?.grade ?? 0),
@@ -583,7 +601,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const keepCurrentHeroic = !scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
         if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic || lockEmptyExistingWeaponSlot) {
           if (requiredWeaponType && currentItem?.equipmentType !== requiredWeaponType) throw new Error(`Locked ${core.slotById(slot).label ?? slot} does not match the chosen ${requiredWeaponType} weapon type.`);
-          candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
+          candidatesBySlot[slot] = [{ id: current.itemId ? itemCandidateId(current.itemId, current, "current") : `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem, current) }];
           continue;
         }
         const rows = [];
@@ -608,13 +626,28 @@ export async function createOptimizerAdapter(deps = {}) {
             }
             if (runeRows[0]) selection.runes = runeRows[0].selection;
           }
-          const stats = contribution(slot, selection);
-          // Direct value already lives in `stats` and is scored by the beam.
-          // scoreHint is reserved for value not representable in partial stats,
-          // such as future set completion and whole artifact-bundle estimates.
-          rows.push({ id: item.id, selection, stats, directScore: weight(stats), ...candidateMeta(slot, item) });
+          const variants = perkVariants(core, item);
+          const currentUnsupportedCore = !scratch
+            && item.id === current?.itemId
+            && current?.perkId
+            && !variants.some((variant) => variant.perkId === current.perkId);
+          // An unsupported core may have conditional combat value that static
+          // scoring cannot compare. Preserve its exact current selection rather
+          // than recommending that the same item silently drops or replaces it.
+          if (currentUnsupportedCore) continue;
+          const prospectiveWeaponTypes = new Set(Object.values(weaponTypeConstraints).filter(Boolean));
+          if (core.WEAPON_SLOTS.includes(slot) && item.equipmentType) prospectiveWeaponTypes.add(item.equipmentType);
+          for (const variant of variants) {
+            if (variant.requiredWeapon && !prospectiveWeaponTypes.has(variant.requiredWeapon)) continue;
+            const variantSelection = { ...selection, perkId: variant.perkId };
+            const stats = contribution(slot, variantSelection);
+            // Direct value already lives in `stats` and is scored by the beam.
+            // scoreHint is reserved for value not representable in partial stats,
+            // such as future set completion and whole artifact-bundle estimates.
+            rows.push({ id: itemCandidateId(item.id, variantSelection), selection: variantSelection, stats, directScore: weight(stats), ...candidateMeta(slot, item, variantSelection) });
+          }
         }
-        const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), ...candidateMeta(slot, currentItem) };
+        const currentRow = { id: current?.itemId ? itemCandidateId(current.itemId, current, "current") : `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), ...candidateMeta(slot, currentItem, current) };
         const ranked = rows.sort((a, b) => b.directScore - a.directScore
           || a.neutralHeroicCost - b.neutralHeroicCost
           || b.neutralItemLevel - a.neutralItemLevel
@@ -660,11 +693,16 @@ export async function createOptimizerAdapter(deps = {}) {
         const build = applySelections(source.build, selections);
         const calc = core.calculateBuild(build, provisionalAttributes, { includeSetEffects: rules.includeSetEffects !== false });
         const stats = withCompositeTotals(totalMap(calc), rankedGoals);
-        return { score: scoreRankedGoals(stats, objectiveBaseline, objectiveScales, rankedGoals), stats, build, attributes: provisionalAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc) };
+        const blockingIssues = blockingCalculationIssues(calc);
+        return { score: scoreRankedGoals(stats, objectiveBaseline, objectiveScales, rankedGoals), stats, build, attributes: provisionalAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc), legal: blockingIssues.length === 0, blockingIssues };
       }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
-        return !Object.values(selections).some((selection) => selection?.itemId === itemId);
+        if (Object.values(selections).some((selection) => selection?.itemId === itemId)) return false;
+        const usedPassiveIds = new Set(Object.values(selections).flatMap((selection) => (
+          passiveComplexIds(core, core.indexes.itemById[selection?.itemId], selection)
+        )));
+        return !(candidate.passiveIds ?? []).some((passiveId) => usedPassiveIds.has(passiveId));
       }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (attributePointBudget != null) {
         const exact = [];
@@ -673,7 +711,9 @@ export async function createOptimizerAdapter(deps = {}) {
           if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
           const candidate = preliminaryFrontier[index];
           const optimized = runAttributeOptimizer({ core, build: candidate.evaluation.build, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, includeSetEffects: rules.includeSetEffects !== false, minimums: attributeMinimums });
-          if (satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints } });
+          const optimizedCalculation = core.calculateBuild(candidate.evaluation.build, optimized.attributes, { includeSetEffects: rules.includeSetEffects !== false });
+          const optimizedBlockingIssues = blockingCalculationIssues(optimizedCalculation);
+          if (!optimizedBlockingIssues.length && satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
           runtime.onProgress?.({ percent: 60 + 25 * (index + 1) / preliminaryFrontier.length, label: "Optimizing attribute points", detail: `${index + 1} of ${preliminaryFrontier.length} frontier loadouts` });
           if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
         }
@@ -690,6 +730,8 @@ export async function createOptimizerAdapter(deps = {}) {
             if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
             const candidate = refinementTargets[index];
             const refined = refineRuneConfiguration({ core, build: candidate.evaluation.build, attributes: candidate.evaluation.attributes, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, minimums: attributeMinimums, includeSetEffects: rules.includeSetEffects !== false, runeCandidatesByCategory, lockedSlotIds, optimizeAttributes: runAttributeOptimizer });
+            const refinedCalculation = core.calculateBuild(refined.build, refined.attributes, { includeSetEffects: rules.includeSetEffects !== false });
+            if (blockingCalculationIssues(refinedCalculation).length) continue;
             const exactIndex = exact.indexOf(candidate);
             exact[exactIndex] = { ...candidate, selections: { ...candidate.selections, ...clone(refined.build.equipment) }, evaluation: { ...candidate.evaluation, score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights } };
             runtime.onProgress?.({ percent: 85 + 15 * (index + 1) / refinementTargets.length, label: "Refining rune synergies", detail: `${index + 1} of ${refinementTargets.length} diverse finalists` });
@@ -703,6 +745,10 @@ export async function createOptimizerAdapter(deps = {}) {
       const best = search.best;
       const finalStats = best.evaluation.stats;
       const finalCalculation = core.calculateBuild(best.evaluation.build, best.evaluation.attributes ?? source.attributes ?? {}, { includeSetEffects: rules.includeSetEffects !== false });
+      const finalBlockingIssues = blockingCalculationIssues(finalCalculation);
+      if (finalBlockingIssues.length) {
+        throw new Error(`Optimizer produced an invalid finalist: ${finalBlockingIssues.map((issue) => issue.message).join(" ")}`);
+      }
       const goalResults = rankedGoals.map((goal) => {
         const value = goalValue(finalStats, goal);
         const delta = value - Number(objectiveBaseline[goal.id] ?? 0);
@@ -743,7 +789,7 @@ export async function createOptimizerAdapter(deps = {}) {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value.", "Repeated passive complexes are excluded from recommendations until stacking is proven.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,

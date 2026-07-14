@@ -745,23 +745,68 @@ export function itemSkillCores(item) {
     .sort((a, b) => String(a.passive?.name ?? a.name).localeCompare(String(b.passive?.name ?? b.name)));
 }
 
-export function itemTooltipEffects(item) {
+// Canonical selected-core authority. A stored id is meaningful only when the
+// selected item actually exposes that exact catalogue entry. Unsupported but
+// available cores remain selectable and visible; the calculator simply does
+// not invent a numeric rule for them.
+export function selectedItemPerk(item, selection) {
+  const perkId = String(selection?.perkId ?? "").trim();
+  if (!perkId) return null;
+  return values(item?.availablePerks).find((perk) => perk?.id === perkId) ?? null;
+}
+
+export function itemPassiveComplexIds(item, selection) {
+  const selectedPerk = selectedItemPerk(item, selection);
+  return [...new Set([item?.passives?.id, selectedPerk?.passive?.id].filter(Boolean))];
+}
+
+// Candidate generation is deliberately narrower than Armory editing. Blank
+// is always legal, while automatic selection may use only executable static
+// rules. Multiple catalogue aliases for one passive complex are equivalent;
+// choose the lexically first id so results are stable across projection order.
+export function calculableItemPerkVariants(item) {
+  const blank = { perkId: "", perk: null, passiveId: "", requiredWeapon: "" };
+  const candidates = values(item?.availablePerks)
+    .filter((perk) => perk?.id && perk?.passive?.id && PERK_PASSIVE_RULES[perk.passive.id])
+    .sort((a, b) => String(a.passive.id).localeCompare(String(b.passive.id)) || String(a.id).localeCompare(String(b.id)));
+  const seenPassiveIds = new Set();
+  const variants = [];
+  for (const perk of candidates) {
+    const passiveId = perk.passive.id;
+    if (seenPassiveIds.has(passiveId)) continue;
+    seenPassiveIds.add(passiveId);
+    variants.push({
+      perkId: perk.id,
+      perk,
+      passiveId,
+      requiredWeapon: PERK_PASSIVE_RULES[passiveId].requiredWeapon ?? "",
+    });
+  }
+  return [blank, ...variants];
+}
+
+export function itemTooltipEffects(item, selection) {
+  const effects = [];
   if (item.passives?.name || item.passives?.text) {
-    return [{
+    effects.push({
       label: "Passive:",
       type: "passive",
       name: item.passives.name ?? "Passive",
       text: item.passives.text ?? "",
       imageUrl: item.passives.imageUrl ?? "",
-    }];
+    });
   }
-  return itemSkillCores(item).slice(0, 1).map((perk) => ({
-    label: "Skill Core:",
-    type: "skillCore",
-    name: perk.passive?.name ?? perk.name,
-    text: perk.passive?.text ?? "",
-    imageUrl: perk.passive?.imageUrl ?? perk.imageUrl ?? "",
-  }));
+  const selectedPerk = selectedItemPerk(item, selection);
+  if (selectedPerk?.passive?.name || selectedPerk?.passive?.text || selectedPerk?.name) {
+    effects.push({
+      label: "Skill Core:",
+      type: "skillCore",
+      name: selectedPerk.passive?.name ?? selectedPerk.name,
+      text: selectedPerk.passive?.text ?? "",
+      imageUrl: selectedPerk.passive?.imageUrl ?? selectedPerk.imageUrl ?? "",
+    });
+  }
+  return effects;
 }
 
 // Full data model for the equipped-item hover card (doll rails on Armory +
@@ -889,7 +934,7 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
   const synergy = calc?.runeSynergies?.[slotId];
   const synergyStats = synergy ? Object.entries(synergy.stats ?? {}).map(([id, v]) => `${statName(id)} ${formatSigned(v, id)}`) : [];
 
-  const effects = itemTooltipEffects(item).map((e) => ({ label: e.label, name: e.name, text: plainInline(e.text), icon: e.imageUrl || "", hasIcon: Boolean(e.imageUrl) }));
+  const effects = itemTooltipEffects(item, selection).map((e) => ({ label: e.label, name: e.name, text: plainInline(e.text), icon: e.imageUrl || "", hasIcon: Boolean(e.imageUrl) }));
 
   let setInfo = null;
   if (item.setId) {
@@ -2389,7 +2434,7 @@ function applyQuestlogPhase(phase, progression, selections, totalsObject, add, i
   for (const { slotId, selection, item } of selections) {
     const itemRule = ITEM_PASSIVE_RULES[item?.passives?.id];
     if (itemRule?.phase === phase) for (const row of itemRule.effect(totalsObject())) add(row.statId, row.value, item.passives.name, slotId, item.grade, item.passives.imageUrl);
-    const perk = values(item?.availablePerks).find((entry) => entry.id === (selection?.perkId ?? selection?.perk));
+    const perk = selectedItemPerk(item, selection);
     const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
     // Guard: a rule id present in both tables (SkillSet_Unique_Accessory_Skill_01)
     // must not fire twice for the same item via innate passive AND slotted perk.
@@ -2656,7 +2701,15 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
   const equippedWeaponSet = new Set(progression.equippedWeaponTypes);
   for (const { slotId, selection, item } of allBuildSelectionEntries(build)) {
     if (!item) continue;
-    const perk = values(item.availablePerks).find((entry) => entry.id === (selection?.perkId ?? selection?.perk));
+    const requestedPerkId = String(selection?.perkId ?? "").trim();
+    const perk = selectedItemPerk(item, selection);
+    if (requestedPerkId && !perk) {
+      dataBacked.push({
+        severity: "error",
+        code: "invalid_item_perk",
+        message: `${item.name} does not offer the stored Skill Core ${requestedPerkId}. The invalid core is inactive and excluded from calculations.`,
+      });
+    }
     const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
     if (perkRule?.requiredWeapon && !equippedWeaponSet.has(perkRule.requiredWeapon)) {
       dataBacked.push({
@@ -2665,8 +2718,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
         message: `${perk.passive?.name ?? perk.name} requires an equipped ${label(perkRule.requiredWeapon)}. Its stored core is inactive and excluded from calculations.`,
       });
     }
-    const ids = new Set([item.passives?.id, perk?.passive?.id].filter(Boolean));
-    for (const passiveId of ids) {
+    for (const passiveId of itemPassiveComplexIds(item, selection)) {
       if (!passiveSources.has(passiveId)) passiveSources.set(passiveId, []);
       passiveSources.get(passiveId).push(slotById(slotId)?.label ?? slotId);
     }
@@ -2799,7 +2851,7 @@ function unmappedRuleIssues(build, progression = effectiveProgression(build)) {
     if (item.passives?.id && !ITEM_PASSIVE_RULES[item.passives.id] && mayAffectStaticTotals(item.passives)) {
       itemPassives.push(`${item.passives.name ?? item.passives.id} (${item.name})`);
     }
-    const perk = values(item.availablePerks).find((entry) => entry.id === selection?.perkId);
+    const perk = selectedItemPerk(item, selection);
     if (perk && !PERK_PASSIVE_RULES[perk.passive?.id] && mayAffectStaticTotals(perk.passive)) {
       perkPassives.push(`${perk.passive?.name ?? perk.name ?? perk.id} (${item.name})`);
     }

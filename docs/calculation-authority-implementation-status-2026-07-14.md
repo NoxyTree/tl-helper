@@ -88,7 +88,9 @@ The calculator now has exact personal rules for the decoded-proven persistent it
 
 Weapon-specific cores require the matching equipped family. Repeating the same passive complex across slots produces an explicit calculation error because same-core stacking remains unresolved.
 
-The calculation engine applies a selected legal core correctly. Candidate generators do not yet enumerate these core variants, which is the next item-choice blocker.
+The calculation engine applies a selected legal core correctly. Full Build Optimizer and Gear Viewer now enumerate blank plus decoded-proven persistent core variants, deduplicate catalogue aliases by passive complex, retain the exact selected core, and refuse repeated passive complexes. Unsupported or combat-conditional cores remain visible only when already selected; neither surface invents a static value for them.
+
+The optimizer gives exact-current and generated same-item configurations distinct candidate identities, so it can retain a selected core while improving traits, Heroic effects, or runes. Gear Viewer carries the winning variant identity into hover reconstruction, so its displayed core and its scored contribution are the same selection.
 
 ### Optimizer and Gear Viewer safety
 
@@ -100,7 +102,7 @@ Gear Viewer weapon comparisons now use replacement deltas against the actual cur
 
 ## Current verification
 
-- Node test suite: `420/420`
+- Node test suite: `435/435`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v1 contract tests: passed
@@ -110,21 +112,6 @@ Gear Viewer weapon comparisons now use replacement deltas against the actual cur
 The reference fixture for The Death Prophet and Void was updated only for decoded-confirmed Impenetrable and Life's Bargain changes. Its expectation source records why those totals intentionally diverge from the old Questlog panel.
 
 ## Remaining release gates
-
-### P0: calculable core variants in item recommendations
-
-There are 21 selectable-core carrier items and 880 item/core rows, but only five passive IDs currently have executable persistent `PERK_PASSIVE_RULES`. Those five produce only 14 legal item/core combinations, so exact enumeration is small.
-
-Required work:
-
-1. Add shared selected-core and calculable-core-variant helpers.
-2. Validate stale or impossible `perkId` values.
-3. Make hover text show the selected core rather than the first catalogue core.
-4. Cross-product optimizer and Gear Viewer item candidates with blank plus rule-backed persistent cores.
-5. Deduplicate alias perk IDs by passive complex.
-6. Reject candidates that repeat a passive complex across slots.
-7. Preserve selected unsupported cores only when the exact current item is retained, but never invent value for them.
-8. Carry the winning `perkId` through Full Build Optimizer and Build From Scratch results.
 
 ### P0: BuildSnapshot freshness and calculation status
 
@@ -172,14 +159,13 @@ After the persistent static release is trustworthy, add a canonical scenario obj
 
 ## Recommended implementation order
 
-1. Calculable core variants plus exact final-candidate legality.
-2. BuildSnapshot v2 and shared legal/provisional/invalid status.
-3. Gear Viewer calculation fingerprint and invalid-build gate.
-4. Combat Lab dataset, build deduplication, and ability-hand fixes.
-5. Unified mastery level schema and mutual exclusion.
-6. Passive-effect classification drift guards and cross-surface fixtures for every executable core.
-7. Browser smoke across Armory, Gear Viewer, Full Build Optimizer, Build From Scratch, Tracker, and Combat Lab.
-8. Independent diff and database review, then a release candidate commit.
+1. BuildSnapshot v2 and shared legal/provisional/invalid status.
+2. Gear Viewer calculation fingerprint and invalid-build gate.
+3. Combat Lab dataset, build deduplication, and ability-hand fixes.
+4. Unified mastery level schema and mutual exclusion.
+5. Passive-effect classification drift guards and cross-surface fixtures for every executable core.
+6. Browser smoke across Armory, Gear Viewer, Full Build Optimizer, Build From Scratch, Tracker, and Combat Lab.
+7. Independent diff and database review, then a release candidate commit.
 
 ## Honest completion criterion
 

@@ -88,6 +88,30 @@ test("Gear Viewer weapon replacement delta does not attribute shared family prog
   assert.equal(expected.critical_damage_dealt_modifier ?? 0, after.critical_damage_dealt_modifier - before.critical_damage_dealt_modifier);
 });
 
+test("Gear Viewer preserves the exact selected weapon core in replacement deltas", () => {
+  const item = data.items.find((candidate) => core.WEAPON_TYPES.includes(candidate.equipmentType) && core.calculableItemPerkVariants(candidate).length > 1);
+  assert.ok(item, "a weapon with a calculable persistent core is required");
+  const variant = core.calculableItemPerkVariants(item).find((row) => row.perkId);
+  const selection = { ...core.emptyEquipmentSelection(), itemId: item.id, level: core.itemMaxLevel(item), perkId: variant.perkId };
+  const build = core.createInitialBuild();
+  build.equipment.main_hand = selection;
+
+  assert.deepEqual(core.slotReplacementDelta("main_hand", selection, build, attributes), {});
+
+  const bareSelection = { ...selection, perkId: "" };
+  const expectedBuild = core.deepClone(build);
+  expectedBuild.equipment.main_hand = bareSelection;
+  const before = totals(core.calculateBuild(build, attributes));
+  const after = totals(core.calculateBuild(expectedBuild, attributes));
+  const expected = {};
+  for (const id of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    const delta = (after[id] ?? 0) - (before[id] ?? 0);
+    if (Math.abs(delta) > 1e-9) expected[id] = delta;
+  }
+  assert.deepEqual(core.slotReplacementDelta("main_hand", bareSelection, build, attributes), expected);
+  assert.ok(Object.values(expected).some((value) => value < 0), "removing the selected persistent core must lose at least one stat");
+});
+
 test("Build Optimizer reads the same set-aware totals through its adapter", async () => {
   const build = buildWithPieces(4);
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
