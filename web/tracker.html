@@ -96,6 +96,8 @@
     </div>
   </header>
 
+  <p role="note" style="margin:0;padding:8px 28px;border-bottom:1px solid rgba(114,169,255,.14);background:rgba(114,169,255,.04);color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Stored selections are preserved.</p>
+
   <main id="main-content" style="flex: 1; width: 100%; padding: 24px 28px 40px; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; align-items: start; animation: tlFadeUp 0.35s ease;">
     <h1 class="tl-visually-hidden">TL Helper progress tracker</h1>
 
@@ -566,7 +568,7 @@ class Component extends DCLogic {
       charLoading: false,
       charName: this.state.profile.name,
       portraitSubtitle: `${this.state.profile.role} · ${weaponPairLabel}`,
-      calculationStatusLabel: calc.status?.state === "legal" ? "Legal static totals" : `${core.label(calc.status?.state ?? "provisional")} static totals`,
+      calculationStatusLabel: calc.status?.state === "legal" ? "Legal static totals · Item Potentials excluded" : `${core.label(calc.status?.state ?? "provisional")} static totals · Item Potentials excluded`,
       calculationStatusColor: calc.status?.state === "invalid" ? "#e58b84" : calc.status?.state === "provisional" ? "#e5a06a" : "#7ee0a6",
       leftSlots: leftIds.map((id) => this.slotMini(id)),
       rightSlots: rightIds.map((id) => this.slotMini(id)),

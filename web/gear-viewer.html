@@ -161,6 +161,8 @@
       <p>Every item, one table. Pick stat columns, sort any of them, and rank by a scale-normalized score — optionally against your build.</p>
     </div>
 
+    <p role="note" style="margin:-8px 0 14px;color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Same-item comparisons preserve stored selections.</p>
+
     <div class="toolbar">
       <label>Search
         <input id="search" type="search" placeholder="Search for name or stat" autocomplete="off">
@@ -635,6 +637,11 @@
           }
           const actualSelection = state.mode === "bare" ? null : core.slotSelection(slotId, build);
           const isActualItem = actualSelection?.itemId === item.id;
+          // Same-item generated configurations may change traits, Heroic
+          // effects, or Skill Cores, but must preserve the excluded potential.
+          if (isActualItem && actualSelection?.potentialId) {
+            baseSelection = { ...baseSelection, potentialId: actualSelection.potentialId };
+          }
           if (isActualItem) {
             const exactSelection = core.deepClone(actualSelection);
             const contribution = candidateContribution(slotId, exactSelection, build, attributes, options);
@@ -1054,7 +1061,7 @@
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
-      if (model.isPotential) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.22);background:rgba(255,152,45,0.045)"><div class="hc-title heroic">Best possible configuration</div><div class="hc-effect-text">Candidate ceiling for the selected Fit goals. Uses 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Your equipped item is not changed.</div></div>`);
+      if (model.isPotential) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.22);background:rgba(255,152,45,0.045)"><div class="hc-title heroic">Strong bounded configuration</div><div class="hc-effect-text">Best configuration retained by the bounded search for the selected Fit goals. Uses 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Your equipped item is not changed.</div></div>`);
       if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}${model.hasAttributeGains ? `<div class="hc-gain-hint">Hold <kbd>Shift</kbd> to show attribute gains</div>` : ""}</div>`);
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
@@ -1164,13 +1171,14 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
+      const itemPotentialLabel = " · Item Potentials excluded";
       const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}${scenarioResourceLabel()}, ${formatSourceMotion(sourceMotionFromControls(scenarioMotionControls()))}, ${formatSourceEventHistory(sourceEventHistoryFromControls(scenarioEventControls()), (weapon) => core.label(weapon))}, ${scenarioSocialLabel()}` : "";
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
       if (calculationBlock) {
         const count = calculationBlock.blockingIssues?.length ?? 0;
         $("status").innerHTML = `<span class="error">${core.label(calculationBlock.state)} build: ${count} calculation issue${count === 1 ? "" : "s"} must be resolved before build-aware gear ranking.</span>`;
       } else {
-        $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${scenarioLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+        $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${itemPotentialLabel}${scenarioLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
       }
       writeHash();
     }

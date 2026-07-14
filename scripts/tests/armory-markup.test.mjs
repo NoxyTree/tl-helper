@@ -23,6 +23,9 @@ test("Overall Mastery unlock level is an explicit editable build input", () => {
   assert.match(markup, /aria-label="Overall Mastery Level"/);
   assert.match(markup, /overallMasteryLevelValue: build\.overallMasteryLevel \?\? ""/);
   assert.match(markup, /next\.overallMasteryLevel = value === "" \? null : Number\(value\)/);
+  assert.match(markup, /Potential affects persistent static totals/);
+  assert.match(markup, /Shielded by Unity/);
+  assert.doesNotMatch(markup, /Only Potential affects totals/);
 });
 
 test("skill budget summary declares columns for all four values", () => {

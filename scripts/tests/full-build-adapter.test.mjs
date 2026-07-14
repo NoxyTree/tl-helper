@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizeProgressionFinalistTask, optimizerItemSelection, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+
+test("same-item scratch and refit candidates preserve excluded potentials without cross-item inheritance", () => {
+  const core = { emptyEquipmentSelection: () => ({ itemId: "", potentialId: "", traits: [] }), itemMaxLevel: () => 12 };
+  const current = { itemId: "same", potentialId: "Potential_Stored", traits: [{ statId: "hp_max" }] };
+  assert.equal(optimizerItemSelection(core, { id: "same" }, current).potentialId, "Potential_Stored");
+  assert.equal(optimizerItemSelection(core, { id: "different" }, current).potentialId, "");
+});
 
 test("composite goals preserve one goal weight across typed leaf totals", () => {
   const [goal] = expandCompositeGoals(normalizeRankedGoals({ increase: ["pvp_all_critical_defense"] }));
@@ -552,6 +559,181 @@ test("candidate generation excludes an unmapped persistent item before beam scor
     sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
   });
   assert.equal(result.build.equipment.head.itemId, "legal");
+});
+
+function gearAwareProgressionFixture(itemCount = 9) {
+  const items = Array.from({ length: itemCount }, (_, index) => ({
+    id: `item-${index}`,
+    name: `Item ${index}`,
+    grade: 41,
+    equipmentType: "head",
+    attack: 100 - index,
+    guard: index,
+  }));
+  const itemById = Object.fromEntries(items.map((item) => [item.id, item]));
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const evaluatedAttributes = [];
+  const progressionCalls = [];
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack", guard: "Guard" }, items, runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById, runeById: {} },
+    EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build, attributes = {}, options = {}) {
+      const itemId = build.equipment.head.itemId;
+      const item = itemById[itemId];
+      const refined = build.skills?.[0]?.skillId === `refined:${itemId}`;
+      if (refined) evaluatedAttributes.push(structuredClone(attributes));
+      const progressionBonus = !refined ? 0 : itemId === "item-1" ? 50 : itemId === "item-2" ? 1000 : 0;
+      const scenarioBonus = refined && options.scenario?.progressionBoostItemId === itemId ? 2000 : 0;
+      const minimumPenalty = build.minimumPenalty ? 1000 : 0;
+      return {
+        stats: [
+          { id: "attack", total: Number(item?.attack ?? 0) + Number(attributes.dex ?? 0) + progressionBonus + scenarioBonus - minimumPenalty },
+          { id: "guard", total: Number(item?.guard ?? 0) },
+        ],
+        validation: { issues: refined && itemId === "item-2" ? [{ severity: "error", code: "illegal_progression", message: "Illegal progression." }] : [] },
+      };
+    },
+    slotSelectionContribution(_slot, selection) { return { attack: Number(itemById[selection?.itemId]?.attack ?? 0), guard: Number(itemById[selection?.itemId]?.guard ?? 0) }; },
+    slotItems: () => items,
+    slotById: () => ({ id: "head", types: ["head"] }),
+    emptyEquipmentSelection: empty,
+    itemMaxLevel: () => 80,
+    heroicSlotGroupForSlot: () => "",
+    statName: (id) => id,
+    formatStat: (_id, value) => String(value),
+    statPageFor: () => "combat",
+    gradeColor: () => "#fff",
+    label: (id) => id,
+    bindCombatScenarioToBuild: (scenario) => structuredClone(scenario),
+  };
+  const optimizeProgression = ({ build, settings, evaluate }) => {
+    const refined = structuredClone(build);
+    const itemId = refined.equipment.head.itemId;
+    progressionCalls.push(itemId || "seed");
+    refined.skills = [{ skillId: `refined:${itemId}`, level: 20 }];
+    evaluate(refined);
+    return {
+      build: refined,
+      settings: { ...settings, skillLevelCap: 20, masteryPointsByWeapon: {}, gearItemId: itemId },
+      summary: { masteryPointsByWeapon: {}, passiveSkills: 1, unifiedMasteries: 0, gearItemId: itemId },
+    };
+  };
+  return { core, empty, optimizeProgression, progressionCalls, evaluatedAttributes };
+}
+
+test("gear-aware scratch progression reranks exact finalists once and drops illegal refinements", async () => {
+  const fixture = gearAwareProgressionFixture();
+  const adapter = await createOptimizerAdapter({
+    core: fixture.core,
+    storage: {},
+    loadArmoryState: () => ({ ok: false }),
+    optimizeScratchProgression: fixture.optimizeProgression,
+  });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: fixture.empty() }, artifacts: {}, supportSlots: {} }, attributes: { dex: 7 }, sourceKind: "scratch" },
+    sourceKind: "scratch",
+    goals: { priorities: [{ id: "attack", rank: 1 }, { id: "guard", rank: 2 }] },
+    progression: { enabled: true },
+    rules: {},
+  });
+
+  assert.equal(result.build.equipment.head.itemId, "item-1", "gear-dependent progression should reverse the preliminary item ranking");
+  assert.equal(result.build.skills[0].skillId, "refined:item-1");
+  assert.equal(result.progression.settings.gearItemId, "item-1");
+  assert.equal(result.progressionFinalistsEvaluated, 4);
+  assert.deepEqual(fixture.progressionCalls, ["seed", "item-0", "item-1", "item-2", "item-3"]);
+  assert.ok(result.tuningFrontier.every((row) => row.build.skills?.[0]?.skillId === `refined:${row.build.equipment.head.itemId}`));
+  assert.ok(result.tuningFrontier.every((row) => row.progression?.settings?.gearItemId === row.build.equipment.head.itemId));
+  assert.ok(result.alternatives.every((row) => row.progression?.settings?.gearItemId));
+  assert.ok(result.tuningFrontier.every((row) => row.build.equipment.head.itemId !== "item-2"), "illegal refined finalists must not reach result surfaces");
+  assert.ok(fixture.evaluatedAttributes.every((attributes) => attributes.dex === 7), "progression must evaluate against each finalist's fixed attributes");
+});
+
+test("gear-aware scratch progression uses deterministic fast and thorough finalist bounds", async () => {
+  const run = async (depth) => {
+    const fixture = gearAwareProgressionFixture();
+    const adapter = await createOptimizerAdapter({ core: fixture.core, storage: {}, loadArmoryState: () => ({ ok: false }), optimizeScratchProgression: fixture.optimizeProgression });
+    const result = await adapter.optimize({
+      build: { build: { equipment: { head: fixture.empty() }, artifacts: {}, supportSlots: {} }, attributes: { dex: 7 }, sourceKind: "scratch" },
+      sourceKind: "scratch", depth, goals: { priorities: [{ id: "attack", rank: 1 }, { id: "guard", rank: 2 }] }, progression: { enabled: true }, rules: {},
+    });
+    return { result, calls: fixture.progressionCalls };
+  };
+  const fastA = await run("fast");
+  const fastB = await run("fast");
+  const thorough = await run("thorough");
+
+  assert.equal(fastA.result.progressionFinalistsEvaluated, 4);
+  assert.equal(thorough.result.progressionFinalistsEvaluated, 8);
+  assert.deepEqual(fastA.calls, fastB.calls);
+  assert.deepEqual(fastA.result.build, fastB.result.build);
+  assert.equal(fastA.calls.length, 5, "one seed pass plus one pass for each of four fast finalists");
+  assert.equal(thorough.calls.length, 9, "one seed pass plus one pass for each of eight thorough finalists");
+});
+
+test("progression-disabled scratch requests keep the pre-existing result path", async () => {
+  const fixture = gearAwareProgressionFixture();
+  const adapter = await createOptimizerAdapter({ core: fixture.core, storage: {}, loadArmoryState: () => ({ ok: false }), optimizeScratchProgression: fixture.optimizeProgression });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: fixture.empty() }, artifacts: {}, supportSlots: {} }, attributes: { dex: 7 }, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { priorities: [{ id: "attack", rank: 1 }, { id: "guard", rank: 2 }] }, progression: { enabled: false }, rules: {},
+  });
+  assert.equal(result.build.equipment.head.itemId, "item-0");
+  assert.equal(result.progression, null);
+  assert.equal(result.progressionFinalistsEvaluated, 0);
+  assert.deepEqual(fixture.progressionCalls, []);
+  assert.ok(result.tuningFrontier.every((row) => !("progression" in row)));
+});
+
+test("adapter progression rerank uses the bound scenario for every finalist", async () => {
+  const fixture = gearAwareProgressionFixture();
+  const adapter = await createOptimizerAdapter({ core: fixture.core, storage: {}, loadArmoryState: () => ({ ok: false }), optimizeScratchProgression: fixture.optimizeProgression });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: fixture.empty() }, artifacts: {}, supportSlots: {} }, attributes: { dex: 7 }, sourceKind: "scratch" },
+    sourceKind: "scratch",
+    goals: { priorities: [{ id: "attack", rank: 1 }, { id: "guard", rank: 2 }] },
+    progression: { enabled: true },
+    scenario: { progressionBoostItemId: "item-3" },
+    rules: {},
+  });
+  assert.equal(result.build.equipment.head.itemId, "item-3");
+  assert.equal(result.progression.settings.gearItemId, "item-3");
+  assert.equal(result.scenario.progressionBoostItemId, "item-3");
+});
+
+test("adapter drops every progression refinement that violates protected stats or goal minimums", async () => {
+  const fixture = gearAwareProgressionFixture();
+  const penalizedProgression = (args) => {
+    const result = fixture.optimizeProgression(args);
+    if (result.build.equipment.head.itemId) {
+      result.build.minimumPenalty = true;
+      args.evaluate(result.build);
+    }
+    return result;
+  };
+  const adapter = await createOptimizerAdapter({ core: fixture.core, storage: {}, loadArmoryState: () => ({ ok: false }), optimizeScratchProgression: penalizedProgression });
+  await assert.rejects(() => adapter.optimize({
+    build: { build: { equipment: { head: fixture.empty() }, artifacts: {}, supportSlots: {} }, attributes: { dex: 7 }, sourceKind: "scratch" },
+    sourceKind: "scratch",
+    goals: { priorities: [{ id: "attack", rank: 1, minimum: 1 }], protect: ["attack"] },
+    progression: { enabled: true },
+    rules: {},
+  }), /No build satisfies the protected-stat constraints/);
+});
+
+test("progression finalist task keeps attributes fixed and reports protected-stat rejection", () => {
+  const fixture = gearAwareProgressionFixture();
+  const build = { equipment: { head: { ...fixture.empty(), itemId: "item-1" } }, artifacts: {}, supportSlots: {} };
+  const result = optimizeProgressionFinalistTask(fixture.core, { build, attributes: { dex: 7 } }, {
+    weapons: [], settings: { enabled: true }, rankedGoals: [{ id: "attack", components: ["attack"], weight: 1 }],
+    baseline: { attack: 0 }, scales: { attack: 1 }, protectedStats: { attack: { min: 1000 } }, minimums: { attack: 1000 }, includeSetEffects: true, scenario: null,
+  }, fixture.optimizeProgression);
+  assert.deepEqual(result.attributes, { dex: 7 });
+  assert.equal(result.protectedStatsSatisfied, false);
+  assert.equal(result.minimumsSatisfied, false);
+  assert.equal(result.build.equipment.head.itemId, "item-1");
+  assert.equal(result.progression.settings.gearItemId, "item-1");
 });
 
 test("Questlog import uses the hosted adapter and normalizes the requested build", async () => {

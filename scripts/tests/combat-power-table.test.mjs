@@ -47,7 +47,7 @@ test("reads indexed component values without inventing out-of-range values", () 
   assert.equal(listPower(row, "ItemTraitCombatPowerList", 2), null);
 });
 
-test("sums decoded item components", () => {
+test("sums decoded item components while excluding Item Potential Combat Power by default", () => {
   const values = (list) => list.map((CombatPower) => ({ CombatPower }));
   const row = {
     BaseCombatPower: 100,
@@ -57,9 +57,15 @@ test("sums decoded item components", () => {
     ItemTraitResonanceCombatPowerList: values([0, 3]),
     ItemPotentialCombatPower: 15,
   };
-  assert.deepEqual(decodedItemPower(row, {
+  const selection = {
     enchantLevel: 2, traits: [{ tier: 2 }, { tier: 2 }], uniqueTrait: { tier: 1 }, resonance: [{ tier: 1 }], potentialId: "x",
-  }), { base: 100, enchant: 4, traits: 30, uniqueTrait: 7, resonance: 3, potential: 15, total: 159 });
+  };
+  assert.deepEqual(decodedItemPower(row, selection), { base: 100, enchant: 4, traits: 30, uniqueTrait: 7, resonance: 3, potential: 0, total: 144 });
+  assert.deepEqual(
+    decodedItemPower(row, selection, { itemPotentials: "decoded-analysis" }),
+    { base: 100, enchant: 4, traits: 30, uniqueTrait: 7, resonance: 3, potential: 15, total: 159 },
+  );
+  assert.throws(() => decodedItemPower(row, selection, { itemPotentials: "unsupported" }), /Unknown Item Potential Combat Power mode/);
 });
 
 test("maps normal and chaos runes and applies the table level index", () => {

@@ -40,3 +40,10 @@ test("Combat Lab prefills only legal current snapshots", () => {
   assert.equal(isLegalBuildSnapshot({ resolved: { status: { state: "invalid" } } }), false);
   assert.equal(isLegalBuildSnapshot({ resolved: {} }), false);
 });
+
+test("Combat Lab visibly reports the Item Potential calculation context", () => {
+  assert.match(combatLabSource, /resolveCombatLabBuildContext\(snapshot\)/);
+  assert.match(combatLabSource, /Calculation context <strong>itemPotentials:'\$\{escapeHtml\(calculationContext\.itemPotentials\)\}'<\/strong>/);
+  assert.match(combatLabSource, /ui\["source-summary"\]\.classList\.remove\("hidden"\)/);
+  assert.match(combatLabSource, /ui\["target-summary"\]\.classList\.remove\("hidden"\)/);
+});

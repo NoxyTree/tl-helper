@@ -61,6 +61,7 @@ test("optimizer uses full-screen setup and loading before opening the shared res
   assert.doesNotMatch(html, /id="empty-state"/);
   assert.match(html, /new Worker\("\.\/tl-builder-worker\.js"/);
   assert.match(html, /message\.type==="progress"/);
+  assert.match(html, /Bounded complete-build search/);
 });
 
 test("improved results reuse the Build from Scratch result experience", () => {
@@ -105,6 +106,8 @@ test("result contract includes comparison, deltas, explanations, warnings, and a
   assert.match(html, /result\.warnings/);
   assert.match(html, /result\.alternatives/);
   assert.match(html, /Current<\/th><th>Recommended/);
+  assert.match(html, /Other strong finalists/);
+  assert.doesNotMatch(html, /Near-optimal alternatives/);
 });
 
 test("result handoff remains independent of unlicensed market data", () => {

@@ -10,6 +10,7 @@ import {
   mapDisplayedLevel,
   OUTCOMES,
   projectAbilityRange,
+  resolveCombatLabBuildContext,
   resolveCombatLabHealing,
   resolvePvpMatchup,
   TIER_MAPPINGS,
@@ -370,11 +371,14 @@ function updateBuildSummaries() {
   ui["target-summary"].innerHTML = target
     ? `${buildSummary(target.snapshot)}<br><strong>${healing ? "Healing Received is used by the opted-in model; defenses remain context only." : "Not used in arithmetic."}</strong>`
     : healing ? "Self-heal context: the source build’s Healing Received value is used." : "Target defenses are context only.";
+  ui["source-summary"].classList.remove("hidden");
+  ui["target-summary"].classList.remove("hidden");
 }
 
 function buildSummary(snapshot) {
   const stellarite = snapshot.loadout.supportSlots?.stellarite?.itemId;
-  return `Combat Power <strong>${formatNumber(snapshot.resolved.combatPower)}</strong><br>Main-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_max"))}<br>Off-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_max"))}<br>Healing +${displayStat(snapshot,"heal_modifier",0.01)}% · Healing Received +${displayStat(snapshot,"skill_heal_taken_modifier",0.01)}%<br>Skill Damage Boost ${displayStat(snapshot,"skill_power_amplification",0.1)}<br>Stellarite <strong>${stellarite ? "included in Base Damage" : "not equipped"}</strong>`;
+  const calculationContext = resolveCombatLabBuildContext(snapshot);
+  return `Combat Power <strong>${formatNumber(snapshot.resolved.combatPower)}</strong><br>Main-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_max"))}<br>Off-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_max"))}<br>Healing +${displayStat(snapshot,"heal_modifier",0.01)}% · Healing Received +${displayStat(snapshot,"skill_heal_taken_modifier",0.01)}%<br>Skill Damage Boost ${displayStat(snapshot,"skill_power_amplification",0.1)}<br>Stellarite <strong>${stellarite ? "included in Base Damage" : "not equipped"}</strong><br>Calculation context <strong>itemPotentials:'${escapeHtml(calculationContext.itemPotentials)}'</strong>`;
 }
 
 function prefillDamage() {

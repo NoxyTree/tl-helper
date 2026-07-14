@@ -216,19 +216,37 @@ export async function optimizeFullBuild(options) {
   }
 
   const results = [];
-  for (let index = 0; index < beam.length; index += 1) {
-    assertRunning(options);
-    const state = beam[index];
-    const evaluation = await options.evaluate(state.selections, {
+  const evaluationInputs = beam.map((state) => ({
+    selections: state.selections,
+    context: {
       candidates: state.candidates,
       approximateStats: state.stats,
       setCounts: state.sets,
       heroicCounts: state.heroic,
-    });
+    },
+  }));
+  const batchEvaluations = typeof options.evaluateBatch === "function"
+    ? await options.evaluateBatch(evaluationInputs, {
+      signal: options.signal,
+      onProgress: ({ completed, total = beam.length, workerCount = 1, mode = "sequential" } = {}) => {
+        options.onProgress?.({ phase: "evaluate", completed, total, workerCount, mode });
+      },
+    })
+    : null;
+  if (batchEvaluations && (!Array.isArray(batchEvaluations) || batchEvaluations.length !== beam.length)) {
+    throw new Error(`evaluateBatch returned ${Array.isArray(batchEvaluations) ? batchEvaluations.length : "a non-array"} result(s) for ${beam.length} finalist(s).`);
+  }
+  assertRunning(options);
+  for (let index = 0; index < beam.length; index += 1) {
+    assertRunning(options);
+    const state = beam[index];
+    const evaluation = batchEvaluations
+      ? batchEvaluations[index]
+      : await options.evaluate(state.selections, evaluationInputs[index].context);
     if (evaluation?.legal !== false && protectedLegal(evaluation ?? {}, options.protectedStats)) {
       results.push({ selections: state.selections, candidates: state.candidates, evaluation, key: state.key });
     }
-    options.onProgress?.({ phase: "evaluate", completed: index + 1, total: beam.length, legal: results.length });
+    if (!batchEvaluations) options.onProgress?.({ phase: "evaluate", completed: index + 1, total: beam.length, legal: results.length, workerCount: 1, mode: "sequential" });
   }
 
   const neutral = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + number(candidate[key]), 0);

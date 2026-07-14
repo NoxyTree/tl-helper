@@ -162,7 +162,7 @@ function equippedChaosIds(build, runeById) {
   return [...ids];
 }
 
-function applySelections(source, selections) {
+export function applySelections(source, selections) {
   const build = clone(source);
   for (const [slot, selection] of Object.entries(selections)) {
     if (slot === "artifact_bundle") {
@@ -174,6 +174,14 @@ function applySelections(source, selections) {
 
 function itemSelection(core, item) {
   return { ...core.emptyEquipmentSelection(), itemId: item.id, level: core.itemMaxLevel(item) };
+}
+
+export function optimizerItemSelection(core, item, current = null) {
+  const selection = itemSelection(core, item);
+  // Item Potentials are excluded from scoring, but reconfiguring the same
+  // item must preserve the stored roll. A different item never inherits it.
+  if (item.id === current?.itemId && current?.potentialId) selection.potentialId = current.potentialId;
+  return selection;
 }
 
 const INACTIVE_SELECTION_ERROR_CODES = new Set([
@@ -188,7 +196,7 @@ const INACTIVE_SELECTION_ERROR_CODES = new Set([
   "perk_required_weapon_missing",
 ]);
 
-function blockingCalculationIssues(core, calculation) {
+export function blockingCalculationIssues(core, calculation) {
   if (calculation?.scenarioEffects?.status === "unsupported") {
     return calculation.scenarioEffects.errors.map((error) => ({
       severity: "error",
@@ -410,6 +418,141 @@ export function refineRuneConfiguration({
   return { ...current, build: workingBuild, attributes: workingAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, finalCalc), runeInsights };
 }
 
+function taskScenarioForBuild(core, scenario, build) {
+  if (scenario == null) return null;
+  return typeof core.bindCombatScenarioToBuild === "function"
+    ? core.bindCombatScenarioToBuild(scenario, build)
+    : scenario;
+}
+
+export function evaluateOptimizerBuildTask(core, payload, context) {
+  const build = applySelections(context.sourceBuild, payload.selections);
+  const scenario = taskScenarioForBuild(core, context.scenario, build);
+  const calc = core.calculateBuild(build, context.attributes ?? {}, {
+    includeSetEffects: context.includeSetEffects !== false,
+    ...(scenario == null ? {} : { scenario }),
+  });
+  const stats = withCompositeTotals(totalMap(calc), context.rankedGoals);
+  const blockingIssues = blockingCalculationIssues(core, calc);
+  return {
+    score: scoreRankedGoals(stats, context.objectiveBaseline, context.objectiveScales, context.rankedGoals),
+    stats,
+    build,
+    attributes: context.attributes ?? {},
+    activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc),
+    legal: blockingIssues.length === 0,
+    blockingIssues,
+  };
+}
+
+export function optimizeAttributeFinalistTask(core, payload, context) {
+  const scenario = taskScenarioForBuild(core, context.scenario, payload.build);
+  const optimized = optimizeAttributeAllocation({
+    core,
+    build: payload.build,
+    budget: context.budget,
+    rankedGoals: context.rankedGoals,
+    baseline: context.baseline,
+    scales: context.scales,
+    includeSetEffects: context.includeSetEffects !== false,
+    minimums: context.minimums,
+    scenario,
+  });
+  const calculation = core.calculateBuild(payload.build, optimized.attributes, {
+    includeSetEffects: context.includeSetEffects !== false,
+    ...(scenario == null ? {} : { scenario }),
+  });
+  return {
+    score: optimized.score,
+    stats: optimized.stats,
+    attributes: optimized.attributes,
+    activeAttributeBreakpoints: optimized.activeAttributeBreakpoints,
+    blockingIssues: blockingCalculationIssues(core, calculation),
+  };
+}
+
+export function refineRuneFinalistTask(core, payload, context) {
+  const scenario = taskScenarioForBuild(core, context.scenario, payload.build);
+  const refined = refineRuneConfiguration({
+    core,
+    build: payload.build,
+    attributes: payload.attributes,
+    budget: context.budget,
+    rankedGoals: context.rankedGoals,
+    baseline: context.baseline,
+    scales: context.scales,
+    minimums: context.minimums,
+    includeSetEffects: context.includeSetEffects !== false,
+    runeCandidatesByCategory: context.runeCandidatesByCategory,
+    lockedSlotIds: new Set(context.lockedSlotIds ?? []),
+    scenario,
+  });
+  const finalScenario = taskScenarioForBuild(core, context.scenario, refined.build);
+  const calculation = core.calculateBuild(refined.build, refined.attributes, {
+    includeSetEffects: context.includeSetEffects !== false,
+    ...(finalScenario == null ? {} : { scenario: finalScenario }),
+  });
+  return {
+    score: refined.score,
+    stats: refined.stats,
+    build: refined.build,
+    attributes: refined.attributes,
+    activeAttributeBreakpoints: refined.activeAttributeBreakpoints,
+    runeInsights: refined.runeInsights,
+    blockingIssues: blockingCalculationIssues(core, calculation),
+  };
+}
+
+export function optimizeProgressionFinalistTask(core, payload, context, progressionOptimizer = optimizeScratchProgression) {
+  const attributes = clone(payload.attributes ?? {});
+  const weapons = typeof core.equippedWeaponTypes === "function"
+    ? [...core.equippedWeaponTypes(payload.build)]
+    : [...new Set(context.weapons ?? [])].filter(Boolean);
+  const evaluate = (build, evaluationOptions = {}) => {
+    const progressionWeaponTypes = evaluationOptions.progressionWeaponTypes ?? weapons;
+    const scenario = taskScenarioForBuild(core, context.scenario, build);
+    return withCompositeTotals(totalMap(core.calculateBuild(build, attributes, {
+      includeSetEffects: context.includeSetEffects !== false,
+      ...(scenario == null ? {} : { scenario }),
+      ...(progressionWeaponTypes?.length ? { progressionWeaponTypes } : {}),
+    })), context.rankedGoals);
+  };
+  const progression = progressionOptimizer({
+    core,
+    build: payload.build,
+    weapons,
+    settings: context.settings,
+    evaluate,
+    score: (stats) => scoreRankedGoals(withCompositeTotals(stats, context.rankedGoals), context.baseline, context.scales, context.rankedGoals),
+  });
+  const scenario = taskScenarioForBuild(core, context.scenario, progression.build);
+  const calculation = core.calculateBuild(progression.build, attributes, {
+    includeSetEffects: context.includeSetEffects !== false,
+    ...(scenario == null ? {} : { scenario }),
+  });
+  const stats = withCompositeTotals(totalMap(calculation), context.rankedGoals);
+  const blockingIssues = blockingCalculationIssues(core, calculation);
+  return {
+    score: scoreRankedGoals(stats, context.baseline, context.scales, context.rankedGoals),
+    stats,
+    build: progression.build,
+    attributes,
+    activeAttributeBreakpoints: activeAttributeBreakpoints(core, calculation),
+    blockingIssues,
+    protectedStatsSatisfied: satisfiesProtectedStats(stats, context.protectedStats ?? {}),
+    minimumsSatisfied: minimumViolation(stats, context.minimums ?? {}, context.scales) === 0,
+    progression: { summary: progression.summary, settings: progression.settings },
+  };
+}
+
+export function executeOptimizerTask(core, taskType, payload, context) {
+  if (taskType === "evaluate_build") return evaluateOptimizerBuildTask(core, payload, context);
+  if (taskType === "optimize_attributes") return optimizeAttributeFinalistTask(core, payload, context);
+  if (taskType === "refine_runes") return refineRuneFinalistTask(core, payload, context);
+  if (taskType === "optimize_progression") return optimizeProgressionFinalistTask(core, payload, context);
+  throw new RangeError(`Unknown optimizer worker task: ${String(taskType)}`);
+}
+
 /**
  * Optimistic per-piece objective value of completing each set that appears in
  * the candidate pool. Candidate stats are generated with set effects disabled,
@@ -526,6 +669,10 @@ export async function createOptimizerAdapter(deps = {}) {
   const storage = deps.storage ?? globalThis.localStorage;
   const fetcher = deps.fetch ?? globalThis.fetch?.bind(globalThis);
   const runAttributeOptimizer = deps.optimizeAttributeAllocation ?? optimizeAttributeAllocation;
+  const runProgressionOptimizer = deps.optimizeScratchProgression ?? optimizeScratchProgression;
+  const optimizerTaskPool = deps.optimizerTaskPool ?? null;
+  const canonicalAttributeOptimizer = deps.optimizeAttributeAllocation == null;
+  const canonicalProgressionOptimizer = deps.optimizeScratchProgression == null;
   if (!core.data) await core.initCore(deps.dataSource ?? "./data/app-data.json");
 
   const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name, sourceKind: payload.sourceKind ?? "armory" });
@@ -602,6 +749,24 @@ export async function createOptimizerAdapter(deps = {}) {
         const boundScenario = scenarioForBuild(build, weaponTypes);
         return boundScenario == null ? {} : { scenario: boundScenario };
       };
+      const runTaskBatch = async (taskType, payloads, context, fallback, onProgress, allowPool = true) => {
+        if (allowPool && typeof optimizerTaskPool?.map === "function") {
+          return optimizerTaskPool.map(taskType, payloads, {
+            context,
+            fallback,
+            signal: runtime.signal,
+            onProgress,
+          });
+        }
+        const results = [];
+        for (let index = 0; index < payloads.length; index += 1) {
+          if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
+          results.push(await fallback(payloads[index], context, index));
+          onProgress?.({ completed: index + 1, total: payloads.length, workerCount: 1, mode: "sequential" });
+          if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        return results;
+      };
       const goals = request.goals ?? { increase: [], protect: [] };
       const rankedGoals = expandCompositeGoals(normalizeRankedGoals(goals));
       const requestedWeaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
@@ -641,7 +806,7 @@ export async function createOptimizerAdapter(deps = {}) {
           })), rankedGoals);
         };
         const score = (stats) => scoreRankedGoals(withCompositeTotals(stats, rankedGoals), {}, initialScales, rankedGoals);
-        progression = optimizeScratchProgression({
+        progression = runProgressionOptimizer({
           core,
           build: source.build,
           weapons: Object.values(weaponTypeConstraints),
@@ -696,7 +861,7 @@ export async function createOptimizerAdapter(deps = {}) {
         for (const item of core.slotItems(core.slotById(slot))) {
           if (requiredWeaponType && item.equipmentType !== requiredWeaponType) continue;
           if (minimumItemLevel && core.itemMaxLevel(item) < minimumItemLevel) continue;
-          let selection = itemSelection(core, item);
+          let selection = optimizerItemSelection(core, item, current);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
           if (rules.bestHeroicConfiguration && item.grade === core.HEROIC_GRADE) {
@@ -777,61 +942,178 @@ export async function createOptimizerAdapter(deps = {}) {
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
       const attributePoolSize = request.depth === "thorough" ? 64 : 48;
+      const progressionPoolSize = request.depth === "thorough" ? 8 : 4;
       const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
       const beamWeights = Object.fromEntries(componentWeightMap(rankedGoals, objectiveScales));
       const beamGoalStats = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
       const beamStatCaps = objectiveStatCaps(rankedGoals);
-      let search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
-        const build = applySelections(source.build, selections);
-        const calc = core.calculateBuild(build, provisionalAttributes, { includeSetEffects: rules.includeSetEffects !== false, ...scenarioOptionsForBuild(build) });
-        const stats = withCompositeTotals(totalMap(calc), rankedGoals);
-        const blockingIssues = blockingCalculationIssues(core, calc);
-        return { score: scoreRankedGoals(stats, objectiveBaseline, objectiveScales, rankedGoals), stats, build, attributes: provisionalAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc), legal: blockingIssues.length === 0, blockingIssues };
-      }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
+      const buildEvaluationContext = {
+        sourceBuild: source.build,
+        attributes: provisionalAttributes,
+        includeSetEffects: rules.includeSetEffects !== false,
+        scenario,
+        rankedGoals,
+        objectiveBaseline,
+        objectiveScales,
+      };
+      const evaluateBuild = (selections) => evaluateOptimizerBuildTask(core, { selections }, buildEvaluationContext);
+      const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
+      const exactOrder = (a, b) => b.evaluation.score - a.evaluation.score
+        || neutralTotal(a, "neutralHeroicCost") - neutralTotal(b, "neutralHeroicCost")
+        || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")
+        || neutralTotal(b, "neutralGrade") - neutralTotal(a, "neutralGrade")
+        || a.key.localeCompare(b.key);
+      let search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: evaluateBuild,
+        ...(typeof optimizerTaskPool?.map === "function" ? {
+          evaluateBatch: (entries, batchRuntime = {}) => runTaskBatch(
+            "evaluate_build",
+            entries.map((entry) => ({ selections: entry.selections })),
+            buildEvaluationContext,
+            (payload, context) => evaluateOptimizerBuildTask(core, payload, context),
+            batchRuntime.onProgress,
+          ),
+        } : {}),
+        lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         if (Object.values(selections).some((selection) => selection?.itemId === itemId)) return false;
         return true;
-      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (attributePointBudget != null) {
         const exact = [];
         const preliminaryFrontier = search.frontier?.length ? search.frontier : search.alternatives;
+        const attributeTaskContext = {
+          budget: attributePointBudget,
+          rankedGoals,
+          baseline: objectiveBaseline,
+          scales: objectiveScales,
+          includeSetEffects: rules.includeSetEffects !== false,
+          minimums: attributeMinimums,
+          scenario,
+        };
+        const localAttributeTask = (payload, context) => {
+          if (canonicalAttributeOptimizer) return optimizeAttributeFinalistTask(core, payload, context);
+          const candidateScenario = scenarioForBuild(payload.build);
+          const optimized = runAttributeOptimizer({ core, build: payload.build, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, includeSetEffects: context.includeSetEffects, minimums: context.minimums, scenario: candidateScenario });
+          const calculation = core.calculateBuild(payload.build, optimized.attributes, { includeSetEffects: context.includeSetEffects, ...(candidateScenario == null ? {} : { scenario: candidateScenario }) });
+          return { score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, blockingIssues: blockingCalculationIssues(core, calculation) };
+        };
+        const optimizedFinalists = await runTaskBatch(
+          "optimize_attributes",
+          preliminaryFrontier.map((candidate) => ({ build: candidate.evaluation.build })),
+          attributeTaskContext,
+          localAttributeTask,
+          ({ completed, total, workerCount }) => runtime.onProgress?.({ percent: 60 + (progression ? 15 : 25) * completed / total, label: "Optimizing attribute points", detail: `${completed} of ${total} frontier loadouts across ${workerCount} calculation worker${workerCount === 1 ? "" : "s"}` }),
+          canonicalAttributeOptimizer,
+        );
         for (let index = 0; index < preliminaryFrontier.length; index += 1) {
           if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
           const candidate = preliminaryFrontier[index];
-          const candidateScenario = scenarioForBuild(candidate.evaluation.build);
-          const optimized = runAttributeOptimizer({ core, build: candidate.evaluation.build, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, includeSetEffects: rules.includeSetEffects !== false, minimums: attributeMinimums, scenario: candidateScenario });
-          const optimizedCalculation = core.calculateBuild(candidate.evaluation.build, optimized.attributes, { includeSetEffects: rules.includeSetEffects !== false, ...(candidateScenario == null ? {} : { scenario: candidateScenario }) });
-          const optimizedBlockingIssues = blockingCalculationIssues(core, optimizedCalculation);
-          if (!optimizedBlockingIssues.length && satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
-          runtime.onProgress?.({ percent: 60 + 25 * (index + 1) / preliminaryFrontier.length, label: "Optimizing attribute points", detail: `${index + 1} of ${preliminaryFrontier.length} frontier loadouts` });
-          if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
+          const optimized = optimizedFinalists[index];
+          if (!optimized.blockingIssues.length && satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
         }
-        const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
-        const exactOrder = (a, b) => b.evaluation.score - a.evaluation.score
-          || neutralTotal(a, "neutralHeroicCost") - neutralTotal(b, "neutralHeroicCost")
-          || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")
-          || neutralTotal(b, "neutralGrade") - neutralTotal(a, "neutralGrade")
-          || a.key.localeCompare(b.key);
         exact.sort(exactOrder);
         if (rules.runes?.mode && rules.runes.mode !== "keep" && runeCandidatesByCategory.size) {
           const refinementTargets = diverseFinalists(exact, rankedGoals, request.depth === "thorough" ? 16 : 10);
+          const runeTaskContext = {
+            budget: attributePointBudget,
+            rankedGoals,
+            baseline: objectiveBaseline,
+            scales: objectiveScales,
+            minimums: attributeMinimums,
+            includeSetEffects: rules.includeSetEffects !== false,
+            runeCandidatesByCategory: Object.fromEntries(runeCandidatesByCategory),
+            lockedSlotIds: [...lockedSlotIds],
+            scenario,
+          };
+          const localRuneTask = (payload, context) => {
+            if (canonicalAttributeOptimizer) return refineRuneFinalistTask(core, payload, context);
+            const candidateScenario = scenarioForBuild(payload.build);
+            const refined = refineRuneConfiguration({ core, build: payload.build, attributes: payload.attributes, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, minimums: context.minimums, includeSetEffects: context.includeSetEffects, runeCandidatesByCategory: context.runeCandidatesByCategory, lockedSlotIds: new Set(context.lockedSlotIds), optimizeAttributes: runAttributeOptimizer, scenario: candidateScenario });
+            const refinedScenario = scenarioForBuild(refined.build);
+            const calculation = core.calculateBuild(refined.build, refined.attributes, { includeSetEffects: context.includeSetEffects, ...(refinedScenario == null ? {} : { scenario: refinedScenario }) });
+            return { score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights, blockingIssues: blockingCalculationIssues(core, calculation) };
+          };
+          const refinedFinalists = await runTaskBatch(
+            "refine_runes",
+            refinementTargets.map((candidate) => ({ build: candidate.evaluation.build, attributes: candidate.evaluation.attributes })),
+            runeTaskContext,
+            localRuneTask,
+            ({ completed, total, workerCount }) => runtime.onProgress?.({ percent: (progression ? 75 : 85) + 15 * completed / total, label: "Refining rune synergies", detail: `${completed} of ${total} diverse finalists across ${workerCount} calculation worker${workerCount === 1 ? "" : "s"}` }),
+            canonicalAttributeOptimizer,
+          );
           for (let index = 0; index < refinementTargets.length; index += 1) {
             if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
             const candidate = refinementTargets[index];
-            const candidateScenario = scenarioForBuild(candidate.evaluation.build);
-            const refined = refineRuneConfiguration({ core, build: candidate.evaluation.build, attributes: candidate.evaluation.attributes, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, minimums: attributeMinimums, includeSetEffects: rules.includeSetEffects !== false, runeCandidatesByCategory, lockedSlotIds, optimizeAttributes: runAttributeOptimizer, scenario: candidateScenario });
-            const refinedScenario = scenarioForBuild(refined.build);
-            const refinedCalculation = core.calculateBuild(refined.build, refined.attributes, { includeSetEffects: rules.includeSetEffects !== false, ...(refinedScenario == null ? {} : { scenario: refinedScenario }) });
-            if (blockingCalculationIssues(core, refinedCalculation).length) continue;
-            const exactIndex = exact.indexOf(candidate);
+            const refined = refinedFinalists[index];
+            if (refined.blockingIssues.length) continue;
+            const exactIndex = exact.findIndex((row) => row.key === candidate.key);
             exact[exactIndex] = { ...candidate, selections: { ...candidate.selections, ...clone(refined.build.equipment) }, evaluation: { ...candidate.evaluation, score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights } };
-            runtime.onProgress?.({ percent: 85 + 15 * (index + 1) / refinementTargets.length, label: "Refining rune synergies", detail: `${index + 1} of ${refinementTargets.length} diverse finalists` });
-            if (index % 2 === 1) await new Promise((resolve) => setTimeout(resolve, 0));
           }
           exact.sort(exactOrder);
         }
         search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), frontier: exact.slice(0, attributePoolSize), attributeFinalistsEvaluated: preliminaryFrontier.length };
+      }
+      if (progression) {
+        const progressionSource = [...(search.alternatives ?? []), ...(search.frontier ?? [])]
+          .filter((row, index, rows) => rows.findIndex((candidate) => candidate.key === row.key) === index);
+        const progressionTargets = diverseFinalists(
+          progressionSource,
+          rankedGoals,
+          progressionPoolSize,
+        );
+        const progressionTaskContext = {
+          weapons: Object.values(weaponTypeConstraints),
+          settings: request.progression,
+          rankedGoals,
+          baseline: objectiveBaseline,
+          scales: objectiveScales,
+          includeSetEffects: rules.includeSetEffects !== false,
+          protectedStats,
+          minimums: attributeMinimums,
+          scenario,
+        };
+        const refinedProgression = await runTaskBatch(
+          "optimize_progression",
+          progressionTargets.map((candidate) => ({
+            build: candidate.evaluation.build,
+            attributes: candidate.evaluation.attributes ?? source.attributes ?? {},
+          })),
+          progressionTaskContext,
+          (payload, context) => optimizeProgressionFinalistTask(core, payload, context, runProgressionOptimizer),
+          ({ completed, total, workerCount }) => runtime.onProgress?.({ percent: 90 + 10 * completed / total, label: "Refining passive skills and mastery", detail: `${completed} of ${total} gear-aware finalists across ${workerCount} calculation worker${workerCount === 1 ? "" : "s"}` }),
+          canonicalProgressionOptimizer,
+        );
+        const exactProgression = [];
+        for (let index = 0; index < progressionTargets.length; index += 1) {
+          if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
+          const candidate = progressionTargets[index];
+          const refined = refinedProgression[index];
+          if (refined.blockingIssues.length || !refined.protectedStatsSatisfied || !refined.minimumsSatisfied) continue;
+          exactProgression.push({
+            ...candidate,
+            evaluation: {
+              ...candidate.evaluation,
+              score: refined.score,
+              stats: refined.stats,
+              build: refined.build,
+              attributes: refined.attributes,
+              activeAttributeBreakpoints: refined.activeAttributeBreakpoints,
+              legal: true,
+              blockingIssues: [],
+              progression: refined.progression,
+            },
+          });
+        }
+        exactProgression.sort(exactOrder);
+        progression = exactProgression[0]?.evaluation.progression ?? null;
+        search = {
+          ...search,
+          best: exactProgression[0] ?? null,
+          alternatives: exactProgression.slice(0, 4),
+          frontier: exactProgression,
+          progressionFinalistsEvaluated: progressionTargets.length,
+        };
       }
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
@@ -874,6 +1156,7 @@ export async function createOptimizerAdapter(deps = {}) {
         id: row.key,
         score: Number(row.evaluation.score) || 0,
         build: clone(row.evaluation.build),
+        ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}),
         optimizedAttributes: clone(row.evaluation.attributes ?? source.attributes ?? {}),
         activeAttributeBreakpoints: clone(row.evaluation.activeAttributeBreakpoints ?? []),
         goalValues: Object.fromEntries(rankedGoals.map((goal) => [goal.id, goalValue(row.evaluation.stats, goal)])),
@@ -882,15 +1165,16 @@ export async function createOptimizerAdapter(deps = {}) {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "Repeated Equipment Skills are legal, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: ["Item Potentials are excluded from calculations and recommendations in this release; same-item selections are preserved.", ...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "Repeated Equipment Skills are legal, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
-        alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
+        alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score, ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}) })),
         build: best.evaluation.build,
         attributes: clone(best.evaluation.attributes ?? source.attributes ?? {}),
         optimizedAttributes: attributePointBudget == null ? null : clone(best.evaluation.attributes),
         attributePointBudget: attributePointBudget ?? null,
         activeAttributeBreakpoints: clone(best.evaluation.activeAttributeBreakpoints ?? []),
         attributeFinalistsEvaluated: search.attributeFinalistsEvaluated ?? 0,
+        progressionFinalistsEvaluated: search.progressionFinalistsEvaluated ?? 0,
         objectiveBaseline: clone(objectiveBaseline),
         objectiveScales: clone(objectiveScales),
         goalResults,

@@ -6,6 +6,8 @@ const html = await readFile(new URL("../../web/build-from-scratch.html", import.
 
 test("Builder transforms from setup into a full character result", () => {
   assert.match(html, /Build from Scratch/);
+  assert.match(html, /Forge a strong loadout/);
+  assert.doesNotMatch(html, /Forge best loadout/);
   assert.match(html, /The build you created/);
   assert.match(html, /Edit build goals/);
   assert.match(html, /Equipment/);
@@ -93,6 +95,8 @@ test("result tuning links two to five real-stat sliders to retained legal builds
   assert.match(html, /tradeoff builds/);
   assert.match(html, /Hard cap/);
   assert.match(html, /General PvP diff/);
+  assert.match(html, /candidateProgression=candidate\.progression\?\{\.\.\.structuredClone\(candidate\.progression\.summary\|\|\{\}\),settings:structuredClone\(candidate\.progression\.settings\|\|\{\}\)\}:null/);
+  assert.match(html, /progression:candidateProgression,goalResults,allStats/);
 });
 
 test("attribute shortcomings are hidden behind hover tracks", () => {
@@ -121,4 +125,31 @@ test("scratch builds configure passive skills and per-weapon mastery without inv
   assert.match(html, /selects eight passive skills/);
   assert.match(html, /toggleStatSources/);
   assert.match(html, /sourceLabel/);
+});
+
+test("scratch Overall Mastery uses decoded level choices and emits only the explicit level", () => {
+  assert.match(html, /aria-label="Overall Mastery unlock threshold"/);
+  assert.match(html, /Unlocked through level \$\{level\}/);
+  assert.match(html, /OVERALL_MASTERY_LEVELS = Object\.freeze\(Array\.from\(\{length:13\},\(_,index\)=>index\*130\)\)/);
+  assert.match(html, /overallMasteryLevel:0/);
+  assert.match(html, /this\.OVERALL_MASTERY_LEVELS\.includes\(requested\)\?requested:0/);
+  assert.match(html, /progression:\{\.\.\.this\.state\.progression,masteryPointsByWeapon:\{\.\.\.this\.state\.progression\.masteryPointsByWeapon\}\}/);
+  assert.match(html, /this\._worker\.postMessage\(\{type:'optimize',request\}\)/);
+  assert.doesNotMatch(html, /includePotential/);
+  assert.doesNotMatch(html, /togglePotential/);
+  assert.match(html, /The node named Potential is separate from Item Potentials, which remain excluded/);
+});
+
+test("scratch result lists each Overall Mastery node with honest calculation classification", () => {
+  assert.match(html, /\{\{ overallMasteryCount \}\}\/4 selected using unlock threshold \{\{ resultOverallMasteryLevel \}\}/);
+  assert.match(html, /Calculator evaluated/);
+  assert.match(html, /<sc-for list="\{\{ overallMasteries \}\}" as="mastery"/);
+  assert.match(html, /\{\{ mastery\.classification \}\}/);
+  assert.match(html, /this\.core\.unifiedMasteryCounted\(id\)/);
+  assert.match(html, /this\.scenarioEffects\?\.SCENARIO_EFFECT_DEFINITIONS\?\.\[id\]/);
+  assert.match(html, /scenarioAppliedRows\.filter\(row=>row\.effectId===id\)/);
+  assert.match(html, /persistent\?'persistent':scenarioApplied\?'scenario-applied':'unsupported'/);
+  assert.match(html, /Applied only to scenario totals/);
+  assert.match(html, /no static value was invented/);
+  assert.doesNotMatch(html, /contributes directly to these totals/);
 });

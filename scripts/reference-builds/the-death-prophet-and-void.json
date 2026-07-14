@@ -6,7 +6,7 @@
   "ownerSlug": "crUTrs8OEZrE",
   "buildIndex": 0,
   "presetPath": "web/data/reference-build.json",
-  "expectationSource": "Originally transcribed from Questlog, with decoded-confirmed TL Helper corrections applied on 2026-07-14. This build uses Prayer of Salvation 2-piece, decoded Impenetrable minimum All Defense, and decoded Life's Bargain percentage Base Damage plus 40,000-Health Endurance scaling, so these totals intentionally diverge from the old Questlog panel.",
+  "expectationSource": "Originally transcribed from Questlog, with decoded-confirmed TL Helper corrections applied on 2026-07-14. This build uses Prayer of Salvation 2-piece, decoded Impenetrable minimum All Defense, and decoded Life's Bargain percentage Base Damage plus 40,000-Health Endurance scaling. Item Potentials are excluded, so its stored Ascended skill level 21 is preserved but Combat Power resolves the normal level-20 cap.",
   "expected": {
     "str": 80,
     "dex": 14,
@@ -50,6 +50,6 @@
     "weaken_accuracy": 85640,
     "collide_amplification": 70840,
     "collide_resistance": 85310,
-    "combat_power": 7128
+    "combat_power": 7126
   }
 }

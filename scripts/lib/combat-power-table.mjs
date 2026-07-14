@@ -89,8 +89,12 @@ export function listPower(row, field, index) {
   return Number(values[index]?.CombatPower ?? 0);
 }
 
-export function decodedItemPower(row, selection = {}) {
+export function decodedItemPower(row, selection = {}, options = {}) {
   if (!row) return null;
+  const itemPotentialMode = options.itemPotentials ?? "excluded";
+  if (!new Set(["excluded", "decoded-analysis"]).has(itemPotentialMode)) {
+    throw new RangeError(`Unknown Item Potential Combat Power mode: ${String(itemPotentialMode)}`);
+  }
   const level = Number(selection.level ?? 0);
   const enchantIndex = row.ItemEnchantCombatPowerList?.length > 20 ? level : Number(selection.enchantLevel ?? 0);
   const traitIndex = (selection.traits ?? []).reduce((sum, trait) => sum + Number(trait.tier ?? 0), 0);
@@ -102,7 +106,7 @@ export function decodedItemPower(row, selection = {}) {
     traits: listPower(row, "ItemTraitCombatPowerList", traitIndex) ?? 0,
     uniqueTrait: listPower(row, "ItemUniqueTraitCombatPowerList", uniqueIndex) ?? 0,
     resonance: listPower(row, "ItemTraitResonanceCombatPowerList", resonanceIndex) ?? 0,
-    potential: selection.potentialId ? Number(row.ItemPotentialCombatPower ?? 0) : 0,
+    potential: itemPotentialMode === "decoded-analysis" && selection.potentialId ? Number(row.ItemPotentialCombatPower ?? 0) : 0,
   };
   return { ...components, total: Object.values(components).reduce((sum, value) => sum + value, 0) };
 }

@@ -39,6 +39,11 @@ import {
   evaluateScenarioEffects,
 } from "./tl-scenario-effects.js";
 
+// Item Potential outcomes are intentionally outside the current release
+// calculation scope. Keep the stored selection so imports and saved builds are
+// forward-compatible, but never partially value only the stat subset.
+export const ITEM_POTENTIAL_EFFECTS_MODE = "excluded";
+
 export const EQUIPMENT_SLOTS = [
   { id: "main_hand", label: "Main Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
   { id: "off_hand", label: "Off Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand", "shield"] },
@@ -907,6 +912,16 @@ function passiveEffectContractIssue(familyId, effectId, effectName = effectId) {
   };
 }
 
+export function itemPotentialOutcome(item, potentialId) {
+  const id = String(potentialId ?? "").trim();
+  if (!id || !item?.itemPotential) return null;
+  const stat = values(item.itemPotential.stats).find((row) => String(row.stat_id ?? row.statId ?? "") === id);
+  if (stat) return { kind: "stat", id, row: stat };
+  const skill = values(item.itemPotential.skills).find((row) => String(row.id ?? "") === id);
+  if (skill) return { kind: "skill", id, row: skill };
+  return null;
+}
+
 export function itemSelectionCalculationStatus(item, selection, options = {}) {
   const issues = [];
   if (!item) return calculationStatus({ issues: [invalidSelectionIssue("invalid_item_id", "Unknown item selection.")] });
@@ -1534,6 +1549,14 @@ export function effectiveProgression(build, options = {}) {
     const rawLevel = Number(stored?.level ?? skillDefaultLevel(skill));
     if (!Number.isInteger(rawLevel) || rawLevel < 1 || rawLevel > skillMaxLevel(skill)) {
       issue("invalid_skill_level", `${skill.name} has invalid stored level ${String(stored?.level)}. Calculations clamp it to the supported range.`);
+    } else if (rawLevel > skillBandedMax(skill)) {
+      issue(
+        "item_potential_skill_level_excluded",
+        `${skill.name} has stored Item Potential level ${rawLevel}. The selection is preserved, but calculations use the normal progression cap of ${skillBandedMax(skill)}.`,
+        "warning",
+        "dataBacked",
+        "none",
+      );
     }
     if (stored?.specializationIds != null && !Array.isArray(stored.specializationIds)) {
       issue("invalid_skill_specialization_collection", `${skill.name} has a malformed specialization collection. It is excluded from calculations.`);
@@ -1551,8 +1574,12 @@ export function effectiveProgression(build, options = {}) {
     }
   }
 
-  for (const row of selectedSkillRows(build)) {
-    const storedType = row.selection.loadoutType;
+  for (const storedRow of selectedSkillRows(build)) {
+    const effectiveLevel = Math.min(storedRow.selection.level, skillBandedMax(storedRow.skill));
+    const row = effectiveLevel === storedRow.selection.level
+      ? storedRow
+      : { ...storedRow, selection: { ...storedRow.selection, level: effectiveLevel } };
+    const storedType = storedRow.selection.loadoutType;
     if (storedType && storedType !== row.loadoutType) {
       issue(
         "skill_type_mismatch",
@@ -2677,10 +2704,6 @@ export function calculateBuild(build, attributes, options = {}) {
     for (const row of normalizeSelectionRows(selection.resonance).slice(0, 1)) {
       add(row.statId, selectedPoolValue(item.itemStats?.resonance, row, true), `${item.name} Resonance`, `${slotId}_resonance`, item.grade, item.imageUrl);
     }
-    if (selection.potentialId && item.itemPotential) {
-      const potential = values(item.itemPotential.stats).find((row) => row.stat_id === selection.potentialId || row.statId === selection.potentialId);
-      if (potential) add(selection.potentialId, potential.value, `${item.name} Potential`, `${slotId}_potential`, item.grade, item.imageUrl);
-    }
     for (const row of normalizeRuneRows(selection.runes)) {
       const rune = indexes.runeById[row.runeId];
       const option = runeStatOptions(rune).find((entry) => entry.statId === row.statId);
@@ -2761,6 +2784,7 @@ export function calculateBuild(build, attributes, options = {}) {
   const stats = persistentState.stats;
   const result = {
     stats,
+    calculationContext: Object.freeze({ itemPotentials: ITEM_POTENTIAL_EFFECTS_MODE }),
     setEffects: finalizeSetEffectTrace(setEffectTrace, persistentState.sourceMap, includeSetEffects),
     runeSynergies,
     validation,
@@ -3353,8 +3377,17 @@ function validateItemSelectionConfiguration(slotId, selection, item) {
   }
 
   if (selection.potentialId) {
-    const available = values(item.itemPotential?.stats).some((row) => (row.stat_id ?? row.statId) === selection.potentialId);
-    if (!available) issues.push(invalidSelectionIssue("invalid_item_potential", `${itemName} cannot use stored potential ${selection.potentialId}.`));
+    const outcome = itemPotentialOutcome(item, selection.potentialId);
+    if (!outcome) {
+      issues.push(invalidSelectionIssue("invalid_item_potential", `${itemName} cannot use stored potential ${selection.potentialId}.`));
+    } else {
+      issues.push({
+        severity: "info",
+        code: "item_potential_excluded",
+        calculationImpact: "none",
+        message: `${itemName} has a stored ${outcome.kind} Item Potential. Item Potentials are preserved but excluded from this release's totals and recommendations.`,
+      });
+    }
   }
 
   const heroicRows = Array.isArray(selection.heroicEffects) ? selection.heroicEffects : [];

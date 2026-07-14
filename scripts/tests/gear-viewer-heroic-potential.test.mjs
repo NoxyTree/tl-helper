@@ -10,7 +10,8 @@ test("Gear Viewer exposes an explicit best-Heroic configuration mode", () => {
   assert.match(html, /Use best Heroic configuration in Fit/);
   assert.match(html, /heroicPotential: false/);
   assert.match(html, /optimizeHeroicPotential/);
-  assert.match(html, /Best possible configuration/);
+  assert.match(html, /Strong bounded configuration/);
+  assert.match(html, /Best configuration retained by the bounded search/);
   assert.match(html, /max-level Heroic effects/);
 });
 

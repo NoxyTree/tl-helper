@@ -129,7 +129,7 @@ All findings are covered by regression tests.
 
 ## Verification
 
-- Full repository suite: `676/676` passed.
+- Full repository suite at the end of the social-scenario tranche: `676/676` passed. The later final integrated calculation-release suite passed `718/718`.
 - Focused social, catalogue, contract, page and calculation regressions: `102/102` passed.
 - Reference builds: `69/69` asserted totals passed.
 - Edge-case verifier: `12/12` passed.
@@ -143,9 +143,9 @@ All findings are covered by regression tests.
 
 ## Remaining calculation release priorities
 
-This tranche does not complete the larger release objective. The next highest-priority gap is item-potential skill outcomes. The projected data contains both stat and skill outcomes, while current selection and calculation paths apply only stat potentials. This requires a complete decoded classification of potential skill outcomes, a selection-schema change, legality rules, shared calculation support, optimizer enumeration and cross-page tests.
+This was the status at the end of the social-scenario tranche. The later calculation release deliberately excludes every Item Potential outcome under a versioned `itemPotentials: "excluded"` context, preserves raw selections, and resolves Ascended level `21` at the normal level-`20` cap. Full Item Potential implementation is deferred rather than a release blocker.
 
-After item-potential skills, the remaining optimizer work is to enumerate every eligible unified mastery, including Shielded by Unity, and run a bounded gear-aware progression second pass before claiming globally best progression choices.
+Later optimizer work completed both follow-ups: Build From Scratch now evaluates every unlocked unified mastery, with executable proof for Potential and Shielded by Unity, and runs one bounded gear-aware progression pass against four fast or eight thorough diverse finalists before reranking once. This remains bounded-search evidence, not a global-optimum certificate.
 
 ## Reviewer entry points
 

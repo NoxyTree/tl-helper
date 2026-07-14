@@ -158,6 +158,7 @@
     </div>
 
     <!-- ======================= MAIN ======================= -->
+    <p role="note" style="margin:0;padding:8px 28px;border-bottom:1px solid rgba(114,169,255,.14);background:rgba(114,169,255,.04);color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Stored selections are preserved.</p>
     <main id="main-content" style="flex: 1; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; padding: 24px 28px 40px; align-items: start;">
       <h1 class="tl-visually-hidden">TL Helper build planner</h1>
 
@@ -927,7 +928,7 @@
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                 <div>
                   <h3 style="margin: 0; font-family: Marcellus, serif; font-size: 16px; font-weight: 400; color: #f3e9d4;">Unified Mastery</h3>
-                  <div style="font-size: 11px; color: #8a795f; margin-top: 2px;">Shared across weapons. Only Potential affects totals — the rest are conditional combat passives Questlog also excludes.</div>
+                  <div style="font-size: 11px; color: #8a795f; margin-top: 2px;">Shared across weapons. Potential affects persistent static totals. Supported conditional nodes, currently Shielded by Unity, apply only through a matching combat scenario; unsupported nodes receive no invented value.</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
                   <label style="display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a795f;white-space:nowrap;">Overall level
@@ -1356,14 +1357,19 @@
 
                   <sc-if value="{{ preview.hasPotentialStats }}" hint-placeholder-val="{{ false }}">
                     <div style="padding: 11px 15px 13px; border-top: 1px solid rgba(114,169,255,0.18); background: rgba(114,169,255,0.035);">
-                      <label style="display:grid;gap:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9fc3ff;">Item Potential
+                      <label style="display:grid;gap:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9fc3ff;">Item Potential (excluded)
                         <select value="{{ preview.potentialStatValue }}" onChange="{{ preview.onPotentialStat }}" disabled="{{ preview.potentialStatDisabled }}" style="width:100%;color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(114,169,255,.3);border-radius:6px;padding:7px 8px;font-size:11px;text-transform:none;letter-spacing:0;">
-                          <option value="">No stat potential</option>
+                          <option value="">Not included in calculations</option>
                           <sc-for list="{{ preview.potentialStatOptions }}" as="option" hint-placeholder-count="4"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
                         </select>
                       </label>
+                      <div style="margin-top:6px;font-size:9px;line-height:1.45;color:#8fa5c2;">Item Potential selections are preserved when imported, but all stat and skill outcomes are excluded from totals and recommendations in this release.</div>
+                      <sc-if value="{{ preview.hasStoredPotential }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin-top:7px;padding:6px 8px;border:1px solid rgba(114,169,255,.18);border-radius:6px;background:rgba(10,8,5,.42);color:#a9bdd8;font-size:9.5px;line-height:1.4;">Stored: {{ preview.storedPotentialLabel }}</div>
+                        <button type="button" onClick="{{ preview.onClearPotential }}" style="margin-top:7px;padding:5px 8px;border:1px solid rgba(114,169,255,.28);border-radius:6px;background:rgba(10,8,5,.58);color:#a9bdd8;font-size:9.5px;cursor:pointer;">Clear stored Item Potential</button>
+                      </sc-if>
                       <sc-if value="{{ preview.hasPotentialSkills }}" hint-placeholder-val="{{ false }}">
-                        <div style="margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9fc3ff;">Enchant Effects (proc)</div>
+                        <div style="margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9fc3ff;">Possible Skill Outcomes</div>
                         <div style="display: grid; gap: 6px; margin-top: 6px;">
                           <sc-for list="{{ preview.potentialSkills }}" as="proc" hint-placeholder-count="2">
                             <div style="display: flex; gap: 9px; align-items: flex-start; padding: 7px 9px; border-radius: 7px; border: 1px solid rgba(114,169,255,0.18); background: rgba(10,8,5,0.45);">
@@ -1377,7 +1383,7 @@
                             </div>
                           </sc-for>
                         </div>
-                        <div style="margin-top: 6px; font-size: 9px; color: #6e7f99;">Proc effects are informational — they are not part of stat totals.</div>
+                        <div style="margin-top: 6px; font-size: 9px; color: #6e7f99;">These outcomes are informational and are not part of totals or recommendations.</div>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -2408,7 +2414,7 @@ class Component extends DCLogic {
       { label: "Support", value: `${supportCount}/${core.SUPPORT_SLOTS.length}`, color: supportCount === core.SUPPORT_SLOTS.length ? "#7ee0a6" : "#f3e9d4" },
     ];
     const overviewStatus = calculationState === "legal"
-      ? "Legal static totals"
+      ? "Legal static totals · Item Potentials excluded"
       : `${core.label(calculationState)} · ${validationIssueCount} calculation ${validationIssueCount === 1 ? "issue" : "issues"}`;
     const overviewStatusColor = calculationState === "invalid" ? "#e58b84" : calculationState === "provisional" ? "#e5a06a" : "#7ee0a6";
     const tabDefs = [
@@ -3672,6 +3678,11 @@ class Component extends DCLogic {
         icon: row.imageUrl ?? "",
         hasIcon: Boolean(row.imageUrl),
       }));
+      const storedPotential = isEquippedPreview ? core.itemPotentialOutcome(previewItem, selection.potentialId) : null;
+      const storedPotentialLabel = !selection.potentialId ? ""
+        : storedPotential?.kind === "stat" ? `${core.statName(storedPotential.id)} stat outcome (excluded)`
+          : storedPotential?.kind === "skill" ? `${storedPotential.row.name ?? storedPotential.id} skill outcome (excluded)`
+            : `${selection.potentialId} (unknown and excluded)`;
 
       const effects = core.itemTooltipEffects(previewItem, isEquippedPreview ? selection : null).map((effect) => ({
         label: effect.label,
@@ -3757,13 +3768,16 @@ class Component extends DCLogic {
         artifactStatValue: isEquippedPreview ? selection.artifactStatId ?? "" : "",
         artifactStatDisabled: !isEquippedPreview,
         onArtifactStat: (event) => isEquippedPreview && this.setArtifactStat(slot.id, event.target.value),
-        hasPotentialStats: potentialStatOptions.length > 0 || potentialSkills.length > 0,
+        hasPotentialStats: potentialStatOptions.length > 0 || potentialSkills.length > 0 || (isEquippedPreview && Boolean(selection.potentialId)),
         potentialStatOptions,
         potentialSkills,
         hasPotentialSkills: potentialSkills.length > 0,
         potentialStatValue: isEquippedPreview ? selection.potentialId ?? "" : "",
-        potentialStatDisabled: !isEquippedPreview,
+        potentialStatDisabled: true,
         onPotentialStat: (event) => isEquippedPreview && this.setPotentialStat(slot.id, event.target.value),
+        hasStoredPotential: isEquippedPreview && Boolean(selection.potentialId),
+        storedPotentialLabel,
+        onClearPotential: () => isEquippedPreview && this.setPotentialStat(slot.id, ""),
         hasPerks: perkOptions.length > 0,
         perkOptions,
         perkValue: isEquippedPreview ? selection.perkId ?? "" : "",

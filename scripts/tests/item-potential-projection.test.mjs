@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { initCore } from "../../web/tl-core.js";
+import { importQuestlogBuild, initCore } from "../../web/tl-core.js";
+import { staticCalculationFingerprint } from "../../web/tl-build-snapshot.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -69,9 +70,94 @@ test("generated equipment projection interns repeated potential tables", async (
     .filter((item) => item.itemPotentialRef !== undefined)
     .map((item) => item.itemPotentialRef);
 
-  assert.ok(pool.length > 0);
-  assert.ok(references.length > pool.length);
+  assert.equal(pool.length, 3);
+  assert.deepEqual(pool.map((potential) => potential.groupId), ["Potential_Weapon", "Potential_Acc", "Potential_Equip"]);
+  assert.equal(references.length, 193);
+  assert.deepEqual(pool.map((_, ref) => references.filter((candidate) => candidate === ref).length), [80, 49, 64]);
+  assert.deepEqual(pool.map((potential) => potential.stats.length), [4, 8, 8]);
+  assert.deepEqual(pool.map((potential) => potential.skills.length), [60, 60, 60]);
+  assert.equal(pool.flatMap((potential) => potential.stats).length, 20);
+  const skillIds = pool.flatMap((potential) => potential.skills.map((skill) => skill.id));
+  assert.equal(skillIds.length, 180);
+  assert.equal(new Set(skillIds).size, 180);
   assert.equal(new Set(pool.map((potential) => JSON.stringify(potential))).size, pool.length);
   assert.ok(references.every((ref) => Number.isInteger(ref) && pool[ref]));
   assert.ok(projection.data.items.every((item) => item.itemPotentialRef === undefined || item.itemPotential === undefined));
+});
+
+test("Questlog import preserves stat and skill potential IDs plus raw Ascended level", async () => {
+  const statId = "all_critical_attack";
+  const skillId = "SkillSet_Test_Potential_Active";
+  const item = {
+    id: "potential-carrier",
+    name: "Potential Carrier",
+    equipmentType: "head",
+    itemPotential: {
+      groupId: "Potential_Equip",
+      stats: [{ statId, value: 500, probability: 50 }],
+      skills: [{ id: skillId, name: "Potential Skill", description: "", probability: 50 }],
+    },
+    itemStats: {},
+  };
+  const skill = {
+    id: skillId,
+    name: "Potential Skill",
+    skillType: "active",
+    mainCategory: "sword",
+    maxLevel: 21,
+    levels: Array.from({ length: 21 }, (_, index) => ({ level: index + 1 })),
+  };
+  await initCore(minimalData({ gameBuild: "24118850", items: [item], skills: [skill] }));
+
+  const imported = (potential) => importQuestlogBuild({
+    character: { name: "Potential Tester" },
+    build: { id: "imported", equipment: { head: { id: item.id, itemLevel: 0, potential } } },
+    skillBuild: { active: [{ skillId, lvl: 21 }] },
+  }).build;
+
+  const statBuild = imported(statId);
+  const skillBuild = imported(skillId);
+  assert.equal(statBuild.equipment.head.potentialId, statId);
+  assert.equal(skillBuild.equipment.head.potentialId, skillId);
+  assert.equal(statBuild.skills[0].level, 21);
+  assert.equal(skillBuild.skills[0].level, 21);
+});
+
+test("static calculation fingerprints retain raw potential and Ascended inputs", async () => {
+  const statId = "all_critical_attack";
+  const skillId = "SkillSet_Test_Potential_Active";
+  const item = {
+    id: "potential-fingerprint-carrier",
+    name: "Potential Fingerprint Carrier",
+    equipmentType: "head",
+    itemPotential: {
+      groupId: "Potential_Equip",
+      stats: [{ statId, value: 500, probability: 50 }],
+      skills: [{ id: skillId, name: "Potential Skill", description: "", probability: 50 }],
+    },
+    itemStats: {},
+  };
+  const skill = {
+    id: skillId,
+    name: "Potential Skill",
+    skillType: "active",
+    mainCategory: "sword",
+    maxLevel: 21,
+    levels: Array.from({ length: 21 }, (_, index) => ({ level: index + 1 })),
+  };
+  await initCore(minimalData({ gameBuild: "24118850", items: [item], skills: [skill] }));
+  const build = {
+    equipment: { head: { itemId: item.id, potentialId: statId } },
+    skills: [{ skillId, level: 21, loadoutType: "active", specializationIds: [] }],
+  };
+  const attributes = { str: 0, dex: 0, int: 0, per: 0, con: 0 };
+  const statFingerprint = staticCalculationFingerprint({ build, attributes });
+  const skillPotentialBuild = structuredClone(build);
+  skillPotentialBuild.equipment.head.potentialId = skillId;
+  const skillFingerprint = staticCalculationFingerprint({ build: skillPotentialBuild, attributes });
+
+  assert.notEqual(statFingerprint, skillFingerprint);
+  const raw = JSON.parse(skillFingerprint).build;
+  assert.equal(raw.equipment.head.potentialId, skillId);
+  assert.equal(raw.skills[0].level, 21);
 });

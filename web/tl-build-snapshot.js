@@ -9,19 +9,21 @@ import {
   calculateBuild,
   calculateCombatPower,
   data as coreData,
+  ITEM_POTENTIAL_EFFECTS_MODE,
 } from "./tl-core.js";
 import { CHARACTER_LEVEL } from "./tl-questlog-rules.js";
 import { SCENARIO_EFFECT_RULESET_ID, SCENARIO_EFFECT_RULESET_VERSION } from "./tl-scenario-effects.js";
 
 export const BUILD_SNAPSHOT_SCHEMA = "tl-helper.build-snapshot";
 export const BUILD_SNAPSHOT_VERSION = 2;
-export const STATIC_RULESET_ID = "persistent-static-v2";
-export const STATIC_CALCULATOR_VERSION = "2";
+export const STATIC_RULESET_ID = "persistent-static-v3";
+export const STATIC_CALCULATOR_VERSION = "3";
 
 export const STATIC_CALCULATION_CONTEXT = Object.freeze({
   mode: "persistent-static",
   includeSetEffects: true,
   dynamicEffects: "excluded",
+  itemPotentials: ITEM_POTENTIAL_EFFECTS_MODE,
 });
 
 const ATTRIBUTE_IDS = ["str", "dex", "int", "per", "con"];
@@ -140,7 +142,8 @@ function assertBuildSnapshot(value) {
   if (value.character?.level !== CHARACTER_LEVEL
     || value.calculationContext?.mode !== STATIC_CALCULATION_CONTEXT.mode
     || value.calculationContext?.includeSetEffects !== true
-    || value.calculationContext?.dynamicEffects !== STATIC_CALCULATION_CONTEXT.dynamicEffects) {
+    || value.calculationContext?.dynamicEffects !== STATIC_CALCULATION_CONTEXT.dynamicEffects
+    || value.calculationContext?.itemPotentials !== STATIC_CALCULATION_CONTEXT.itemPotentials) {
     throw new Error("BuildSnapshot has an invalid persistent-static calculation context.");
   }
   if (!value.ruleset?.id || !value.identity || !value.character?.attributes || !value.loadout) {

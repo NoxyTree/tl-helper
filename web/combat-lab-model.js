@@ -37,8 +37,10 @@ export const OUTCOMES = Object.freeze([
   { id: FORCED_ABILITY_OUTCOME.MISSED, label: "Forced missed" },
 ]);
 
+export const COMBAT_LAB_MANUAL_SKILL_LEVEL_MAX = 20;
+
 export const TIER_MAPPINGS = Object.freeze([
-  { id: ABILITY_RARITY_TIER.GLOBAL, label: "Global table level", offset: 0, minimum: 1, maximum: 21 },
+  { id: ABILITY_RARITY_TIER.GLOBAL, label: "Global table level", offset: 0, minimum: 1, maximum: COMBAT_LAB_MANUAL_SKILL_LEVEL_MAX },
   { id: ABILITY_RARITY_TIER.EPIC, label: "Epic", offset: 10, minimum: 1, maximum: 5 },
   { id: ABILITY_RARITY_TIER.HEROIC, label: "Heroic", offset: 15, minimum: 1, maximum: 5 },
 ]);
@@ -50,6 +52,14 @@ export function loadCombatLabData(input) {
 
 export function mapDisplayedLevel(tierId, displayedLevel) {
   return resolveAbilitySkillLevel({ rarityTier: tierId, displayedLevel });
+}
+
+export function resolveCombatLabBuildContext(snapshot) {
+  const itemPotentials = String(snapshot?.calculationContext?.itemPotentials ?? "");
+  if (itemPotentials !== "excluded") {
+    throw new Error("Combat Lab requires a build snapshot that explicitly excludes Item Potentials.");
+  }
+  return Object.freeze({ itemPotentials });
 }
 
 export function resolvePvpMatchup(input) {

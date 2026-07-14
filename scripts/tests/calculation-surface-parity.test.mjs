@@ -198,7 +198,8 @@ test("all public calculation surfaces use the shared set-aware engine and data m
   assert.match(files["build-from-scratch.html"], /setEffectBreakpointSummary\(breakpoint\)/);
   assert.match(files["index.html"], /artifactsVals\(calc\)/);
   assert.match(files["index.html"], /previewCalc\?\.setEffects\?\.sets/);
-  assert.match(files["tl-full-build-adapter.js"], /core\.calculateBuild\(build, provisionalAttributes, \{ includeSetEffects: rules\.includeSetEffects !== false, \.\.\.scenarioOptionsForBuild\(build\) \}\)/);
+  assert.match(files["tl-full-build-adapter.js"], /const evaluateBuild = \(selections\) => evaluateOptimizerBuildTask\(core, \{ selections \}, buildEvaluationContext\)/);
+  assert.match(files["tl-full-build-adapter.js"], /core\.calculateBuild\(build, context\.attributes \?\? \{\}, \{/);
   assert.match(files["tl-full-build-adapter.js"], /core\.bindCombatScenarioToBuild\(scenario, build, weaponTypes\)/);
   assert.match(files["tl-full-build-adapter.js"], /setEffects: clone\(finalCalculation\.setEffects\)/);
   assert.match(files["tl-builder-worker.js"], /createOptimizerAdapter/);

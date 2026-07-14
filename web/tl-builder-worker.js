@@ -1,28 +1,40 @@
 import { createOptimizerAdapter } from "./tl-full-build-adapter.js";
+import { createOptimizerWorkerPool, recommendedOptimizerWorkerCount } from "./tl-optimizer-worker-pool.js";
 
 let controller = null;
+let taskPool = null;
 
 self.onmessage = async (event) => {
   if (event.data?.type === "cancel") {
     controller?.abort();
+    taskPool?.terminate();
+    taskPool = null;
     return;
   }
   if (event.data?.type !== "optimize") return;
   controller?.abort();
-  controller = new AbortController();
+  taskPool?.terminate();
+  const activeController = new AbortController();
+  controller = activeController;
+  const workerCount = recommendedOptimizerWorkerCount(globalThis.navigator?.hardwareConcurrency);
+  const activeTaskPool = createOptimizerWorkerPool({ size: workerCount });
+  taskPool = activeTaskPool;
   try {
-    const adapter = await createOptimizerAdapter();
+    self.postMessage({ type: "progress", progress: { percent: 0, label: "Preparing calculation workers", detail: `${workerCount} calculation worker${workerCount === 1 ? "" : "s"} configured` } });
+    const adapter = await createOptimizerAdapter({ optimizerTaskPool: activeTaskPool });
     const result = await adapter.optimize(event.data.request, {
-      signal: controller.signal,
+      signal: activeController.signal,
       onProgress: (progress) => self.postMessage({ type: "progress", progress }),
     });
-    self.postMessage({ type: "result", result });
+    self.postMessage({ type: "result", result: { ...result, calculationWorkerCount: activeTaskPool.parallelism } });
   } catch (error) {
     self.postMessage({
       type: error?.name === "AbortError" ? "cancelled" : "error",
       message: String(error?.message ?? error),
     });
   } finally {
-    controller = null;
+    activeTaskPool.terminate();
+    if (taskPool === activeTaskPool) taskPool = null;
+    if (controller === activeController) controller = null;
   }
 };

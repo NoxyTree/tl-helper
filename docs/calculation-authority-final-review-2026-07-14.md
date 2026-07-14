@@ -6,6 +6,7 @@ Branch: `codex/calculation-consistency-release`
 Pre-implementation snapshot: `snapshot/calculation-pre-implementation-20260714` at `a1a67c6`
 Scenario-extension snapshot: `snapshot/scenario-effects-pre-implementation-20260714` at `1307bc0`
 Static-gap implementation snapshot: `snapshot/static-gap-pre-implementation-20260714` at `2efad6a`
+Item-potential exclusion snapshot: `snapshot/item-potential-skills-pre-implementation-20260714` at `f3ad237`
 
 ## Outcome
 
@@ -42,7 +43,7 @@ semantic hashes match values recomputed from live content.
 - Normal and Heroic traits
 - Selected Heroic effects and levels
 - Trait Resonance
-- Selected stat Item Potential outcomes
+- Item Potential selections are preserved but all stat and skill outcomes are explicitly excluded from this release's totals, Combat Power, scenarios, and recommendations
 - Normal and Chaos runes
 - Rune synergies
 - Artifacts and artifact sets
@@ -52,7 +53,7 @@ semantic hashes match values recomputed from live content.
 - Passive skills for the two equipped weapon families
 - Structured weapon mastery for the two equipped weapon families
 - Mapped passive mastery and Achievement effects
-- Overall Mastery effects
+- Decoded persistent Overall Mastery effects, currently Potential. Scenario-only Overall Mastery effects are applied only through a supported scenario
 - Selected persistent Skill Cores and innate item passives
 - Decoded persistent passive-to-mastery transformations
 
@@ -133,7 +134,7 @@ Final candidate legality is checked on complete builds. Gear Viewer no longer va
 - Tier prerequisites, top-two Achievement selection, hybrid-category accounting, Epic prerequisites, and Epic-to-Achievement matching are enforced.
 - Overall Mastery cap `4` and the exact Destruction Spear versus Piercing Spear exclusion are enforced.
 - Overall Mastery unlock levels are checked when selections exist. Missing level data makes the build provisional.
-- Armory now exposes an Overall Mastery Level input. Build From Scratch records the required level when its explicit Potential option is enabled.
+- Armory stores an Overall Mastery Level. Build From Scratch exposes decoded unlock thresholds from `0` through `1560`. Its optimizer evaluates every unlocked unified node, then enumerates legal subsets of positive representable nodes up to the cap of four. Current executable proof covers persistent Potential and scenario-valued Shielded by Unity; unsupported nodes receive no invented value.
 
 ## Input validation now enforced
 
@@ -241,9 +242,9 @@ Set-completion hints now include both persistent set value and any decoded scena
 
 ### Build From Scratch
 
-Builds progression for its selected weapon pair, allocates legal mastery, records explicit Overall Mastery Potential state, and refuses a non-legal final or tradeoff build. Scratch evaluation activates only the requested weapon families before concrete weapon items exist. All `32` mapped weapon mastery effects, including `12` mastery-to-passive transformations, are scored through the shared calculator rather than through structured mastery rows alone. The allocator reserves Epic capacity, follows legal Achievement-category priority, and consumes the exact requested point budget across the `80`, `130`, and `220` point boundaries.
+Builds progression for its selected weapon pair, allocates legal mastery, records an explicit Overall Mastery unlock threshold, evaluates supported unified nodes, and refuses a non-legal final or tradeoff build. Scratch evaluation activates only the requested weapon families before concrete weapon items exist. All `32` mapped weapon mastery effects, including `12` mastery-to-passive transformations, are scored through the shared calculator rather than through structured mastery rows alone. The allocator reserves Epic capacity, follows legal Achievement-category priority, and consumes the exact requested point budget across the `80`, `130`, and `220` point boundaries.
 
-Progression selection remains a deterministic bounded allocator. Its retained build is calculated exactly, but the selection process is not yet a proof of the globally optimal skill and mastery allocation. Gear-dependent and attribute-threshold progression should receive one bounded second pass against equipped finalists before that stronger claim is made.
+Progression selection remains a deterministic bounded allocator. Scratch optimization now performs one bounded gear-aware progression pass against four fast or eight thorough diverse finalists, recalculates progression against each finalist's fixed equipment and attributes, rejects non-legal refinements, and reranks once. Its retained builds are calculated exactly, but this bounded process is not proof of the globally optimal skill and mastery allocation.
 
 ### Combat Lab
 
@@ -251,11 +252,11 @@ Only legal BuildSnapshots can prefill. Ability data and static data must use the
 
 Combat Lab remains a reviewed coefficient and scenario surface, not an exact final-damage authority.
 
-## Remaining release P0
+## Deferred release scope and completed optimizer follow-up
 
-Item potentials currently expose both stat outcomes and skill outcomes in projected data, but the selection and calculation paths apply only stat potentials. Potential skill outcomes must be decoded, classified, represented as mutually exclusive item-potential choices, applied through the shared passive authority, and enumerated by every optimizer before the broader calculation release can be called complete.
+Item Potentials are deliberately deferred as one whole mechanic for this release. The projection contains `3` potential pools used by `193` carrier items, with `20` stat rows and `180` unique skill outcomes. Known selections remain legal and round-trip through import, persistence, cache identity, and BuildSnapshot, but contribute zero to static totals, Combat Power, scenario sources, and optimizer scoring. Stored Ascended skill level `21` is likewise retained as raw data while every release calculation resolves it at the normal progression cap of `20`. Unknown potential IDs remain invalid and repairable in Armory.
 
-Build From Scratch must then enumerate eligible unified mastery choices, including scenario-valued nodes such as Shielded by Unity, and perform the documented bounded gear-aware progression second pass before claiming best progression choices.
+Build From Scratch now singleton-evaluates every unlocked unified mastery and enumerates legal subsets of positive representable nodes up to the cap of four. It also performs the documented bounded gear-aware progression pass before returning the best finalist found. Current representable proof covers Potential and Shielded by Unity; the result remains a bounded-search recommendation rather than a global-optimum certificate.
 
 ## Remaining evidence-dependent uncertainties
 
@@ -279,7 +280,7 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `676/676`
+- Final integrated Node test suite: `718/718`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed

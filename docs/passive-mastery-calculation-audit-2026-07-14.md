@@ -297,7 +297,9 @@ Additional invariants needing calculation-boundary validation:
 
 The preferred response is to calculate a deterministic legal subset and emit explicit validation issues. Rejecting or deleting persisted data would make temporary weapon swaps destructive.
 
-Exact malformed or imported-build reproductions:
+Exact malformed or imported-build reproductions recorded before the calculation-boundary fixes:
+
+> Historical evidence only. The current `effectiveProgression()` excludes foreign weapon selections, enforces canonical type and mastery legality, and preserves raw Ascended level `21` while resolving it at the normal level-`20` cap under `itemPotentials: "excluded"`. These rows describe the bugs that motivated the fixes, not current behavior.
 
 | Invalid progression | Observed result | Validation result |
 | --- | --- | --- |
@@ -568,7 +570,7 @@ Scratch decodes used for this audit are outside the repository at `D:\TL_Data\sc
 
 These hashes were recomputed directly from the audited build-24118850 files during this audit.
 
-## Verification baseline
+## Historical pre-fix verification baseline
 
 The unchanged audited code passes the complete repository suite: 390 tests passed, 0 failed. The three reference builds match 69 of 69 asserted totals, and all 12 existing edge-case checks pass. This establishes a clean baseline only. The suite does not currently contain the foreign-weapon, cap, canonical-type, or missing-persistent-component regressions listed above.
 

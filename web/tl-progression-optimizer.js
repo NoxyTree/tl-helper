@@ -1,4 +1,5 @@
 import { PASSIVE_EFFECT_CONTRACT } from "./tl-passive-effect-contract.js";
+import { SOCIAL_EFFECT_DEFINITIONS } from "./tl-social-scenario-effects.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 
@@ -11,6 +12,29 @@ const clampInteger = (value, minimum, maximum, fallback = minimum) => {
   if (!Number.isFinite(numeric)) return fallback;
   return Math.min(maximum, Math.max(minimum, Math.floor(numeric)));
 };
+
+const safeNonnegativeInteger = (value, fallback = 0) => {
+  const numeric = Number(value);
+  return Number.isSafeInteger(numeric) && numeric >= 0 ? numeric : fallback;
+};
+
+const POTENTIAL_UNIFIED_MASTERY_ID = "WM_Common_SKILL_007";
+
+export const PROVEN_REPRESENTABLE_UNIFIED_MASTERY_IDS = Object.freeze([
+  POTENTIAL_UNIFIED_MASTERY_ID,
+  "WM_Common_SKILL_020",
+]);
+
+export function representableUnifiedMasteryIds(core) {
+  const unifiedIds = new Set(core.unifiedMasteryNodes().map((row) => row.id));
+  const ids = new Set(core.unifiedMasteryNodes()
+    .filter((row) => core.unifiedMasteryCounted(row.id))
+    .map((row) => row.id));
+  for (const id of Object.keys(SOCIAL_EFFECT_DEFINITIONS)) {
+    if (unifiedIds.has(id)) ids.add(id);
+  }
+  return [...ids].sort((left, right) => left.localeCompare(right));
+}
 
 function stableSkillRows(rows) {
   return [...rows].sort((left, right) => String(left.skillSlotAffinity ?? "").localeCompare(String(right.skillSlotAffinity ?? ""))
@@ -201,14 +225,81 @@ function optimizePassiveSkills({ core, build, rows, levelCap, evaluate, score })
   return selected;
 }
 
+function unifiedSelectionIsLegal(core, build, weapons, expectedIds) {
+  const progression = core.effectiveProgression(build, { weaponTypes: weapons });
+  if (progression.issues.length) return false;
+  const activeIds = progression.unifiedMasteries.map(({ masteryId }) => masteryId).sort((left, right) => left.localeCompare(right));
+  return activeIds.length === expectedIds.length && activeIds.every((id, index) => id === expectedIds[index]);
+}
+
+function unifiedSubsets(ids, cap) {
+  const subsets = [];
+  const visit = (start, selected) => {
+    if (selected.length) subsets.push([...selected]);
+    if (selected.length >= cap) return;
+    for (let index = start; index < ids.length; index += 1) {
+      selected.push(ids[index]);
+      visit(index + 1, selected);
+      selected.pop();
+    }
+  };
+  visit(0, []);
+  return subsets;
+}
+
+function optimizeUnifiedMasteries({ core, build, weapons, evaluate, score }) {
+  const base = clone(build);
+  base.unifiedMasteries = [];
+  const baseScore = Number(score(evaluate(base)));
+  if (!Number.isFinite(baseScore)) throw new TypeError("Overall Mastery baseline score must be finite.");
+
+  const representableIds = new Set(representableUnifiedMasteryIds(core));
+  const unlocked = core.unifiedMasteryNodes()
+    .filter((row) => row.isDisabled !== true)
+    .filter((row) => Number(row.requiredLevel ?? 0) <= build.overallMasteryLevel)
+    .sort((left, right) => left.id.localeCompare(right.id));
+  const singletonScores = new Map();
+  const positiveRepresentableIds = [];
+  for (const mastery of unlocked) {
+    const candidate = clone(base);
+    candidate.unifiedMasteries = [mastery.id];
+    if (!unifiedSelectionIsLegal(core, candidate, weapons, [mastery.id])) continue;
+    const candidateScore = Number(score(evaluate(candidate)));
+    if (!Number.isFinite(candidateScore)) throw new TypeError(`Overall Mastery score for ${mastery.id} must be finite.`);
+    singletonScores.set(mastery.id, candidateScore);
+    if (representableIds.has(mastery.id) && candidateScore > baseScore) positiveRepresentableIds.push(mastery.id);
+  }
+
+  const ranked = [{ ids: [], score: baseScore, signature: "" }];
+  for (const ids of unifiedSubsets(positiveRepresentableIds, core.UNIFIED_MASTERY_CAP)) {
+    const candidate = clone(base);
+    candidate.unifiedMasteries = ids;
+    if (!unifiedSelectionIsLegal(core, candidate, weapons, ids)) continue;
+    const candidateScore = ids.length === 1
+      ? singletonScores.get(ids[0])
+      : Number(score(evaluate(candidate)));
+    if (!Number.isFinite(candidateScore)) throw new TypeError(`Overall Mastery score for ${ids.join(", ")} must be finite.`);
+    ranked.push({ ids, score: candidateScore, signature: ids.join("|") });
+  }
+  ranked.sort((left, right) => right.score - left.score
+    || left.ids.length - right.ids.length
+    || left.signature.localeCompare(right.signature));
+  build.unifiedMasteries = [...ranked[0].ids];
+  return build.unifiedMasteries;
+}
+
 export function normalizeProgressionSettings(core, weapons, settings = {}) {
   const masteryPointsByWeapon = Object.fromEntries(weapons.map((weapon) => [weapon,
     clampInteger(settings.masteryPointsByWeapon?.[weapon], 0, core.MASTERY_POINT_BUDGET, core.MASTERY_POINT_BUDGET)]));
+  const hasExplicitOverallMasteryLevel = Object.prototype.hasOwnProperty.call(settings, "overallMasteryLevel");
+  const potentialUnlockLevel = Number(core.indexes.masteryById[POTENTIAL_UNIFIED_MASTERY_ID]?.requiredLevel ?? 0);
   return {
     enabled: settings.enabled !== false,
     skillLevelCap: clampInteger(settings.skillLevelCap, 1, 20, 20),
     masteryPointsByWeapon,
-    includePotential: settings.includePotential === true,
+    overallMasteryLevel: hasExplicitOverallMasteryLevel
+      ? safeNonnegativeInteger(settings.overallMasteryLevel)
+      : settings.includePotential === true ? safeNonnegativeInteger(potentialUnlockLevel) : 0,
   };
 }
 
@@ -221,36 +312,38 @@ export function optimizeScratchProgression({ core, build, weapons, settings = {}
   const result = clone(build);
   result.skills = [];
   result.masteries = {};
-  result.unifiedMasteries = normalized.includePotential ? ["WM_Common_SKILL_007"] : [];
-  result.overallMasteryLevel = normalized.includePotential
-    ? Number(core.indexes.masteryById.WM_Common_SKILL_007?.requiredLevel ?? 0)
-    : null;
-  if (!normalized.enabled) return { build: result, settings: normalized, summary: { masteryPointsByWeapon: {} } };
+  result.unifiedMasteries = [];
+  result.overallMasteryLevel = normalized.overallMasteryLevel;
 
   const masteryPointsByWeapon = {};
-  for (const weapon of weapons) {
-    masteryPointsByWeapon[weapon] = allocateWeaponMastery({
-      core,
-      build: result,
-      weapon,
-      pointBudget: normalized.masteryPointsByWeapon[weapon],
-      evaluate: evaluateProgression,
-      score,
-      levelCap: normalized.skillLevelCap,
-    });
+  if (normalized.enabled) {
+    for (const weapon of weapons) {
+      masteryPointsByWeapon[weapon] = allocateWeaponMastery({
+        core,
+        build: result,
+        weapon,
+        pointBudget: normalized.masteryPointsByWeapon[weapon],
+        evaluate: evaluateProgression,
+        score,
+        levelCap: normalized.skillLevelCap,
+      });
+    }
+
+    const available = core.availableSkillsForWeapons(weapons);
+    const passiveRows = available.filter((skill) => core.skillLoadoutType(skill) === "passive");
+    const passives = optimizePassiveSkills({ core, build: result, rows: passiveRows, levelCap: normalized.skillLevelCap, evaluate: evaluateProgression, score });
+    result.skills = passives;
   }
 
-  const available = core.availableSkillsForWeapons(weapons);
-  const passiveRows = available.filter((skill) => core.skillLoadoutType(skill) === "passive");
-  const passives = optimizePassiveSkills({ core, build: result, rows: passiveRows, levelCap: normalized.skillLevelCap, evaluate: evaluateProgression, score });
-  result.skills = passives;
+  const unifiedMasteries = optimizeUnifiedMasteries({ core, build: result, weapons, evaluate: evaluateProgression, score });
 
   return {
     build: result,
     settings: normalized,
     summary: {
       masteryPointsByWeapon,
-      passiveSkills: passives.length,
+      passiveSkills: result.skills.length,
+      unifiedMasteries: unifiedMasteries.length,
     },
   };
 }

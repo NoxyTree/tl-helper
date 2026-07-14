@@ -4,11 +4,14 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
+  COMBAT_LAB_MANUAL_SKILL_LEVEL_MAX,
   loadCombatLabData,
   mapDisplayedLevel,
   projectAbilityRange,
+  resolveCombatLabBuildContext,
   resolveCombatLabHealing,
   resolvePvpMatchup,
+  TIER_MAPPINGS,
 } from "../../web/combat-lab-model.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -19,6 +22,32 @@ test("Combat Lab maps only the observed rarity windows", () => {
   assert.equal(mapDisplayedLevel("epic", 1).globalSkillLevel, 11);
   assert.equal(mapDisplayedLevel("heroic", 5).globalSkillLevel, 20);
   assert.throws(() => mapDisplayedLevel("rare", 1), /Unsupported or uncalibrated/);
+});
+
+test("Combat Lab manual release levels stop at 20 while decoded level 21 remains projectable", () => {
+  const globalTier = TIER_MAPPINGS.find(({ id }) => id === "global");
+  assert.equal(COMBAT_LAB_MANUAL_SKILL_LEVEL_MAX, 20);
+  assert.equal(globalTier.maximum, 20);
+  assert.equal(mapDisplayedLevel("global", 20).globalSkillLevel, 20);
+  assert.equal(mapDisplayedLevel("global", 21).globalSkillLevel, 21);
+  const ability = data.abilities.find(({ id }) => id === "judgment-lightning");
+  const ascendedProjection = projectAbilityRange({
+    ability,
+    componentId: "first-cast-per-hit-damage",
+    globalLevel: 21,
+    minimum: "399",
+    maximum: "640",
+    outcomeId: "coefficient_only",
+  });
+  assert.equal(ascendedProjection.globalLevel, 21);
+});
+
+test("Combat Lab accepts only the explicit Item Potential exclusion context", () => {
+  const context = resolveCombatLabBuildContext({ calculationContext: { itemPotentials: "excluded" } });
+  assert.deepEqual(context, { itemPotentials: "excluded" });
+  assert.ok(Object.isFrozen(context));
+  assert.throws(() => resolveCombatLabBuildContext({ calculationContext: {} }), /explicitly excludes Item Potentials/);
+  assert.throws(() => resolveCombatLabBuildContext({ calculationContext: { itemPotentials: "included" } }), /explicitly excludes Item Potentials/);
 });
 
 test("Combat Lab resolves a capped PvP matchup without claiming final damage", () => {

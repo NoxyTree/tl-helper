@@ -48,17 +48,19 @@ The scenario contract must grow by evidence-backed dimensions, not by parsing to
 
 For each family, add a closed-world schema, decoded rule definitions, source-weapon gating, legality behavior, cache fingerprinting, exact trace output, cross-page integration tests, and fail-closed handling for every unresolved member.
 
-### 3. Implement item-potential skill outcomes
+### 3. Deferred: implement Item Potentials as one complete mechanic
 
-The item-potential projection contains both stat outcomes and skill outcomes. Current selection, validation and calculation paths apply only stat potentials, so skill outcomes cannot yet influence build totals or optimizer choices. Before final release:
+The release contract now excludes every Item Potential outcome consistently rather than applying stat outcomes while omitting skill outcomes. Current projection inventory is `3` pools, `193` carrier items, `20` stat rows, and `180` unique skill rows. Known choices and raw Ascended skill level `21` remain stored for forward compatibility, but all release calculations use zero potential value and the normal skill cap of `20`.
 
-1. Decode and classify every potential skill outcome as persistent, scenario-conditional or unsupported.
-2. Extend the item selection schema so a potential outcome is one mutually exclusive stat or skill choice.
-3. Apply selected persistent potential skills through the same passive-effect authority and weapon/item gates.
-4. Enumerate legal potential skill choices in Gear Viewer, Full Build Optimizer and Build From Scratch.
-5. Add canonical cross-page, import, snapshot, legality and optimizer-finalist fixtures.
+Future implementation remains a separate post-release tranche:
 
-No potential skill may receive value from tooltip prose or an optimistic hint before it has an executable decoded rule.
+1. Decode and classify every potential skill outcome as persistent, scenario-conditional, or unsupported.
+2. Retain the existing one-choice item selection contract for mutually exclusive stat or skill outcomes.
+3. Apply selected persistent potential skills through the shared passive-effect authority and weapon/item gates.
+4. Enumerate legal potential choices in Gear Viewer, Full Build Optimizer, and Build From Scratch.
+5. Add canonical cross-page, import, snapshot, legality, and optimizer-finalist fixtures before changing `itemPotentials: "excluded"` to a supported calculation mode.
+
+No potential outcome may receive value from tooltip prose or an optimistic hint before it has an executable decoded rule.
 
 ### 4. Add final combat resolution as a separate calibrated layer
 
@@ -73,18 +75,18 @@ Static stats and scenario overlays are inputs to combat resolution, not substitu
 
 Each formula stage must be labeled exact, derived, calibrated, modeled, or unsupported. Server-only behavior must not be presented as exact.
 
-### 5. Make progression choice finalist-aware
+### 5. Implemented: finalist-aware progression choice
 
-Scratch progression now scores all mapped persistent mastery effects and mastery-to-passive interactions through the canonical calculator. The next deterministic improvement is:
+Scratch progression scores all mapped persistent mastery effects and mastery-to-passive interactions through the canonical calculator. It now:
 
-1. Produce bounded gear and attribute finalists.
-2. Re-optimize passives and mastery once against each finalist's equipped items and allocated attributes.
-3. Recalculate and rerank those finalists once.
-4. Preserve the same weapon-family, legality, point-budget, skill-cap, and Achievement-priority rules.
+1. Produces bounded gear and attribute finalists.
+2. Re-optimizes passives and mastery once against four fast or eight thorough diverse finalists using each finalist's fixed equipped items and allocated attributes.
+3. Rejects non-legal refinements, then recalculates and reranks the retained finalists once.
+4. Preserves the same weapon-family, legality, point-budget, skill-cap, and Achievement-priority rules.
 
-This closes the known weakness where a gear-dependent or attribute-threshold mastery is initially valued against a naked zero-attribute scratch build.
+This closes the known weakness where a gear-dependent or attribute-threshold mastery was valued only against a naked zero-attribute scratch build. It remains a bounded second pass, not an exhaustive progression proof.
 
-The progression allocator must also enumerate every eligible unified mastery. It currently needs an explicit search path for scenario-valued nodes such as Shielded by Unity rather than relying on a source build already containing the selection.
+The progression allocator now singleton-evaluates every unlocked unified mastery, then enumerates legal subsets of positive representable nodes up to the cap of four. Current executable proof covers persistent Potential and scenario-valued Shielded by Unity; unsupported nodes receive no invented value.
 
 ### 6. Separate exact arithmetic from search optimality
 
@@ -106,7 +108,7 @@ Maintain one page matrix that proves:
 | Armory and Tracker | Canonical totals, traces, legality, active weapon-family progression |
 | Gear Viewer | Complete replacement build, set changes, selected core, scenario fingerprint, legal candidate |
 | Full Build Optimizer | Canonical finalist arithmetic, scenario-aware objective, progression compatibility, explicit bounded-search warning |
-| Build From Scratch | Requested-family scratch context, legal exact point spending, finalist-aware progression rerank |
+| Build From Scratch | Requested-family scratch context, legal exact point spending, implemented bounded finalist-aware progression rerank |
 | BuildSnapshot | Versioned canonical IDs, game-build identity, calculation context, migration and drift rejection |
 | Combat Lab | Legal snapshot prefill, correct ability hand, reviewed coefficient, explicit scenario, separate resolution provenance |
 

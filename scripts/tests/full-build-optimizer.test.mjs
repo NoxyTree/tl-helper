@@ -110,6 +110,63 @@ test("supports progress and cancellation", async () => {
   assert.equal(progress[0].phase, "search");
 });
 
+test("batched finalist evaluation is byte-for-byte equivalent and merged in beam order", async () => {
+  const candidatesBySlot = {
+    head: [
+      { id: "a", selection: { id: "a" }, stats: { attack: 1 } },
+      { id: "b", selection: { id: "b" }, stats: { attack: 4 } },
+      { id: "c", selection: { id: "c" }, stats: { attack: 2 } },
+    ],
+    chest: [
+      { id: "x", selection: { id: "x" }, stats: { attack: 3 } },
+      { id: "y", selection: { id: "y" }, stats: { attack: 0 } },
+    ],
+  };
+  const evaluateEntry = ({ selections }) => {
+    const attack = (selections.head.id === "a" ? 1 : selections.head.id === "b" ? 4 : 2)
+      + (selections.chest.id === "x" ? 3 : 0);
+    return { score: attack, stats: { attack } };
+  };
+  const sequential = await optimizeFullBuild({
+    candidatesBySlot,
+    weights: { attack: 1 },
+    paretoStats: ["attack"],
+    alternativeCount: 4,
+    frontierCount: 6,
+    evaluate: (selections) => evaluateEntry({ selections }),
+  });
+  let batchCalls = 0;
+  let singleCalls = 0;
+  const batched = await optimizeFullBuild({
+    candidatesBySlot,
+    weights: { attack: 1 },
+    paretoStats: ["attack"],
+    alternativeCount: 4,
+    frontierCount: 6,
+    evaluate: () => { singleCalls += 1; throw new Error("single evaluator should not run"); },
+    evaluateBatch: async (entries, { onProgress }) => {
+      batchCalls += 1;
+      const indexed = await Promise.all(entries.map(async (entry, index) => {
+        await new Promise((resolve) => setTimeout(resolve, (entries.length - index) % 3));
+        onProgress({ completed: index + 1, total: entries.length, workerCount: 3, mode: "parallel" });
+        return evaluateEntry(entry);
+      }));
+      return indexed;
+    },
+  });
+  assert.equal(batchCalls, 1);
+  assert.equal(singleCalls, 0);
+  assert.deepEqual(batched, sequential);
+});
+
+test("batched finalist evaluation rejects incomplete result vectors", async () => {
+  await assert.rejects(() => optimizeFullBuild({
+    candidatesBySlot: { head: [{ id: "a" }, { id: "b" }] },
+    evaluate: () => ({ score: 0, stats: {} }),
+    evaluateBatch: async () => [{ score: 0, stats: {} }],
+  }), /returned 1 result\(s\) for 2 finalist\(s\)/);
+});
+
 test("exact selected-goal score always beats the neutral fallback", async () => {
   const result = await optimizeFullBuild({
     candidatesBySlot: { head: [
