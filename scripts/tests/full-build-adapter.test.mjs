@@ -347,6 +347,7 @@ test("chosen main and off-hand weapon types are enforced during candidate genera
 });
 
 test("existing-build optimization locks weapon families while preserving source progression", async () => {
+  let replacementDeltaCalls = 0;
   const items = {
     bow: { id: "bow", name: "Bow", grade: 41, equipmentType: "bow", power: 5 },
     bow2: { id: "bow2", name: "Better Bow", grade: 41, equipmentType: "bow", power: 10 },
@@ -366,6 +367,7 @@ test("existing-build optimization locks weapon families while preserving source 
       return { stats: [{ id: "attack", total }] };
     },
     slotSelectionContribution(_slot, selection) { return { attack: Number(items[selection?.itemId]?.power ?? 0) }; },
+    slotReplacementDelta(_slot, selection) { replacementDeltaCalls += 1; return { attack: Number(items[selection?.itemId]?.power ?? 0) }; },
     slotItems: () => Object.values(items), slotById: (id) => ({ id, label: id, types: core.WEAPON_TYPES }),
     emptyEquipmentSelection: empty, itemMaxLevel: () => 12, heroicSlotGroupForSlot: () => "",
     statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff", label: (id) => id,
@@ -376,6 +378,7 @@ test("existing-build optimization locks weapon families while preserving source 
 
   assert.equal(result.build.equipment.main_hand.itemId, "bow2");
   assert.equal(result.build.equipment.off_hand.itemId, "dagger2");
+  assert.ok(replacementDeltaCalls > 0, "existing weapon candidate hints must use replacement deltas");
   assert.ok(result.assumptions.some((text) => text.includes("Weapon families were locked")));
   await assert.rejects(() => adapter.optimize({ build: source, weaponTypes: ["staff", "dagger"], goals: { increase: ["attack"] }, rules: {} }), /Changing weapon families/);
 

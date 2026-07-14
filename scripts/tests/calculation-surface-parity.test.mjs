@@ -196,7 +196,7 @@ test("all public calculation surfaces use the shared set-aware engine and data m
   assert.match(files["build-from-scratch.html"], /setEffectBreakpointSummary\(breakpoint\)/);
   assert.match(files["index.html"], /artifactsVals\(calc\)/);
   assert.match(files["index.html"], /previewCalc\?\.setEffects\?\.sets/);
-  assert.match(files["tl-full-build-adapter.js"], /core\.calculateBuild\(build, provisionalAttributes, \{ includeSetEffects: rules\.includeSetEffects !== false \}\)/);
+  assert.match(files["tl-full-build-adapter.js"], /core\.calculateBuild\(build, provisionalAttributes, \{ includeSetEffects: rules\.includeSetEffects !== false, \.\.\.\(scenario == null \? \{\} : \{ scenario \}\) \}\)/);
   assert.match(files["tl-full-build-adapter.js"], /setEffects: clone\(finalCalculation\.setEffects\)/);
   assert.match(files["tl-builder-worker.js"], /createOptimizerAdapter/);
 });

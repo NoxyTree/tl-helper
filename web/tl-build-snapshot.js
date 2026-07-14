@@ -185,6 +185,17 @@ export function staticCalculationFingerprint({ build, attributes = {}, includeSe
   }));
 }
 
+/** Cache identity for an explicit scenario overlay on persistent totals. */
+export function scenarioCalculationFingerprint({ build, attributes = {}, includeSetEffects = true, scenario }) {
+  if (!scenario || typeof scenario !== "object" || Array.isArray(scenario)) {
+    throw new TypeError("Scenario calculation fingerprint requires a scenario object.");
+  }
+  return JSON.stringify(sortJson({
+    staticCalculation: JSON.parse(staticCalculationFingerprint({ build, attributes, includeSetEffects })),
+    scenario: cloneJson(scenario),
+  }));
+}
+
 function assertPersistedSnapshotInput(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError("BuildSnapshot must be an object.");

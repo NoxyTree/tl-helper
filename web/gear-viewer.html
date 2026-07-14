@@ -201,6 +201,7 @@
       <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
       <span class="check-inline"><input id="set-fit-toggle" type="checkbox" checked><label for="set-fit-toggle">Include set effects in Fit</label></span>
+      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score target-distance effects at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -232,7 +233,7 @@
 
   <script type="module">
     import * as core from "./tl-core.js";
-    import { staticCalculationFingerprint } from "./tl-build-snapshot.js";
+    import { scenarioCalculationFingerprint, staticCalculationFingerprint } from "./tl-build-snapshot.js";
     import { STAT_EXPANSIONS } from "./tl-questlog-rules.js";
     import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
     import { loadArmoryState } from "./tl-persistence.js";
@@ -252,6 +253,8 @@
       heroicPotential: false,
       keepHeroic: true,
       includeSetEffects: true,
+      scenarioEnabled: false,
+      scenarioDistance: 10,
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -280,8 +283,29 @@
       return { build: core.createInitialBuild(), attributes: ZERO_ATTRS };
     }
 
+    function activeScenario() {
+      if (!state.scenarioEnabled || state.mode === "bare") return null;
+      return core.createTargetDistanceScenario(scoringContext().build, state.scenarioDistance);
+    }
+
+    function normalizeScenarioDistance(value, fallback = 10) {
+      const distance = Number(value);
+      return Number.isFinite(distance) && distance >= 0 ? distance : fallback;
+    }
+
+    function syncScenarioControls() {
+      const unavailable = state.mode === "bare";
+      $("scenario-fit-toggle").disabled = unavailable;
+      $("scenario-distance").disabled = unavailable || !state.scenarioEnabled;
+    }
+
+    function calculationOptions() {
+      const scenario = activeScenario();
+      return { includeSetEffects: state.includeSetEffects, ...(scenario == null ? {} : { scenario }) };
+    }
+
     function candidateContribution(slotId, selection, build, attributes) {
-      const options = { includeSetEffects: state.includeSetEffects };
+      const options = calculationOptions();
       return state.mode !== "bare" && core.WEAPON_SLOTS.includes(slotId)
         ? core.slotReplacementDelta(slotId, selection, build, attributes, options)
         : core.slotSelectionContribution(slotId, selection, build, attributes, options);
@@ -460,18 +484,26 @@
 
     async function computeRows() {
       const { build, attributes } = scoringContext();
-      const currentCalculation = core.calculateBuild(build, attributes, { includeSetEffects: state.includeSetEffects });
-      calculationBlock = state.mode === "bare" || currentCalculation.status?.state === "legal" ? null : currentCalculation.status;
+      const options = calculationOptions();
+      const scenario = activeScenario();
+      const currentCalculation = core.calculateBuild(build, attributes, options);
+      calculationBlock = state.mode === "bare" || (currentCalculation.status?.state === "legal" && currentCalculation.scenarioEffects?.status !== "unsupported")
+        ? null
+        : currentCalculation.scenarioEffects?.status === "unsupported"
+          ? { state: "provisional", blockingIssues: currentCalculation.scenarioEffects.errors }
+          : currentCalculation.status;
       if (calculationBlock) return [];
       const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
-      const calculationKey = staticCalculationFingerprint({ build, attributes, includeSetEffects: state.includeSetEffects });
+      const calculationKey = scenario == null
+        ? staticCalculationFingerprint({ build, attributes, includeSetEffects: state.includeSetEffects })
+        : scenarioCalculationFingerprint({ build, attributes, includeSetEffects: state.includeSetEffects, scenario });
       const key = `${state.mode}|${calculationKey}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${objectiveKey}`;
       if (poolCache.has(key)) {
         calculationBlock = null;
         return poolCache.get(key);
       }
       const token = ++computeToken;
-      const currentTotals = Object.fromEntries(currentCalculation.stats.map((row) => [row.id, row.total]));
+      const currentTotals = Object.fromEntries((currentCalculation.scenarioStats ?? currentCalculation.stats).map((row) => [row.id, row.total]));
       const items = core.data.items.filter((item) => TYPE_SLOT[item.equipmentType] && SLOT_CATEGORY[TYPE_SLOT[item.equipmentType]] !== "support");
       const rows = [];
       $("progress").classList.remove("hidden");
@@ -503,7 +535,7 @@
             });
           }
 
-          let variants = core.calculableItemPerkVariants(item)
+          let variants = core.calculableItemPerkVariants(item, { scenario })
             .filter((variant) => !variant.requiredWeapon || prospectiveWeaponTypes(slotId, item, build).has(variant.requiredWeapon));
           const currentCoreUnsupported = isActualItem
             && actualSelection?.perkId
@@ -516,7 +548,7 @@
               equippedWeaponTypes: [...prospectiveWeaponTypes(slotId, item, build)],
             });
             if (selectionStatus.state !== "legal") continue;
-            if (core.slotSelectionCalculationStatus(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects })?.state !== "legal") continue;
+            if (core.slotSelectionCalculationStatus(slotId, selection, build, attributes, options)?.state !== "legal") continue;
             const contribution = candidateContribution(slotId, selection, build, attributes);
             const availableStatIds = potentialStatIds(item, contribution);
             rows.push({
@@ -603,8 +635,9 @@
       }
       const protectionActive = state.mode !== "bare" && state.protected.length > 0;
       const context = protectionActive ? scoringContext() : null;
-      const currentTotals = context
-        ? Object.fromEntries(core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects }).stats.map((row) => [row.id, row.total]))
+      const currentCalculation = context ? core.calculateBuild(context.build, context.attributes, calculationOptions()) : null;
+      const currentTotals = currentCalculation
+        ? Object.fromEntries((currentCalculation.scenarioStats ?? currentCalculation.stats).map((row) => [row.id, row.total]))
         : {};
       const currentBySlot = new Map();
       for (const row of filtered) {
@@ -874,13 +907,17 @@
       const { item, slotId, selection } = candidate;
       const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
       const context = scoringContext();
-      const calculationKey = staticCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects });
+      const options = calculationOptions();
+      const scenario = activeScenario();
+      const calculationKey = scenario == null
+        ? staticCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects })
+        : scenarioCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects, scenario });
       const key = `${state.mode}|${calculationKey}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${objectiveKey}|${candidateId}`;
       if (hoverModelCache.has(key)) return hoverModelCache.get(key);
-      const beforeCalc = core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects });
+      const beforeCalc = core.calculateBuild(context.build, context.attributes, options);
       const build = core.deepClone(context.build);
       core.slotCollectionForSlot(build, slotId)[slotId] = selection;
-      const calc = core.calculateBuild(build, context.attributes, { includeSetEffects: state.includeSetEffects });
+      const calc = core.calculateBuild(build, context.attributes, options);
       const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected], optionalFallback: state.withTraits });
       model.isPotential = Boolean(candidate?.potential);
       model.potentialAssumptions = candidate?.potential?.assumptions ?? null;
@@ -1010,12 +1047,13 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
+      const scenarioLabel = activeScenario() ? ` · target-distance effects at ${state.scenarioDistance}m` : "";
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
       if (calculationBlock) {
         const count = calculationBlock.blockingIssues?.length ?? 0;
         $("status").innerHTML = `<span class="error">${core.label(calculationBlock.state)} build: ${count} calculation issue${count === 1 ? "" : "s"} must be resolved before build-aware gear ranking.</span>`;
       } else {
-        $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+        $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${scenarioLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
       }
       writeHash();
     }
@@ -1029,6 +1067,7 @@
       if (!state.keepHeroic) params.set("heroic", "0");
       if (state.heroicPotential) params.set("heroicPotential", "1");
       if (!state.includeSetEffects) params.set("sets", "0");
+      if (state.scenarioEnabled) params.set("distance", String(state.scenarioDistance));
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
       if (state.grade !== "all") params.set("grade", state.grade);
@@ -1046,6 +1085,13 @@
       if (params.get("heroic") === "0") state.keepHeroic = false;
       if (params.get("heroicPotential") === "1") state.heroicPotential = true;
       if (params.get("sets") === "0") state.includeSetEffects = false;
+      if (params.has("distance")) {
+        const distance = Number(params.get("distance"));
+        if (Number.isFinite(distance) && distance >= 0) {
+          state.scenarioEnabled = true;
+          state.scenarioDistance = distance;
+        }
+      }
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
@@ -1102,6 +1148,8 @@
             if (typeof prefs.keepHeroic === "boolean") state.keepHeroic = prefs.keepHeroic;
             if (typeof prefs.heroicPotential === "boolean") state.heroicPotential = prefs.heroicPotential;
             if (typeof prefs.includeSetEffects === "boolean") state.includeSetEffects = prefs.includeSetEffects;
+            if (typeof prefs.scenarioEnabled === "boolean") state.scenarioEnabled = prefs.scenarioEnabled;
+            if (Number.isFinite(prefs.scenarioDistance) && prefs.scenarioDistance >= 0) state.scenarioDistance = prefs.scenarioDistance;
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
@@ -1109,7 +1157,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -1142,13 +1190,16 @@
       $("heroic-potential-toggle").checked = state.heroicPotential;
       $("set-fit-toggle").checked = state.includeSetEffects;
       $("set-fit-toggle").disabled = state.mode === "bare";
+      $("scenario-fit-toggle").checked = state.scenarioEnabled;
+      $("scenario-distance").value = String(state.scenarioDistance);
+      syncScenarioControls();
 
       let searchTimer = 0;
       $("search").addEventListener("input", () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => { state.search = $("search").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); }, 120);
       });
-      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; $("set-fit-toggle").disabled = state.mode === "bare"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
+      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; $("set-fit-toggle").disabled = state.mode === "bare"; syncScenarioControls(); renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
       $("category-select").addEventListener("change", () => { state.category = $("category-select").value; state.type = "all"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("type-select").addEventListener("change", () => { state.type = $("type-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("grade-select").addEventListener("change", () => { state.grade = $("grade-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
@@ -1157,6 +1208,13 @@
       $("heroic-toggle").addEventListener("change", () => { state.keepHeroic = $("heroic-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("heroic-potential-toggle").addEventListener("change", () => { state.heroicPotential = $("heroic-potential-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
       $("set-fit-toggle").addEventListener("change", () => { state.includeSetEffects = $("set-fit-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-fit-toggle").addEventListener("change", () => { state.scenarioEnabled = $("scenario-fit-toggle").checked; syncScenarioControls(); state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-distance").addEventListener("change", () => {
+        state.scenarioDistance = normalizeScenarioDistance($("scenario-distance").value, state.scenarioDistance);
+        $("scenario-distance").value = String(state.scenarioDistance);
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
       $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
 
       // column picker dropdown
@@ -1209,6 +1267,7 @@
           $("mode-select").value = "questlog";
           state.mode = "questlog";
           $("set-fit-toggle").disabled = false;
+          syncScenarioControls();
           renderTypeOptions();
           await refresh();
         } catch (error) {

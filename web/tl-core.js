@@ -26,6 +26,17 @@ import {
 } from "./tl-questlog-rules.js";
 import { loadWebData } from "./tl-data-loader.js";
 import { PASSIVE_EFFECT_CONTRACT } from "./tl-passive-effect-contract.js";
+import {
+  COMBAT_SCENARIO_SCHEMA,
+  COMBAT_SCENARIO_SCHEMA_VERSION,
+  normalizeCombatScenario,
+} from "./vendor/combat-engine/combat-scenario.mjs";
+import {
+  DISTANCE_EFFECT_DEFINITIONS,
+  DISTANCE_EFFECT_GAME_BUILD,
+  DISTANCE_EFFECT_IDS,
+  evaluateDistanceScenarioEffects,
+} from "./tl-distance-scenario-effects.js";
 
 export const EQUIPMENT_SLOTS = [
   { id: "main_hand", label: "Main Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
@@ -832,10 +843,14 @@ export function activePersistentItemPassiveSources(progression, selections) {
 // is always legal, while automatic selection may use only executable static
 // rules. Multiple catalogue aliases for one passive complex are equivalent;
 // choose the lexically first id so results are stable across projection order.
-export function calculableItemPerkVariants(item) {
+export function calculableItemPerkVariants(item, options = {}) {
   const blank = { perkId: "", perk: null, passiveId: "", requiredWeapon: "" };
+  const includeScenarioEffects = options?.scenario != null;
   const candidates = values(item?.availablePerks)
-    .filter((perk) => perk?.id && perk?.passive?.id && PERK_PASSIVE_RULES[perk.passive.id])
+    .filter((perk) => perk?.id && perk?.passive?.id && (
+      PERK_PASSIVE_RULES[perk.passive.id]
+      || (includeScenarioEffects && DISTANCE_EFFECT_DEFINITIONS[perk.passive.id])
+    ))
     .sort((a, b) => String(a.passive.id).localeCompare(String(b.passive.id)) || String(a.id).localeCompare(String(b.id)));
   const seenPassiveIds = new Set();
   const variants = [];
@@ -847,7 +862,9 @@ export function calculableItemPerkVariants(item) {
       perkId: perk.id,
       perk,
       passiveId,
-      requiredWeapon: PERK_PASSIVE_RULES[passiveId].requiredWeapon ?? "",
+      requiredWeapon: PERK_PASSIVE_RULES[passiveId]?.requiredWeapon
+        ?? DISTANCE_EFFECT_DEFINITIONS[passiveId]?.requiredWeapon
+        ?? "",
     });
   }
   return [blank, ...variants];
@@ -2224,6 +2241,176 @@ export function applyArtifactSet(build, setId) {
 
 // ---------- calculation engine ----------
 
+// Scenario overlays are deliberately separate from persistent sheet totals.
+// The selected/equipped source projection below reuses the same progression
+// and Skill Core authority as calculateBuild, so a scenario cannot reactivate
+// a stored foreign-weapon passive or an unselected catalogue core.
+export function activeDistanceScenarioSources(build, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+  const passiveSkills = progression.skills
+    .filter(({ loadoutType }) => loadoutType === "passive")
+    .map(({ skill, selection }) => ({ id: skill.id, level: Number(selection.level || 1), selected: true }));
+  const masteryIds = progression.masteries.map(({ masteryId }) => masteryId);
+  const itemEffects = [];
+  for (const { item, selection } of selections) {
+    if (item?.passives?.id) itemEffects.push({ id: item.passives.id, sourceKind: "innate" });
+    const selectedPerk = selectedItemPerk(item, selection);
+    if (selectedPerk?.passive?.id) itemEffects.push({ id: selectedPerk.passive.id, sourceKind: "selected_core", selected: true });
+  }
+  return {
+    equippedWeaponTypes: [...(progression.equippedWeaponTypes ?? equippedWeaponTypes(build))],
+    passiveSkills,
+    masteryIds,
+    itemEffects,
+  };
+}
+
+export function createTargetDistanceScenario(build, targetDistanceMeters) {
+  if (!data?.gameBuild) throw new Error("Game data must be initialized before creating a combat scenario.");
+  const equipped = [...equippedWeaponTypes(build)].sort();
+  return normalizeCombatScenario({
+    schema: COMBAT_SCENARIO_SCHEMA,
+    schemaVersion: COMBAT_SCENARIO_SCHEMA_VERSION,
+    gameBuild: String(data.gameBuild),
+    id: "target-distance",
+    durationMs: 0,
+    environment: { timeOfDay: "unspecified", weather: "unspecified" },
+    participants: [
+      { id: "source", relationship: "self", buildSnapshotId: "calculation-build", equippedWeaponTypes: equipped },
+      { id: "target", relationship: "enemy", buildSnapshotId: "scenario-target", equippedWeaponTypes: [] },
+    ],
+    source: { participantId: "source" },
+    target: { participantId: "target", distanceMeters: targetDistanceMeters },
+    actions: [],
+    rng: { algorithm: "xorshift64star-v1", seed: "0" },
+  }, { expectedGameBuild: String(data.gameBuild) });
+}
+
+export function bindCombatScenarioToBuild(scenario, build) {
+  const gameBuild = String(data?.gameBuild ?? "");
+  const normalized = normalizeCombatScenario(scenario, { expectedGameBuild: gameBuild });
+  const sourceId = normalized.source.participantId;
+  const equipped = [...equippedWeaponTypes(build)].sort();
+  return normalizeCombatScenario({
+    ...normalized,
+    participants: normalized.participants.map((participant) => participant.id === sourceId
+      ? { ...participant, equippedWeaponTypes: equipped, ...(equipped.includes(participant.activeWeaponType) ? {} : { activeWeaponType: undefined }) }
+      : participant),
+  }, { expectedGameBuild: gameBuild });
+}
+
+function calculationOptionsBoundToBuild(options, build) {
+  if (options.scenario == null) return options;
+  try {
+    return { ...options, scenario: bindCombatScenarioToBuild(options.scenario, build) };
+  } catch {
+    // Preserve invalid input for calculateBuild's normal fail-closed scenario
+    // result instead of turning a comparison helper into a throwing API.
+    return options;
+  }
+}
+
+function scenarioTargetDistance(scenario) {
+  const value = Number(scenario?.target?.distanceMeters);
+  return Number.isFinite(value) ? value : scenario?.target?.distanceMeters;
+}
+
+export function evaluateBuildDistanceScenario(build, scenario, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+  const gameBuild = String(data?.gameBuild ?? "");
+  let normalizedScenario;
+  try {
+    normalizedScenario = normalizeCombatScenario(scenario, { expectedGameBuild: gameBuild });
+  } catch (cause) {
+    return Object.freeze({
+      overlayRows: Object.freeze([]),
+      trace: Object.freeze([]),
+      errors: Object.freeze([Object.freeze({
+        code: "invalid_combat_scenario",
+        sourceId: null,
+        message: String(cause?.message ?? cause),
+      })]),
+      scenario: null,
+    });
+  }
+  if (gameBuild !== DISTANCE_EFFECT_GAME_BUILD) {
+    return Object.freeze({
+      overlayRows: Object.freeze([]),
+      trace: Object.freeze([]),
+      errors: Object.freeze([Object.freeze({
+        code: "distance_effect_build_mismatch",
+        sourceId: null,
+        message: `Decoded distance rules are authoritative for game build ${DISTANCE_EFFECT_GAME_BUILD}, not loaded game build ${gameBuild}.`,
+      })]),
+      scenario: normalizedScenario,
+    });
+  }
+  const activeSources = activeDistanceScenarioSources(build, progression, selections);
+  const sourceParticipant = normalizedScenario.participants.find((participant) => participant.id === normalizedScenario.source.participantId);
+  const scenarioWeapons = [...(sourceParticipant?.equippedWeaponTypes ?? [])].sort();
+  const actualWeapons = [...activeSources.equippedWeaponTypes].sort();
+  if (JSON.stringify(scenarioWeapons) !== JSON.stringify(actualWeapons)) {
+    return Object.freeze({
+      overlayRows: Object.freeze([]),
+      trace: Object.freeze([]),
+      errors: Object.freeze([Object.freeze({
+        code: "scenario_source_weapon_mismatch",
+        sourceId: normalizedScenario.source.participantId,
+        message: "Scenario source equippedWeaponTypes do not match the calculated build.",
+      })]),
+      scenario: normalizedScenario,
+    });
+  }
+  const evaluated = evaluateDistanceScenarioEffects({
+    activeSources,
+    scenario: { targetDistanceMeters: scenarioTargetDistance(normalizedScenario) },
+  });
+  return Object.freeze({ ...evaluated, scenario: normalizedScenario });
+}
+
+export function scenarioOverlayStats(staticStats, overlayRows, distanceMeters) {
+  const rows = new Map();
+  const order = [];
+  for (const row of staticStats) {
+    order.push(row.id);
+    rows.set(row.id, {
+      id: row.id,
+      rawTotal: Number(row.uncappedTotal ?? row.total) || 0,
+      sources: values(row.sources).filter((source) => source.type !== "hard_cap").map((source) => ({ ...source })),
+    });
+  }
+  const add = (statId, value, effect, expandedFrom = null) => {
+    const numeric = Number(value);
+    if (!statId || !numeric || !Number.isFinite(numeric)) return;
+    if (!rows.has(statId)) {
+      order.push(statId);
+      rows.set(statId, { id: statId, rawTotal: 0, sources: [] });
+    }
+    const target = rows.get(statId);
+    target.rawTotal += numeric;
+    target.sources.push({
+      sourceLabel: effect.effectName,
+      name: effect.effectName,
+      value: numeric,
+      type: "scenario_effect",
+      scenarioEffectId: effect.effectId,
+      scenarioDistanceMeters: distanceMeters,
+      precision: effect.precision,
+      provenance: effect.provenance,
+      ...(expandedFrom ? { expandedFrom } : {}),
+    });
+    for (const childId of STAT_EXPANSIONS[statId] ?? []) add(childId, numeric, effect, expandedFrom ?? statId);
+  };
+  for (const effect of overlayRows) add(effect.statId, effect.rawValue, effect);
+  return order.map((id) => {
+    const row = rows.get(id);
+    const hardCap = statHardCap(id);
+    const total = hardCap == null ? row.rawTotal : Math.min(row.rawTotal, hardCap);
+    const overflow = Math.max(0, row.rawTotal - total);
+    const sources = [...row.sources];
+    if (overflow) sources.push({ sourceLabel: `Hard cap: ${formatStat(id, hardCap)}`, name: `Hard cap: ${formatStat(id, hardCap)}`, value: -overflow, type: "hard_cap" });
+    return { id, total, uncappedTotal: row.rawTotal, overflow, hardCap, sources };
+  });
+}
+
 export function calculateBuild(build, attributes, options = {}) {
   const includeSetEffects = options.includeSetEffects !== false;
   const progression = effectiveProgression(build);
@@ -2411,13 +2598,38 @@ export function calculateBuild(build, attributes, options = {}) {
   }
   const runeSynergies = calculateRuneSynergies(build);
   const validation = validateBuild(runeSynergies, build, progression, attributes);
-  return {
-    stats: [...totals.entries()].map(([id, total]) => ({ id, total, uncappedTotal: total + (capOverflow.get(id) ?? 0), overflow: capOverflow.get(id) ?? 0, hardCap: statHardCap(id), sources: sourceMap.get(id) ?? [] })),
+  const stats = [...totals.entries()].map(([id, total]) => ({ id, total, uncappedTotal: total + (capOverflow.get(id) ?? 0), overflow: capOverflow.get(id) ?? 0, hardCap: statHardCap(id), sources: sourceMap.get(id) ?? [] }));
+  const result = {
+    stats,
     setEffects: finalizeSetEffectTrace(setEffectTrace, sourceMap, includeSetEffects),
     runeSynergies,
     validation,
     status: calculationStatus(validation),
   };
+  if (options.scenario != null) {
+    const evaluated = evaluateBuildDistanceScenario(build, options.scenario, progression, selections);
+    const distanceMeters = scenarioTargetDistance(evaluated.scenario ?? options.scenario);
+    const executable = evaluated.errors.length === 0;
+    result.scenarioEffects = {
+      schema: "tl-helper.build-scenario-effects",
+      schemaVersion: 1,
+      gameBuild: String(data?.gameBuild ?? ""),
+      kind: "target_distance",
+      targetDistanceMeters: distanceMeters,
+      status: executable ? "applied" : "unsupported",
+      scenario: evaluated.scenario,
+      evaluatedRows: evaluated.overlayRows,
+      appliedRows: executable ? evaluated.overlayRows : [],
+      trace: evaluated.trace,
+      errors: evaluated.errors,
+    };
+    // Any unsupported replacement fails the complete overlay closed. This
+    // prevents an optimizer from comparing a partially evaluated scenario.
+    result.scenarioStats = executable
+      ? scenarioOverlayStats(stats, evaluated.overlayRows, distanceMeters)
+      : stats;
+  }
+  return result;
 }
 
 function allBuildSelectionEntries(build) {
@@ -2808,7 +3020,10 @@ function totalsWithSlotSelection(build, attributes, slotId, selection, options =
     ? { ...emptyEquipmentSelection(), ...deepClone(selection) }
     : emptyEquipmentSelection();
   const totals = {};
-  for (const row of calculateBuild(clone, attributes ?? {}, options).stats) {
+  const calculationOptions = calculationOptionsBoundToBuild(options, clone);
+  const calculation = calculateBuild(clone, attributes ?? {}, calculationOptions);
+  const rows = options.scenario != null ? calculation.scenarioStats : calculation.stats;
+  for (const row of rows) {
     if (row.total) totals[row.id] = row.total;
   }
   return totals;
@@ -2819,9 +3034,10 @@ function totalsWithSlotSelection(build, attributes, slotId, selection, options =
 export function slotSelectionContribution(slotId, selection, build, attributes, options = {}) {
   const cache = slotDeltaCacheFor(build, attributes);
   const setMode = options.includeSetEffects === false ? "no-sets" : "sets";
-  const key = `${setMode}|${slotId}|${JSON.stringify(selection ?? null)}`;
+  const scenarioKey = options.scenario == null ? "static" : JSON.stringify(options.scenario);
+  const key = `${setMode}|${scenarioKey}|${slotId}|${JSON.stringify(selection ?? null)}`;
   if (cache.has(key)) return cache.get(key);
-  const baselineKey = `${setMode}|${slotId}|<empty>`;
+  const baselineKey = `${setMode}|${scenarioKey}|${slotId}|<empty>`;
   let baseline = cache.get(baselineKey);
   if (!baseline) {
     baseline = totalsWithSlotSelection(build, attributes, slotId, null, options);
@@ -2844,9 +3060,10 @@ export function slotSelectionContribution(slotId, selection, build, attributes, 
 export function slotReplacementDelta(slotId, selection, build, attributes, options = {}) {
   const cache = slotDeltaCacheFor(build, attributes);
   const setMode = options.includeSetEffects === false ? "no-sets" : "sets";
+  const scenarioKey = options.scenario == null ? "static" : JSON.stringify(options.scenario);
   const current = slotSelection(slotId, build);
   const currentKey = JSON.stringify(current ?? null);
-  const prefix = `${setMode}|replacement|${slotId}|${currentKey}`;
+  const prefix = `${setMode}|${scenarioKey}|replacement|${slotId}|${currentKey}`;
   let baseline = cache.get(`${prefix}|<current>`);
   if (!baseline) {
     baseline = totalsWithSlotSelection(build, attributes, slotId, current, options);
@@ -2869,7 +3086,18 @@ export function slotSelectionCalculationStatus(slotId, selection, build, attribu
   slotCollectionForSlot(clone, slotId)[slotId] = selection
     ? { ...emptyEquipmentSelection(), ...deepClone(selection) }
     : emptyEquipmentSelection();
-  return calculateBuild(clone, attributes ?? {}, options).status;
+  const calculationOptions = calculationOptionsBoundToBuild(options, clone);
+  const calculation = calculateBuild(clone, attributes ?? {}, calculationOptions);
+  if (options.scenario != null && calculation.scenarioEffects?.status !== "applied") {
+    const blockingIssues = calculation.scenarioEffects.errors.map((error) => ({
+      severity: "error",
+      code: error.code,
+      calculationImpact: "provisional",
+      message: error.message,
+    }));
+    return { state: "provisional", blockingIssues, issues: blockingIssues };
+  }
+  return calculation.status;
 }
 
 // Contribution of equipping `item` bare (as equipItem does) at `level`.

@@ -46,6 +46,29 @@ export {
   serializeCalibrationObservation,
   validateCalibrationObservation,
 } from "./calibration-observation.mjs";
+export {
+  COMBAT_SCENARIO_SCHEMA,
+  COMBAT_SCENARIO_SCHEMA_VERSION,
+  SCENARIO_TIME_OF_DAY,
+  SCENARIO_WEATHER,
+  SCENARIO_PARTICIPANT_RELATIONSHIP,
+  SCENARIO_RNG_ALGORITHM,
+  createCombatScenario,
+  normalizeCombatScenario,
+  validateCombatScenario,
+} from "./combat-scenario.mjs";
+export {
+  COMBAT_EFFECT_DEFINITION_SCHEMA,
+  COMBAT_EFFECT_DEFINITION_SCHEMA_VERSION,
+  EFFECT_EXECUTION_STATUS,
+  EFFECT_SOURCE_KIND,
+  EFFECT_TRIGGER_KIND,
+  EFFECT_CONDITION_KIND,
+  createCombatEffectDefinition,
+  normalizeCombatEffectDefinition,
+  validateCombatEffectDefinition,
+  assertCombatEffectMatchesScenario,
+} from "./combat-effect-definition.mjs";
 export { runSimulation, serializeSimulation } from "./simulation.mjs";
 export {
   PVP_MODEL_VERSION,

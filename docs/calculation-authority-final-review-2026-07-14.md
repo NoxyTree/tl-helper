@@ -4,6 +4,7 @@ Date: 2026-07-14
 Game data build: `24118850`  
 Branch: `codex/calculation-consistency-release`  
 Pre-implementation snapshot: `snapshot/calculation-pre-implementation-20260714` at `a1a67c6`
+Scenario-extension snapshot: `snapshot/scenario-effects-pre-implementation-20260714` at `1307bc0`
 
 ## Outcome
 
@@ -137,6 +138,32 @@ BuildSnapshot v2 stores raw build state and allocated attributes while treating 
 - Nonfinite malformed input cannot be converted into a legal default or collide with a legal calculation fingerprint.
 - The calculation context explicitly identifies persistent static mode, included set effects, and excluded dynamic effects.
 
+## First exact scenario extension
+
+The conditional-effect work queue now contains `530` deterministic source shells: `62` weapon passives, `159` non-structured masteries, `286` item or Skill Core complexes, and `23` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
+
+Four decoded distance rules are now executable through an explicit combat scenario:
+
+- Sniper's Sense
+- Far Sight
+- Eagle Vision
+- Black Rage's Boost
+
+Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the distance-only scenario does not yet model.
+
+Scenario calculation is deliberately an overlay rather than a mutation of persistent totals:
+
+- `calculateBuild().stats` remains the persistent static authority.
+- A valid scenario adds `scenarioEffects` and `scenarioStats`.
+- An invalid, unsupported, weapon-mismatched, or wrong-build scenario applies no partial overlay.
+- The exact combat-scenario contract is closed-world and versioned. Unknown fields, missing schemas, invalid participants, and mismatched game builds fail validation.
+- Browser contract modules are byte-exact mirrors of the authored combat-engine modules and are protected by a synchronization test.
+- Decoded distance rules are pinned to game build `24118850`; they cannot execute against a future projection until they are re-audited.
+- Equipped-weapon progression and selected Skill Core authority are reused, so foreign stored passives, foreign masteries, and unselected cores cannot reactivate through a scenario.
+- Hard caps are reconstructed from uncapped static totals after overlay application.
+
+Gear Viewer and Full Build Optimizer expose target-distance scoring as an explicit opt-in. Their default remains persistent static scoring. Candidate generation, complete-build scoring, protected-stat checks, cache identity, current totals, result hovers, and optimizer handoff use the same canonical scenario when enabled.
+
 ## Cross-surface behavior
 
 ### Armory
@@ -170,7 +197,7 @@ Combat Lab remains a reviewed coefficient and scenario surface, not an exact fin
 These are explicit and do not silently enter exact item ranking:
 
 1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
-2. Conditional effects need a future scenario contract before they can influence optimizer scoring.
+2. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the four decoded distance rules listed above are currently executable.
 3. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
 4. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
 
@@ -185,17 +212,21 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `468/468`
+- Node test suite: `512/512`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
 - Set audit: `78` sets, `151` breakpoints, no incorrect or review classifications
 - Passive-effect contract: `80 + 193 + 294 = 567` effects, every ID classified exactly once
+- Conditional scenario catalogue: `530/530` source shells, with `4` decoded distance rules executable and `526` explicitly non-executable
+- Closed-world scenario, game-build drift, source-weapon binding, cache separation, hard-cap reconstruction, and unsupported-current-stat regressions: passed
+- Browser combat-engine contract synchronization: passed
 - Passive registry binding audit: passed
 - Complete candidate legality regressions: passed
 - Diff whitespace check: passed
-- Local HTTP smoke: all six calculation pages plus `tl-core.js` and the passive contract returned `200`
-- In-app visual smoke: not completed in this session because the browser-control transport was unavailable
+- Local HTTP smoke: all six calculation pages, the scenario-aware calculator and adapter, distance evaluator, browser scenario contract, and generated scenario catalogue returned `200`
+- Inline module syntax: Gear Viewer and Full Build Optimizer passed
+- In-app visual smoke: not completed because the browser-control transport was unavailable
 
 ## Primary review files
 
@@ -203,6 +234,7 @@ These are explicit and do not silently enter exact item ranking:
 - `web/tl-questlog-rules.js`
 - `web/tl-passive-effect-contract.js`
 - `web/tl-build-snapshot.js`
+- `web/tl-distance-scenario-effects.js`
 - `web/tl-full-build-adapter.js`
 - `web/tl-progression-optimizer.js`
 - `web/index.html`
@@ -215,6 +247,9 @@ These are explicit and do not silently enter exact item ranking:
 - `scripts/tests/canonical-passive-effects.test.mjs`
 - `scripts/tests/calculation-status.test.mjs`
 - `scripts/tests/gear-viewer-calculation-status.test.mjs`
+- `scripts/tests/build-distance-scenario-integration.test.mjs`
+- `scripts/tests/combat-scenario-contract.test.mjs`
+- `scripts/tests/scenario-effect-catalog.test.mjs`
 - `scripts/verify-build-snapshot.mjs`
 
 ## Review criterion

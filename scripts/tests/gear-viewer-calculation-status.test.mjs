@@ -4,15 +4,17 @@ import test from "node:test";
 
 const html = await readFile(new URL("../../web/gear-viewer.html", import.meta.url), "utf8");
 
-test("Gear Viewer cache identity includes the canonical static calculation fingerprint", () => {
-  assert.match(html, /import \{ staticCalculationFingerprint \} from "\.\/tl-build-snapshot\.js"/);
-  assert.match(html, /const calculationKey = staticCalculationFingerprint\(\{ build, attributes, includeSetEffects: state\.includeSetEffects \}\)/);
-  assert.match(html, /const calculationKey = staticCalculationFingerprint\(\{ build: context\.build, attributes: context\.attributes, includeSetEffects: state\.includeSetEffects \}\)/);
+test("Gear Viewer cache identity includes canonical static and scenario fingerprints", () => {
+  assert.match(html, /import \{ scenarioCalculationFingerprint, staticCalculationFingerprint \} from "\.\/tl-build-snapshot\.js"/);
+  assert.match(html, /staticCalculationFingerprint\(\{ build, attributes, includeSetEffects: state\.includeSetEffects \}\)/);
+  assert.match(html, /scenarioCalculationFingerprint\(\{ build, attributes, includeSetEffects: state\.includeSetEffects, scenario \}\)/);
+  assert.match(html, /staticCalculationFingerprint\(\{ build: context\.build, attributes: context\.attributes, includeSetEffects: state\.includeSetEffects \}\)/);
+  assert.match(html, /scenarioCalculationFingerprint\(\{ build: context\.build, attributes: context\.attributes, includeSetEffects: state\.includeSetEffects, scenario \}\)/);
   assert.match(html, /\$\{state\.mode\}\|\$\{calculationKey\}/);
 });
 
 test("Gear Viewer refuses non-legal source builds before ranking", () => {
-  assert.match(html, /calculationBlock = state\.mode === "bare" \|\| currentCalculation\.status\?\.state === "legal"/);
+  assert.match(html, /calculationBlock = state\.mode === "bare" \|\| \(currentCalculation\.status\?\.state === "legal" && currentCalculation\.scenarioEffects\?\.status !== "unsupported"\)/);
   assert.match(html, /if \(calculationBlock\) return \[\]/);
   assert.match(html, /must be resolved before build-aware gear ranking/);
   assert.match(html, /core\.itemSelectionCalculationStatus\(item, selection/);

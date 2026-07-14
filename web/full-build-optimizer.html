@@ -97,6 +97,14 @@
     .toggle-row input { margin-top:2px; accent-color:var(--gold); }
     .toggle-row strong { display:block; color:#e3d4b5; font-size:12.5px; font-weight:600; }
     .toggle-row small { display:block; margin-top:2px; color:var(--muted); font-size:10.5px; line-height:1.4; }
+    .scenario-controls { display:grid; grid-template-columns:minmax(0,1fr) 108px; gap:10px; align-items:end; margin-top:12px; padding:11px; border:1px solid rgba(185,140,240,.2); border-radius:9px; background:rgba(92,53,126,.08); }
+    .scenario-controls label { color:#d9c7e8; font-size:10.5px; line-height:1.45; }
+    .scenario-controls label strong { display:block; color:#e9dcf4; font-size:11.5px; }
+    .scenario-controls input[type="number"] { width:100%; height:36px; padding:7px 9px; border:1px solid rgba(185,140,240,.32); border-radius:8px; outline:0; background:#090705; color:#f3e9d4; font-size:12px; }
+    .scenario-controls input[type="number"]:focus { border-color:rgba(185,140,240,.72); box-shadow:0 0 0 3px rgba(185,140,240,.08); }
+    .scenario-controls input[type="number"]:disabled { opacity:.42; cursor:not-allowed; }
+    .scenario-status { grid-column:1/-1; margin:0; color:#9f8cb8; font-size:9.5px; }
+    .scenario-score-badge { display:inline-flex; align-items:center; margin-top:5px; padding:3px 7px; border:1px solid rgba(185,140,240,.4); border-radius:999px; background:rgba(92,53,126,.16); color:#caa8ef; font-size:8px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; }
     .mode-group { margin-top:13px; }
     .mode-group > span { display:block; margin-bottom:6px; color:var(--muted); font-size:11px; }
     .segmented.three { grid-template-columns:repeat(3,1fr); }
@@ -232,6 +240,11 @@
             <label class="toggle-row"><input id="optimize-traits" type="checkbox" checked><span><strong>Optimize 3 traits</strong><small>Selects exactly three legal normal traits per item.</small></span></label>
             <label class="toggle-row"><input id="best-heroic" type="checkbox" checked><span><strong>Best Heroic configuration</strong><small>Uses one Heroic trait and maximum-level effects for theoretical suggestions.</small></span></label>
           </div>
+          <div class="scenario-controls">
+            <label for="enable-distance-scenario"><strong><input id="enable-distance-scenario" type="checkbox"> Score a target-distance scenario</strong>Opt in to distance-scaled passives, mastery replacements, and equipment effects. Static scoring remains the default.</label>
+            <label for="target-distance"><strong>Target distance</strong><input id="target-distance" type="number" min="0" step="0.5" value="10" inputmode="decimal" disabled aria-describedby="distance-scenario-status"></label>
+            <p id="distance-scenario-status" class="scenario-status" role="status">Disabled. Current stats and recommendations use persistent static totals only.</p>
+          </div>
           <div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Use owned Chaos</button></div><p id="chaos-warning" class="warning hidden">Chaos runes are stronger and acquisition is chance-based. Only Chaos rune IDs already equipped in the source build are considered owned, with no more than one Chaos rune per item. Normal rune and stat choices may repeat across all three sockets.</p></div>
           <div class="mode-group"><span>Artifacts</span><div id="artifact-mode" class="segmented"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="sets">Optimize sets</button></div></div>
           <div class="mode-group"><span>Search depth</span><div id="search-depth" class="segmented"><button type="button" data-value="fast" class="active">Fast</button><button type="button" data-value="thorough">Thorough</button></div><p class="hint">Thorough searches a wider candidate frontier and may take longer.</p></div>
@@ -250,7 +263,7 @@
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
     function renderLocks() {
       const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
@@ -285,12 +298,42 @@
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
     }
     async function refreshCurrentStats() {
-      state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:$("include-sets").checked}) : {};
+      state.scenarioError="";
+      try {
+        state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:$("include-sets").checked,...scenarioRequestFields()}) : {};
+      } catch(error) {
+        if(!activeScenario())throw error;
+        state.currentStats={}; state.scenarioError=String(error?.message??error);
+        $("distance-scenario-status").textContent=`Unsupported for this build: ${state.scenarioError}`;
+      }
       for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key);
+      updateReady();
     }
     async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } renderLocks(); updateReady(); }
     $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); await refreshCurrentStats(); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; await refreshCurrentStats(); $("source-status").textContent=`Import failed: ${error.message}`; } finally { renderLocks(); $("import-build").disabled=false; updateReady(); } });
     $("include-sets").addEventListener("change",()=>refreshCurrentStats().catch(error=>{ $("source-status").textContent=`Current stats could not be refreshed: ${error.message}`; }));
+    function activeScenario() {
+      if(!$("enable-distance-scenario").checked) return null;
+      const distanceInput=$("target-distance"),rawDistance=distanceInput.value.trim(); if(!rawDistance||!distanceInput.checkValidity())return null;
+      const targetDistanceMeters=Number(rawDistance);
+      if(!Number.isFinite(targetDistanceMeters)||targetDistanceMeters<0)return null;
+      if(!state.core||!state.build)return null;
+      try{return state.core.createTargetDistanceScenario(state.build.build??state.build,targetDistanceMeters);}catch{return null;}
+    }
+    function scenarioDistance(scenario) { return Number(scenario?.target?.distanceMeters); }
+    function scenarioRequestFields() { const scenario=activeScenario(); return scenario?{scenario}:{}; }
+    function refreshScenarioControl() {
+      const enabled=$("enable-distance-scenario").checked,input=$("target-distance"); input.disabled=!enabled;
+      if(!enabled)state.scenarioError="";
+      const scenario=activeScenario(),valid=!enabled||Boolean(scenario);
+      input.setAttribute("aria-invalid",String(!valid));
+      $("distance-scenario-status").textContent=!enabled?"Disabled. Current stats and recommendations use persistent static totals only.":scenario?`Enabled. Current stats and recommendations are projected at ${scenarioDistance(scenario)}m.`:"Enter a finite target distance of 0m or more before optimizing.";
+      updateReady();
+      if(!valid){ state.currentStats={}; for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key); return; }
+      refreshCurrentStats().catch(error=>{ $("source-status").textContent=`Scenario stats could not be refreshed: ${error.message}`; });
+    }
+    $("enable-distance-scenario").addEventListener("change",refreshScenarioControl);
+    $("target-distance").addEventListener("input",refreshScenarioControl);
 
     const STAT_CATEGORIES = [
       ["featured","Featured"],["offense","Offense"],["defense","Defense"],["resources","Resources"],["utility","Utility"],["pvp","PvP"],["control","Control"],["pve","Boss & PvE"],["directional","Positioning"],["species","Enemy Types"],["attributes","Attributes"]
@@ -348,11 +391,14 @@
       root.querySelector(".picker-trigger-count").textContent=`${availableStats(key).length} available`;
       renderPickerOptions(root,key); updateReady();
     }
-    function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
-    function request() { return { build:state.build, sourceKind:state.source, goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
+    function updateReady(){ const scenarioValid=!$("enable-distance-scenario").checked||Boolean(activeScenario()); $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length && scenarioValid && !state.scenarioError); }
+    function request() { return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     function openSharedResult(result) {
-      state.handoff.storeImprovedResult(sessionStorage,{result,priorities:state.increase,includeSetEffects:$("include-sets").checked,returnUrl:"./full-build-optimizer.html"});
+      const scenario=result.scenario??activeScenario(),scenarioNote=scenario?`Scenario scoring used a target distance of ${scenarioDistance(scenario)}m. Conditional overlays remain separate from persistent static totals.`:"",assumptions=[...(result.assumptions??[])];
+      if(scenarioNote&&!assumptions.includes(scenarioNote)) assumptions.push(scenarioNote);
+      const resultWithScenario=scenario?{...result,scenario,assumptions}:result;
+      state.handoff.storeImprovedResult(sessionStorage,{result:resultWithScenario,priorities:state.increase,includeSetEffects:$("include-sets").checked,returnUrl:"./full-build-optimizer.html"});
       location.href="./build-from-scratch.html?result=improved";
     }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -374,7 +420,7 @@
     function positionResultHover(event) { const card=$("result-hover"),x=Math.max(12,Math.min(event.clientX+18,window.innerWidth-card.offsetWidth-12)),flip=event.clientY>window.innerHeight*.55; card.style.left=`${x}px`; card.style.top=flip?"":`${Math.max(12,event.clientY-12)}px`; card.style.bottom=flip?`${Math.max(12,window.innerHeight-event.clientY-12)}px`:""; }
     function bindResultHover(result) {
       const root=$("results-state"); let active="";
-      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:$("include-sets").checked}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false}); if(!model){active="";return;} renderResultHover(model); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
+      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const scenario=result.scenario??activeScenario(),calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:$("include-sets").checked,...(scenario?{scenario}:{})}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false,...(scenario?{scenario}:{})}); if(!model){active="";return;} renderResultHover(model); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
       root.onmousemove=event=>{if(active)positionResultHover(event);}; root.onmouseleave=()=>{active="";$("result-hover").classList.add("hidden");$("result-hover").setAttribute("aria-hidden","true");};
     }
     function resultSnapshot(result) {
@@ -393,14 +439,15 @@
       const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":Number(row.delta)<0?"−":""}${esc(row.formattedDelta??Math.abs(Number(row.delta)))}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      const scenario=result.scenario??activeScenario(),distance=scenarioDistance(scenario),scenarioBadge=scenario?`<span class="scenario-score-badge">Scenario scoring · target ${esc(distance)}m</span>`:"";
+      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong>${scenarioBadge}</div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">${scenario?`Scenario fit score at ${esc(distance)}m`:"Static fit score"}</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
       $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
       $("save-result-preset").onclick=()=>{ try{saveResultAsPreset(result);$("result-status").textContent="Saved as a new Armory preset.";}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
       $("use-result-build").onclick=()=>{ try{state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
       bindResultHover(result); $("engine-status").textContent="Complete"; setView("result");
     }
     $("run-optimizer").addEventListener("click",()=>{
-      state.worker?.terminate(); $("run-optimizer").disabled=true; showProgress({percent:0,label:"Preparing your build",detail:"Starting the optimizer worker."});
+      state.worker?.terminate(); $("run-optimizer").disabled=true; const scenario=activeScenario(); showProgress({percent:0,label:"Preparing your build",detail:scenario?`Starting scenario scoring at ${scenarioDistance(scenario)}m.`:"Starting the static optimizer worker."});
       const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
       worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;try{openSharedResult(message.result);}catch(error){setEngineError(`The result could not be opened. ${error.message}`);}updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
       worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
