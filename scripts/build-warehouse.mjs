@@ -541,6 +541,8 @@ function buildTemporaryDatabase(tempPath, validated) {
       throw error;
     }
     assertWalCheckpointComplete(db.prepare("PRAGMA wal_checkpoint(TRUNCATE)").get());
+    const journalMode = db.prepare("PRAGMA journal_mode=DELETE").get();
+    invariant(String(journalMode?.journal_mode ?? "").toLowerCase() === "delete", `SQLite journal mode did not close to DELETE: ${JSON.stringify(journalMode)}`);
   } finally {
     db.close();
   }
@@ -574,9 +576,6 @@ export function verifyWarehouseDatabase(databasePath, validated, expectedSemanti
     const ftsCount = Number(db.prepare("SELECT COUNT(*) AS count FROM records_fts").get().count);
     invariant(recordCount === validated.decodedRows, `warehouse record count ${recordCount} does not match decoded count ${validated.decodedRows}`);
     invariant(ftsCount === recordCount, `warehouse FTS count ${ftsCount} does not match record count ${recordCount}`);
-    const missingFts = Number(db.prepare("SELECT COUNT(*) AS count FROM records r LEFT JOIN records_fts f ON f.record_id=r.record_id WHERE f.record_id IS NULL").get().count);
-    invariant(missingFts === 0, `warehouse FTS is missing ${missingFts} records`);
-
     const builds = db.prepare("SELECT game_build, COUNT(*) AS count FROM records GROUP BY game_build").all();
     invariant(
       recordCount === 0 ? builds.length === 0 : builds.length === 1 && builds[0].game_build === validated.options.build && Number(builds[0].count) === recordCount,
@@ -630,10 +629,6 @@ export function verifyWarehouseDatabase(databasePath, validated, expectedSemanti
 
 function removeSqliteFamily(file) {
   for (const candidate of [file, ...SQLITE_SIDECAR_SUFFIXES.map((suffix) => `${file}${suffix}`)]) rmSync(candidate, { force: true });
-}
-
-function removeSqliteSidecars(file) {
-  for (const suffix of SQLITE_SIDECAR_SUFFIXES) rmSync(`${file}${suffix}`, { force: true });
 }
 
 function fsyncFile(file, operations = {}) {
@@ -770,14 +765,15 @@ export function buildWarehouse(inputOptions = {}) {
   try {
     console.log(`Building temporary warehouse: ${tempPath}`);
     const built = buildTemporaryDatabase(tempPath, validated);
+    invariant(existingSqliteSidecars(tempPath, { existsSync }).length === 0, `temporary SQLite database did not close cleanly: ${existingSqliteSidecars(tempPath, { existsSync }).join(", ")}`);
     fsyncFile(tempPath);
     const verification = verifyWarehouseDatabase(tempPath, validated, built.semanticHashes);
-    removeSqliteSidecars(tempPath);
+    invariant(existingSqliteSidecars(tempPath, { existsSync }).length === 0, `temporary SQLite verification created sidecars: ${existingSqliteSidecars(tempPath, { existsSync }).join(", ")}`);
     let promotedStats;
     promoteDatabaseAtomic(tempPath, dbPath, (promotedPath) => {
       verifyWarehouseDatabase(promotedPath, validated, built.semanticHashes);
       promotedStats = warehouseStats(promotedPath);
-      removeSqliteSidecars(promotedPath);
+      invariant(existingSqliteSidecars(promotedPath, { existsSync }).length === 0, `promoted SQLite verification created sidecars: ${existingSqliteSidecars(promotedPath, { existsSync }).join(", ")}`);
     });
     return { ...promotedStats, verification };
   } catch (error) {

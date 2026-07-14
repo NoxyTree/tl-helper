@@ -82,6 +82,7 @@ test("warehouse and inventory preflight declare every input their builders consu
     path.join(context.dataRoot, "decoded", "999", "tables"),
     context.decodedBaselinePath,
   ]);
+  assert.notEqual(definitions.warehouse.inspectBeforeOutput, definitions.warehouse.inspectOutput);
 });
 
 test("warehouse and inventory revalidate the reviewed decoded baseline immediately before execution", () => {

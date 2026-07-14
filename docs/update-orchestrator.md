@@ -90,19 +90,20 @@ The orchestrator:
 - never stages or commits Git changes;
 - refuses to place the bulk data root inside the repository;
 - supplies the same build and data-root environment to every stage;
-- records commands, timings, exit codes, expected outputs, output tails, and
-  before/after semantic output identities;
+- records commands, timings, exit codes, expected outputs, output tails, a
+  side-effect-free pre-stage file identity, and deep post-stage semantics;
 - stops immediately after a failed stage.
 
 The safety report explicitly lists `replacesDerivedOutputs`. Warehouse and
 inventory builders replace their same-build derived output paths. This is not
 reported as source-data deletion, but it is also not described as append-only.
 
-The warehouse stage is not accepted merely because a SQLite file exists. The
-orchestrator opens it read-only and checks its game build, distinct table count,
-record count, and aggregate source-table hash against the decoded input universe.
-It also records the database SHA-256, size, reference count, asset count, and
-localized-record count before and after the stage.
+The warehouse stage is not accepted merely because a SQLite file exists. Before
+the stage, the orchestrator records only its SHA-256 and size, avoiding a SQLite
+open that could create legacy WAL-reader sidecars. After the stage, it opens the
+new `DELETE`-journal database read-only and checks its game build, distinct table
+count, record count, and aggregate source-table hash against the decoded input
+universe. It also records reference, asset, and localized-record counts.
 
 The inventory stage checks its game build, discovered table count,
 decoded-table count, and decoded-row count against `game_tables.csv` and the

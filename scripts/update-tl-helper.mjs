@@ -7,7 +7,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
-  existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync,
+  existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync,
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -183,6 +183,7 @@ export function stageDefinitions(context) {
         context.decodedBaselinePath,
       ],
       output: path.join(context.dataRoot, "warehouse", `tl-${context.build}.sqlite`),
+      inspectBeforeOutput: shallowFileIdentity,
       inspectOutput: warehouseSemanticIdentity,
       validateOutput: (identity) => validateWarehouseIdentity(identity, {
         build: context.build,
@@ -399,6 +400,12 @@ function inputFileIdentity(file) {
   return existsSync(file) ? { exists: true, path: file, sha256: fileSha256(file) } : { exists: false, path: file };
 }
 
+function shallowFileIdentity(file) {
+  return existsSync(file)
+    ? { exists: true, path: file, sha256: fileSha256(file), bytes: statSync(file).size }
+    : { exists: false, path: file };
+}
+
 export function collectDataBuildInputs(context) {
   return {
     decodedTables: decodedSemanticIdentity(path.join(context.dataRoot, "decoded", context.build, "tables")),
@@ -591,7 +598,10 @@ export function main(argv = process.argv.slice(2)) {
       const stageStarted = new Date();
       let beforeIdentity = null;
       let beforeIdentityError = null;
-      try { beforeIdentity = definition.inspectOutput?.(definition.output) ?? null; }
+      try {
+        const inspectBefore = definition.inspectBeforeOutput ?? definition.inspectOutput;
+        beforeIdentity = inspectBefore?.(definition.output) ?? null;
+      }
       catch (error) { beforeIdentityError = error.message; }
       const runtimeInputErrors = runtimeStageInputErrors(context, stageName, definition);
       if (runtimeInputErrors.length) {

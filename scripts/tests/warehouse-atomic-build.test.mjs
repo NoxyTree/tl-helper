@@ -141,6 +141,11 @@ test("warehouse validates all inputs, verifies the temp database, and promotes i
     assert.equal(result.verification.tables, 2);
     assert.deepEqual(Object.keys(result.verification.semanticHashes).sort(), ["assets", "decodedTables", "fts", "records", "refs"]);
     assert.equal(result.sourceManifestSha256, validated.provenance.sourceManifestSha256);
+    assert.equal(existsSync(`${fixture.dbPath}-wal`), false);
+    assert.equal(existsSync(`${fixture.dbPath}-shm`), false);
+    const modeDb = new DatabaseSync(fixture.dbPath, { readOnly: true });
+    try { assert.equal(String(modeDb.prepare("PRAGMA journal_mode").get().journal_mode).toLowerCase(), "delete"); }
+    finally { modeDb.close(); }
     const replacementResult = buildWarehouse(fixture.options);
     assert.equal(replacementResult.records, 1);
     assert.equal(readdirSync(path.dirname(fixture.dbPath)).some((name) => name.includes(".backup-")), false);
@@ -343,4 +348,9 @@ test("warehouse CLI accepts an explicit Questlog root", () => {
   );
   assert.throws(() => parseWarehouseArgs(["--questlog-root"]), /missing value/);
   assert.throws(() => parseWarehouseArgs(["--unknown", "x"]), /unknown argument/);
+});
+
+test("warehouse verification never joins records directly against unindexed FTS text", () => {
+  const source = readFileSync(path.resolve("scripts/build-warehouse.mjs"), "utf8");
+  assert.doesNotMatch(source, /JOIN\s+records_fts\b/i);
 });

@@ -85,6 +85,9 @@ One record per (source table, row). Entity-level merging (e.g. one "item" unitin
 ### `records_fts` (FTS5)
 
 Full-text over `record_id, row_id, name_loc` for discovery queries.
+Completeness is proven by record-count parity and the full ordered tuple hash.
+Validation does not equality-join `records` to FTS5 because FTS text columns
+are not ordinary indexed relational keys.
 
 ### `stat_sources` (derived index)
 
@@ -111,6 +114,9 @@ that are not yet materialized.
 2. Unknown/unsupported decoded fields stay in `raw_json` (`{"unsupported": ...}` markers); they are never dropped.
 3. Every record must be traceable: build + source path + sha256 + decoder version are NOT NULL.
 4. Rebuilding the warehouse for the same build is idempotent (full rebuild, same content).
+5. WAL is used only while constructing the temporary database. A verified
+   warehouse is checkpointed and closed in `DELETE` journal mode before
+   promotion, so read-only release inspection cannot create WAL sidecars.
 
 ## Data build receipt
 
