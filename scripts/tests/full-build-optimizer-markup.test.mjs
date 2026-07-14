@@ -8,7 +8,7 @@ test("full-build optimizer is a standalone shared-shell page", () => {
   assert.match(html, /<link[^>]+tl-shell\.css/);
   assert.match(html, /class="tl-app-header"/);
   assert.match(html, /Build Optimizer/);
-  assert.match(html, /Configure everything, then improve/);
+  assert.match(html, /Keep what matters\. Improve the rest\./);
 });
 
 test("optimizer exposes source, goal, lock, and search controls", () => {
@@ -19,8 +19,12 @@ test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /id="increase-picker"/);
   assert.match(html, /id="protect-picker"/);
   assert.match(html, /id="slot-locks"/);
-  assert.match(html, /data-value="fast"/);
-  assert.match(html, /data-value="thorough"/);
+  assert.match(html, /id="lock-heroics"[^>]+checked/);
+  assert.match(html, /id="lock-all-slots"/);
+  assert.match(html, /id="clear-slot-locks"/);
+  assert.doesNotMatch(html, /id="search-depth"|data-value="fast"|data-value="thorough"/);
+  assert.match(html, /depth:"refine"/);
+  assert.doesNotMatch(html, /id="keep-heroics"|id="reconsider-heroics"|id="best-heroic"/);
   assert.match(html, /id="cancel-optimizer"/);
 });
 
@@ -50,7 +54,7 @@ test("protected goals show current calculated floors and widen the workspace", (
 
 test("optimizer uses full-screen setup and loading before opening the shared result screen", () => {
   assert.match(html, /id="setup-state" class="setup-workspace"/);
-  assert.match(html, /grid-template-areas:"source goals" "locks rules" "actions actions"/);
+  assert.match(html, /grid-template-areas:"source goals" "locks goals" "rules rules" "actions actions"/);
   assert.match(html, /class="progress-card"/);
   assert.match(html, /Improving your build/);
   assert.match(html, /function setView\(view\)/);
@@ -61,7 +65,7 @@ test("optimizer uses full-screen setup and loading before opening the shared res
   assert.doesNotMatch(html, /id="empty-state"/);
   assert.match(html, /new Worker\("\.\/tl-builder-worker\.js"/);
   assert.match(html, /message\.type==="progress"/);
-  assert.match(html, /Bounded complete-build search/);
+  assert.match(html, /Complete-build search/);
 });
 
 test("improved results reuse the Build from Scratch result experience", () => {
@@ -71,13 +75,15 @@ test("improved results reuse the Build from Scratch result experience", () => {
 });
 
 test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
-  assert.match(html, /id="include-sets"[^>]+checked/);
-  assert.match(html, /Optimize 3 traits/);
-  assert.match(html, /Best Heroic configuration/);
-  assert.match(html, /Keep current Heroics/);
-  assert.match(html, /Reconsider Heroics/);
+  assert.match(html, /Lock equipped Heroics/);
+  assert.match(html, /includeSetEffects:true/);
+  assert.match(html, /optimizeThreeTraits:true/);
+  assert.match(html, /bestHeroicConfiguration:true/);
+  assert.match(html, /keepCurrentHeroics:lockHeroics/);
+  assert.match(html, /reconsiderHeroics:!lockHeroics/);
+  assert.match(html, /Item Potentials are excluded from calculations and recommendations/);
   assert.match(html, /Optimize normal/);
-  assert.match(html, /Use owned Chaos/);
+  assert.match(html, /Owned Chaos/);
   assert.match(html, /normalDuplicateCap:3/);
   assert.match(html, /chaosDuplicateCap:1/);
   assert.match(html, /Chaos rune IDs already equipped/);
@@ -93,7 +99,7 @@ test("optimizer uses a strict adapter and never fabricates recommendations", () 
   assert.match(html, /listStats/);
   assert.match(html, /tl-builder-worker\.js/);
   assert.match(html, /worker\.postMessage\(\{type:"optimize"/);
-  assert.match(html, /The page will never invent results/);
+  assert.match(html, /Results only come from the calculation engine|calculation rules automatically/);
   assert.match(html, /returned an invalid result/);
   assert.doesNotMatch(html, /setTimeout\([^)]*renderResult/);
 });
@@ -112,6 +118,6 @@ test("result contract includes comparison, deltas, explanations, warnings, and a
 
 test("result handoff remains independent of unlicensed market data", () => {
   assert.match(html, /priorities:state\.increase/);
-  assert.match(html, /includeSetEffects:\$\("include-sets"\)\.checked/);
+  assert.match(html, /includeSetEffects:true/);
   assert.doesNotMatch(html, /TLDB|\/api\/market\/prices|Lucent/);
 });

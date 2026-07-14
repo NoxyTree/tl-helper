@@ -23,7 +23,7 @@ function normalizeCandidates(slot, entries, locked) {
   const candidates = [...(entries ?? [])]
     .filter((candidate) => !locked || candidate.locked === true || stableId(candidate) === String(locked))
     .sort((a, b) => stableId(a).localeCompare(stableId(b)));
-  if (!candidates.length) throw new Error(`No legal candidates supplied for slot: ${slot}`);
+  if (!candidates.length) throw new Error(`No compatible equipment options were found for slot: ${slot}`);
   return candidates;
 }
 

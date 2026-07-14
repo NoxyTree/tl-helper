@@ -28,8 +28,8 @@ test("Full Build Optimizer creates one strict scenario for requests, results, ho
   assert.match(html, /import \{ formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps \} from "\.\/full-build-optimizer\.js"/);
   assert.match(html, /optimizerScenarioOptions\(\{targetDistanceMeters:inputs\.targetDistanceMeters,timeOfDay:\$\("scenario-time"\)\.value,sourceHealthRatioBps:inputs\.sourceHealthRatioBps,sourceManaRatioBps:inputs\.sourceManaRatioBps,sourceMotion:inputs\.sourceMotion,sourceEvent:inputs\.sourceEvent,sourceSocial:inputs\.sourceSocial\}\)/);
   assert.match(html, /state\.core\.createBuildScenario\(state\.build\.build\?\?state\.build,options\)/);
-  assert.match(html, /currentStats\(state\.build,\{includeSetEffects:\$\("include-sets"\)\.checked,\.\.\.scenarioRequestFields\(\)\}\)/);
-  assert.match(html, /function request\(\) \{ return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);
+  assert.match(html, /currentStats\(state\.build,\{includeSetEffects:true,\.\.\.scenarioRequestFields\(\)\}\)/);
+  assert.match(html, /function request\(\) \{ const lockHeroics=.*return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);
   assert.match(html, /result\.scenario\?\?activeScenario\(\)/);
   assert.match(html, /calculateBuild\(result\.build,result\.attributes\?\?result\.optimizedAttributes\?\?\{\}, \{includeSetEffects:[^}]+\.\.\.\(scenario\?\{scenario\}:\{\}\)\}\)/);
   assert.match(html, /buildItemHoverModel\(active,result\.build,calc,\{optionalFallback:false,\.\.\.\(scenario\?\{scenario\}:\{\}\)\}\)/);

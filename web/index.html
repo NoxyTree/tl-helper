@@ -2415,7 +2415,7 @@ class Component extends DCLogic {
       { label: "Support", value: `${supportCount}/${core.SUPPORT_SLOTS.length}`, color: supportCount === core.SUPPORT_SLOTS.length ? "#7ee0a6" : "#f3e9d4" },
     ];
     const overviewStatus = calculationState === "legal"
-      ? "Legal static totals · Item Potentials excluded"
+      ? "Calculated static totals · Item Potentials excluded"
       : `${core.label(calculationState)} · ${validationIssueCount} calculation ${validationIssueCount === 1 ? "issue" : "issues"}`;
     const overviewStatusColor = calculationState === "invalid" ? "#e58b84" : calculationState === "provisional" ? "#e5a06a" : "#7ee0a6";
     const tabDefs = [

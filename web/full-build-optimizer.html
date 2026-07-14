@@ -23,8 +23,8 @@
     h1 { margin-top:5px; font-size:clamp(30px,4vw,46px); }
     .lede { max-width:630px; margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55; }
     .step { color:var(--muted); font-size:12px; }
-    .setup-workspace { display:grid; grid-template-columns:minmax(300px,.75fr) minmax(0,1.65fr); grid-template-areas:"source goals" "locks rules" "actions actions"; gap:14px; align-items:start; transition:grid-template-columns .24s ease; animation:tlFade .24s ease; }
-    .setup-workspace:has(.picker-menu:not(.hidden)) { grid-template-columns:minmax(270px,.58fr) minmax(0,1.82fr); }
+    .setup-workspace { display:grid; grid-template-columns:minmax(300px,.72fr) minmax(0,1.55fr); grid-template-areas:"source goals" "locks goals" "rules rules" "actions actions"; gap:14px; align-items:start; transition:grid-template-columns .24s ease; animation:tlFade .24s ease; }
+    .setup-workspace:has(.picker-menu:not(.hidden)) { grid-template-columns:minmax(270px,.55fr) minmax(0,1.75fr); }
     .source-panel { grid-area:source; }
     .goals-panel { grid-area:goals; }
     .rules-panel { grid-area:rules; }
@@ -97,7 +97,22 @@
     .toggle-row input { margin-top:2px; accent-color:var(--gold); }
     .toggle-row strong { display:block; color:#e3d4b5; font-size:12.5px; font-weight:600; }
     .toggle-row small { display:block; margin-top:2px; color:var(--muted); font-size:10.5px; line-height:1.4; }
-    .scenario-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:end; margin-top:12px; padding:11px; border:1px solid rgba(185,140,240,.2); border-radius:9px; background:rgba(92,53,126,.08); }
+    .heroic-lock { display:grid; grid-template-columns:20px minmax(0,1fr); gap:9px; align-items:start; padding:12px; border:1px solid rgba(185,140,240,.4); border-radius:10px; background:linear-gradient(135deg,rgba(92,53,126,.16),rgba(9,7,5,.6)); cursor:pointer; }
+    .heroic-lock input { margin-top:3px; accent-color:#b98cf0; }
+    .heroic-lock strong,.heroic-lock small { display:block; }
+    .heroic-lock strong { color:#e8d7f5; font-size:12.5px; }
+    .heroic-lock small { margin-top:3px; color:#aa91bd; font-size:10px; line-height:1.4; }
+    .lock-toolbar { display:flex; gap:7px; margin:10px 0; }
+    .lock-toolbar button { min-height:32px; flex:1; padding:6px 9px; border:1px solid rgba(212,166,94,.2); border-radius:7px; background:rgba(8,6,4,.5); color:#cdbb98; cursor:pointer; font-size:10px; }
+    .lock-toolbar button:hover { border-color:rgba(242,199,119,.48); color:#f1d59e; }
+    .rules-grid { display:grid; grid-template-columns:minmax(220px,.7fr) minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:start; }
+    .rule-card { min-height:100%; padding:11px 12px; border:1px solid rgba(212,166,94,.14); border-radius:9px; background:rgba(8,6,4,.3); }
+    .rule-card .mode-group { margin-top:0; }
+    .automatic-note { margin:12px 0 0; color:#8fa5c2; font-size:10px; line-height:1.5; }
+    .advanced-options { margin-top:12px; border:1px solid rgba(185,140,240,.2); border-radius:9px; background:rgba(92,53,126,.06); }
+    .advanced-options summary { padding:11px 12px; color:#c6add9; cursor:pointer; font-size:11px; font-weight:600; list-style-position:inside; }
+    .advanced-options summary span { margin-left:7px; color:#806d90; font-size:9.5px; font-weight:400; }
+    .scenario-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:end; margin:0; padding:4px 12px 12px; }
     .scenario-enable { grid-column:1/-1; }
     .scenario-controls label { color:#d9c7e8; font-size:10.5px; line-height:1.45; }
     .scenario-controls label strong { display:block; color:#e9dcf4; font-size:11.5px; }
@@ -116,6 +131,8 @@
     .slot-lock strong,.slot-lock small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .slot-lock strong { font-size:10.5px; font-weight:600; }
     .slot-lock small { margin-top:2px; color:#806f55; font-size:8.5px; }
+    .slot-lock.is-heroic { border-color:rgba(185,140,240,.24); background:rgba(92,53,126,.08); }
+    .heroic-badge { display:inline-block; margin-left:5px; padding:1px 4px; border:1px solid rgba(185,140,240,.36); border-radius:4px; color:#b98cf0; font-size:6.5px; letter-spacing:.08em; text-transform:uppercase; vertical-align:1px; }
     .is-unavailable { opacity:.42; }
     .is-unavailable input,.is-unavailable button { cursor:not-allowed; }
     .actions { display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(90deg,rgba(33,24,13,.96),rgba(13,10,7,.96)); backdrop-filter:blur(8px); z-index:4; }
@@ -201,7 +218,7 @@
     @keyframes tlPulse { 50%{transform:rotate(45deg) scale(1.08);box-shadow:0 0 38px rgba(242,199,119,.24)} }
     @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:minmax(270px,.8fr) minmax(0,1.4fr)}}
     @media(min-width:901px){.goals-panel .picker-results{grid-template-columns:repeat(3,minmax(0,1fr))}.goals-panel .picker-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}
-    @media(max-width:900px){.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:1fr;grid-template-areas:"source" "goals" "rules" "locks" "actions"}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:900px){.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:1fr;grid-template-areas:"source" "goals" "locks" "rules" "actions"}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}.rules-grid{grid-template-columns:1fr}}
     @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     @keyframes tlFade { from{opacity:0} to{opacity:1} }
     @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
@@ -217,8 +234,8 @@
   </header>
 
 <main id="main-content">
-<div id="page-head" class="page-head"><div><div class="eyebrow">Full build lab</div><h1>Build around what matters</h1><p class="lede">Search complete loadouts, including sets, Heroics, runes, and artifacts, while locking expensive equipment and protecting the stats you cannot afford to lose.</p></div><div class="step">Configure everything, then improve</div></div>
-<p role="note" style="margin:-12px 0 16px;color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Same-item recommendations preserve stored selections.</p>
+<div id="page-head" class="page-head"><div><div class="eyebrow">Improve my build</div><h1>Keep what matters. Improve the rest.</h1><p class="lede">Choose your priorities, lock anything you refuse to replace, and let the optimizer calculate the strongest loadout that follows the game&apos;s equipment limits.</p></div><div class="step">Build. Goals. Locks. Improve.</div></div>
+<p role="note" style="margin:-12px 0 16px;color:#8fa5c2;font-size:10px;line-height:1.45;">Set effects and three compatible traits are always included. Item Potentials are excluded. Search quality is selected automatically.</p>
     <div id="setup-state" class="setup-workspace">
         <section class="panel source-panel" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Choose your build</h2></div><div class="panel-body">
           <div class="experience-switch" aria-label="Optimizer experience"><span class="active">Improve my build</span><a href="./build-from-scratch.html">Build from scratch</a></div>
@@ -233,16 +250,17 @@
           <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
         </div></section>
 
-        <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">3. Search rules</h2></div><div class="panel-body">
-          <div class="toggle-list">
-            <label class="toggle-row"><input id="endgame-only" type="checkbox" checked><span><strong>Endgame equipment only</strong><small>Excludes levelling and starter equipment below level 50 from replacements.</small></span></label>
-            <label class="toggle-row"><input id="keep-heroics" type="checkbox" checked><span><strong>Keep current Heroics</strong><small>Locks equipped Heroics by default because replacing them is expensive.</small></span></label>
-            <label class="toggle-row"><input id="reconsider-heroics" type="checkbox"><span><strong>Reconsider Heroics</strong><small>Suggest the best legal Heroic in each equipment group.</small></span></label>
-            <label class="toggle-row"><input id="include-sets" type="checkbox" checked><span><strong>Include set effects</strong><small>Scores activated and broken equipment set thresholds.</small></span></label>
-            <label class="toggle-row"><input id="optimize-traits" type="checkbox" checked><span><strong>Optimize 3 traits</strong><small>Selects exactly three legal normal traits per item.</small></span></label>
-            <label class="toggle-row"><input id="best-heroic" type="checkbox" checked><span><strong>Best Heroic configuration</strong><small>Uses one Heroic trait and maximum-level effects for theoretical suggestions.</small></span></label>
+        <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">4. Optional choices</h2><span class="section-kicker">Defaults are recommended</span></div><div class="panel-body">
+          <div class="rules-grid">
+            <div class="rule-card"><label class="toggle-row"><input id="endgame-only" type="checkbox" checked><span><strong>Endgame equipment only</strong><small>Ignore levelling and starter equipment below level 50.</small></span></label></div>
+            <div class="rule-card"><div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep mine</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Owned Chaos</button></div></div></div>
+            <div class="rule-card"><div class="mode-group"><span>Artifacts</span><div id="artifact-mode" class="segmented"><button type="button" data-value="keep" class="active">Keep mine</button><button type="button" data-value="sets">Optimize sets</button></div></div></div>
           </div>
-          <div class="scenario-controls">
+          <p id="chaos-warning" class="warning hidden">Only Chaos rune IDs already equipped in the source build are treated as owned, with no more than one Chaos rune per item.</p>
+          <p class="automatic-note">Always on: exact set-effect scoring, three compatible normal traits per replacement, the game&apos;s Heroic limits, automatic Heroic trait and effect configuration when replacements are allowed, and the strongest retained search profile. Item Potentials are excluded from calculations and recommendations in this release.</p>
+          <details class="advanced-options">
+            <summary>Advanced combat scenario <span>Distance, time, resources, movement, and nearby players</span></summary>
+            <div class="scenario-controls">
             <label class="scenario-enable" for="enable-distance-scenario"><strong><input id="enable-distance-scenario" type="checkbox"> Score a combat scenario</strong>Opt in to decoded distance, time, resources, movement, successful source-event, party, and nearby-ally effects. Leave uncertain dimensions unspecified. Static scoring remains the default.</label>
             <label for="target-distance"><strong>Target distance</strong><input id="target-distance" type="number" min="0" step="0.5" value="10" inputmode="decimal" disabled aria-describedby="distance-scenario-status"></label>
             <label for="scenario-time"><strong>Time of day</strong><select id="scenario-time" disabled><option value="unspecified">Unspecified</option><option value="day">Day</option><option value="night">Night</option></select></label>
@@ -261,17 +279,19 @@
             <p class="scenario-status">Blank social counts remain unspecified. Enter 0 only when you know there are none.</p>
             <p class="scenario-status">Evaluation-instant assertion only: the qualifying activation completed successfully now. Elapsed buff duration is not modeled.</p>
             <p id="distance-scenario-status" class="scenario-status" role="status">Disabled. Current stats and recommendations use persistent static totals only.</p>
-          </div>
-          <div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Use owned Chaos</button></div><p id="chaos-warning" class="warning hidden">Chaos runes are stronger and acquisition is chance-based. Only Chaos rune IDs already equipped in the source build are considered owned, with no more than one Chaos rune per item. Normal rune and stat choices may repeat across all three sockets.</p></div>
-          <div class="mode-group"><span>Artifacts</span><div id="artifact-mode" class="segmented"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="sets">Optimize sets</button></div></div>
-          <div class="mode-group"><span>Search depth</span><div id="search-depth" class="segmented"><button type="button" data-value="fast" class="active">Fast</button><button type="button" data-value="thorough">Thorough</button></div><p class="hint">Thorough searches a wider candidate frontier and may take longer.</p></div>
+            </div>
+          </details>
         </div></section>
 
-        <section id="locks-panel" class="panel locks-panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">4. Lock slots</h2><span class="section-kicker">Optional</span></div><div class="panel-body"><div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">A locked slot keeps its current item, traits, runes, and configured effects.</p></div></section>
-        <div class="actions setup-actions"><span class="hint" style="margin:auto 8px auto 0;">Results only come from the calculation engine. The page will never invent results.</span><button id="run-optimizer" class="primary" type="button" disabled>Improve my build</button></div>
+        <section id="locks-panel" class="panel locks-panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">3. Keep equipment</h2><span class="section-kicker">Lock only what must stay</span></div><div class="panel-body">
+          <label class="heroic-lock"><input id="lock-heroics" type="checkbox" checked><span><strong>Lock equipped Heroics</strong><small id="heroic-lock-copy">Your equipped Heroic items and their exact configurations will stay.</small></span></label>
+          <div class="lock-toolbar"><button id="lock-all-slots" type="button">Lock all equipped</button><button id="clear-slot-locks" type="button">Clear slot locks</button></div>
+          <div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">Tick any additional item you do not want replaced.</p>
+        </div></section>
+        <div class="actions setup-actions"><span class="hint" style="margin:auto 8px auto 0;">Choose at least one stat. The optimizer handles search quality and calculation rules automatically.</span><button id="run-optimizer" class="primary" type="button" disabled>Improve my build</button></div>
     </div>
     <section id="output" class="panel output-stage hidden" aria-live="polite">
-      <div id="progress-state" class="progress-wrap hidden"><div class="progress-card"><div class="progress-sigil"><span>✦</span></div><div class="section-kicker">Improving your build</div><h2 id="progress-label">Preparing candidates</h2><p id="progress-detail">Building legal slot candidates.</p><div class="progress-head"><strong>Bounded complete-build search</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><div class="progress-steps"><span class="progress-step active">Catalogue</span><span class="progress-step">Constraints</span><span class="progress-step">Attributes</span><span class="progress-step">Assemble</span></div><button id="cancel-optimizer" class="secondary" type="button">Cancel and return</button></div></div>
+      <div id="progress-state" class="progress-wrap hidden"><div class="progress-card"><div class="progress-sigil"><span>✦</span></div><div class="section-kicker">Improving your build</div><h2 id="progress-label">Preparing equipment</h2><p id="progress-detail">Checking compatible options for every slot.</p><div class="progress-head"><strong>Complete-build search</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><div class="progress-steps"><span class="progress-step active">Catalogue</span><span class="progress-step">Limits</span><span class="progress-step">Attributes</span><span class="progress-step">Assemble</span></div><button id="cancel-optimizer" class="secondary" type="button">Cancel and return</button></div></div>
       <div id="error-state" class="result-empty hidden"><div><h2>Optimizer unavailable</h2><p id="error-message" class="error"></p><button id="retry-engine" class="secondary" type="button">Retry connection</button></div></div>
       <div id="results-state" class="results hidden"></div>
     </section>
@@ -282,13 +302,19 @@
     import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./full-build-optimizer.js";
 
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
+    function syncHeroicLocks() {
+      const lockHeroics=$('lock-heroics').checked,heroicInputs=[...document.querySelectorAll('[data-heroic="true"]')];
+      heroicInputs.forEach(input=>{ if(lockHeroics){ if(input.dataset.forced!=="true") input.dataset.priorChecked=String(input.checked); input.dataset.forced="true"; input.checked=true; input.disabled=true; } else { input.disabled=false; if(input.dataset.forced==="true") input.checked=input.dataset.priorChecked==="true"; delete input.dataset.forced; delete input.dataset.priorChecked; } });
+      $('heroic-lock-copy').textContent=heroicInputs.length?`${heroicInputs.length} equipped Heroic${heroicInputs.length===1?" is":"s are"} ${lockHeroics?"locked with exact configurations":"eligible for replacement"}.`:'No Heroic equipment is currently equipped.';
+    }
     function renderLocks() {
       const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
-      $("slot-locks").innerHTML=slots.map((slot,index)=>{ const selection=build?.equipment?.[slot.id],item=state.core?.indexes?.itemById?.[selection?.itemId],available=Boolean(item); return `<label class="slot-lock ${available?"":"is-unavailable"}" title="${available?`Keep ${esc(item.name)}`:"Nothing is equipped in this slot"}"><input type="checkbox" data-slot="${index}" ${available?"":"disabled"}><span><strong>${esc(slot.label??SLOTS[index]??slot.id)}</strong>${available?`<small>${esc(item.name)}</small>`:""}</span></label>`; }).join("");
+      $("slot-locks").innerHTML=slots.map((slot,index)=>{ const selection=build?.equipment?.[slot.id],item=state.core?.indexes?.itemById?.[selection?.itemId],available=Boolean(item),heroic=available&&item.grade===state.core?.HEROIC_GRADE; return `<label class="slot-lock ${available?"":"is-unavailable"} ${heroic?"is-heroic":""}" title="${available?`Keep ${esc(item.name)}`:"Nothing is equipped in this slot"}"><input type="checkbox" data-slot="${index}" data-heroic="${heroic}" ${available?"":"disabled"}><span><strong>${esc(slot.label??SLOTS[index]??slot.id)}${heroic?'<span class="heroic-badge">Heroic</span>':""}</strong>${available?`<small>${esc(item.name)}</small>`:""}</span></label>`; }).join("");
       const equipped=slots.filter(slot=>build?.equipment?.[slot.id]?.itemId).length;
-      $("locks-hint").textContent=build&&equipped<slots.length?`${equipped}/${slots.length} equipment slots are filled. Empty slots cannot be locked and will be treated as upgrade opportunities.`:"A locked slot keeps its current item, traits, runes, and configured effects.";
+      $("locks-hint").textContent=build&&equipped<slots.length?`${equipped}/${slots.length} slots are filled. Empty slots are treated as upgrade opportunities.`:"Tick any additional item you do not want replaced.";
+      syncHeroicLocks();
     }
     function refreshEventWeaponOptions() {
       const select=$("scenario-event-weapon"),build=state.build?.build??state.build,current=select.value;
@@ -299,7 +325,10 @@
 
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
-    selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
+    selectButtonGroup("artifact-mode","artifactMode");
+    $("lock-heroics").addEventListener("change",syncHeroicLocks);
+    $("lock-all-slots").addEventListener("click",()=>document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=true;}));
+    $("clear-slot-locks").addEventListener("click",()=>document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=false;}));
     document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); renderLocks(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setView(view) {
@@ -325,7 +354,7 @@
     async function refreshCurrentStats() {
       state.scenarioError="";
       try {
-        state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:$("include-sets").checked,...scenarioRequestFields()}) : {};
+        state.currentStats=state.build ? await state.adapter.currentStats(state.build,{includeSetEffects:true,...scenarioRequestFields()}) : {};
       } catch(error) {
         if(!activeScenario())throw error;
         state.currentStats={}; state.scenarioError=String(error?.message??error);
@@ -336,7 +365,6 @@
     }
     async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } renderLocks(); updateReady(); }
     $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Import failed: ${error.message}`; } finally { renderLocks(); $("import-build").disabled=false; updateReady(); } });
-    $("include-sets").addEventListener("change",()=>refreshCurrentStats().catch(error=>{ $("source-status").textContent=`Current stats could not be refreshed: ${error.message}`; }));
     function readScenarioInputs() {
       const distanceInput=$("target-distance"),rawDistance=distanceInput.value.trim(),targetDistanceMeters=Number(rawDistance);
       const distanceValid=Boolean(rawDistance)&&distanceInput.checkValidity()&&Number.isFinite(targetDistanceMeters)&&targetDistanceMeters>=0;
@@ -459,13 +487,13 @@
       renderPickerOptions(root,key); updateReady();
     }
     function updateReady(){ const scenarioValid=!$("enable-distance-scenario").checked||Boolean(activeScenario()); $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length && scenarioValid && !state.scenarioError); }
-    function request() { return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
-    function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
+    function request() { const lockHeroics=$("lock-heroics").checked; return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:lockHeroics, reconsiderHeroics:!lockHeroics, includeSetEffects:true, optimizeThreeTraits:true, bestHeroicConfiguration:true, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:"refine" }; }
+    function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Checking complete equipment combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     function openSharedResult(result) {
       const scenario=result.scenario??activeScenario(),scenarioNote=scenario?`Scenario scoring used ${formatOptimizerScenario(scenario)}. Conditional overlays remain separate from persistent static totals.`:"",assumptions=[...(result.assumptions??[])];
       if(scenarioNote&&!assumptions.includes(scenarioNote)) assumptions.push(scenarioNote);
       const resultWithScenario=scenario?{...result,scenario,assumptions}:result;
-      state.handoff.storeImprovedResult(sessionStorage,{result:resultWithScenario,priorities:state.increase,includeSetEffects:$("include-sets").checked,returnUrl:"./full-build-optimizer.html"});
+      state.handoff.storeImprovedResult(sessionStorage,{result:resultWithScenario,priorities:state.increase,includeSetEffects:true,returnUrl:"./full-build-optimizer.html"});
       location.href="./build-from-scratch.html?result=improved";
     }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -487,7 +515,7 @@
     function positionResultHover(event) { const card=$("result-hover"),x=Math.max(12,Math.min(event.clientX+18,window.innerWidth-card.offsetWidth-12)),flip=event.clientY>window.innerHeight*.55; card.style.left=`${x}px`; card.style.top=flip?"":`${Math.max(12,event.clientY-12)}px`; card.style.bottom=flip?`${Math.max(12,window.innerHeight-event.clientY-12)}px`:""; }
     function bindResultHover(result) {
       const root=$("results-state"); let active="";
-      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const scenario=result.scenario??activeScenario(),calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:$("include-sets").checked,...(scenario?{scenario}:{})}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false,...(scenario?{scenario}:{})}); if(!model){active="";return;} renderResultHover(model); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
+      root.onmouseover=event=>{ const target=event.target.closest("[data-result-slot]"); if(!target||target.dataset.resultSlot===active)return; active=target.dataset.resultSlot; const scenario=result.scenario??activeScenario(),calc=state.core.calculateBuild(result.build,result.attributes??result.optimizedAttributes??{}, {includeSetEffects:true,...(scenario?{scenario}:{})}); const model=state.core.buildItemHoverModel(active,result.build,calc,{optionalFallback:false,...(scenario?{scenario}:{})}); if(!model){active="";return;} renderResultHover(model); $("result-hover").classList.remove("hidden"); $("result-hover").setAttribute("aria-hidden","false"); positionResultHover(event); };
       root.onmousemove=event=>{if(active)positionResultHover(event);}; root.onmouseleave=()=>{active="";$("result-hover").classList.add("hidden");$("result-hover").setAttribute("aria-hidden","true");};
     }
     function resultSnapshot(result) {

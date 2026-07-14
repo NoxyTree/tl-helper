@@ -30,7 +30,7 @@ test("Gear Viewer carries motion through scenario identity, URLs, and compact pr
 test("Full Build Optimizer carries motion through current, request, finalist, hover, and handoff paths", () => {
   assert.match(optimizer, /sourceMotion:inputs\.sourceMotion/);
   assert.match(optimizer, /currentStats\(state\.build,\{includeSetEffects:[^}]+\.\.\.scenarioRequestFields\(\)/);
-  assert.match(optimizer, /function request\(\) \{ return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);
+  assert.match(optimizer, /function request\(\) \{ const lockHeroics=.*return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);
   assert.match(optimizer, /result\.scenario\?\?activeScenario\(\)/);
   assert.match(optimizer, /buildItemHoverModel\(active,result\.build,calc,\{optionalFallback:false,\.\.\.\(scenario\?\{scenario\}:\{\}\)\}\)/);
   assert.match(optimizer, /storeImprovedResult\(sessionStorage,\{result:resultWithScenario/);

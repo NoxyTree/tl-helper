@@ -444,7 +444,7 @@ test("existing-build optimization locks weapon families while preserving source 
 
   const calculateBuild = core.calculateBuild;
   core.calculateBuild = (...args) => ({ ...calculateBuild(...args), validation: { issues: [{ severity: "error", code: "mastery_budget_exceeded", message: "Bow mastery budget exceeded." }] } });
-  await assert.rejects(() => adapter.optimize({ build: source, goals: { increase: ["attack"] }, rules: {} }), /not calculation-legal.*mastery budget exceeded/i);
+  await assert.rejects(() => adapter.optimize({ build: source, goals: { increase: ["attack"] }, rules: {} }), /cannot be calculated.*mastery budget exceeded/i);
 });
 
 test("saved Armory state is returned with build and attributes", async () => {
@@ -596,7 +596,7 @@ test("exact evaluation refuses an invalid finalist", async () => {
   await assert.rejects(() => adapter.optimize({
     build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
     sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
-  }), /No calculation-legal finalist survived exact evaluation/);
+  }), /No complete build passed the final calculation checks/);
 });
 
 test("candidate generation excludes an unmapped persistent item before beam scoring", async () => {

@@ -90,13 +90,13 @@ test("Builder results use the shared Armory hover card contract", () => {
   assert.match(html, /Each effect may be selected only once per item/);
 });
 
-test("result tuning links two to five real-stat sliders to retained legal builds", () => {
+test("result tuning links two to five real-stat sliders to retained complete builds", () => {
   assert.match(html, /Tune the tradeoff/);
   assert.match(html, /class="tl-tune-range"/);
   assert.match(html, /paretoTuneFrontier/);
   assert.match(html, /selectLinkedTuneCandidate/);
   assert.match(html, /s\.priorities\.slice\(0,5\)/);
-  assert.match(html, /non-dominated legal build/);
+  assert.match(html, /complete recalculated build/);
   assert.match(html, /tradeoff builds/);
   assert.match(html, /Hard cap/);
   assert.match(html, /General PvP diff/);

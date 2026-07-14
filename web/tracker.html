@@ -568,7 +568,7 @@ class Component extends DCLogic {
       charLoading: false,
       charName: this.state.profile.name,
       portraitSubtitle: `${this.state.profile.role} · ${weaponPairLabel}`,
-      calculationStatusLabel: calc.status?.state === "legal" ? "Legal static totals · Item Potentials excluded" : `${core.label(calc.status?.state ?? "provisional")} static totals · Item Potentials excluded`,
+      calculationStatusLabel: calc.status?.state === "legal" ? "Calculated static totals · Item Potentials excluded" : `${core.label(calc.status?.state ?? "provisional")} static totals · Item Potentials excluded`,
       calculationStatusColor: calc.status?.state === "invalid" ? "#e58b84" : calc.status?.state === "provisional" ? "#e5a06a" : "#7ee0a6",
       leftSlots: leftIds.map((id) => this.slotMini(id)),
       rightSlots: rightIds.map((id) => this.slotMini(id)),
