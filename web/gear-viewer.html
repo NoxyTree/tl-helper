@@ -232,6 +232,7 @@
 
   <script type="module">
     import * as core from "./tl-core.js";
+    import { staticCalculationFingerprint } from "./tl-build-snapshot.js";
     import { STAT_EXPANSIONS } from "./tl-questlog-rules.js";
     import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
     import { loadArmoryState } from "./tl-persistence.js";
@@ -468,14 +469,22 @@
     // ---------- compute pipeline (chunked, cancellable, cached) ----------
     const poolCache = new Map();
     let computeToken = 0;
+    let calculationBlock = null;
 
     async function computeRows() {
-      const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${state.includeSetEffects ? "sets" : "no-sets"}|${objectiveKey}`;
-      if (poolCache.has(key)) return poolCache.get(key);
-      const token = ++computeToken;
       const { build, attributes } = scoringContext();
-      const currentTotals = Object.fromEntries(core.calculateBuild(build, attributes, { includeSetEffects: state.includeSetEffects }).stats.map((row) => [row.id, row.total]));
+      const currentCalculation = core.calculateBuild(build, attributes, { includeSetEffects: state.includeSetEffects });
+      calculationBlock = state.mode === "bare" || currentCalculation.status?.state === "legal" ? null : currentCalculation.status;
+      if (calculationBlock) return [];
+      const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
+      const calculationKey = staticCalculationFingerprint({ build, attributes, includeSetEffects: state.includeSetEffects });
+      const key = `${state.mode}|${calculationKey}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${objectiveKey}`;
+      if (poolCache.has(key)) {
+        calculationBlock = null;
+        return poolCache.get(key);
+      }
+      const token = ++computeToken;
+      const currentTotals = Object.fromEntries(currentCalculation.stats.map((row) => [row.id, row.total]));
       const items = core.data.items.filter((item) => TYPE_SLOT[item.equipmentType] && SLOT_CATEGORY[TYPE_SLOT[item.equipmentType]] !== "support");
       const rows = [];
       $("progress").classList.remove("hidden");
@@ -516,6 +525,12 @@
           for (const variant of variants) {
             const selection = { ...baseSelection, perkId: variant.perkId };
             if (repeatsPassiveOutsideSlot(slotId, item, selection, build)) continue;
+            const selectionStatus = core.itemSelectionCalculationStatus(item, selection, {
+              slotId,
+              equippedWeaponTypes: [...prospectiveWeaponTypes(slotId, item, build)],
+            });
+            if (selectionStatus.state !== "legal") continue;
+            if (core.slotSelectionCalculationStatus(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects })?.state !== "legal") continue;
             const contribution = candidateContribution(slotId, selection, build, attributes);
             const availableStatIds = potentialStatIds(item, contribution);
             rows.push({
@@ -872,9 +887,10 @@
       if (!candidate) return null;
       const { item, slotId, selection } = candidate;
       const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${state.includeSetEffects ? "sets" : "no-sets"}|${objectiveKey}|${candidateId}`;
-      if (hoverModelCache.has(key)) return hoverModelCache.get(key);
       const context = scoringContext();
+      const calculationKey = staticCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects });
+      const key = `${state.mode}|${calculationKey}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${objectiveKey}|${candidateId}`;
+      if (hoverModelCache.has(key)) return hoverModelCache.get(key);
       const beforeCalc = core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects });
       const build = core.deepClone(context.build);
       core.slotCollectionForSlot(build, slotId)[slotId] = selection;
@@ -1009,7 +1025,12 @@
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
-      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+      if (calculationBlock) {
+        const count = calculationBlock.blockingIssues?.length ?? 0;
+        $("status").innerHTML = `<span class="error">${core.label(calculationBlock.state)} build: ${count} calculation issue${count === 1 ? "" : "s"} must be resolved before build-aware gear ranking.</span>`;
+      } else {
+        $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+      }
       writeHash();
     }
 

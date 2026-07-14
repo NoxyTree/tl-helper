@@ -64,6 +64,8 @@ test("forge runs in a worker and remains cancellable", () => {
 
 test("result is calculated and inspectable rather than mocked", () => {
   assert.match(html, /calculateBuild\(result\.build/);
+  assert.match(html, /resultCalc\.status\?\.state!==\'legal\'/);
+  assert.match(html, /It was not displayed or saved/);
   assert.match(html, /result\?\.allStats/);
   assert.match(html, /result\?\.goalResults/);
   assert.match(html, /result\.optimizedAttributes/);

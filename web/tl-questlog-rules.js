@@ -289,11 +289,9 @@ applyDecodedRuleCorrections();
 // Questlog's stat calculation excludes as well — selecting them contributes
 // nothing by design (validateBuild surfaces this as an info issue).
 export const UNIFIED_MASTERY_RULES={WM_Common_SKILL_007:{phase:1,effect:(e,t)=>[{statId:"dex",value:z("dex",1)},{statId:"con",value:z("con",1)},{statId:"per",value:z("per",1)},{statId:"str",value:z("str",1)},{statId:"int",value:z("int",1)}]}};
-// SkillSet_Unique_Accessory_Skill_01 exists in BOTH ITEM_PASSIVE_RULES and
-// PERK_PASSIVE_RULES — mirrored from Questlog's bundle, which has it in both
-// tables too. No item in the current dataset carries it as an innate passive
-// (only as a selectable perk), and applyQuestlogPhase guards against an item
-// triggering the same rule id through both branches.
+// SkillSet_Unique_Accessory_Skill_01 is currently a selectable Skill Core only.
+// The canonical passive-effect contract verifies that it remains reachable
+// through the correct projected catalogue and registry path.
 export const PERK_PASSIVE_RULES={
   SkillSet_Unique_Armor_Skill_01:bulwarkRule,
   SkillSet_Unique_Accessory_Skill_01:{phase:1,effect:()=>[{statId:"range_armor",value:z("range_armor",300)},{statId:"melee_armor",value:z("melee_armor",300)},{statId:"cost_max",value:z("cost_max",1e3)}]},

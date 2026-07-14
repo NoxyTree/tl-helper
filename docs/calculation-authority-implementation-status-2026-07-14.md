@@ -1,5 +1,7 @@
 # Calculation Authority Implementation Status
 
+> Historical implementation checkpoint. The completed current review is in `docs/calculation-authority-final-review-2026-07-14.md`.
+
 Date: 2026-07-14  
 Game data build: `24118850`  
 Branch: `codex/calculation-consistency-release`  

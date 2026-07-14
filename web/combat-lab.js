@@ -1,6 +1,6 @@
-import { ARTIFACT_SLOTS, EQUIPMENT_SLOTS, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
+import { ARTIFACT_SLOTS, EQUIPMENT_SLOTS, data as coreData, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
 import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
-import { inferBuildAttackType, resolveVisibleMatchupInputs } from "./combat-lab-build-inputs.js";
+import { inferBuildAttackType, isLegalBuildSnapshot, resolveVisibleMatchupInputs, selectAbilityWeaponHand } from "./combat-lab-build-inputs.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
 import {
   HEALING_CASTS,
@@ -16,8 +16,8 @@ import {
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-context","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
-const state = { data: null, builds: [] };
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","matchup-title","matchup-context","matchup-results","matchup-note","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-source-note","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const state = { data: null, builds: [], excludedBuilds: [] };
 const ABILITY_ART = Object.freeze({
   "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
   "swift-healing": "./assets/icons/Game/Image/Skill/Active/S_WP_WA_GR_S_Heal_AA.webp",
@@ -34,6 +34,9 @@ async function boot() {
   ]);
   if (!abilityResponse.ok) throw new Error(`Combat ability data failed to load (${abilityResponse.status}). Run the combat ability data build first.`);
   state.data = loadCombatLabData(await abilityResponse.json());
+  if (String(state.data.gameBuild) !== String(coreData?.gameBuild)) {
+    throw new Error(`Combat ability data build ${state.data.gameBuild} does not match static calculator build ${coreData?.gameBuild ?? "unknown"}.`);
+  }
   ui["game-build"].textContent = state.data.gameBuild;
   const reference = referenceResponse.ok ? await referenceResponse.json() : null;
   state.builds = collectBuilds(reference);
@@ -45,6 +48,7 @@ async function boot() {
   updateModeControls();
   populateLevels();
   updateBuildSummaries();
+  syncDamageSourceToAbility();
   syncAttackTypeFromSource();
   prefillMatchup();
   prefillDamage();
@@ -55,6 +59,7 @@ async function boot() {
 
 function collectBuilds(reference) {
   const candidates = [];
+  state.excludedBuilds = [];
   const current = loadArmoryState(localStorage, { currentGameBuild: state.data.gameBuild });
   if (current.ok) candidates.push({ id: "current", label: current.data.build?.name || "Current Armory build", state: current.data });
   const presets = loadArmoryPresets(localStorage, { currentGameBuild: state.data.gameBuild });
@@ -65,7 +70,11 @@ function collectBuilds(reference) {
     try {
       candidate.snapshot = resolveBuildSnapshot({ build: candidate.state.build, attributes: candidate.state.attributes, metadata: { gameDataBuild: state.data.gameBuild } });
     } catch { return false; }
-    const signature = JSON.stringify(candidate.state.build);
+    if (!isLegalBuildSnapshot(candidate.snapshot)) {
+      state.excludedBuilds.push({ label: candidate.label, status: candidate.snapshot.resolved.status });
+      return false;
+    }
+    const signature = JSON.stringify({ build: candidate.state.build, attributes: candidate.state.attributes ?? {} });
     if (seen.has(signature)) return false;
     seen.add(signature);
     return true;
@@ -95,13 +104,13 @@ function populateStaticOptions() {
 
 function bindEvents() {
   for (const id of ["ability-tab", "matchup-tab"]) ui[id].addEventListener("click", () => selectView(ui[id].dataset.view));
-  ui.ability.addEventListener("change", () => { populateComponents(); updateModeControls(); populateOutcomes(); updateBuildSummaries(); prefillHealing(); render(); });
+  ui.ability.addEventListener("change", () => { populateComponents(); updateModeControls(); populateOutcomes(); updateBuildSummaries(); syncDamageSourceToAbility(); prefillDamage(); prefillHealing(); render(); });
   ui.component.addEventListener("change", () => { syncCastFromComponent(); render(); });
   ui.cast.addEventListener("change", () => { syncComponentFromCast(); render(); });
   ui.tier.addEventListener("change", () => { populateLevels(); render(); });
   ui.level.addEventListener("change", render);
   ui.outcome.addEventListener("change", render);
-  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); syncDamageSourceToAbility(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["source-questlog-import"].addEventListener("click", () => importQuestlog("source"));
   ui["target-questlog-import"].addEventListener("click", () => importQuestlog("target"));
@@ -109,7 +118,12 @@ function bindEvents() {
   ui["attack-type"].addEventListener("change", () => { byId("attack-type-note").textContent = `Manual override: ${title(ui["attack-type"].value)} attacks.`; prefillMatchup(); render(); });
   ui["pvp-mode"].addEventListener("change", render);
   for (const id of ["pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr"]) ui[id].addEventListener("input", render);
-  ui["damage-source"].addEventListener("change", () => { prefillDamage(); render(); });
+  ui["damage-source"].addEventListener("change", () => {
+    if (ui["damage-source"].value !== "manual") syncDamageSourceToAbility();
+    ui["damage-source-note"].textContent = ui["damage-source"].value === "manual" ? "Manual Base Damage values are being used." : ui["damage-source-note"].textContent;
+    prefillDamage();
+    render();
+  });
   ui["damage-min"].addEventListener("input", render);
   ui["damage-max"].addEventListener("input", render);
   ui.healing.addEventListener("input", render);
@@ -185,7 +199,7 @@ async function importQuestlog(side) {
     }
     ui[`${side}-build`].value = importedCandidates[0].id;
     updateBuildSummaries();
-    if (side === "source") syncAttackTypeFromSource();
+    if (side === "source") { syncAttackTypeFromSource(); syncDamageSourceToAbility(); }
     prefillDamage();
     prefillHealing();
     prefillMatchup();
@@ -210,9 +224,14 @@ function questlogCandidate(payload, rawBuild) {
   const imported = importQuestlogBuild({ characterData: payload.characterData, build: sourceBuild, skillBuild, masteryBuild });
   const id = `questlog:${payload.characterSlug}:${sourceBuild.id}`;
   const label = `${imported.profile.name} · ${sourceBuild.name ?? `Build ${sourceBuild.id}`}`;
+  const snapshot = resolveBuildSnapshot({ build: imported.build, attributes: imported.attributes, metadata: { gameDataBuild: state.data.gameBuild } });
+  if (!isLegalBuildSnapshot(snapshot)) {
+    const count = snapshot.resolved.status?.blockingIssues?.length ?? 0;
+    throw new Error(`Imported build is ${snapshot.resolved.status?.state ?? "provisional"} with ${count} calculation issue${count === 1 ? "" : "s"}; Combat Lab requires a legal static snapshot.`);
+  }
   return {
     id, label, state: imported, profile: imported.profile, source: "questlog", sourceUrl: payload.sourceUrl,
-    snapshot: resolveBuildSnapshot({ build: imported.build, attributes: imported.attributes, metadata: { gameDataBuild: state.data.gameBuild } }),
+    snapshot,
   };
 }
 
@@ -222,6 +241,7 @@ function swapBuilds() {
   ui["target-build"].value = source;
   updateBuildSummaries();
   syncAttackTypeFromSource();
+  syncDamageSourceToAbility();
   prefillDamage();
   prefillHealing();
   prefillMatchup();
@@ -343,7 +363,8 @@ function populateLevels() {
 
 function updateBuildSummaries() {
   const source = selectedBuild(ui["source-build"].value);
-  ui["source-summary"].innerHTML = source ? buildSummary(source.snapshot) : "No resolved source build. Enter Base Damage manually.";
+  const excludedNote = state.excludedBuilds.length ? ` ${state.excludedBuilds.length} saved build${state.excludedBuilds.length === 1 ? " was" : "s were"} excluded because the static calculation is not legal.` : "";
+  ui["source-summary"].innerHTML = source ? buildSummary(source.snapshot) : `No legal resolved source build. Enter Base Damage manually.${excludedNote}`;
   const target = selectedBuild(ui["target-build"].value);
   const healing = isHealingResolverAbility(selectedAbility());
   ui["target-summary"].innerHTML = target
@@ -358,11 +379,35 @@ function buildSummary(snapshot) {
 
 function prefillDamage() {
   const source = selectedBuild(ui["source-build"].value);
-  const hand = ui["damage-source"].value;
+  let hand = ui["damage-source"].value;
   if (!source || hand === "manual") return;
+  const ability = selectedAbility();
+  const requiredWeapon = String(ability?.weapon ?? "").toLowerCase();
+  const match = selectAbilityWeaponHand(source.state.build, requiredWeapon, (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "");
+  if (!match || match.hand !== hand) {
+    syncDamageSourceToAbility();
+    hand = ui["damage-source"].value;
+    if (hand === "manual") return;
+  }
   const prefix = hand === "off" ? "attack_power_off_hand" : "attack_power_main_hand";
   ui["damage-min"].value = String(snapshotStat(source.snapshot, `${prefix}_min`));
   ui["damage-max"].value = String(snapshotStat(source.snapshot, `${prefix}_max`));
+}
+
+function syncDamageSourceToAbility() {
+  const source = selectedBuild(ui["source-build"].value);
+  const ability = selectedAbility();
+  const requiredWeapon = String(ability?.weapon ?? "").toLowerCase();
+  const match = selectAbilityWeaponHand(source?.state?.build, requiredWeapon, (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "");
+  if (!source || !requiredWeapon || !match) {
+    ui["damage-source"].value = "manual";
+    ui["damage-source-note"].textContent = source && requiredWeapon
+      ? `${title(requiredWeapon)} is not equipped by the selected build. Enter Base Damage manually; no other weapon hand is substituted.`
+      : "Choose a legal source build or enter Base Damage manually.";
+    return;
+  }
+  ui["damage-source"].value = match.hand;
+  ui["damage-source-note"].textContent = `Using the ${match.hand === "main" ? "main-hand" : "off-hand"} ${title(requiredWeapon)} required by ${ability.name}.`;
 }
 
 function prefillHealing() {

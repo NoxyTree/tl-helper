@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { inferBuildAttackType, resolveVisibleMatchupInputs } from "../../web/combat-lab-build-inputs.js";
+import { inferBuildAttackType, isLegalBuildSnapshot, resolveVisibleMatchupInputs, selectAbilityWeaponHand } from "../../web/combat-lab-build-inputs.js";
+
+const combatLabSource = await readFile(new URL("../../web/combat-lab.js", import.meta.url), "utf8");
 
 test("attack type follows the attacking build's main weapon", () => {
   const items = { bow1: "bow", wand1: "wand", spear1: "spear" };
@@ -18,4 +21,22 @@ test("matchup inputs use complete typed PvP totals without adding base stats", (
   const result = resolveVisibleMatchupInputs({ sourceSnapshot: source, targetSnapshot: target, attackType: "magic", readStat: (snapshot, id) => { calls.push(id); return snapshot.stats[id] ?? 0; } });
   assert.deepEqual(result, { hit:2304.8, evasion:68, criticalHit:6710.4, endurance:3501, heavyAttackChance:3496.8, heavyAttackEvasion:2933, skillDamageBoost:877, skillDamageResistance:861 });
   assert.deepEqual(calls.filter((id) => id.includes("accuracy") || id.includes("critical") || id.includes("double")), ["pvp_magic_accuracy","pvp_magic_critical_attack","pvp_magic_critical_defense","pvp_magic_double_attack","pvp_magic_double_defense"]);
+});
+
+test("ability Base Damage uses only the hand with the required weapon family", () => {
+  const items = { bow1: "bow", staff1: "staff" };
+  const build = { equipment: { main_hand: { itemId: "bow1" }, off_hand: { itemId: "staff1" } } };
+  const resolveItemType = (id) => items[id] ?? "";
+  assert.deepEqual(selectAbilityWeaponHand(build, "staff", resolveItemType), { hand: "off", slotId: "off_hand", weaponType: "staff" });
+  assert.deepEqual(selectAbilityWeaponHand(build, "bow", resolveItemType), { hand: "main", slotId: "main_hand", weaponType: "bow" });
+  assert.equal(selectAbilityWeaponHand(build, "wand", resolveItemType), null);
+  assert.match(combatLabSource, /if \(ui\["damage-source"\]\.value !== "manual"\) syncDamageSourceToAbility\(\)/);
+  assert.match(combatLabSource, /if \(!match \|\| match\.hand !== hand\) \{/);
+});
+
+test("Combat Lab prefills only legal current snapshots", () => {
+  assert.equal(isLegalBuildSnapshot({ resolved: { status: { state: "legal" } } }), true);
+  assert.equal(isLegalBuildSnapshot({ resolved: { status: { state: "provisional" } } }), false);
+  assert.equal(isLegalBuildSnapshot({ resolved: { status: { state: "invalid" } } }), false);
+  assert.equal(isLegalBuildSnapshot({ resolved: {} }), false);
 });

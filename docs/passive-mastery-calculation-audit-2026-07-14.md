@@ -1,5 +1,7 @@
 # Passive and mastery calculation audit
 
+> This document is the pre-fix evidence baseline. Post-fix classifications and verification are in `docs/calculation-authority-final-review-2026-07-14.md` and `web/tl-passive-effect-contract.js`.
+
 ## Scope
 
 - Audit date: 2026-07-14

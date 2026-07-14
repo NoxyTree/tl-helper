@@ -119,6 +119,9 @@ export function optimizeScratchProgression({ core, build, weapons, settings = {}
   result.skills = [];
   result.masteries = {};
   result.unifiedMasteries = normalized.includePotential ? ["WM_Common_SKILL_007"] : [];
+  result.overallMasteryLevel = normalized.includePotential
+    ? Number(core.indexes.masteryById.WM_Common_SKILL_007?.requiredLevel ?? 0)
+    : null;
   if (!normalized.enabled) return { build: result, settings: normalized, summary: { masteryPointsByWeapon: {} } };
 
   const masteryPointsByWeapon = {};

@@ -25,6 +25,7 @@ import {
   allocatedAttributeValue,
 } from "./tl-questlog-rules.js";
 import { loadWebData } from "./tl-data-loader.js";
+import { PASSIVE_EFFECT_CONTRACT } from "./tl-passive-effect-contract.js";
 
 export const EQUIPMENT_SLOTS = [
   { id: "main_hand", label: "Main Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
@@ -74,6 +75,7 @@ export const UNIQUE_TRAIT_CAP = 1;
 export const RESONANCE_CAP = 1;
 export const ACTIVE_SKILL_CAP = 12;
 export const PASSIVE_SKILL_CAP = 8;
+export const ATTRIBUTE_POINT_BUDGET = 59;
 export const SPEC_BUDGET = 110;
 export const HEROIC_SLOT_GROUPS = {
   weapon: WEAPON_SLOTS,
@@ -401,7 +403,7 @@ export function createInitialBuild() {
   for (const slot of ARTIFACT_SLOTS) artifacts[slot.id] = emptyEquipmentSelection();
   const supportSlots = {};
   for (const slot of SUPPORT_SLOTS) supportSlots[slot.id] = emptyEquipmentSelection();
-  return { id: "build-default", name: "Default Build", equipment, artifacts, supportSlots, skills: [], masteries: {}, unifiedMasteries: [] };
+  return { id: "build-default", name: "Default Build", equipment, artifacts, supportSlots, skills: [], masteries: {}, unifiedMasteries: [], overallMasteryLevel: null };
 }
 
 export function slotById(id) {
@@ -783,6 +785,60 @@ export function calculableItemPerkVariants(item) {
     });
   }
   return [blank, ...variants];
+}
+
+const PASSIVE_EFFECT_CLASS_BY_FAMILY = Object.freeze(Object.fromEntries(
+  Object.entries(PASSIVE_EFFECT_CONTRACT.families).map(([familyId, family]) => [
+    familyId,
+    Object.freeze(Object.fromEntries(
+      Object.entries(family.classes).flatMap(([classId, ids]) => ids.map((id) => [id, classId])),
+    )),
+  ]),
+));
+
+export function passiveEffectClassification(familyId, effectId) {
+  return PASSIVE_EFFECT_CLASS_BY_FAMILY[familyId]?.[effectId] ?? "unclassified";
+}
+
+function passiveEffectContractIssue(familyId, effectId, effectName = effectId) {
+  const classification = passiveEffectClassification(familyId, effectId);
+  const details = {
+    persistentOwnerSemanticsUnresolved: ["persistent_owner_semantics_unresolved", "owner inclusion is unresolved"],
+    sourceConflict: ["passive_effect_source_conflict", "decoded sources conflict"],
+    unresolvedDecode: ["passive_effect_decode_unresolved", "the decoded effect join is unresolved"],
+    persistentUnrepresentable: ["persistent_effect_unrepresentable", "the persistent effect is not representable by the static stat model"],
+    unclassified: ["passive_effect_unclassified", "the effect is absent from the build-scoped passive contract"],
+  }[classification];
+  if (!details) return null;
+  return {
+    severity: "error",
+    code: details[0],
+    calculationImpact: classification === "unclassified" ? "invalid" : "provisional",
+    message: `${effectName}: ${details[1]}. Static totals exclude it.`,
+  };
+}
+
+export function itemSelectionCalculationStatus(item, selection, options = {}) {
+  const issues = [];
+  if (!item) return calculationStatus({ issues: [invalidSelectionIssue("invalid_item_id", "Unknown item selection.")] });
+  issues.push(...validateItemSelectionConfiguration(options.slotId ?? item.equipmentType, selection ?? {}, item));
+  const perkId = String(selection?.perkId ?? "").trim();
+  const perk = selectedItemPerk(item, selection);
+  if (perkId && !perk) issues.push(invalidSelectionIssue("invalid_item_perk", `${item.name} does not offer stored Skill Core ${perkId}.`));
+  const weaponTypes = new Set(options.equippedWeaponTypes ?? []);
+  const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
+  if (perkRule?.requiredWeapon && !weaponTypes.has(perkRule.requiredWeapon)) {
+    issues.push({ severity: "error", code: "perk_required_weapon_missing", calculationImpact: "none", message: `${perk.passive?.name ?? perk.name} requires ${label(perkRule.requiredWeapon)}.` });
+  }
+  if (item.passives?.id) {
+    const contractIssue = passiveEffectContractIssue("itemPerkComplex", item.passives.id, item.passives.name ?? item.passives.id);
+    if (contractIssue) issues.push(contractIssue);
+  }
+  if (perk?.passive?.id) {
+    const contractIssue = passiveEffectContractIssue("itemPerkComplex", perk.passive.id, perk.passive.name ?? perk.name ?? perk.id);
+    if (contractIssue) issues.push(contractIssue);
+  }
+  return calculationStatus({ issues });
 }
 
 export function itemTooltipEffects(item, selection) {
@@ -1354,7 +1410,43 @@ export function effectiveProgression(build) {
   const unifiedMasteries = [];
   const inactiveUnifiedMasteries = [];
   const issues = [];
-  const issue = (code, message, severity = "error", basis = "dataBacked") => issues.push({ code, message, severity, basis });
+  const issue = (code, message, severity = "error", basis = "dataBacked", calculationImpact = "provisional") => issues.push({ code, message, severity, basis, calculationImpact });
+
+  if (build.skills != null && !Array.isArray(build.skills)) {
+    issue("invalid_skill_collection", "Stored skills must be an array. The malformed collection is excluded from calculations.", "error", "dataBacked", "invalid");
+  }
+  const rawSkillIds = new Set();
+  for (const stored of Array.isArray(build.skills) ? build.skills : []) {
+    const skillId = typeof stored === "string" ? stored : stored?.skillId;
+    const skill = indexes?.skillById?.[skillId];
+    if (!skill) {
+      issue("invalid_skill_id", `Unknown skill ${String(skillId ?? "missing")} is excluded from calculations.`, "error", "dataBacked", "invalid");
+      continue;
+    }
+    if (rawSkillIds.has(skillId)) {
+      issue("duplicate_skill_selection", `${skill.name} is selected more than once. Duplicate entries are excluded from calculations.`);
+      continue;
+    }
+    rawSkillIds.add(skillId);
+    const rawLevel = Number(stored?.level ?? skillDefaultLevel(skill));
+    if (!Number.isInteger(rawLevel) || rawLevel < 1 || rawLevel > skillMaxLevel(skill)) {
+      issue("invalid_skill_level", `${skill.name} has invalid stored level ${String(stored?.level)}. Calculations clamp it to the supported range.`);
+    }
+    if (stored?.specializationIds != null && !Array.isArray(stored.specializationIds)) {
+      issue("invalid_skill_specialization_collection", `${skill.name} has a malformed specialization collection. It is excluded from calculations.`);
+    }
+    const seenSpecializations = new Set();
+    for (const specializationId of Array.isArray(stored?.specializationIds) ? stored.specializationIds : []) {
+      if (seenSpecializations.has(specializationId)) {
+        issue("duplicate_skill_specialization", `${skill.name} contains specialization ${specializationId} more than once. Duplicate entries are excluded from calculations.`);
+        continue;
+      }
+      seenSpecializations.add(specializationId);
+      if (indexes.skillTraitById[specializationId]?.skillSetId !== skillId) {
+        issue("invalid_skill_specialization", `${skill.name} contains unavailable specialization ${specializationId}. It is excluded from calculations.`, "error", "dataBacked", "invalid");
+      }
+    }
+  }
 
   for (const row of selectedSkillRows(build)) {
     const storedType = row.selection.loadoutType;
@@ -1362,6 +1454,9 @@ export function effectiveProgression(build) {
       issue(
         "skill_type_mismatch",
         `${row.skill.name} is stored as ${label(storedType)} but canonical skill data classifies it as ${label(row.loadoutType)}. Calculations use ${label(row.loadoutType)}.`,
+        "error",
+        "dataBacked",
+        "none",
       );
     }
     if (!weaponSet.has(row.skill.mainCategory)) {
@@ -1369,6 +1464,9 @@ export function effectiveProgression(build) {
       issue(
         "foreign_weapon_skill",
         `${row.skill.name} requires ${label(row.skill.mainCategory)}, which is not equipped. The stored selection is inactive and excluded from calculations.`,
+        "error",
+        "dataBacked",
+        "none",
       );
       continue;
     }
@@ -1392,7 +1490,7 @@ export function effectiveProgression(build) {
     const mastery = indexes?.masteryById?.[masteryId];
     if (!mastery) {
       inactiveMasteries.push({ masteryId, selection: stored, mastery: null, reason: "unknown" });
-      issue("unknown_mastery", `Unknown mastery node ${masteryId} is inactive and excluded from calculations.`);
+      issue("unknown_mastery", `Unknown mastery node ${masteryId} is inactive and excluded from calculations. Its weapon family and effect cannot be verified.`);
       continue;
     }
     const selection = { level: clamp(Number(stored?.level || 1), 1, masteryMaxLevel(mastery)) };
@@ -1401,6 +1499,9 @@ export function effectiveProgression(build) {
       issue(
         "wrong_category_mastery",
         `${mastery.name} is ${label(mastery.specializationType)} mastery and cannot be selected as weapon mastery. It is excluded from calculations.`,
+        "error",
+        "dataBacked",
+        "invalid",
       );
       continue;
     }
@@ -1409,6 +1510,9 @@ export function effectiveProgression(build) {
       issue(
         "foreign_weapon_mastery",
         `${mastery.name} requires ${label(mastery.mainCategory)}, which is not equipped. The stored selection is inactive and excluded from calculations.`,
+        "error",
+        "dataBacked",
+        "none",
       );
       continue;
     }
@@ -1433,7 +1537,7 @@ export function effectiveProgression(build) {
     }
     if (mastery.specializationType !== "unified") {
       inactiveUnifiedMasteries.push({ masteryId, mastery, reason: "wrong_category" });
-      issue("wrong_category_unified_mastery", `${mastery.name} is not a unified mastery node and is excluded from unified mastery calculations.`);
+      issue("wrong_category_unified_mastery", `${mastery.name} is not a unified mastery node and is excluded from unified mastery calculations.`, "error", "dataBacked", "invalid");
       continue;
     }
     unifiedMasteries.push({ masteryId, mastery });
@@ -1443,6 +1547,34 @@ export function effectiveProgression(build) {
       "unified_mastery_cap_exceeded",
       `Unified mastery cap exceeded: ${unifiedMasteries.length}/${UNIFIED_MASTERY_CAP}. Selections are not truncated automatically.`,
     );
+  }
+  const unifiedIds = new Set(unifiedMasteries.map(({ masteryId }) => masteryId));
+  if (unifiedIds.has("WM_Common_SKILL_002") && unifiedIds.has("WM_Common_SKILL_024")) {
+    issue(
+      "unified_mastery_mutual_exclusion",
+      "Destruction Spear and Piercing Spear are mutually exclusive Overall Mastery selections.",
+      "error",
+      "dataBacked",
+      "invalid",
+    );
+  }
+  const overallMasteryLevel = build.overallMasteryLevel;
+  if ((overallMasteryLevel == null || overallMasteryLevel === "") && unifiedMasteries.length) {
+    issue(
+      "overall_mastery_level_unknown",
+      "Overall Mastery Level is not stored, so selected Overall Mastery unlocks cannot be verified.",
+    );
+  } else if (overallMasteryLevel != null && overallMasteryLevel !== "") {
+    const level = Number(overallMasteryLevel);
+    if (!Number.isInteger(level) || level < 0) {
+      issue("invalid_overall_mastery_level", `Overall Mastery Level ${String(overallMasteryLevel)} is invalid.`, "error", "dataBacked", "invalid");
+    } else {
+      for (const { masteryId, mastery } of unifiedMasteries) {
+        if (Number(mastery.requiredLevel ?? 0) > level) {
+          issue("unified_mastery_level_missing", `${mastery.name} requires Overall Mastery Level ${mastery.requiredLevel}; the build stores ${level}.`, "error", "dataBacked", "invalid");
+        }
+      }
+    }
   }
 
   return {
@@ -1679,6 +1811,7 @@ export function validateMasterySelections(build, options = {}) {
     message,
     severity: activeWeaponSet.has(weapon) ? "error" : "warning",
     basis: "dataBacked",
+    calculationImpact: activeWeaponSet.has(weapon) ? "provisional" : "none",
   });
 
   for (const [masteryId, stored] of Object.entries(build?.masteries ?? {})) {
@@ -2046,8 +2179,8 @@ export function calculateBuild(build, attributes, options = {}) {
     Math.abs(Number(candidate) - CHARACTER_LEVEL) < Math.abs(Number(best) - CHARACTER_LEVEL) ? candidate : best
   ));
   for (const [statId, value] of Object.entries(BASE_LEVEL_STATS[baseLevel] ?? {})) add(statId, value, "Base", "base");
-  for (const [statId, value] of Object.entries(attributes ?? {})) {
-    add(statId, allocatedAttributeValue(value), "Allocated points", "attribute");
+  for (const [statId] of ATTRIBUTES) {
+    add(statId, allocatedAttributeValue(attributes?.[statId]), "Allocated points", "attribute");
   }
 
   let materialHpPercentage = 0;
@@ -2201,11 +2334,13 @@ export function calculateBuild(build, attributes, options = {}) {
     add(statId, maximum - rawTotal, `Hard cap: ${formatStat(statId, maximum)}`, "hard_cap");
   }
   const runeSynergies = calculateRuneSynergies(build);
+  const validation = validateBuild(runeSynergies, build, progression, attributes);
   return {
     stats: [...totals.entries()].map(([id, total]) => ({ id, total, uncappedTotal: total + (capOverflow.get(id) ?? 0), overflow: capOverflow.get(id) ?? 0, hardCap: statHardCap(id), sources: sourceMap.get(id) ?? [] })),
     setEffects: finalizeSetEffectTrace(setEffectTrace, sourceMap, includeSetEffects),
     runeSynergies,
-    validation: validateBuild(runeSynergies, build, progression),
+    validation,
+    status: calculationStatus(validation),
   };
 }
 
@@ -2436,8 +2571,8 @@ function applyQuestlogPhase(phase, progression, selections, totalsObject, add, i
     if (itemRule?.phase === phase) for (const row of itemRule.effect(totalsObject())) add(row.statId, row.value, item.passives.name, slotId, item.grade, item.passives.imageUrl);
     const perk = selectedItemPerk(item, selection);
     const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
-    // Guard: a rule id present in both tables (SkillSet_Unique_Accessory_Skill_01)
-    // must not fire twice for the same item via innate passive AND slotted perk.
+    // Future registry overlap must not fire the same complex twice through an
+    // innate passive and a selected Skill Core on one item.
     const alreadyAppliedAsItemPassive = itemRule && perk?.passive?.id === item?.passives?.id;
     const requiredWeaponEquipped = !perkRule?.requiredWeapon || progression.equippedWeaponTypes.includes(perkRule.requiredWeapon);
     if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive && requiredWeaponEquipped) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
@@ -2658,6 +2793,14 @@ export function slotReplacementDelta(slotId, selection, build, attributes, optio
   return delta;
 }
 
+export function slotSelectionCalculationStatus(slotId, selection, build, attributes, options = {}) {
+  const clone = deepClone(build);
+  slotCollectionForSlot(clone, slotId)[slotId] = selection
+    ? { ...emptyEquipmentSelection(), ...deepClone(selection) }
+    : emptyEquipmentSelection();
+  return calculateBuild(clone, attributes ?? {}, options).status;
+}
+
 // Contribution of equipping `item` bare (as equipItem does) at `level`.
 export function itemStatContribution(item, slotId, level, build, attributes, options = {}) {
   if (!item) return {};
@@ -2670,17 +2813,117 @@ export function statTotal(calc, statId) {
 
 // ---------- validation ----------
 
-export function validateBuild(runeSynergies, build, progression = effectiveProgression(build)) {
+function invalidSelectionIssue(code, message) {
+  return { severity: "error", code, calculationImpact: "invalid", message };
+}
+
+function selectionTierCount(pool, statId, nested = false) {
+  const source = nested ? pool?.[statId]?.tiers : pool?.[statId];
+  return Array.isArray(source) ? source.length : Object.keys(source ?? {}).length;
+}
+
+function validateItemSelectionConfiguration(slotId, selection, item) {
+  const issues = [];
+  const itemName = item.name ?? item.id;
+  const validateRows = (rows, pool, kind, cap, nested = false) => {
+    if (rows != null && !Array.isArray(rows)) {
+      issues.push(invalidSelectionIssue(`invalid_${kind}_collection`, `${itemName} has a malformed ${kind} collection.`));
+      return;
+    }
+    const selected = Array.isArray(rows) ? rows : [];
+    if (selected.length > cap) issues.push(invalidSelectionIssue(`${kind}_cap_exceeded`, `${itemName} has ${selected.length}/${cap} selected ${kind} rows.`));
+    const seen = new Set();
+    for (const row of selected) {
+      const statId = String(row?.statId ?? "").trim();
+      if (!statId || seen.has(statId)) {
+        issues.push(invalidSelectionIssue(`invalid_${kind}_selection`, `${itemName} contains a missing or duplicate ${kind} stat.`));
+        continue;
+      }
+      seen.add(statId);
+      const tierCount = selectionTierCount(pool, statId, nested);
+      const tier = Number(row?.tier ?? 1);
+      if (!tierCount || !Number.isInteger(tier) || tier < 1 || tier > tierCount) {
+        issues.push(invalidSelectionIssue(`invalid_${kind}_selection`, `${itemName} cannot use ${statName(statId)} at stored ${kind} tier ${String(row?.tier)}.`));
+      }
+    }
+  };
+
+  validateRows(selection.traits, item.itemStats?.traits, "trait", NORMAL_TRAIT_CAP);
+  validateRows(selection.resonance, item.itemStats?.resonance, "resonance", RESONANCE_CAP, true);
+
+  if (selection.uniqueTrait?.statId) {
+    const statId = selection.uniqueTrait.statId;
+    const tierCount = selectionTierCount(item.itemStats?.uniqueTraits, statId);
+    const tier = Number(selection.uniqueTrait.tier ?? 1);
+    if (!tierCount || !Number.isInteger(tier) || tier < 1 || tier > tierCount) {
+      issues.push(invalidSelectionIssue("invalid_unique_trait_selection", `${itemName} cannot use ${statName(statId)} at stored unique-trait tier ${String(selection.uniqueTrait.tier)}.`));
+    }
+  }
+
+  if (selection.artifactStatId) {
+    const artifactRows = item.itemStats?.artifact?.[0] ?? item.itemStats?.artifact?.["0"];
+    if (!Object.prototype.hasOwnProperty.call(artifactRows ?? {}, selection.artifactStatId)) {
+      issues.push(invalidSelectionIssue("invalid_artifact_stat", `${itemName} cannot use stored artifact stat ${selection.artifactStatId}.`));
+    }
+  }
+
+  if (selection.potentialId) {
+    const available = values(item.itemPotential?.stats).some((row) => (row.stat_id ?? row.statId) === selection.potentialId);
+    if (!available) issues.push(invalidSelectionIssue("invalid_item_potential", `${itemName} cannot use stored potential ${selection.potentialId}.`));
+  }
+
+  const heroicRows = Array.isArray(selection.heroicEffects) ? selection.heroicEffects : [];
+  if (selection.heroicEffects != null && !Array.isArray(selection.heroicEffects)) {
+    issues.push(invalidSelectionIssue("invalid_heroic_effect_collection", `${itemName} has a malformed Heroic effect collection.`));
+  }
+  const heroicGroups = heroicEffectGroupCount(item);
+  const seenHeroicStats = new Set();
+  for (let index = 0; index < heroicRows.length; index += 1) {
+    const row = heroicRows[index];
+    const statId = String(row?.statId ?? "").trim();
+    if (!statId) continue;
+    const option = heroicEffectOptions(item, index).find((entry) => entry.statId === statId);
+    const level = Number(row?.level ?? 0);
+    if (item.grade !== HEROIC_GRADE || index >= heroicGroups || !option || seenHeroicStats.has(statId)
+      || !Number.isInteger(level) || level < 0 || level > Number(option?.maxLevel ?? -1)) {
+      issues.push(invalidSelectionIssue("invalid_heroic_effect", `${itemName} cannot use ${statName(statId)} in stored Heroic effect group ${index + 1} at level ${String(row?.level ?? 0)}.`));
+      continue;
+    }
+    seenHeroicStats.add(statId);
+  }
+
+  return issues;
+}
+
+export function validateBuild(runeSynergies, build, progression = effectiveProgression(build), attributes = {}) {
   const dataBacked = [];
   const assumed = [];
+  dataBacked.push(...validateAttributeAllocation(attributes));
   for (const issue of progression.issues) {
     const target = issue.basis === "assumed" ? assumed : dataBacked;
-    target.push({ severity: issue.severity, message: issue.message, code: issue.code });
+    target.push({ severity: issue.severity, message: issue.message, code: issue.code, calculationImpact: issue.calculationImpact ?? "provisional" });
+  }
+  for (const { slotId, selection, item } of allBuildSelectionEntries(build)) {
+    const itemId = String(selection?.itemId ?? "").trim();
+    if (!itemId) continue;
+    const slot = BUILD_SLOTS.find((entry) => entry.id === slotId);
+    if (!slot) {
+      dataBacked.push({ severity: "error", code: "invalid_build_slot", calculationImpact: "invalid", message: `Unknown build slot ${slotId} contains item ${itemId}.` });
+      continue;
+    }
+    if (!item) {
+      dataBacked.push({ severity: "error", code: "invalid_item_id", calculationImpact: "invalid", message: `${slot.label} contains unknown item ${itemId}.` });
+      continue;
+    }
+    if (!slot.types.includes(item.equipmentType)) {
+      dataBacked.push({ severity: "error", code: "invalid_item_slot", calculationImpact: "invalid", message: `${item.name} (${label(item.equipmentType)}) cannot be equipped in ${slot.label}.` });
+    }
+    dataBacked.push(...validateItemSelectionConfiguration(slotId, selection, item));
   }
   const mainWeapon = indexes.itemById[build.equipment.main_hand?.itemId];
   const offWeapon = indexes.itemById[build.equipment.off_hand?.itemId];
   if (mainWeapon && offWeapon && mainWeapon.equipmentType === offWeapon.equipmentType) {
-    dataBacked.push({ severity: "error", message: `Main Hand and Off Hand both use ${label(mainWeapon.equipmentType)}. Weapon pair rules disallow duplicate weapon types.` });
+    dataBacked.push({ severity: "error", code: "duplicate_weapon_types", calculationImpact: "invalid", message: `Main Hand and Off Hand both use ${label(mainWeapon.equipmentType)}. Weapon pair rules disallow duplicate weapon types.` });
   }
 
   const slotsByItem = new Map();
@@ -2693,6 +2936,8 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
     if (slots.length < 2) continue;
     assumed.push({
       severity: "warning",
+      code: "duplicate_item_selection",
+      calculationImpact: "provisional",
       message: `${indexes.itemById[itemId]?.name ?? itemId} is selected in multiple slots (${slots.map((slot) => slotById(slot)?.label ?? slot).join(", ")}). Duplicate copies count once toward set thresholds.`,
     });
   }
@@ -2707,6 +2952,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
       dataBacked.push({
         severity: "error",
         code: "invalid_item_perk",
+        calculationImpact: "invalid",
         message: `${item.name} does not offer the stored Skill Core ${requestedPerkId}. The invalid core is inactive and excluded from calculations.`,
       });
     }
@@ -2715,6 +2961,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
       dataBacked.push({
         severity: "error",
         code: "perk_required_weapon_missing",
+        calculationImpact: "none",
         message: `${perk.passive?.name ?? perk.name} requires an equipped ${label(perkRule.requiredWeapon)}. Its stored core is inactive and excluded from calculations.`,
       });
     }
@@ -2728,6 +2975,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
     dataBacked.push({
       severity: "error",
       code: "repeated_passive_stacking_unresolved",
+      calculationImpact: "provisional",
       message: `${passiveId} is selected from multiple slots (${sourceSlots.join(", ")}). Same-core stacking is unresolved, so these totals are provisional and must not be treated as exact.`,
     });
   }
@@ -2739,41 +2987,66 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
     if (heroicItems.length > 1) {
       assumed.push({
         severity: "warning",
+        code: "heroic_slot_cap_exceeded",
+        calculationImpact: "provisional",
         message: `Assumed heroic cap: only one heroic ${group} should be equipped. Current slots: ${heroicItems.map((entry) => slotById(entry.slot).label).join(", ")}.`,
       });
     }
   }
 
-  for (const [slot, selection] of Object.entries(build.equipment)) {
-    const item = indexes.itemById[selection.itemId];
+  for (const { slotId: slot, selection, item } of allBuildSelectionEntries(build)) {
     if (!item) continue;
     const levels = getItemLevels(item);
     if (!levels.length) {
-      dataBacked.push({ severity: "warning", message: `${slotById(slot).label} has no item level stat rows in the cached data.` });
+      dataBacked.push({ severity: "warning", code: "item_level_data_missing", calculationImpact: "provisional", message: `${slotById(slot).label} has no item level stat rows in the cached data.` });
       continue;
     }
     const selected = Number(selectedItemLevel(item, selection.level));
     const requested = Number(selection.level || levels.at(-1));
     if (selected !== requested) {
-      dataBacked.push({ severity: "warning", message: `${slotById(slot).label} level ${requested} is not available for ${item.name}; totals use level ${selected}.` });
+      dataBacked.push({ severity: "warning", code: "item_level_clamped", calculationImpact: "provisional", message: `${slotById(slot).label} level ${requested} is not available for ${item.name}; totals use level ${selected}.` });
     }
   }
 
-  for (const [slot, selection] of Object.entries(build.equipment)) {
-    const rows = selection.runes ?? [];
+  for (const { slotId: slot, selection } of allBuildSelectionEntries(build)) {
+    const rows = Array.isArray(selection?.runes) ? selection.runes : [];
+    if (selection?.runes != null && !Array.isArray(selection.runes)) {
+      dataBacked.push({ severity: "error", code: "invalid_rune_collection", calculationImpact: "invalid", message: `${slotById(slot).label} has a malformed rune collection.` });
+    }
     const category = runeCategoryForSlot(slot);
+    if (rows.length > 3) {
+      dataBacked.push({ severity: "error", code: "rune_socket_cap_exceeded", calculationImpact: "invalid", message: `${slotById(slot).label} has ${rows.length} runes. An item has only three rune sockets.` });
+    }
+    for (const row of Array.isArray(rows) ? rows : []) {
+      const runeId = String(row?.runeId ?? "").trim();
+      if (!runeId) continue;
+      const rune = indexes.runeById[runeId];
+      if (!rune) {
+        dataBacked.push({ severity: "error", code: "invalid_rune_id", calculationImpact: "invalid", message: `${slotById(slot).label} contains unknown rune ${runeId}.` });
+        continue;
+      }
+      const option = runeStatOptions(rune).find((entry) => entry.statId === row.statId);
+      if (!option) {
+        dataBacked.push({ severity: "error", code: "invalid_rune_stat", calculationImpact: "invalid", message: `${rune.name} cannot roll stored stat ${String(row.statId ?? "missing")}.` });
+        continue;
+      }
+      const rawLevel = Number(row.level ?? 1);
+      if (!Number.isInteger(rawLevel) || rawLevel < 1 || rawLevel > option.maxLevel) {
+        dataBacked.push({ severity: "error", code: "invalid_rune_level", calculationImpact: "invalid", message: `${rune.name} has invalid stored level ${String(row.level)} for ${statName(option.statId)}.` });
+      }
+    }
     const selectedRunes = rows.map((row) => indexes.runeById[row.runeId]).filter(Boolean);
     for (const rune of selectedRunes) {
       if (rune.equipmentCategory !== category) {
-        dataBacked.push({ severity: "error", message: `${rune.name} is a ${label(rune.equipmentCategory)} rune but is slotted into ${slotById(slot).label}.` });
+        dataBacked.push({ severity: "error", code: "invalid_rune_slot", calculationImpact: "invalid", message: `${rune.name} is a ${label(rune.equipmentCategory)} rune but is slotted into ${slotById(slot).label}.` });
       }
     }
     const chaosCount = selectedRunes.filter((rune) => rune.runeType === "chaos").length;
     if (chaosCount > 1) {
-      dataBacked.push({ severity: "error", message: `${slotById(slot).label} has ${chaosCount} Chaos runes. Only one Chaos rune may be equipped on an item.` });
+      dataBacked.push({ severity: "error", code: "chaos_rune_cap_exceeded", calculationImpact: "invalid", message: `${slotById(slot).label} has ${chaosCount} Chaos runes. Only one Chaos rune may be equipped on an item.` });
     }
     if (selectedRunes.length === 3 && !runeSynergies[slot]) {
-      dataBacked.push({ severity: "warning", message: `${slotById(slot).label} has three runes but no matching rune synergy in the cached table.` });
+      dataBacked.push({ severity: "warning", code: "rune_synergy_missing", calculationImpact: "provisional", message: `${slotById(slot).label} has three runes but no matching rune synergy in the cached table.` });
     }
   }
 
@@ -2781,7 +3054,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
   // so report an over-budget saved loadout independently of activation.
   const specSpent = skillSpecSpent(build);
   if (specSpent > SPEC_BUDGET) {
-    dataBacked.push({ severity: "warning", message: `Skill specialization budget is over the assumed budget: ${specSpent}/${SPEC_BUDGET}.` });
+    dataBacked.push({ severity: "warning", code: "skill_specialization_budget_exceeded", calculationImpact: "provisional", message: `Skill specialization budget is over the assumed budget: ${specSpent}/${SPEC_BUDGET}.` });
   }
 
   const unmapped = unmappedRuleIssues(build, progression);
@@ -2791,6 +3064,61 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
   const severityRank = { error: 0, warning: 1, info: 2 };
   issues.sort((a, b) => (severityRank[a.severity] ?? 3) - (severityRank[b.severity] ?? 3));
   return { dataBacked, assumed, unmapped, setEffectContracts, issues };
+}
+
+export function validateAttributeAllocation(attributes = {}) {
+  const issues = [];
+  if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) {
+    return [{ severity: "error", code: "invalid_attribute_collection", calculationImpact: "invalid", message: "Allocated attributes must be an object keyed by STR, DEX, INT, PER, and CON." }];
+  }
+  const knownIds = new Set(ATTRIBUTES.map(([id]) => id));
+  const unknownIds = Object.keys(attributes).filter((id) => !knownIds.has(id));
+  if (unknownIds.length) {
+    issues.push({
+      severity: "error",
+      code: "unknown_attribute_id",
+      calculationImpact: "invalid",
+      message: `Unknown allocated attribute ${unknownIds.join(", ")} is excluded from calculations.`,
+    });
+  }
+  let spent = 0;
+  for (const [id, name] of ATTRIBUTES) {
+    const raw = attributes[id] ?? 0;
+    const value = Number(raw);
+    if (!Number.isInteger(value) || value < 0) {
+      issues.push({
+        severity: "error",
+        code: "invalid_attribute_allocation",
+        calculationImpact: "invalid",
+        message: `${name} has invalid allocated points ${String(raw)}. Allocations must be nonnegative whole numbers.`,
+      });
+      continue;
+    }
+    spent += value;
+  }
+  if (spent > ATTRIBUTE_POINT_BUDGET) {
+    issues.push({
+      severity: "error",
+      code: "attribute_budget_exceeded",
+      calculationImpact: "invalid",
+      message: `Allocated attribute budget exceeded: ${spent}/${ATTRIBUTE_POINT_BUDGET}.`,
+    });
+  }
+  return issues;
+}
+
+export function calculationStatus(validation) {
+  const issues = Array.isArray(validation?.issues) ? validation.issues : [];
+  const invalidIssues = issues.filter((issue) => issue.calculationImpact === "invalid");
+  const provisionalIssues = issues.filter((issue) => issue.calculationImpact !== "invalid" && issue.calculationImpact !== "none");
+  const ignoredIssues = issues.filter((issue) => issue.calculationImpact === "none");
+  return {
+    state: invalidIssues.length ? "invalid" : provisionalIssues.length ? "provisional" : "legal",
+    blockingIssues: [...invalidIssues, ...provisionalIssues],
+    invalidIssues,
+    provisionalIssues,
+    ignoredIssues,
+  };
 }
 
 function setEffectContractIssues(build) {
@@ -2803,6 +3131,8 @@ function setEffectContractIssues(build) {
       if (!["conflict", "unclassified"].includes(classification.kind)) continue;
       issues.push({
         severity: "error",
+        code: "invalid_set_effect_contract",
+        calculationImpact: "invalid",
         message: `${set.name} (${classification.required} pc) has an invalid set-effect contract: ${classification.reason} No effect was applied.`,
       });
     }
@@ -2810,88 +3140,35 @@ function setEffectContractIssues(build) {
   return issues;
 }
 
-// Rule tables are allowlists: any selected passive/set/perk/mastery effect
-// without an entry silently contributes nothing to the totals. These were
-// transcribed from Questlog's client, which applies the same allowlists, so
-// an unmapped effect usually matches Questlog — but it must be visible, not
-// silent. Grouped into one message per category to keep the panel compact.
 function unmappedRuleIssues(build, progression = effectiveProgression(build)) {
-  const info = (message) => ({ severity: "info", message });
   const issues = [];
-  const grouped = (label, names) => {
-    if (names.length) issues.push(info(`${names.length === 1 ? names[0] : `${names.length} ${label}`} selected but ${names.length === 1 ? "has" : "have"} no calculation rule — totals exclude ${names.length === 1 ? "it" : `them: ${names.join(", ")}`}. (Questlog's client applies no rule for these either.)`));
+  const seen = new Set();
+  const addContractIssue = (familyId, effectId, effectName) => {
+    if (!effectId) return;
+    const issue = passiveEffectContractIssue(familyId, effectId, effectName);
+    const key = `${familyId}:${effectId}`;
+    if (issue && !seen.has(key)) {
+      seen.add(key);
+      issues.push(issue);
+    }
   };
 
-  const selections = [
-    ...Object.entries(build.equipment ?? {}),
-    ...Object.entries(build.artifacts ?? {}),
-    ...Object.entries(build.supportSlots ?? {}),
-  ].map(([slotId, selection]) => ({ slotId, selection, item: indexes.itemById[selection?.itemId] }));
-
-  // Armory totals describe the character's persistent numeric state. Triggered
-  // effects, skill transformations, dispels, and other encounter behaviour do
-  // not belong in that arithmetic, so the absence of a static rule is expected.
-  const mayAffectStaticTotals = (effect) => {
-    const text = String(effect?.text ?? "")
-      .replace(/<[^>]*>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase();
-    if (!text) return true;
-    return !(
-      /^(?:on|when|while|after|upon)\b/.test(text) ||
-      /\b(?:chance to|remove \d+ buff|deals? .* damage|heals? |recovers? |appl(?:y|ies) |can now|now attacks?|cooldown -)\b/.test(text)
-    );
-  };
-
-  const itemPassives = [];
-  const perkPassives = [];
-  for (const { selection, item } of selections) {
+  for (const { selection, item } of allBuildSelectionEntries(build)) {
     if (!item) continue;
-    if (item.passives?.id && !ITEM_PASSIVE_RULES[item.passives.id] && mayAffectStaticTotals(item.passives)) {
-      itemPassives.push(`${item.passives.name ?? item.passives.id} (${item.name})`);
-    }
+    addContractIssue("itemPerkComplex", item.passives?.id, `${item.passives?.name ?? item.passives?.id} (${item.name})`);
     const perk = selectedItemPerk(item, selection);
-    if (perk && !PERK_PASSIVE_RULES[perk.passive?.id] && mayAffectStaticTotals(perk.passive)) {
-      perkPassives.push(`${perk.passive?.name ?? perk.name ?? perk.id} (${item.name})`);
-    }
+    addContractIssue("itemPerkComplex", perk?.passive?.id, `${perk?.passive?.name ?? perk?.name ?? perk?.id} (${item.name})`);
   }
-  grouped("item passives", [...new Set(itemPassives)]);
-  grouped("skill cores", [...new Set(perkPassives)]);
-
-  const setPassives = [];
-  const counts = new Map();
-  for (const { item } of selections) if (item?.setId) counts.set(item.setId, (counts.get(item.setId) ?? 0) + 1);
-  for (const [setId, count] of counts) {
-    const set = indexes.itemSetById[setId];
-    for (const bonus of values(set?.itemSetBonus)) {
-      const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
-      if (!required || count < required) continue;
-      const hasPassive = values(bonus.bonus_passive ?? bonus.bonusPassive).length > 0;
-      if (hasPassive && !SET_PASSIVE_RULES[set.id]?.[required]) setPassives.push(`${set.name} (${required} pc)`);
-    }
-  }
-  grouped("set passives", setPassives);
-
-  const passiveSkills = [];
   for (const { skill, loadoutType } of progression.skills) {
-    if (loadoutType === "passive" && !PASSIVE_SKILL_RULES[skill.id]) passiveSkills.push(skill.name);
+    if (loadoutType === "passive") addContractIssue("weaponPassive", skill.id, skill.name);
   }
-  grouped("passive skills", passiveSkills);
-
-  const synergyNodes = [];
-  for (const { masteryId, mastery, selection: selected } of progression.masteries) {
-    if (MASTERY_SYNERGY_RULES[masteryId]) continue;
-    const stats = values(mastery.stats?.[Math.max(0, Number(selected.level || 1) - 1)]);
-    if (!stats.length) synergyNodes.push(mastery.name);
+  for (const { masteryId, mastery } of progression.masteries) {
+    const hasStructuredStats = values(mastery.stats).some((rows) => values(rows).length);
+    if (!hasStructuredStats) addContractIssue("masteryNonStructured", masteryId, mastery.name);
   }
-  grouped("mastery nodes", synergyNodes);
-
-  const unifiedNodes = progression.unifiedMasteries
-    .filter(({ masteryId }) => !UNIFIED_MASTERY_RULES[masteryId])
-    .map(({ mastery }) => mastery.name);
-  grouped("unified mastery nodes", unifiedNodes);
-
+  for (const { masteryId, mastery } of progression.unifiedMasteries) {
+    addContractIssue("masteryNonStructured", masteryId, mastery.name);
+  }
   return issues;
 }
 

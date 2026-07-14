@@ -187,7 +187,9 @@ const INACTIVE_SELECTION_ERROR_CODES = new Set([
   "perk_required_weapon_missing",
 ]);
 
-function blockingCalculationIssues(calculation) {
+function blockingCalculationIssues(core, calculation) {
+  if (calculation?.status?.state) return calculation.status.blockingIssues ?? [];
+  if (typeof core?.calculationStatus === "function") return core.calculationStatus(calculation?.validation).blockingIssues;
   return (calculation?.validation?.issues ?? [])
     .filter((issue) => issue.severity === "error" && !INACTIVE_SELECTION_ERROR_CODES.has(issue.code));
 }
@@ -546,7 +548,7 @@ export async function createOptimizerAdapter(deps = {}) {
       }
       const sourceCalculation = calculate(source, rules.includeSetEffects !== false);
       if (!scratch) {
-        const blockingIssues = blockingCalculationIssues(sourceCalculation);
+        const blockingIssues = blockingCalculationIssues(core, sourceCalculation);
         if (blockingIssues.length) {
           throw new Error(`Source build is not calculation-legal for optimization: ${blockingIssues.map((issue) => issue.message).join(" ")}`);
         }
@@ -640,6 +642,10 @@ export async function createOptimizerAdapter(deps = {}) {
           for (const variant of variants) {
             if (variant.requiredWeapon && !prospectiveWeaponTypes.has(variant.requiredWeapon)) continue;
             const variantSelection = { ...selection, perkId: variant.perkId };
+            const selectionStatus = core.itemSelectionCalculationStatus
+              ? core.itemSelectionCalculationStatus(item, variantSelection, { slotId: slot, equippedWeaponTypes: [...prospectiveWeaponTypes] })
+              : { state: "legal" };
+            if (selectionStatus.state !== "legal") continue;
             const stats = contribution(slot, variantSelection);
             // Direct value already lives in `stats` and is scored by the beam.
             // scoreHint is reserved for value not representable in partial stats,
@@ -693,7 +699,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const build = applySelections(source.build, selections);
         const calc = core.calculateBuild(build, provisionalAttributes, { includeSetEffects: rules.includeSetEffects !== false });
         const stats = withCompositeTotals(totalMap(calc), rankedGoals);
-        const blockingIssues = blockingCalculationIssues(calc);
+        const blockingIssues = blockingCalculationIssues(core, calc);
         return { score: scoreRankedGoals(stats, objectiveBaseline, objectiveScales, rankedGoals), stats, build, attributes: provisionalAttributes, activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc), legal: blockingIssues.length === 0, blockingIssues };
       }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, isPartialLegal: (selections, candidate) => {
         const itemId = candidate.selection?.itemId;
@@ -712,7 +718,7 @@ export async function createOptimizerAdapter(deps = {}) {
           const candidate = preliminaryFrontier[index];
           const optimized = runAttributeOptimizer({ core, build: candidate.evaluation.build, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, includeSetEffects: rules.includeSetEffects !== false, minimums: attributeMinimums });
           const optimizedCalculation = core.calculateBuild(candidate.evaluation.build, optimized.attributes, { includeSetEffects: rules.includeSetEffects !== false });
-          const optimizedBlockingIssues = blockingCalculationIssues(optimizedCalculation);
+          const optimizedBlockingIssues = blockingCalculationIssues(core, optimizedCalculation);
           if (!optimizedBlockingIssues.length && satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
           runtime.onProgress?.({ percent: 60 + 25 * (index + 1) / preliminaryFrontier.length, label: "Optimizing attribute points", detail: `${index + 1} of ${preliminaryFrontier.length} frontier loadouts` });
           if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
@@ -731,7 +737,7 @@ export async function createOptimizerAdapter(deps = {}) {
             const candidate = refinementTargets[index];
             const refined = refineRuneConfiguration({ core, build: candidate.evaluation.build, attributes: candidate.evaluation.attributes, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, minimums: attributeMinimums, includeSetEffects: rules.includeSetEffects !== false, runeCandidatesByCategory, lockedSlotIds, optimizeAttributes: runAttributeOptimizer });
             const refinedCalculation = core.calculateBuild(refined.build, refined.attributes, { includeSetEffects: rules.includeSetEffects !== false });
-            if (blockingCalculationIssues(refinedCalculation).length) continue;
+            if (blockingCalculationIssues(core, refinedCalculation).length) continue;
             const exactIndex = exact.indexOf(candidate);
             exact[exactIndex] = { ...candidate, selections: { ...candidate.selections, ...clone(refined.build.equipment) }, evaluation: { ...candidate.evaluation, score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights } };
             runtime.onProgress?.({ percent: 85 + 15 * (index + 1) / refinementTargets.length, label: "Refining rune synergies", detail: `${index + 1} of ${refinementTargets.length} diverse finalists` });
@@ -745,7 +751,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const best = search.best;
       const finalStats = best.evaluation.stats;
       const finalCalculation = core.calculateBuild(best.evaluation.build, best.evaluation.attributes ?? source.attributes ?? {}, { includeSetEffects: rules.includeSetEffects !== false });
-      const finalBlockingIssues = blockingCalculationIssues(finalCalculation);
+      const finalBlockingIssues = blockingCalculationIssues(core, finalCalculation);
       if (finalBlockingIssues.length) {
         throw new Error(`Optimizer produced an invalid finalist: ${finalBlockingIssues.map((issue) => issue.message).join(" ")}`);
       }

@@ -522,6 +522,21 @@ test("exact evaluation refuses an invalid finalist", async () => {
   }), /No build satisfies/);
 });
 
+test("candidate generation excludes an unmapped persistent item before beam scoring", async () => {
+  const items = [
+    { id: "legal", name: "Legal", grade: 41, equipmentType: "head", attack: 10 },
+    { id: "unmapped", name: "Unmapped", grade: 41, equipmentType: "head", attack: 1000, passives: { id: "unmapped-passive" } },
+  ];
+  const { core, empty } = perkOptimizerCore({ slots: ["head"], items });
+  core.itemSelectionCalculationStatus = (item) => ({ state: item.id === "unmapped" ? "provisional" : "legal" });
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" },
+    sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
+  });
+  assert.equal(result.build.equipment.head.itemId, "legal");
+});
+
 test("Questlog import uses the hosted adapter and normalizes the requested build", async () => {
   let imported;
   const core = {

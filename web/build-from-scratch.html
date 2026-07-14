@@ -1528,6 +1528,12 @@ class Component extends DCLogic {
       }else if(message.type==='result'){
         const result=message.result;
         const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false});
+        if(resultCalc.status?.state!=='legal'){
+          const count=resultCalc.status?.blockingIssues?.length??0;
+          this._worker.terminate(); this._worker=null;
+          this.setState({phase:'setup',engineError:`The optimizer finalist is ${resultCalc.status?.state??'provisional'} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
+          return;
+        }
         this._worker.terminate(); this._worker=null;
         this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:100});
       }else if(message.type==='cancelled'){
@@ -1574,6 +1580,7 @@ class Component extends DCLogic {
     const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,Number(event.target.value),floors);
     if(!candidate)return;
     const resultCalc=this.core.calculateBuild(candidate.build,candidate.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false});
+    if(resultCalc.status?.state!=='legal')return;
     const totals=Object.fromEntries((resultCalc.stats||[]).map(row=>[row.id,Number(row.total)||0]));
     const goalResults=(result.goalResults||[]).map(goal=>{
       const value=Number(candidate.goalValues?.[goal.id]??totals[goal.id]??0);

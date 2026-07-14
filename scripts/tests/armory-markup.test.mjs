@@ -19,6 +19,12 @@ test("mastery nodes bind a context-menu action", () => {
   assert.match(wheel, /onContextMenu="{{ node\.onContextMenu }}"/);
 });
 
+test("Overall Mastery unlock level is an explicit editable build input", () => {
+  assert.match(markup, /aria-label="Overall Mastery Level"/);
+  assert.match(markup, /overallMasteryLevelValue: build\.overallMasteryLevel \?\? ""/);
+  assert.match(markup, /next\.overallMasteryLevel = value === "" \? null : Number\(value\)/);
+});
+
 test("skill budget summary declares columns for all four values", () => {
   const budget = sectionBetween("<!-- budget strip -->", "<!-- active loadout -->");
   assert.match(budget, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+auto\s+auto/);

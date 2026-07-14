@@ -121,3 +121,22 @@ test("an available unsupported core stays selected and visible without invented 
   assert.ok(!calc.stats.some((stat) => stat.sources.some((source) => source.slot === "skill_core")));
   assert.deepEqual(core.buildItemHoverModel("head", build, calc).effects.map((effect) => effect.name), [unsupportedPerk.passive.name]);
 });
+
+test("item-level authority uses explicit unresolved classes instead of tooltip heuristics", () => {
+  const statusFor = (passiveId) => {
+    const item = appData.items.find((row) => row.passives?.id === passiveId
+      || row.availablePerks?.some((perk) => perk.passive?.id === passiveId));
+    assert.ok(item, `missing item carrier for ${passiveId}`);
+    const perk = item.availablePerks?.find((row) => row.passive?.id === passiveId);
+    return core.itemSelectionCalculationStatus(item, {
+      ...core.emptyEquipmentSelection(),
+      itemId: item.id,
+      perkId: perk?.id ?? "",
+    }, { equippedWeaponTypes: core.WEAPON_TYPES });
+  };
+
+  assert.ok(statusFor("SkillSet_WP_Item_FieldBoss_T3_CR_02").provisionalIssues.some((issue) => issue.code === "persistent_owner_semantics_unresolved"));
+  assert.ok(statusFor("SkillSet_WP_Item_Field_NIX_GT_01").provisionalIssues.some((issue) => issue.code === "passive_effect_source_conflict"));
+  assert.ok(statusFor("SkillSet_WP_Item_FieldBoss_T2_ORB_01").provisionalIssues.some((issue) => issue.code === "passive_effect_decode_unresolved"));
+  assert.equal(statusFor("SkillSet_WP_Item_FieldBoss_T3_ST_02").state, "legal", "conditional Aridus must not be mistaken for an unmapped persistent total");
+});

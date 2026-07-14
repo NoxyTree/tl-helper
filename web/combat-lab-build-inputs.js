@@ -16,6 +16,23 @@ export function inferBuildAttackType(build, resolveItemType) {
   return null;
 }
 
+export function selectAbilityWeaponHand(build, requiredWeaponType, resolveItemType) {
+  if (typeof resolveItemType !== "function") throw new TypeError("resolveItemType is required.");
+  const required = String(requiredWeaponType ?? "").trim().toLowerCase();
+  if (!required) return null;
+  for (const [hand, slotId] of [["main", "main_hand"], ["off", "off_hand"]]) {
+    const itemId = build?.equipment?.[slotId]?.itemId;
+    if (String(resolveItemType(itemId) ?? "").trim().toLowerCase() === required) {
+      return Object.freeze({ hand, slotId, weaponType: required });
+    }
+  }
+  return null;
+}
+
+export function isLegalBuildSnapshot(snapshot) {
+  return snapshot?.resolved?.status?.state === "legal";
+}
+
 export function resolveVisibleMatchupInputs({ sourceSnapshot, targetSnapshot, attackType, readStat }) {
   if (!["melee", "range", "magic"].includes(attackType)) throw new RangeError(`Unsupported attack type: ${attackType}`);
   if (typeof readStat !== "function") throw new TypeError("readStat is required.");

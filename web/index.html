@@ -924,12 +924,17 @@
             </div>
 
             <div style="margin-top: 20px; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 10px; background: rgba(14, 11, 7, 0.5); padding: 16px;">
-              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                 <div>
                   <h3 style="margin: 0; font-family: Marcellus, serif; font-size: 16px; font-weight: 400; color: #f3e9d4;">Unified Mastery</h3>
                   <div style="font-size: 11px; color: #8a795f; margin-top: 2px;">Shared across weapons. Only Potential affects totals — the rest are conditional combat passives Questlog also excludes.</div>
                 </div>
-                <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">{{ unifiedSelectedLabel }}</span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a795f;white-space:nowrap;">Overall level
+                    <input type="number" min="0" max="1560" value="{{ overallMasteryLevelValue }}" onChange="{{ onOverallMasteryLevelChange }}" aria-label="Overall Mastery Level" placeholder="Required" style="width:88px;padding:6px 8px;border:1px solid rgba(212,166,94,.22);border-radius:6px;background:rgba(10,8,5,.7);color:#f3e9d4;font-size:11px;text-align:right;">
+                  </label>
+                  <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">{{ unifiedSelectedLabel }}</span>
+                </div>
               </div>
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 8px;">
                 <sc-for list="{{ unifiedMasteryRows }}" as="node" hint-placeholder-count="8">
@@ -2391,7 +2396,8 @@ class Component extends DCLogic {
     const masteryCount = Object.keys(build.masteries ?? {}).length;
     const supportCount = core.SUPPORT_SLOTS.filter((slot) => build.supportSlots?.[slot.id]?.itemId).length;
     const attributeSpent = Object.values(this.state.attributes).reduce((total, value) => total + Number(value || 0), 0);
-    const validationIssueCount = calc.validation?.issues?.length ?? 0;
+    const calculationState = calc.status?.state ?? "provisional";
+    const validationIssueCount = calc.status?.blockingIssues?.length ?? calc.validation?.issues?.length ?? 0;
     const effectCount = core.statPageRows(calc, "all", build).length;
     const overviewRows = [
       { label: "Attributes", value: `${attributeSpent}/59`, color: attributeSpent === 59 ? "#7ee0a6" : "#f3e9d4" },
@@ -2401,8 +2407,10 @@ class Component extends DCLogic {
       { label: "Artifacts", value: `${artifactCount}/${artifactTotal}`, color: artifactCount === artifactTotal ? "#7ee0a6" : "#f3e9d4" },
       { label: "Support", value: `${supportCount}/${core.SUPPORT_SLOTS.length}`, color: supportCount === core.SUPPORT_SLOTS.length ? "#7ee0a6" : "#f3e9d4" },
     ];
-    const overviewStatus = validationIssueCount ? `${validationIssueCount} ${validationIssueCount === 1 ? "issue" : "issues"}` : "No issues";
-    const overviewStatusColor = validationIssueCount ? "#e5a06a" : "#7ee0a6";
+    const overviewStatus = calculationState === "legal"
+      ? "Legal static totals"
+      : `${core.label(calculationState)} · ${validationIssueCount} calculation ${validationIssueCount === 1 ? "issue" : "issues"}`;
+    const overviewStatusColor = calculationState === "invalid" ? "#e58b84" : calculationState === "provisional" ? "#e5a06a" : "#7ee0a6";
     const tabDefs = [
       ["stats", "Effects", `${effectCount}`],
       ["skills", "Skills", `${skillRowsAll.length}`],
@@ -3283,7 +3291,7 @@ class Component extends DCLogic {
         icon: node.imageUrl ?? "",
         hasIcon: Boolean(node.imageUrl),
         desc: core.plainInline(core.values(node.passives)[0] ?? node.description ?? ""),
-        meta: counted ? "Counted in totals" : "No stat effect (Questlog parity)",
+        meta: `Overall Lv ${node.requiredLevel ?? 0} | ${counted ? "Counted in totals" : "Conditional effect"}`,
         border: selected ? "rgba(232, 184, 106, 0.65)" : "rgba(212, 166, 94, 0.16)",
         bg: selected ? "rgba(212, 166, 94, 0.12)" : "rgba(10, 8, 5, 0.45)",
         opacity: capped ? "0.45" : "1",
@@ -3297,6 +3305,11 @@ class Component extends DCLogic {
     return {
       unifiedMasteryRows: rows,
       unifiedSelectedLabel: `${selectedIds.length}/${core.UNIFIED_MASTERY_CAP} active`,
+      overallMasteryLevelValue: build.overallMasteryLevel ?? "",
+      onOverallMasteryLevelChange: (event) => {
+        const value = String(event.target.value ?? "").trim();
+        this.mutate((next) => { next.overallMasteryLevel = value === "" ? null : Number(value); });
+      },
     };
   }
 

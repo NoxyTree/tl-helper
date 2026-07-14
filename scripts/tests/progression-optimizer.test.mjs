@@ -69,4 +69,6 @@ test("overall mastery Potential is explicit and mastery inputs clamp to legal li
   assert.equal(core.masteryWeaponPointState("sword", result.build).totalPoints, core.MASTERY_POINT_BUDGET);
   assert.equal(core.masteryWeaponPointState("sword2h", result.build).totalPoints, 0);
   assert.deepEqual(result.build.unifiedMasteries, ["WM_Common_SKILL_007"]);
+  assert.equal(result.build.overallMasteryLevel, core.indexes.masteryById.WM_Common_SKILL_007.requiredLevel);
+  assert.equal(core.calculateBuild(result.build, {}).status.state, "legal");
 });

@@ -130,6 +130,7 @@
               <div style="position: absolute; left: 0; right: 0; bottom: 5px; padding: 30px 14px 10px; background: linear-gradient(180deg, transparent, rgba(8, 6, 4, 0.88)); pointer-events: none; border-radius: 0 0 5px 5px;">
                 <div style="font-family: Marcellus, serif; font-size: 19px; color: #f6d391; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);">{{ charName }}</div>
                 <div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #cbb185;">{{ portraitSubtitle }}</div>
+                <div style="margin-top: 4px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: {{ calculationStatusColor }};">{{ calculationStatusLabel }}</div>
               </div>
             </div>
 
@@ -565,6 +566,8 @@ class Component extends DCLogic {
       charLoading: false,
       charName: this.state.profile.name,
       portraitSubtitle: `${this.state.profile.role} · ${weaponPairLabel}`,
+      calculationStatusLabel: calc.status?.state === "legal" ? "Legal static totals" : `${core.label(calc.status?.state ?? "provisional")} static totals`,
+      calculationStatusColor: calc.status?.state === "invalid" ? "#e58b84" : calc.status?.state === "provisional" ? "#e5a06a" : "#7ee0a6",
       leftSlots: leftIds.map((id) => this.slotMini(id)),
       rightSlots: rightIds.map((id) => this.slotMini(id)),
       weaponCards,
