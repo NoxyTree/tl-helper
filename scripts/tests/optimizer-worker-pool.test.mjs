@@ -36,13 +36,13 @@ class FakeWorker {
   }
 }
 
-test("adaptive optimizer worker count leaves two logical CPUs free and caps at eight", () => {
+test("adaptive optimizer worker count estimates physical cores and caps at four", () => {
   assert.equal(recommendedOptimizerWorkerCount(null), 1);
   assert.equal(recommendedOptimizerWorkerCount(1), 1);
   assert.equal(recommendedOptimizerWorkerCount(2), 1);
   assert.equal(recommendedOptimizerWorkerCount(4), 2);
-  assert.equal(recommendedOptimizerWorkerCount(12), 8);
-  assert.equal(recommendedOptimizerWorkerCount(32), 8);
+  assert.equal(recommendedOptimizerWorkerCount(12), 4);
+  assert.equal(recommendedOptimizerWorkerCount(32), 4);
 });
 
 test("parallel pool preserves input order despite out-of-order completion", async () => {

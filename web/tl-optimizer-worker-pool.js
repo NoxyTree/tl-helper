@@ -23,12 +23,13 @@ function normalizedHardwareConcurrency(value) {
 }
 
 /**
- * Leave two logical CPUs available for the coordinator, rendering, and the OS,
- * while bounding projection memory at eight calculation workers.
+ * Heavy optimizer tasks saturate a physical core and carry a full projection.
+ * Use roughly half the reported logical CPUs, capped at four workers, so the
+ * coordinator, rendering, and the OS retain headroom without SMT contention.
  */
 export function recommendedOptimizerWorkerCount(hardwareConcurrency = globalThis.navigator?.hardwareConcurrency) {
   const logical = normalizedHardwareConcurrency(hardwareConcurrency);
-  return Math.max(1, Math.min(8, logical - 2));
+  return Math.max(1, Math.min(4, Math.floor(logical / 2)));
 }
 
 async function runSequential(tasks, {

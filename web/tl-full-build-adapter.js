@@ -14,6 +14,17 @@ const totalMap = (calc) => Object.fromEntries((calc?.scenarioStats ?? calc?.stat
 // priority during candidate pruning or final scoring.
 const RANK_DECAY = 0.05;
 
+export const OPTIMIZER_SEARCH_PROFILES = Object.freeze({
+  preview: Object.freeze({ id: "preview", directCandidateCap: 8, runeCandidateLimit: 6, artifactBundleLimit: 12, beamWidth: 160, paretoWidth: 12, attributePoolSize: 16, runeRefinementLimit: 6, progressionPoolSize: 2 }),
+  fast: Object.freeze({ id: "fast", directCandidateCap: 8, runeCandidateLimit: 6, artifactBundleLimit: 12, beamWidth: 300, paretoWidth: 24, attributePoolSize: 48, runeRefinementLimit: 10, progressionPoolSize: 4 }),
+  refine: Object.freeze({ id: "refine", directCandidateCap: 18, runeCandidateLimit: 8, artifactBundleLimit: 32, beamWidth: 1000, paretoWidth: 24, attributePoolSize: 64, runeRefinementLimit: 16, progressionPoolSize: 8 }),
+});
+
+export function optimizerSearchProfile(depth) {
+  if (depth === "preview") return OPTIMIZER_SEARCH_PROFILES.preview;
+  return depth === "thorough" || depth === "refine" ? OPTIMIZER_SEARCH_PROFILES.refine : OPTIMIZER_SEARCH_PROFILES.fast;
+}
+
 export function normalizeRankedGoals(goals = {}) {
   const source = Array.isArray(goals.priorities) && goals.priorities.length ? goals.priorities : (goals.increase ?? []);
   const unique = new Map();
@@ -369,6 +380,48 @@ function diverseFinalists(rows, rankedGoals, limit = 16) {
   return [...retained.values()].slice(0, limit);
 }
 
+function finalistMatchesSetRoute(row, route) {
+  const count = Number(row?.setCounts?.[route.setId] ?? 0);
+  return count >= route.minimumPieces && count <= route.maximumPieces;
+}
+
+function setRouteRepresentation(rows, setRoutes) {
+  const representedRouteIds = [];
+  for (const route of setRoutes ?? []) if (rows.some((row) => finalistMatchesSetRoute(row, route))) representedRouteIds.push(route.id);
+  return { requested: setRoutes?.length ?? 0, represented: representedRouteIds.length, representedRouteIds };
+}
+
+function structuralStateRepresentation(rows, structuralStateKeys) {
+  const representedKeys = (structuralStateKeys ?? []).filter((key) => rows.some((row) => row.structuralKeys?.includes(key)));
+  return { requested: structuralStateKeys?.length ?? 0, represented: representedKeys.length, representedKeys };
+}
+
+export function diverseFinalistsWithSetRoutes(rows, rankedGoals, limit, setRoutes, structuralStateKeys = []) {
+  const selectedKeys = new Set(diverseFinalists(rows, rankedGoals, limit).map((row) => row.key));
+  for (const route of setRoutes ?? []) {
+    const representative = rows.find((row) => finalistMatchesSetRoute(row, route));
+    if (representative) selectedKeys.add(representative.key);
+  }
+  for (const structuralKey of structuralStateKeys) {
+    const representative = rows.find((row) => row.structuralKeys?.includes(structuralKey));
+    if (representative) selectedKeys.add(representative.key);
+  }
+  return rows.filter((row) => selectedKeys.has(row.key));
+}
+
+function structuralFinalistCoverage(rows, setRoutes, structuralStateKeys) {
+  const selectedKeys = new Set();
+  for (const route of setRoutes ?? []) {
+    const representative = rows.find((row) => finalistMatchesSetRoute(row, route));
+    if (representative) selectedKeys.add(representative.key);
+  }
+  for (const structuralKey of structuralStateKeys ?? []) {
+    const representative = rows.find((row) => row.structuralKeys?.includes(structuralKey));
+    if (representative) selectedKeys.add(representative.key);
+  }
+  return rows.filter((row) => selectedKeys.has(row.key));
+}
+
 export function refineRuneConfiguration({
   core, build, attributes, budget, rankedGoals, baseline, scales, minimums = {}, includeSetEffects = true,
   runeCandidatesByCategory, lockedSlotIds = new Set(), optimizeAttributes = optimizeAttributeAllocation, rounds = 2, scenario = null,
@@ -391,6 +444,7 @@ export function refineRuneConfiguration({
       const currentKey = JSON.stringify(workingBuild.equipment[slot.id].runes ?? []);
       let best = { ...current, key: currentKey, runes: workingBuild.equipment[slot.id].runes ?? [] };
       for (const row of runeRows) {
+        if (JSON.stringify(row.selection) === currentKey) continue;
         const trialBuild = clone(workingBuild);
         trialBuild.equipment[slot.id].runes = clone(row.selection);
         const trial = { ...evaluateFixed(trialBuild, workingAttributes), key: row.key, runes: row.selection };
@@ -559,12 +613,10 @@ export function executeOptimizerTask(core, taskType, payload, context) {
  * so without this a partial-set beam state carries none of the value its
  * completed set would unlock and the final beam-width cut can discard it
  * before exact evaluation (docs/set-effect-database-review-2026-07-13.md §10).
- * This is breakpoint-aware pruning that protects set routes, not a global
- * guarantee: the hint may overestimate never-completed sets, and dynamic
- * bonuses are projected against BASELINE attributes, so a threshold bonus the
- * set's own items would unlock (baseline below the threshold, final above it)
- * contributes zero hint and that route can still be pruned. Exact finalist
- * calculation remains the sole scoring authority.
+ * This hint improves general beam ordering. Dedicated structural set routes
+ * separately preserve relevant reachable breakpoints even when a dynamic
+ * bonus projects to zero against the baseline. Exact finalist calculation
+ * remains the sole scoring authority.
  */
 function scenarioEvaluatorInput(scenario) {
   if (!scenario || typeof scenario !== "object") return null;
@@ -663,6 +715,60 @@ export function applySetCompletionHints({
   return completionHints;
 }
 
+function expandedStatIds(id, result = new Set()) {
+  if (!id || result.has(id)) return result;
+  result.add(id);
+  for (const target of STAT_EXPANSIONS[id] ?? []) expandedStatIds(target, result);
+  return result;
+}
+
+function setRuleEmitsAny(rule, baseline, wantedIds) {
+  if (!rule) return false;
+  const environments = [0, 1_000_000].map((fallback) => new Proxy({}, { get: (_, id) => ({ total: Number(baseline[id]) || fallback }) }));
+  for (const environment of environments) {
+    try {
+      if ((rule.effect(environment) ?? []).some((row) => [...expandedStatIds(row.statId)].some((id) => wantedIds.has(id)))) return true;
+    } catch { /* an unevaluable dynamic rule is still handled by its phase */ }
+  }
+  return false;
+}
+
+export function deriveRelevantSetRoutes({ core, candidatesBySlot, completionHints = new Map(), attributePointBudget = null, baseline = {}, relevantStatIds = [], includeSetEffects = true }) {
+  if (!includeSetEffects) return [];
+  const relevantIds = new Set(relevantStatIds);
+  const attributeIds = new Set(ATTRIBUTE_IDS);
+  const availablePieces = new Map();
+  for (const rows of Object.values(candidatesBySlot ?? {})) {
+    for (const setId of new Set((rows ?? []).flatMap((row) => row.setKeys ?? []))) availablePieces.set(setId, (availablePieces.get(setId) ?? 0) + 1);
+  }
+  const routes = [];
+  for (const [setId, maximumAvailable] of [...availablePieces.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+    const set = core.indexes?.itemSetById?.[setId] ?? (core.data?.itemSets ?? []).find((row) => row.id === setId);
+    if (!set) continue;
+    const bonuses = (set.itemSetBonus ?? []).map((bonus) => ({ ...bonus, count: Number(bonus.set_count ?? 0) }))
+      .filter((bonus) => bonus.count > 0 && bonus.count <= maximumAvailable)
+      .sort((left, right) => left.count - right.count);
+    const thresholds = bonuses.map((bonus) => bonus.count);
+    if (!thresholds.length) continue;
+    const rules = SET_PASSIVE_RULES[setId] ?? {};
+    for (let index = 0; index < thresholds.length; index += 1) {
+      const minimumPieces = thresholds[index];
+      const maximumPieces = index + 1 < thresholds.length ? thresholds[index + 1] - 1 : maximumAvailable;
+      const activeBonuses = bonuses.filter((bonus) => bonus.count <= minimumPieces);
+      const hasRelevantOutput = relevantIds.size > 0 && activeBonuses.some((bonus) =>
+        (bonus.bonus_stat ?? []).some((row) => [...expandedStatIds(row.type)].some((id) => relevantIds.has(id)))
+        || setRuleEmitsAny(rules[bonus.count], baseline, relevantIds));
+      const hasAttributeOutput = attributePointBudget != null && activeBonuses.some((bonus) =>
+        (bonus.bonus_stat ?? []).some((row) => [...expandedStatIds(row.type)].some((id) => attributeIds.has(id)))
+        || setRuleEmitsAny(rules[bonus.count], baseline, attributeIds));
+      const hasConditionalRule = activeBonuses.some((bonus) => Number(rules[bonus.count]?.phase ?? 1) > 1);
+      if (!completionHints.has(setId) && !hasRelevantOutput && !hasAttributeOutput && !hasConditionalRule) continue;
+      routes.push({ id: `${setId}:${minimumPieces}`, setId, minimumPieces, maximumPieces });
+    }
+  }
+  return routes;
+}
+
 /** Browser adapter. Dependencies are injectable to keep the boundary testable. */
 export async function createOptimizerAdapter(deps = {}) {
   const core = deps.core ?? coreDefault;
@@ -735,6 +841,7 @@ export async function createOptimizerAdapter(deps = {}) {
     },
 
     async optimize(request, runtime = {}) {
+      const profile = optimizerSearchProfile(request.depth);
       const source = wrap(request.build);
       const scratch = request.sourceKind === "scratch" || request.build?.sourceKind === "scratch";
       const rules = request.rules ?? {};
@@ -822,7 +929,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const lockedSlotIds = new Set(request.lockedSlotIds ?? []);
       const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};
-      const cap = request.depth === "thorough" ? 18 : 8;
+      const cap = profile.directCandidateCap;
       const contribution = (slot, selection) => {
         const options = { includeSetEffects: false, ...(scenario == null ? {} : { scenario }) };
         return !scratch && core.WEAPON_SLOTS?.includes(slot) && typeof core.slotReplacementDelta === "function"
@@ -875,7 +982,7 @@ export async function createOptimizerAdapter(deps = {}) {
             let runeRows = runeCandidatesByCategory.get(category);
             if (!runeRows) {
               const goalWeights = componentWeightMap(rankedGoals, generationScales);
-              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: request.depth === "thorough" ? 8 : 6 });
+              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: profile.runeCandidateLimit });
               runeCandidatesByCategory.set(category, runeRows);
             }
             if (runeRows[0]) selection.runes = runeRows[0].selection;
@@ -924,7 +1031,7 @@ export async function createOptimizerAdapter(deps = {}) {
 
       if (rules.artifacts?.mode && rules.artifacts.mode !== "keep") {
         const goalWeights = componentWeightMap(rankedGoals, generationScales);
-        const bundles = generateArtifactCandidates({ items: core.data.items, artifactSets: core.data.artifactSets, scoreItem: (item) => weight(core.itemStatContribution(item, item.equipmentType, core.itemMaxLevel(item), source.build, source.attributes, scenario == null ? {} : { scenario })), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: request.depth === "thorough" ? 32 : 12 });
+        const bundles = generateArtifactCandidates({ items: core.data.items, artifactSets: core.data.artifactSets, scoreItem: (item) => weight(core.itemStatContribution(item, item.equipmentType, core.itemMaxLevel(item), source.build, source.attributes, scenario == null ? {} : { scenario })), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: profile.artifactBundleLimit });
         candidatesBySlot.artifact_bundle = bundles.map((row) => ({ id: row.key, selection: row, scoreHint: row.score, stateKeys: row.setState.map((set) => `${set.setId}:${set.count}`) }));
         slots.push("artifact_bundle");
       }
@@ -935,10 +1042,15 @@ export async function createOptimizerAdapter(deps = {}) {
       const objectiveScales = generationScales;
       // Breakpoint-aware pruning: each set-bearing candidate carries an
       // optimistic per-piece share of its set's full-completion value so the
-      // beam protects set routes through to exact finalist evaluation. Not a
-      // pruning guarantee — see deriveSetCompletionHints for the baseline-
-      // threshold limitation.
-      applySetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline, includeSetEffects: rules.includeSetEffects !== false, scenario });
+      // beam improves ordinary set ordering while dedicated structural routes
+      // preserve relevant reachable breakpoints through exact evaluation.
+      const completionHints = applySetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline, includeSetEffects: rules.includeSetEffects !== false, scenario });
+      const protectedRouteGoals = expandCompositeGoals(normalizeRankedGoals({ increase: goals.protect ?? [] }));
+      const relevantRouteStatIds = [...new Set([...rankedGoals, ...protectedRouteGoals].flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
+      const setRoutes = deriveRelevantSetRoutes({ core, candidatesBySlot, completionHints, attributePointBudget, baseline, relevantStatIds: relevantRouteStatIds, includeSetEffects: rules.includeSetEffects !== false });
+      const structuralStateKeys = (candidatesBySlot.artifact_bundle ?? [])
+        .filter((candidate) => String(candidate.id).startsWith("set:"))
+        .flatMap((candidate) => candidate.stateKeys ?? []);
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
@@ -952,8 +1064,8 @@ export async function createOptimizerAdapter(deps = {}) {
         }
         rejectionDiagnostics.blockingByStage.set(stage, stageIssues);
       };
-      const attributePoolSize = request.depth === "thorough" ? 64 : 48;
-      const progressionPoolSize = request.depth === "thorough" ? 8 : 4;
+      const attributePoolSize = profile.attributePoolSize;
+      const progressionPoolSize = profile.progressionPoolSize;
       const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
       const beamWeights = Object.fromEntries(componentWeightMap(rankedGoals, objectiveScales));
       const beamGoalStats = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
@@ -989,7 +1101,9 @@ export async function createOptimizerAdapter(deps = {}) {
         if (!itemId) return true;
         if (Object.values(selections).some((selection) => selection?.itemId === itemId)) return false;
         return true;
-      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, setRoutes, structuralStateKeys, routeLegalityMetadataComplete: true, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      const setRouteStages = { preliminary: search.setRouteMetrics ?? { requested: setRoutes.length, represented: 0, representedRouteIds: [] } };
+      const structuralStateStages = { preliminary: search.structuralStateMetrics ?? { requested: structuralStateKeys.length, represented: 0, representedKeys: [] } };
       if (attributePointBudget != null) {
         const exact = [];
         const preliminaryFrontier = search.frontier?.length ? search.frontier : search.alternatives;
@@ -1032,8 +1146,12 @@ export async function createOptimizerAdapter(deps = {}) {
           exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
         }
         exact.sort(exactOrder);
+        setRouteStages.attributes = setRouteRepresentation(exact, setRoutes);
+        structuralStateStages.attributes = structuralStateRepresentation(exact, structuralStateKeys);
         if (rules.runes?.mode && rules.runes.mode !== "keep" && runeCandidatesByCategory.size) {
-          const refinementTargets = diverseFinalists(exact, rankedGoals, request.depth === "thorough" ? 16 : 10);
+          const refinementTargets = diverseFinalistsWithSetRoutes(exact, rankedGoals, profile.runeRefinementLimit, setRoutes, structuralStateKeys);
+          setRouteStages.runes = setRouteRepresentation(refinementTargets, setRoutes);
+          structuralStateStages.runes = structuralStateRepresentation(refinementTargets, structuralStateKeys);
           const runeTaskContext = {
             budget: attributePointBudget,
             rankedGoals,
@@ -1074,9 +1192,11 @@ export async function createOptimizerAdapter(deps = {}) {
           }
           exact.sort(exactOrder);
         }
-        search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), frontier: exact.slice(0, attributePoolSize), attributeFinalistsEvaluated: preliminaryFrontier.length };
+        const exactFrontier = diverseFinalistsWithSetRoutes(exact, rankedGoals, attributePoolSize, setRoutes, structuralStateKeys);
+        search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), frontier: exactFrontier, attributeFinalistsEvaluated: preliminaryFrontier.length };
       }
       if (progression) {
+        const seedProgression = clone({ summary: progression.summary, settings: progression.settings });
         const progressionSource = [...(search.alternatives ?? []), ...(search.frontier ?? [])]
           .filter((row, index, rows) => rows.findIndex((candidate) => candidate.key === row.key) === index);
         const progressionTargets = diverseFinalists(
@@ -1084,6 +1204,8 @@ export async function createOptimizerAdapter(deps = {}) {
           rankedGoals,
           progressionPoolSize,
         );
+        setRouteStages.progressionOptimized = setRouteRepresentation(progressionTargets, setRoutes);
+        structuralStateStages.progressionOptimized = structuralStateRepresentation(progressionTargets, structuralStateKeys);
         const progressionTaskContext = {
           weapons: Object.values(weaponTypeConstraints),
           settings: request.progression,
@@ -1134,7 +1256,17 @@ export async function createOptimizerAdapter(deps = {}) {
             },
           });
         }
+        const progressionCoverage = structuralFinalistCoverage(progressionSource, setRoutes, structuralStateKeys);
+        for (const candidate of progressionCoverage) {
+          if (exactProgression.some((row) => row.key === candidate.key)) continue;
+          exactProgression.push({
+            ...candidate,
+            evaluation: { ...candidate.evaluation, progression: seedProgression },
+          });
+        }
         exactProgression.sort(exactOrder);
+        setRouteStages.final = setRouteRepresentation(exactProgression, setRoutes);
+        structuralStateStages.final = structuralStateRepresentation(exactProgression, structuralStateKeys);
         progression = exactProgression[0]?.evaluation.progression ?? null;
         search = {
           ...search,
@@ -1220,6 +1352,7 @@ export async function createOptimizerAdapter(deps = {}) {
         allStats,
         progression: progression ? clone({ ...progression.summary, settings: progression.settings }) : null,
         setEffects: clone(finalCalculation.setEffects),
+        searchMetrics: { profile: profile.id, combinations: search.searched, preliminaryFinalists: search.finalists, setRoutes: { ...(search.setRouteMetrics ?? { requested: 0, represented: 0, representedRouteIds: [] }), stages: setRouteStages }, structuralStates: { ...(search.structuralStateMetrics ?? { requested: 0, represented: 0, representedKeys: [] }), stages: structuralStateStages }, attributeFinalists: search.attributeFinalistsEvaluated ?? 0, progressionFinalists: search.progressionFinalistsEvaluated ?? 0 },
         scenario: scenario == null ? null : clone(finalCalculation.scenarioEffects?.scenario ?? scenario),
         scenarioEffects: scenario == null ? null : clone(finalCalculation.scenarioEffects),
       };

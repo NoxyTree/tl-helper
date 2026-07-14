@@ -1,7 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizeProgressionFinalistTask, optimizerItemSelection, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, diverseFinalistsWithSetRoutes, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizeProgressionFinalistTask, optimizerItemSelection, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+
+test("set-route representatives survive bounded downstream finalist selection", () => {
+  const rows = [
+    { key: "general", setCounts: {}, evaluation: { score: 100, stats: { attack: 100 } } },
+    { key: "alpha", setCounts: { alpha: 2 }, evaluation: { score: 2, stats: { attack: 2 } } },
+    { key: "beta", setCounts: { beta: 4 }, evaluation: { score: 1, stats: { attack: 1 } } },
+    { key: "artifact", setCounts: {}, structuralKeys: ["artifact-set:6"], evaluation: { score: 0, stats: { attack: 0 } } },
+  ];
+  const routes = [
+    { id: "alpha:2", setId: "alpha", minimumPieces: 2, maximumPieces: 3 },
+    { id: "beta:4", setId: "beta", minimumPieces: 4, maximumPieces: 4 },
+  ];
+  const selected = diverseFinalistsWithSetRoutes(rows, [{ id: "attack", components: ["attack"] }], 1, routes, ["artifact-set:6"]);
+  assert.deepEqual(selected.map((row) => row.key), ["general", "alpha", "beta", "artifact"]);
+});
 
 test("same-item scratch and refit candidates preserve excluded potentials without cross-item inheritance", () => {
   const core = { emptyEquipmentSelection: () => ({ itemId: "", potentialId: "", traits: [] }), itemMaxLevel: () => 12 };

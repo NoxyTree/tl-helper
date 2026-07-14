@@ -68,6 +68,17 @@ function synergyCandidateScore({ core, build, weapon, row, evaluate, score, base
   return direct + interactionLookahead + epicLookahead;
 }
 
+function progressionStateKey(build) {
+  const skills = [...(build.skills ?? [])]
+    .map((row) => [row.skillId, Number(row.level ?? 0), row.loadoutType ?? "", [...(row.specializationIds ?? [])].sort()])
+    .sort((left, right) => String(left[0]).localeCompare(String(right[0])));
+  const masteries = Object.entries(build.masteries ?? {})
+    .map(([id, row]) => [id, Number(row?.level ?? row ?? 0)])
+    .sort(([left], [right]) => left.localeCompare(right));
+  const unified = [...(build.unifiedMasteries ?? [])].sort();
+  return JSON.stringify([Number(build.overallMasteryLevel ?? 0), skills, masteries, unified]);
+}
+
 function synchronizeSynergies({ core, build, weapon, evaluate, score, levelCap }) {
   const rows = core.masteryRowsForWeapon(weapon);
   for (const row of rows) if (row.specializationType === "synergy") delete build.masteries[row.id];
@@ -308,7 +319,12 @@ export function optimizeScratchProgression({ core, build, weapons, settings = {}
   // Scratch progression is chosen before concrete weapon items exist. The
   // evaluator receives the requested weapon families so the shared calculator
   // can activate only their passive and mastery rows without inventing gear.
-  const evaluateProgression = (candidate) => evaluate(candidate, { progressionWeaponTypes: weapons });
+  const evaluationCache = new Map();
+  const evaluateProgression = (candidate) => {
+    const key = progressionStateKey(candidate);
+    if (!evaluationCache.has(key)) evaluationCache.set(key, evaluate(candidate, { progressionWeaponTypes: weapons }));
+    return evaluationCache.get(key);
+  };
   const result = clone(build);
   result.skills = [];
   result.masteries = {};

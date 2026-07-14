@@ -58,12 +58,13 @@ function objectiveVector(state, ids, statCaps) {
 }
 
 function dominates(a, b, ids, statCaps) {
-  const av = objectiveVector(a, ids, statCaps);
-  const bv = objectiveVector(b, ids, statCaps);
+  const av = a._objectiveVector ?? objectiveVector(a, ids, statCaps);
+  const bv = b._objectiveVector ?? objectiveVector(b, ids, statCaps);
   return av.every((value, index) => value >= bv[index]) && av.some((value, index) => value > bv[index]);
 }
 
 function heuristic(state, weights, statCaps) {
+  if (Number.isFinite(state._heuristic)) return state._heuristic;
   let score = number(state.hint);
   for (const [id, weight] of Object.entries(weights ?? {})) score += capped(state.stats[id], statCaps?.[id]) * number(weight);
   return score;
@@ -77,14 +78,103 @@ function stateOrder(a, b, weights, statCaps) {
     || a.key.localeCompare(b.key);
 }
 
+function normalizeSetRoutes(routes) {
+  return [...(routes ?? [])].map((route) => ({
+    id: String(route.id ?? `${route.setId}:${route.minimumPieces}`),
+    setId: String(route.setId ?? ""),
+    minimumPieces: Math.max(1, Math.floor(number(route.minimumPieces))),
+    maximumPieces: Number.isFinite(Number(route.maximumPieces)) ? Math.max(1, Math.floor(Number(route.maximumPieces))) : Infinity,
+  })).filter((route) => route.setId && route.maximumPieces >= route.minimumPieces)
+    .sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function routeCount(state, route) {
+  return number(state.sets?.[route.setId]);
+}
+
+function stateCanReachRoute(state, route, futureSlots, candidatesBySlot, options) {
+  const count = routeCount(state, route);
+  if (count > route.maximumPieces) return false;
+  if (count >= route.minimumPieces) return true;
+  const reachableSlots = futureSlots.filter((slot) => (candidatesBySlot[slot] ?? []).some((candidate) => candidate.setKeys?.includes(route.setId)));
+  if (count + reachableSlots.length < route.minimumPieces) return false;
+  if (options.routeLegalityMetadataComplete === true) {
+    const selectedIds = new Set(Object.values(state.selections).map((selection) => selection?.itemId).filter(Boolean));
+    const futureIdSlots = new Map();
+    let interactive = false;
+    for (const slot of reachableSlots) for (const candidate of candidatesBySlot[slot] ?? []) {
+      if (!candidate.setKeys?.includes(route.setId)) continue;
+      const itemId = candidate.selection?.itemId;
+      if (candidate.heroicGroup || candidate.weaponType || (itemId && selectedIds.has(itemId))) interactive = true;
+      if (itemId) {
+        const seenSlots = futureIdSlots.get(itemId) ?? new Set();
+        seenSlots.add(slot);
+        futureIdSlots.set(itemId, seenSlots);
+        if (seenSlots.size > 1) interactive = true;
+      }
+    }
+    if (!interactive) return true;
+  }
+  const visit = (startIndex, current) => {
+    const currentCount = routeCount(current, route);
+    if (currentCount >= route.minimumPieces && currentCount <= route.maximumPieces) return true;
+    if (currentCount > route.maximumPieces || currentCount + reachableSlots.length - startIndex < route.minimumPieces) return false;
+    for (let index = startIndex; index < reachableSlots.length; index += 1) {
+      const slot = reachableSlots[index];
+      for (const candidate of candidatesBySlot[slot] ?? []) {
+        if (!candidate.setKeys?.includes(route.setId) || !canAdd(current, candidate, options)) continue;
+        if (visit(index + 1, addCandidate(current, slot, candidate))) return true;
+      }
+    }
+    return false;
+  };
+  return visit(0, state);
+}
+
+function reserveSetRouteStates(states, routes, futureSlots, candidatesBySlot, options, weights, statCaps) {
+  const retained = new Map();
+  for (const route of routes) {
+    const best = states.filter((state) => stateCanReachRoute(state, route, futureSlots, candidatesBySlot, options))
+      .sort((left, right) => routeCount(right, route) - routeCount(left, route) || stateOrder(left, right, weights, statCaps))[0];
+    if (best) retained.set(best.key, best);
+  }
+  return [...retained.values()];
+}
+
+function reserveStructuralStates(states, structuralKeys, remainingStructuralKeys, weights, statCaps) {
+  const retained = new Map();
+  for (const key of structuralKeys) {
+    const best = states.filter((state) => state.custom.includes(key) || remainingStructuralKeys.has(key))
+      .sort((left, right) => Number(right.custom.includes(key)) - Number(left.custom.includes(key)) || stateOrder(left, right, weights, statCaps))[0];
+    if (best) retained.set(best.key, best);
+  }
+  return [...retained.values()];
+}
+
 function diverseStates(states, statIds, limit, weights, statCaps) {
   const ordered = [...states].sort((a, b) => stateOrder(a, b, weights, statCaps));
   if (ordered.length <= limit) return ordered;
   const retained = new Map();
   const add = (row) => { if (row) retained.set(row.key, row); };
-  const byStat = statIds.map((id) => [...states].sort((a, b) => capped(b.stats?.[id], statCaps?.[id]) - capped(a.stats?.[id], statCaps?.[id]) || stateOrder(a, b, weights, statCaps)));
-  for (const rows of byStat) add(rows[0]);
-  for (const rows of byStat) add(rows[1]);
+  const strongest = [];
+  const runnersUp = [];
+  for (const id of statIds) {
+    let first = null;
+    let second = null;
+    const compare = (a, b) => capped(b.stats?.[id], statCaps?.[id]) - capped(a.stats?.[id], statCaps?.[id]) || stateOrder(a, b, weights, statCaps);
+    for (const row of states) {
+      if (!first || compare(row, first) < 0) {
+        if (first?.key !== row.key) second = first;
+        first = row;
+      } else if (row.key !== first.key && (!second || compare(row, second) < 0)) {
+        second = row;
+      }
+    }
+    strongest.push(first);
+    runnersUp.push(second);
+  }
+  for (const row of strongest) add(row);
+  for (const row of runnersUp) add(row);
   for (const row of ordered) {
     if (retained.size >= limit) break;
     add(row);
@@ -92,10 +182,17 @@ function diverseStates(states, statIds, limit, weights, statCaps) {
   return [...retained.values()].slice(0, limit);
 }
 
-function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps }) {
+function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps, setRoutes = [], futureSlots = [], candidatesBySlot = {}, searchOptions = {}, structuralKeys = [], remainingStructuralKeys = new Set() }) {
   const frontiers = new Map();
+  for (const state of states) {
+    state._signature = signature(state);
+    state._objectiveVector = objectiveVector(state, paretoStats, statCaps);
+    let score = number(state.hint);
+    for (const [id, weight] of Object.entries(weights ?? {})) score += capped(state.stats[id], statCaps?.[id]) * number(weight);
+    state._heuristic = score;
+  }
   for (const state of states.sort((a, b) => a.key.localeCompare(b.key))) {
-    const sig = signature(state);
+    const sig = state._signature;
     const frontier = frontiers.get(sig) ?? [];
     if (frontier.some((other) => dominates(other, state, paretoStats, statCaps))) continue;
     const next = frontier.filter((other) => !dominates(state, other, paretoStats, statCaps)).concat(state);
@@ -103,7 +200,13 @@ function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps 
     // local bound keeps worst-case work predictable while retaining diversity.
     frontiers.set(sig, next.length > paretoWidth ? diverseStates(next, paretoStats, paretoWidth, weights, statCaps) : next);
   }
-  return diverseStates([...frontiers.values()].flat(), paretoStats, beamWidth, weights, statCaps);
+  const pooled = [...frontiers.values()].flat();
+  const reserved = [...reserveSetRouteStates(pooled, setRoutes, futureSlots, candidatesBySlot, searchOptions, weights, statCaps),
+    ...reserveStructuralStates(pooled, structuralKeys, remainingStructuralKeys, weights, statCaps)];
+  const general = diverseStates(pooled, paretoStats, beamWidth, weights, statCaps);
+  const retained = new Map(reserved.map((state) => [state.key, state]));
+  for (const state of general) retained.set(state.key, state);
+  return [...retained.values()];
 }
 
 function canAdd(state, candidate, options) {
@@ -195,13 +298,19 @@ export async function optimizeFullBuild(options) {
   const weights = options.weights ?? {};
   const statCaps = options.statCaps ?? {};
   const paretoStats = [...new Set([...(options.paretoStats ?? Object.keys(weights)), ...Object.keys(options.protectedStats ?? {})])].sort();
+  const setRoutes = normalizeSetRoutes(options.setRoutes);
+  const structuralKeys = [...new Set(options.structuralStateKeys ?? [])].map(String).filter(Boolean).sort();
+  const normalizedBySlot = Object.fromEntries(slots.map((slot) => [slot, normalizeCandidates(slot, options.candidatesBySlot[slot], locked[slot])]));
   let searched = 0;
   let beam = [{ selections: {}, candidates: {}, stats: {}, heroic: {}, weapons: [], sets: {}, custom: [], hint: 0, neutralHeroics: 0, neutralLevel: 0, neutralGrade: 0, key: "" }];
 
   for (let index = 0; index < slots.length; index += 1) {
     assertRunning(options);
     const slot = slots[index];
-    const candidates = normalizeCandidates(slot, options.candidatesBySlot[slot], locked[slot]);
+    const candidates = normalizedBySlot[slot];
+    const futureSlots = slots.slice(index + 1);
+    const remainingStructuralKeys = new Set(slots.slice(index + 1).flatMap((futureSlot) =>
+      (normalizedBySlot[futureSlot] ?? []).flatMap((candidate) => candidate.stateKeys ?? [])));
     const expanded = [];
     for (const state of beam) {
       for (const candidate of candidates) {
@@ -209,7 +318,7 @@ export async function optimizeFullBuild(options) {
         if (canAdd(state, candidate, options)) expanded.push(addCandidate(state, slot, candidate));
       }
     }
-    beam = prune(expanded, { beamWidth, paretoWidth, paretoStats, weights, statCaps });
+    beam = prune(expanded, { beamWidth, paretoWidth, paretoStats, weights, statCaps, setRoutes, futureSlots, candidatesBySlot: normalizedBySlot, searchOptions: options, structuralKeys, remainingStructuralKeys });
     options.onProgress?.({ phase: "search", completedSlots: index + 1, totalSlots: slots.length, frontierSize: beam.length, searched });
     if (!beam.length) break;
     await Promise.resolve();
@@ -244,7 +353,7 @@ export async function optimizeFullBuild(options) {
       ? batchEvaluations[index]
       : await options.evaluate(state.selections, evaluationInputs[index].context);
     if (evaluation?.legal !== false && protectedLegal(evaluation ?? {}, options.protectedStats)) {
-      results.push({ selections: state.selections, candidates: state.candidates, evaluation, key: state.key });
+      results.push({ selections: state.selections, candidates: state.candidates, setCounts: state.sets, structuralKeys: state.custom, evaluation, key: state.key });
     }
     if (!batchEvaluations) options.onProgress?.({ phase: "evaluate", completed: index + 1, total: beam.length, legal: results.length, workerCount: 1, mode: "sequential" });
   }
@@ -257,6 +366,37 @@ export async function optimizeFullBuild(options) {
     || neutral(b, "neutralGrade") - neutral(a, "neutralGrade")
     || a.key.localeCompare(b.key));
   const alternatives = results.slice(0, alternativeCount);
-  const frontier = diverseResultFrontier(results, paretoStats, frontierCount, statCaps);
-  return { best: alternatives[0] ?? null, alternatives, frontier, searched, finalists: beam.length };
+  const routeFinalists = new Map();
+  for (const route of setRoutes) {
+    const finalist = results.find((result) => {
+      const count = number(result.setCounts?.[route.setId]);
+      return count >= route.minimumPieces && count <= route.maximumPieces;
+    });
+    if (finalist) routeFinalists.set(route.id, finalist);
+  }
+  const structuralFinalists = new Map();
+  for (const structuralKey of structuralKeys) {
+    const finalist = results.find((result) => result.structuralKeys.includes(structuralKey));
+    if (finalist) structuralFinalists.set(structuralKey, finalist);
+  }
+  const frontier = new Map([...routeFinalists.values()].map((result) => [result.key, result]));
+  for (const result of structuralFinalists.values()) frontier.set(result.key, result);
+  for (const result of diverseResultFrontier(results, paretoStats, frontierCount, statCaps)) frontier.set(result.key, result);
+  return {
+    best: alternatives[0] ?? null,
+    alternatives,
+    frontier: [...frontier.values()],
+    searched,
+    finalists: beam.length,
+    setRouteMetrics: {
+      requested: setRoutes.length,
+      represented: routeFinalists.size,
+      representedRouteIds: [...routeFinalists.keys()],
+    },
+    structuralStateMetrics: {
+      requested: structuralKeys.length,
+      represented: structuralFinalists.size,
+      representedKeys: [...structuralFinalists.keys()],
+    },
+  };
 }

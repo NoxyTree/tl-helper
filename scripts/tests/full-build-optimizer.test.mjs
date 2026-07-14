@@ -87,6 +87,93 @@ test("beam pruning preserves the strongest candidate for every tuning stat", asy
   assert.deepEqual(result.frontier.map((row) => row.selections.head.id).sort(), ["guard", "haste"]);
 });
 
+test("dedicated set routes survive a global beam width of one", async () => {
+  const candidatesBySlot = Object.fromEntries(["head", "chest"].map((slot) => [slot, [
+    { id: `${slot}-direct`, selection: { id: `${slot}-direct` }, stats: { attack: 100 } },
+    { id: `${slot}-alpha`, selection: { id: `${slot}-alpha` }, stats: {}, setKeys: ["alpha"] },
+    { id: `${slot}-beta`, selection: { id: `${slot}-beta` }, stats: {}, setKeys: ["beta"] },
+  ]]));
+  const result = await optimizeFullBuild({
+    candidatesBySlot,
+    setRoutes: [
+      { id: "alpha:2", setId: "alpha", minimumPieces: 2, maximumPieces: 2 },
+      { id: "beta:2", setId: "beta", minimumPieces: 2, maximumPieces: 2 },
+    ],
+    beamWidth: 1,
+    weights: { attack: 1 },
+    evaluate: () => ({ score: 0, stats: {} }),
+  });
+  assert.equal(result.setRouteMetrics.requested, 2);
+  assert.equal(result.setRouteMetrics.represented, 2);
+  assert.deepEqual(result.setRouteMetrics.representedRouteIds, ["alpha:2", "beta:2"]);
+});
+
+test("set-route reachability respects Heroic caps in future slots", async () => {
+  const result = await optimizeFullBuild({
+    slotOrder: ["head", "chest", "legs"],
+    candidatesBySlot: {
+      head: [
+        { id: "heroic-blocker", selection: { itemId: "heroic-blocker" }, stats: { attack: 100 }, heroicGroup: "armor" },
+        { id: "plain", selection: { itemId: "plain" }, stats: {} },
+      ],
+      chest: [
+        { id: "chest-set", selection: { itemId: "chest-set" }, stats: {}, setKeys: ["S"] },
+        { id: "chest-plain", selection: { itemId: "chest-plain" }, stats: { attack: 10 } },
+      ],
+      legs: [
+        { id: "legs-set-heroic", selection: { itemId: "legs-set-heroic" }, stats: {}, setKeys: ["S"], heroicGroup: "armor" },
+        { id: "legs-plain", selection: { itemId: "legs-plain" }, stats: { attack: 10 } },
+      ],
+    },
+    setRoutes: [{ id: "S:2", setId: "S", minimumPieces: 2, maximumPieces: 2 }],
+    heroicCaps: { armor: 1 },
+    routeLegalityMetadataComplete: true,
+    beamWidth: 1,
+    weights: { attack: 1 },
+    evaluate: (_selections, context) => ({ score: Number(context.setCounts.S ?? 0) === 2 ? 1000 : 0, stats: {} }),
+  });
+  assert.equal(result.setRouteMetrics.represented, 1);
+  assert.equal(result.frontier.some((row) => row.setCounts.S === 2), true);
+});
+
+test("two-piece and four-piece set bands receive separate exact finalists", async () => {
+  const candidatesBySlot = Object.fromEntries(["head", "chest", "hands", "legs"].map((slot) => [slot, [
+    { id: `${slot}-neutral`, selection: { id: `${slot}-neutral` }, stats: { attack: 1 } },
+    { id: `${slot}-set`, selection: { id: `${slot}-set` }, stats: {}, setKeys: ["tiered"] },
+  ]]));
+  const result = await optimizeFullBuild({
+    candidatesBySlot,
+    setRoutes: [
+      { id: "tiered:2", setId: "tiered", minimumPieces: 2, maximumPieces: 3 },
+      { id: "tiered:4", setId: "tiered", minimumPieces: 4, maximumPieces: 4 },
+    ],
+    beamWidth: 1,
+    weights: { attack: 1 },
+    evaluate: () => ({ score: 0, stats: {} }),
+  });
+  assert.deepEqual(result.setRouteMetrics.representedRouteIds, ["tiered:2", "tiered:4"]);
+  assert.ok(result.frontier.some((row) => row.setCounts.tiered >= 2 && row.setCounts.tiered <= 3));
+  assert.ok(result.frontier.some((row) => row.setCounts.tiered === 4));
+});
+
+test("structurally seeded artifact sets survive a beam width of one", async () => {
+  const result = await optimizeFullBuild({
+    candidatesBySlot: { artifact_bundle: [
+      { id: "direct", selection: { id: "direct" }, stats: { attack: 100 } },
+      { id: "complete-set", selection: { id: "complete-set" }, stats: {}, stateKeys: ["artifact-set:6"] },
+    ] },
+    structuralStateKeys: ["artifact-set:6"],
+    beamWidth: 1,
+    weights: { attack: 1 },
+    evaluate: (selections) => ({
+      score: selections.artifact_bundle.id === "complete-set" ? 1000 : 100,
+      stats: {},
+    }),
+  });
+  assert.equal(result.best.selections.artifact_bundle.id, "complete-set");
+  assert.equal(result.finalists, 2);
+});
+
 test("beam scoring does not reward stats beyond an absolute hard cap", async () => {
   const result = await optimizeFullBuild({
     candidatesBySlot: { head: [

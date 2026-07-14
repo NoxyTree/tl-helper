@@ -3,14 +3,14 @@
 // states used to carry none of the value their completed set unlocks and the
 // beam-width cut could discard a strong set route before exact evaluation.
 // deriveSetCompletionHints gives each set-bearing candidate an optimistic
-// per-piece share of the set's full-completion objective value. This is
-// breakpoint-aware pruning that protects set routes, not a global optimality
-// guarantee — see the baseline-threshold limitation test below.
+// per-piece share of the set's full-completion objective value. Dedicated
+// structural routes separately protect relevant reachable breakpoints when a
+// baseline-dependent hint is zero.
 
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { applySetCompletionHints, deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
+import { applySetCompletionHints, deriveRelevantSetRoutes, deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
 import { optimizeFullBuild } from "../../web/tl-full-build-optimizer.js";
 
 function canonicalScenario({ motion = { state: "unspecified" }, eventHistory = { state: "unspecified" } } = {}) {
@@ -103,13 +103,12 @@ test("dynamic passive rules project against baseline totals inside the hint", ()
   assert.equal(hints.get("set_aa_T2_plate_005"), 0.25);
 });
 
-test("threshold bonuses locked below the baseline attribute carry no hint — the documented pruning limitation", () => {
-  // Breakpoint-aware pruning protects set routes; it is NOT a global
-  // guarantee. Dynamic rules are projected against BASELINE attributes, so a
-  // threshold bonus that only activates once the set's own items raise the
-  // final attribute above the threshold contributes zero hint, and that route
-  // can still be pruned (the "without hints" branch of the search test below
-  // is exactly this shape). Real registry entry: set_aa_leather_003
+test("threshold bonuses locked below the baseline attribute carry no ordering hint", () => {
+  // Dynamic hints are projected against BASELINE attributes, so a threshold
+  // bonus that only activates once the set's own items raise the final
+  // attribute above the threshold contributes zero hint. Structural set-route
+  // reservation covers this case independently. Real registry entry:
+  // set_aa_leather_003
   // (Resistance Scale) 2-piece grants Cooldown Speed 8% only at Dexterity >= 30.
   const core = {
     indexes: {
@@ -133,6 +132,85 @@ test("threshold bonuses locked below the baseline attribute carry no hint — th
   // Baseline Dexterity 30: the same rule contributes and the hint appears.
   const above = deriveSetCompletionHints({ core, candidatesBySlot, rankedGoals: goals, scales, baseline: { dex: 30, con: 0 } });
   assert.equal(above.get("set_aa_leather_003"), 0.25);
+});
+
+test("structural routes retain zero-hint dynamic breakpoints and omit unreachable bands", () => {
+  const setId = "set_aa_leather_003";
+  const core = {
+    indexes: { itemSetById: { [setId]: {
+      id: setId,
+      itemSetBonus: [{ set_count: 2, bonus_stat: [] }, { set_count: 4, bonus_stat: [] }],
+    } } },
+  };
+  const candidatesBySlot = Object.fromEntries(["head", "chest", "hands"].map((slot) => [slot, [
+    { id: `${slot}-set`, setKeys: [setId] },
+    { id: `${slot}-plain`, setKeys: [] },
+  ]]));
+  const routes = deriveRelevantSetRoutes({
+    core,
+    candidatesBySlot,
+    completionHints: new Map(),
+    attributePointBudget: 59,
+    baseline: { dex: 25, con: 0 },
+  });
+  assert.deepEqual(routes, [{ id: `${setId}:2`, setId, minimumPieces: 2, maximumPieces: 3 }]);
+});
+
+test("structural set routes are disabled with set effects", () => {
+  const core = { indexes: { itemSetById: { S: {
+    id: "S",
+    itemSetBonus: [{ set_count: 2, bonus_stat: [{ type: "power", value: 100 }] }],
+  } } } };
+  const routes = deriveRelevantSetRoutes({
+    core,
+    candidatesBySlot: {
+      head: [{ id: "head-set", setKeys: ["S"] }],
+      chest: [{ id: "chest-set", setKeys: ["S"] }],
+    },
+    completionHints: new Map([["S", 0.5]]),
+    includeSetEffects: false,
+  });
+  assert.deepEqual(routes, []);
+});
+
+test("a set used only by a protected stat receives a structural route", () => {
+  const core = { indexes: { itemSetById: { S: {
+    id: "S",
+    itemSetBonus: [{ set_count: 2, bonus_stat: [{ type: "all_evasion", value: 100 }] }],
+  } } } };
+  const routes = deriveRelevantSetRoutes({
+    core,
+    candidatesBySlot: {
+      head: [{ id: "head-set", setKeys: ["S"] }],
+      chest: [{ id: "chest-set", setKeys: ["S"] }],
+    },
+    completionHints: new Map(),
+    relevantStatIds: ["melee_evasion"],
+  });
+  assert.deepEqual(routes, [{ id: "S:2", setId: "S", minimumPieces: 2, maximumPieces: 2 }]);
+});
+
+test("set-route relevance is evaluated per cumulative breakpoint band", () => {
+  const core = { indexes: { itemSetById: { S: {
+    id: "S",
+    itemSetBonus: [
+      { set_count: 2, bonus_stat: [{ type: "power", value: 100 }] },
+      { set_count: 4, bonus_stat: [{ type: "power", value: -200 }] },
+    ],
+  } } } };
+  const candidatesBySlot = Object.fromEntries(["head", "chest", "hands", "legs"].map((slot) => [slot, [
+    { id: `${slot}-set`, setKeys: ["S"] },
+  ]]));
+  const routes = deriveRelevantSetRoutes({
+    core,
+    candidatesBySlot,
+    completionHints: new Map(),
+    relevantStatIds: ["power"],
+  });
+  assert.deepEqual(routes, [
+    { id: "S:2", setId: "S", minimumPieces: 2, maximumPieces: 3 },
+    { id: "S:4", setId: "S", minimumPieces: 4, maximumPieces: 4 },
+  ]);
 });
 
 test("the beam keeps a zero-immediate-value set route only when candidates carry completion hints", async () => {
