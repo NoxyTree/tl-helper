@@ -6,8 +6,8 @@
   "scripts": {
     "benchmark:optimizer": "node scripts/benchmark-build-optimizer.mjs --depth=fast --runs=1",
     "test": "node --test scripts/tests/*.test.mjs",
-    "deploy:preview": "wrangler pages deploy web --project-name tl-helper --branch public-beta",
-    "deploy:production": "wrangler pages deploy web --project-name tl-helper --branch main"
+    "deploy:preview": "npx --yes wrangler pages deploy web --project-name tl-helper --branch public-beta",
+    "deploy:production": "npx --yes wrangler pages deploy web --project-name tl-helper --branch master"
   },
   "devDependencies": {
     "wrangler": "4.110.0"

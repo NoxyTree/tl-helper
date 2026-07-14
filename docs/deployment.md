@@ -55,8 +55,8 @@ This requires a Cloudflare account authenticated on the release machine:
 ```powershell
 npm ci
 npx wrangler login
-npx wrangler pages project create tl-helper --production-branch main
-npx wrangler pages deploy web --project-name tl-helper
+npx wrangler pages project create tl-helper --production-branch master
+npm run deploy:production
 ```
 
 Wrangler Direct Upload from the repository root compiles the root `functions/`
