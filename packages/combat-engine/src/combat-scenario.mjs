@@ -13,7 +13,7 @@ import {
 } from "./contract-primitives.mjs";
 
 export const COMBAT_SCENARIO_SCHEMA = "tl-helper.combat-scenario";
-export const COMBAT_SCENARIO_SCHEMA_VERSION = 2;
+export const COMBAT_SCENARIO_SCHEMA_VERSION = 3;
 
 export const SCENARIO_RESOURCE = Object.freeze({
   HEALTH: "health",
@@ -21,6 +21,30 @@ export const SCENARIO_RESOURCE = Object.freeze({
 });
 
 export const SCENARIO_RESOURCE_BPS_SCALE = 10000;
+
+export const SCENARIO_MOTION_STATE = Object.freeze({
+  UNSPECIFIED: "unspecified",
+  STATIONARY: "stationary",
+  MOVING: "moving",
+});
+
+export const SCENARIO_STATIONARY_BAND = Object.freeze({
+  UNDER_2S: "under_2s",
+  TWO_TO_UNDER_3S: "2s_to_under_3s",
+  THREE_TO_UNDER_4S: "3s_to_under_4s",
+  FOUR_OR_MORE: "4s_or_more",
+});
+
+export const SCENARIO_MOVEMENT_KIND = Object.freeze({
+  ORDINARY: "ordinary",
+  MOVEMENT_SKILL: "movement_skill",
+});
+
+export const SCENARIO_MOVING_BAND = Object.freeze({
+  UNDER_2S: "under_2s",
+  TWO_OR_MORE: "2s_or_more",
+  UNSPECIFIED: "unspecified",
+});
 
 export const SCENARIO_TIME_OF_DAY = Object.freeze({
   UNSPECIFIED: "unspecified",
@@ -54,6 +78,11 @@ const TIMES = new Set(Object.values(SCENARIO_TIME_OF_DAY));
 const WEATHERS = new Set(Object.values(SCENARIO_WEATHER));
 const RELATIONSHIPS = new Set(Object.values(SCENARIO_PARTICIPANT_RELATIONSHIP));
 const RNG_ALGORITHMS = new Set(Object.values(SCENARIO_RNG_ALGORITHM));
+const MOTION_STATES = new Set(Object.values(SCENARIO_MOTION_STATE));
+const STATIONARY_BANDS = new Set(Object.values(SCENARIO_STATIONARY_BAND));
+const MOVEMENT_KINDS = new Set(Object.values(SCENARIO_MOVEMENT_KIND));
+const MOVING_BANDS = new Set(Object.values(SCENARIO_MOVING_BAND));
+const PRIOR_STATIONARY_BANDS = new Set([SCENARIO_MOTION_STATE.UNSPECIFIED, ...STATIONARY_BANDS]);
 const SHA256 = /^(?:sha256:)?[a-fA-F0-9]{64}$/;
 
 /** Validate, detach, canonically order, and deeply freeze a scenario. */
@@ -64,7 +93,7 @@ export function normalizeCombatScenario(input, { expectedGameBuild } = {}) {
     "participants", "source", "target", "actions", "rng",
   ], "Combat scenario");
   if (value.schema !== COMBAT_SCENARIO_SCHEMA) throw new Error(`Unsupported combat scenario schema: ${String(value.schema)}`);
-  if (![1, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
+  if (![1, 2, COMBAT_SCENARIO_SCHEMA_VERSION].includes(value.schemaVersion)) {
     throw new Error(`Unsupported combat scenario schemaVersion: ${String(value.schemaVersion)}`);
   }
   const gameBuild = requireBuild(value.gameBuild, "gameBuild");
@@ -117,6 +146,7 @@ function normalizeParticipants(input, inputSchemaVersion) {
       "id", "relationship", "buildSnapshotId", "buildSnapshotHash",
       "equippedWeaponTypes", "activeWeaponType",
       ...(inputSchemaVersion >= 2 ? ["resources"] : []),
+      ...(inputSchemaVersion >= 3 ? ["motion"] : []),
     ];
     assertOnlyKeys(value, allowedKeys, label);
     const id = requireId(value.id, `${label}.id`);
@@ -150,9 +180,38 @@ function normalizeParticipants(input, inputSchemaVersion) {
       equippedWeaponTypes,
       ...(activeWeaponType === undefined ? {} : { activeWeaponType }),
       resources: normalizeParticipantResources(value.resources, `${label}.resources`),
+      motion: normalizeParticipantMotion(value.motion, `${label}.motion`),
     };
   });
   return participants.sort((left, right) => compareCodeUnits(left.id, right.id));
+}
+
+function normalizeParticipantMotion(input, label) {
+  if (input === undefined) return { state: SCENARIO_MOTION_STATE.UNSPECIFIED };
+  const value = requireRecord(input, label);
+  const state = requireEnum(value.state, MOTION_STATES, `${label}.state`);
+  if (state === SCENARIO_MOTION_STATE.UNSPECIFIED) {
+    assertOnlyKeys(value, ["state"], label);
+    return { state };
+  }
+  if (state === SCENARIO_MOTION_STATE.STATIONARY) {
+    assertOnlyKeys(value, ["state", "stationaryBand"], label);
+    return {
+      state,
+      stationaryBand: requireEnum(value.stationaryBand, STATIONARY_BANDS, `${label}.stationaryBand`),
+    };
+  }
+  assertOnlyKeys(value, ["state", "movementKind", "movingBand", "priorStationaryBand"], label);
+  return {
+    state,
+    movementKind: requireEnum(value.movementKind, MOVEMENT_KINDS, `${label}.movementKind`),
+    movingBand: requireEnum(value.movingBand, MOVING_BANDS, `${label}.movingBand`),
+    priorStationaryBand: requireEnum(
+      value.priorStationaryBand,
+      PRIOR_STATIONARY_BANDS,
+      `${label}.priorStationaryBand`,
+    ),
+  };
 }
 
 function normalizeParticipantResources(input, label) {

@@ -29,18 +29,18 @@
     "limitation": "Only entries with an explicit executableSemantics reference may be evaluated. Every other entry remains a non-executable work-queue shell, and descriptions never create rules."
   },
   "counts": {
-    "total": 530,
+    "total": 531,
     "byFamily": {
-      "weaponPassive": 62,
+      "weaponPassive": 63,
       "masteryNonStructured": 159,
       "itemPerkComplex": 286,
       "setBreakpointConditional": 23
     },
     "bySupportState": {
-      "catalogued_unmodeled": 499,
-      "scenario_executable_decoded": 8,
+      "catalogued_unmodeled": 496,
+      "scenario_executable_decoded": 13,
       "unsupported_static_calculator": 9,
-      "static_component_only": 14
+      "static_component_only": 13
     }
   },
   "effects": [
@@ -11647,12 +11647,13 @@
       "weaponRequirements": [
         "staff"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_motion_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_motion_scenario",
+        "executable": true,
+        "limitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
       },
       "provenance": [
         {
@@ -11664,6 +11665,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.itemPerkComplex.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-motion-scenario-effects.js",
+          "selector": "MOTION_EFFECT_DEFINITIONS[SkillSet_WP_Item_FieldBoss_T3_ST_02]"
         }
       ],
       "sourceEdges": [
@@ -11678,21 +11684,33 @@
           "relation": "item_activates_complex",
           "to": "SkillSet_WP_Item_FieldBoss_T3_ST_02",
           "projectionPath": "data.items[id=staff_aa_t3_boss_002].passives"
+        },
+        {
+          "from": "SkillSet_WP_Item_FieldBoss_T3_ST_02",
+          "relation": "executed_by_reviewed_rule",
+          "to": "motion:SkillSet_WP_Item_FieldBoss_T3_ST_02",
+          "modulePath": "web/tl-motion-scenario-effects.js",
+          "evaluatorExport": "evaluateMotionScenarioEffects",
+          "definitionKey": "SkillSet_WP_Item_FieldBoss_T3_ST_02"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "motion:SkillSet_WP_Item_FieldBoss_T3_ST_02",
+        "mechanic": "source_motion",
+        "modulePath": "web/tl-motion-scenario-effects.js",
+        "evaluatorExport": "evaluateMotionScenarioEffects",
+        "definitionsExport": "MOTION_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_Item_FieldBoss_T3_ST_02",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].motion"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_motion_threshold",
+        "precisionSemantics": "reviewed_source_motion_scenario",
+        "precisionLimitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
+      }
     },
     {
       "catalogId": "itemPerkComplex:SkillSet_WP_Item_FieldBoss_T3_SW2_01",
@@ -28639,12 +28657,13 @@
       "weaponRequirements": [
         "bow"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_motion_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_motion_scenario",
+        "executable": true,
+        "limitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
       },
       "provenance": [
         {
@@ -28656,6 +28675,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-motion-scenario-effects.js",
+          "selector": "MOTION_EFFECT_DEFINITIONS[Bow_High_Tac_Skill]"
         }
       ],
       "sourceEdges": [
@@ -28666,21 +28690,33 @@
           "projectionPath": "data.masteries[id=Bow_High_Tac_Skill].passives",
           "rankCount": 1,
           "selectedDescriptionRank": 1
+        },
+        {
+          "from": "Bow_High_Tac_Skill",
+          "relation": "executed_by_reviewed_rule",
+          "to": "motion:Bow_High_Tac_Skill",
+          "modulePath": "web/tl-motion-scenario-effects.js",
+          "evaluatorExport": "evaluateMotionScenarioEffects",
+          "definitionKey": "Bow_High_Tac_Skill"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "motion:Bow_High_Tac_Skill",
+        "mechanic": "source_motion",
+        "modulePath": "web/tl-motion-scenario-effects.js",
+        "evaluatorExport": "evaluateMotionScenarioEffects",
+        "definitionsExport": "MOTION_EFFECT_DEFINITIONS",
+        "definitionKey": "Bow_High_Tac_Skill",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].motion"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_motion_threshold",
+        "precisionSemantics": "reviewed_source_motion_scenario",
+        "precisionLimitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
+      }
     },
     {
       "catalogId": "masteryNonStructured:Bow_High_Util_Skill",
@@ -39859,12 +39895,13 @@
         }
       ],
       "weaponRequirements": [],
-      "supportState": "static_component_only",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_motion_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_motion_scenario",
+        "executable": true,
+        "limitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
       },
       "provenance": [
         {
@@ -39881,6 +39918,11 @@
           "kind": "audit",
           "path": "docs/set-effect-audit-2026-07-13.md",
           "selector": "conditional_remainder"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-motion-scenario-effects.js",
+          "selector": "MOTION_EFFECT_DEFINITIONS[set_aa_t4_leather_001:4]"
         }
       ],
       "sourceEdges": [
@@ -39890,28 +39932,39 @@
           "to": "set_aa_t4_leather_001:4",
           "projectionPath": "data.itemSets[id=set_aa_t4_leather_001].itemSetBonus[1]",
           "requiredPieces": 4
+        },
+        {
+          "from": "set_aa_t4_leather_001:4",
+          "relation": "executed_by_reviewed_rule",
+          "to": "motion:set_aa_t4_leather_001:4",
+          "modulePath": "web/tl-motion-scenario-effects.js",
+          "evaluatorExport": "evaluateMotionScenarioEffects",
+          "definitionKey": "set_aa_t4_leather_001:4"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null,
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "motion:set_aa_t4_leather_001:4",
+        "mechanic": "source_motion",
+        "modulePath": "web/tl-motion-scenario-effects.js",
+        "evaluatorExport": "evaluateMotionScenarioEffects",
+        "definitionsExport": "MOTION_EFFECT_DEFINITIONS",
+        "definitionKey": "set_aa_t4_leather_001:4",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].motion"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_motion_threshold",
+        "precisionSemantics": "reviewed_source_motion_scenario",
+        "precisionLimitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
+      },
       "componentKind": "conditional_remainder",
       "staticComponent": {
         "status": "calculated_separately",
         "summary": "Critical Damage +20%.",
         "authority": "web/tl-core.js set-effect trace"
-      },
-      "unsupportedReason": "The persistent component is calculated separately; the conditional remainder requires a combat-stage model."
+      }
     },
     {
       "catalogId": "setBreakpointConditional:set_aa_t4_leather_002:4",
@@ -40296,12 +40349,13 @@
       "weaponRequirements": [
         "bow"
       ],
-      "supportState": "catalogued_unmodeled",
+      "supportState": "scenario_executable_decoded",
       "precision": {
-        "stage": "unsupported",
-        "source": "projected",
-        "semantics": "unresolved",
-        "executable": false
+        "stage": "decoded_exact_motion_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_motion_scenario",
+        "executable": true,
+        "limitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
       },
       "provenance": [
         {
@@ -40313,6 +40367,11 @@
           "kind": "classification_contract",
           "path": "web/tl-passive-effect-contract.js",
           "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.classes.conditional"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-motion-scenario-effects.js",
+          "selector": "MOTION_EFFECT_DEFINITIONS[SkillSet_WP_BO_S_InplaceAttack]"
         }
       ],
       "sourceEdges": [
@@ -40327,21 +40386,33 @@
             "count": 20
           },
           "selectedDescriptionLevel": 20
+        },
+        {
+          "from": "SkillSet_WP_BO_S_InplaceAttack",
+          "relation": "executed_by_reviewed_rule",
+          "to": "motion:SkillSet_WP_BO_S_InplaceAttack",
+          "modulePath": "web/tl-motion-scenario-effects.js",
+          "evaluatorExport": "evaluateMotionScenarioEffects",
+          "definitionKey": "SkillSet_WP_BO_S_InplaceAttack"
         }
       ],
-      "unresolvedFields": [
-        "activationCondition",
-        "applicationOrder",
-        "cooldown",
-        "duration",
-        "formula",
-        "procProbability",
-        "recipient",
-        "stacking",
-        "trigger",
-        "uptime"
-      ],
-      "executableSemantics": null
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "motion:SkillSet_WP_BO_S_InplaceAttack",
+        "mechanic": "source_motion",
+        "modulePath": "web/tl-motion-scenario-effects.js",
+        "evaluatorExport": "evaluateMotionScenarioEffects",
+        "definitionsExport": "MOTION_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_BO_S_InplaceAttack",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].motion"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_motion_threshold",
+        "precisionSemantics": "reviewed_source_motion_scenario",
+        "precisionLimitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_BO_S_WindBonusProjectile",
@@ -42632,6 +42703,93 @@
         "uptime"
       ],
       "executableSemantics": null
+    },
+    {
+      "catalogId": "weaponPassive:SkillSet_WP_ST_S_ManaRegenBuff",
+      "sourceFamily": "weaponPassive",
+      "sourceId": "SkillSet_WP_ST_S_ManaRegenBuff",
+      "name": "Asceticism",
+      "description": "Increases Mana Regen by 115. Remaining stationary for 3s additionally increases Mana Regen by 115 and Magic, Melee, and Ranged Heavy Attack Chance by 115. The effect remains for 2s after moving. Movement skills do not cancel the effect.",
+      "carriers": [
+        {
+          "kind": "passive_skill",
+          "id": "SkillSet_WP_ST_S_ManaRegenBuff",
+          "name": "Asceticism"
+        }
+      ],
+      "weaponRequirements": [
+        "staff"
+      ],
+      "supportState": "scenario_executable_decoded",
+      "precision": {
+        "stage": "decoded_exact_motion_threshold",
+        "source": "decoded_game_tables",
+        "semantics": "reviewed_source_motion_scenario",
+        "executable": true,
+        "limitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
+      },
+      "provenance": [
+        {
+          "kind": "projection",
+          "path": "web/data/projections/skills.json",
+          "selector": "data.skills[id=SkillSet_WP_ST_S_ManaRegenBuff]"
+        },
+        {
+          "kind": "classification_contract",
+          "path": "web/tl-passive-effect-contract.js",
+          "selector": "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.scenarioComponents"
+        },
+        {
+          "kind": "decoded_executable_rule",
+          "path": "web/tl-motion-scenario-effects.js",
+          "selector": "MOTION_EFFECT_DEFINITIONS[SkillSet_WP_ST_S_ManaRegenBuff]"
+        }
+      ],
+      "sourceEdges": [
+        {
+          "from": "SkillSet_WP_ST_S_ManaRegenBuff",
+          "relation": "has_level_descriptions",
+          "to": "SkillSet_WP_ST_S_ManaRegenBuff:levels",
+          "projectionPath": "data.skills[id=SkillSet_WP_ST_S_ManaRegenBuff].levels",
+          "levelRange": {
+            "minimum": 1,
+            "maximum": 20,
+            "count": 20
+          },
+          "selectedDescriptionLevel": 20
+        },
+        {
+          "from": "SkillSet_WP_ST_S_ManaRegenBuff",
+          "relation": "executed_by_reviewed_rule",
+          "to": "motion:SkillSet_WP_ST_S_ManaRegenBuff",
+          "modulePath": "web/tl-motion-scenario-effects.js",
+          "evaluatorExport": "evaluateMotionScenarioEffects",
+          "definitionKey": "SkillSet_WP_ST_S_ManaRegenBuff"
+        }
+      ],
+      "unresolvedFields": [],
+      "executableSemantics": {
+        "ruleId": "motion:SkillSet_WP_ST_S_ManaRegenBuff",
+        "mechanic": "source_motion",
+        "modulePath": "web/tl-motion-scenario-effects.js",
+        "evaluatorExport": "evaluateMotionScenarioEffects",
+        "definitionsExport": "MOTION_EFFECT_DEFINITIONS",
+        "definitionKey": "SkillSet_WP_ST_S_ManaRegenBuff",
+        "gameBuild": "24118850",
+        "requiredScenarioInputs": [
+          "participants[source].motion"
+        ],
+        "unresolvedFields": [],
+        "precisionStage": "decoded_exact_motion_threshold",
+        "precisionSemantics": "reviewed_source_motion_scenario",
+        "precisionLimitation": "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed."
+      },
+      "componentKind": "conditional_remainder",
+      "staticComponent": {
+        "status": "calculated_separately",
+        "summary": "The always-active Mana Regen curve is calculated at the selected passive level.",
+        "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff"
+      }
     },
     {
       "catalogId": "weaponPassive:SkillSet_WP_ST_S_SilenceToleranceBuff",

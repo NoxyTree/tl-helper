@@ -33,24 +33,25 @@ test("catalogue covers the exact conditional source universe", () => {
   assert.equal(catalog.schemaVersion, SCENARIO_EFFECT_CATALOG_SCHEMA_VERSION);
   assert.equal(catalog.gameBuild, "24118850");
   assert.deepEqual(catalog.counts, {
-    total: 530,
+    total: 531,
     byFamily: {
-      weaponPassive: 62,
+      weaponPassive: 63,
       masteryNonStructured: 159,
       itemPerkComplex: 286,
       setBreakpointConditional: 23,
     },
     bySupportState: {
-      catalogued_unmodeled: 499,
-      scenario_executable_decoded: 8,
+      catalogued_unmodeled: 496,
+      scenario_executable_decoded: 13,
       unsupported_static_calculator: 9,
-      static_component_only: 14,
+      static_component_only: 13,
     },
   });
 
   for (const family of ["weaponPassive", "masteryNonStructured", "itemPerkComplex"]) {
     const actual = catalog.effects.filter((row) => row.sourceFamily === family).map((row) => row.sourceId);
-    assert.deepEqual(sorted(actual), sorted(conditionalIds(family)), `${family} conditional universe drifted`);
+    const mixedIds = PASSIVE_EFFECT_CONTRACT.families[family].scenarioComponents?.map((row) => row.sourceId) ?? [];
+    assert.deepEqual(sorted(actual), sorted([...conditionalIds(family), ...mixedIds]), `${family} conditional universe drifted`);
   }
   assert.deepEqual(
     sorted(catalog.effects.filter((row) => row.sourceFamily === "setBreakpointConditional").map((row) => row.sourceId)),
@@ -75,7 +76,7 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   assert.equal(catalog.policy.descriptionInference, false);
   assert.equal(Object.hasOwn(catalog, "defaultEffect"), false);
   assert.equal(Object.hasOwn(catalog, "defaultSupportState"), false);
-  assert.equal(new Set(catalog.effects.map((row) => row.catalogId)).size, 530);
+  assert.equal(new Set(catalog.effects.map((row) => row.catalogId)).size, 531);
   for (const effect of catalog.effects) {
     assert.ok(effect.sourceId);
     assert.ok(effect.name);
@@ -88,8 +89,8 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
     assert.equal(Object.hasOwn(effect, "trigger"), false);
     assert.equal(Object.hasOwn(effect, "formula"), false);
     if (effect.supportState === "scenario_executable_decoded") {
-      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount", "decoded_exact_threshold"].includes(effect.precision.stage));
-      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario", "reviewed_source_resource_threshold"].includes(effect.precision.semantics));
+      assert.ok(["decoded_exact_coefficients", "decoded_exact_fixed_amount", "decoded_exact_threshold", "decoded_exact_motion_threshold"].includes(effect.precision.stage));
+      assert.ok(["reviewed_distance_scenario", "reviewed_ordinary_day_night_scenario", "reviewed_source_resource_threshold", "reviewed_source_motion_scenario"].includes(effect.precision.semantics));
       assert.equal(effect.precision.executable, true);
       assert.ok(effect.executableSemantics);
       assert.ok(effect.unresolvedFields.length === 0
@@ -105,17 +106,22 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   }
 });
 
-test("only the eight reviewed decoded scenario rules are promoted to deterministic executable references", () => {
+test("only the thirteen reviewed decoded scenario rules are promoted to deterministic executable references", () => {
   const catalog = buildScenarioEffectCatalog(inputs());
   const expectedIds = [
+    "Bow_High_Tac_Skill",
     "Bow_Normal_Attack_Skill",
     "Orb_Rare_Util_Skill",
     "SkillSet_WP_BO_S_DistanceCritical",
+    "SkillSet_WP_BO_S_InplaceAttack",
     "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
+    "SkillSet_WP_Item_FieldBoss_T3_ST_02",
     "SkillSet_WP_Item_kA_CR_61",
     "SkillSet_WP_Item_kA_DA_61_2",
     "SkillSet_WP_Item_kA_ST_55",
+    "SkillSet_WP_ST_S_ManaRegenBuff",
     "Sword2h_Hero_Attack_01",
+    "set_aa_t4_leather_001:4",
   ];
   assert.deepEqual(sorted(Object.keys(EXECUTABLE_SCENARIO_RULE_REFERENCES)), expectedIds);
   const executable = catalog.effects.filter((row) => row.supportState === "scenario_executable_decoded");
@@ -126,7 +132,7 @@ test("only the eight reviewed decoded scenario rules are promoted to determinist
     assert.deepEqual(reference, EXECUTABLE_SCENARIO_RULE_REFERENCES[effect.sourceId]);
     assert.equal(reference.definitionKey, effect.sourceId);
     assert.equal(reference.gameBuild, "24118850");
-    assert.ok(["target_distance", "time_of_day", "source_resource_threshold"].includes(reference.mechanic));
+    assert.ok(["target_distance", "time_of_day", "source_resource_threshold", "source_motion"].includes(reference.mechanic));
     assert.ok(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId]);
     assert.notEqual(SCENARIO_EFFECT_DEFINITIONS[effect.sourceId].executable, false);
     if (reference.mechanic === "target_distance") {
@@ -141,13 +147,19 @@ test("only the eight reviewed decoded scenario rules are promoted to determinist
       assert.equal(reference.definitionsExport, "TIME_OF_DAY_EFFECT_DEFINITIONS");
       assert.deepEqual(reference.requiredScenarioInputs, ["environment.timeOfDay"]);
       assert.deepEqual(reference.unresolvedFields, ["eclipseState"]);
-    } else {
+    } else if (reference.mechanic === "source_resource_threshold") {
       assert.equal(reference.modulePath, "web/tl-resource-threshold-scenario-effects.js");
       assert.equal(reference.evaluatorExport, "evaluateResourceThresholdScenarioEffects");
       assert.equal(reference.definitionsExport, "RESOURCE_THRESHOLD_EFFECT_DEFINITIONS");
       assert.deepEqual(reference.unresolvedFields, []);
       assert.equal(reference.requiredScenarioInputs.length, 1);
       assert.match(reference.requiredScenarioInputs[0], /^participants\[source\]\.resources\.(health|mana)\.currentRatioBps$/);
+    } else {
+      assert.equal(reference.modulePath, "web/tl-motion-scenario-effects.js");
+      assert.equal(reference.evaluatorExport, "evaluateMotionScenarioEffects");
+      assert.equal(reference.definitionsExport, "MOTION_EFFECT_DEFINITIONS");
+      assert.deepEqual(reference.requiredScenarioInputs, ["participants[source].motion"]);
+      assert.deepEqual(reference.unresolvedFields, []);
     }
     assert.equal(effect.provenance.some((row) => row.kind === "decoded_executable_rule" && row.path === reference.modulePath), true);
     assert.equal(effect.sourceEdges.some((row) => row.relation === "executed_by_reviewed_rule" && row.to === reference.ruleId), true);
@@ -160,6 +172,31 @@ test("only the eight reviewed decoded scenario rules are promoted to determinist
   assert.equal(predatorsFocus.executableSemantics, null);
   assert.ok(predatorsFocus.unresolvedFields.includes("trigger"));
   assert.equal(DISTANCE_EFFECT_DEFINITIONS.Crossbow_Normal_Util_Skill.executable, false);
+});
+
+test("mixed static and motion components retain both calculation authorities", () => {
+  const catalog = buildScenarioEffectCatalog(inputs());
+  const asceticism = catalog.effects.find((row) => row.catalogId === "weaponPassive:SkillSet_WP_ST_S_ManaRegenBuff");
+  assert.ok(asceticism);
+  assert.equal(asceticism.supportState, "scenario_executable_decoded");
+  assert.equal(asceticism.componentKind, "conditional_remainder");
+  assert.deepEqual(asceticism.staticComponent, {
+    status: "calculated_separately",
+    summary: "The always-active Mana Regen curve is calculated at the selected passive level.",
+    authority: "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff",
+  });
+  assert.equal(asceticism.provenance.some((row) => row.selector === "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.scenarioComponents"), true);
+
+  const stigma = catalog.effects.find((row) => row.catalogId === "setBreakpointConditional:set_aa_t4_leather_001:4");
+  assert.ok(stigma);
+  assert.equal(stigma.supportState, "scenario_executable_decoded");
+  assert.equal(stigma.componentKind, "conditional_remainder");
+  assert.deepEqual(stigma.staticComponent, {
+    status: "calculated_separately",
+    summary: "Critical Damage +20%.",
+    authority: "web/tl-core.js set-effect trace",
+  });
+  assert.equal(Object.hasOwn(stigma, "unsupportedReason"), false);
 });
 
 test("catalogue and checked-in browser artifact are deterministically ordered and byte reproducible", () => {
@@ -191,6 +228,13 @@ test("projection drift fails closed instead of receiving a default semantic clas
   assert.throws(
     () => buildScenarioEffectCatalog({ ...source, skillsProjection: drifted }),
     new RegExp(`conditional weapon passive universe drifted.*${missingId}`),
+  );
+
+  const missingMixedComponent = structuredClone(source.skillsProjection);
+  missingMixedComponent.data.skills = missingMixedComponent.data.skills.filter((row) => row.id !== "SkillSet_WP_ST_S_ManaRegenBuff");
+  assert.throws(
+    () => buildScenarioEffectCatalog({ ...source, skillsProjection: missingMixedComponent }),
+    /conditional weapon passive universe drifted.*SkillSet_WP_ST_S_ManaRegenBuff/,
   );
 
   const wrongBuild = structuredClone(source.progressionProjection);

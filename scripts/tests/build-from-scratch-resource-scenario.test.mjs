@@ -7,7 +7,7 @@ const html = await readFile(new URL("../../web/build-from-scratch.html", import.
 test("Build From Scratch exposes nullable source resource scenario controls", () => {
   assert.match(html, /Combat Scenario/);
   assert.match(html, /Score a combat scenario/);
-  assert.match(html, /scenario: \{ enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'' \}/);
+  assert.match(html, /scenario: \{ enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified'/);
   assert.match(html, /aria-label="Scenario source Health percentage"/);
   assert.match(html, /aria-label="Scenario source Mana percentage"/);
   assert.match(html, /min="0" max="100" step="0\.01"/);

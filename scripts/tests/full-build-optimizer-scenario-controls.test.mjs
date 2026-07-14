@@ -49,6 +49,18 @@ test("optimizer scenario options preserve unspecified resources by omission", ()
       sourceManaRatioBps: 5000,
     },
   );
+  assert.deepEqual(
+    optimizerScenarioOptions({
+      targetDistanceMeters: 10,
+      timeOfDay: "unspecified",
+      sourceMotion: { mode: "stationary", stationaryBand: "4s_or_more" },
+    }),
+    {
+      targetDistanceMeters: 10,
+      timeOfDay: "unspecified",
+      sourceMotion: { state: "stationary", stationaryBand: "4s_or_more" },
+    },
+  );
 });
 
 test("scenario resource reads identify the source participant by id", () => {
@@ -83,6 +95,6 @@ test("canonical scenario text reports each resource independently", () => {
   };
   assert.equal(
     formatOptimizerScenario(scenario),
-    "target 7.5m · night · Health 33.33% · Mana unspecified",
+    "target 7.5m · night · Health 33.33% · Mana unspecified · motion unspecified",
   );
 });

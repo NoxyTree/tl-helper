@@ -242,11 +242,15 @@
             <label class="toggle-row"><input id="best-heroic" type="checkbox" checked><span><strong>Best Heroic configuration</strong><small>Uses one Heroic trait and maximum-level effects for theoretical suggestions.</small></span></label>
           </div>
           <div class="scenario-controls">
-            <label class="scenario-enable" for="enable-distance-scenario"><strong><input id="enable-distance-scenario" type="checkbox"> Score a combat scenario</strong>Opt in to decoded distance, time, Health, and Mana effects. Leave either resource blank when it is unspecified. Static scoring remains the default.</label>
+            <label class="scenario-enable" for="enable-distance-scenario"><strong><input id="enable-distance-scenario" type="checkbox"> Score a combat scenario</strong>Opt in to decoded distance, time, Health, Mana, and source-motion effects. Leave uncertain dimensions unspecified. Static scoring remains the default.</label>
             <label for="target-distance"><strong>Target distance</strong><input id="target-distance" type="number" min="0" step="0.5" value="10" inputmode="decimal" disabled aria-describedby="distance-scenario-status"></label>
             <label for="scenario-time"><strong>Time of day</strong><select id="scenario-time" disabled><option value="unspecified">Unspecified</option><option value="day">Day</option><option value="night">Night</option></select></label>
             <label for="source-health-percent"><strong>Current Health %</strong><input id="source-health-percent" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="Unspecified" disabled aria-describedby="distance-scenario-status"></label>
             <label for="source-mana-percent"><strong>Current Mana %</strong><input id="source-mana-percent" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="Unspecified" disabled aria-describedby="distance-scenario-status"></label>
+            <label for="scenario-motion-mode"><strong>Source movement</strong><select id="scenario-motion-mode" disabled><option value="unspecified">Unspecified</option><option value="stationary">Stationary</option><option value="moving_ordinary">Moving normally</option><option value="moving_skill">Using a movement skill</option></select></label>
+            <label for="scenario-stationary-band"><strong>Stationary duration</strong><select id="scenario-stationary-band" disabled><option value="under_2s">Under 2 seconds</option><option value="2s_to_under_3s">2 to under 3 seconds</option><option value="3s_to_under_4s">3 to under 4 seconds</option><option value="4s_or_more">4 seconds or more</option></select></label>
+            <label for="scenario-moving-band"><strong>Moving duration</strong><select id="scenario-moving-band" disabled><option value="unspecified">Unspecified</option><option value="under_2s">Under 2 seconds</option><option value="2s_or_more">2 seconds or more</option></select></label>
+            <label for="scenario-prior-stationary-band"><strong>Prior stationary duration</strong><select id="scenario-prior-stationary-band" disabled><option value="unspecified">Unspecified</option><option value="under_2s">Under 2 seconds</option><option value="2s_to_under_3s">2 to under 3 seconds</option><option value="3s_to_under_4s">3 to under 4 seconds</option><option value="4s_or_more">4 seconds or more</option></select></label>
             <p id="distance-scenario-status" class="scenario-status" role="status">Disabled. Current stats and recommendations use persistent static totals only.</p>
           </div>
           <div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Use owned Chaos</button></div><p id="chaos-warning" class="warning hidden">Chaos runes are stronger and acquisition is chance-based. Only Chaos rune IDs already equipped in the source build are considered owned, with no more than one Chaos rune per item. Normal rune and stat choices may repeat across all three sockets.</p></div>
@@ -336,18 +340,22 @@
           input.setAttribute("aria-invalid","true");
         }
       }
-      return {valid:distanceValid&&resources.valid,distanceValid,targetDistanceMeters,...resources};
+      return {valid:distanceValid&&resources.valid,distanceValid,targetDistanceMeters,...resources,sourceMotion:{mode:$("scenario-motion-mode").value,stationaryBand:$("scenario-stationary-band").value,movingBand:$("scenario-moving-band").value,priorStationaryBand:$("scenario-prior-stationary-band").value}};
     }
     function activeScenario(inputs=readScenarioInputs()) {
       if(!$("enable-distance-scenario").checked) return null;
       if(!inputs.valid)return null;
       if(!state.core||!state.build)return null;
-      const options=optimizerScenarioOptions({targetDistanceMeters:inputs.targetDistanceMeters,timeOfDay:$("scenario-time").value,sourceHealthRatioBps:inputs.sourceHealthRatioBps,sourceManaRatioBps:inputs.sourceManaRatioBps});
+      const options=optimizerScenarioOptions({targetDistanceMeters:inputs.targetDistanceMeters,timeOfDay:$("scenario-time").value,sourceHealthRatioBps:inputs.sourceHealthRatioBps,sourceManaRatioBps:inputs.sourceManaRatioBps,sourceMotion:inputs.sourceMotion});
       try{return state.core.createBuildScenario(state.build.build??state.build,options);}catch{return null;}
     }
     function scenarioRequestFields() { const scenario=activeScenario(); return scenario?{scenario}:{}; }
     function refreshScenarioControl() {
-      const enabled=$("enable-distance-scenario").checked; for(const id of ["target-distance","scenario-time","source-health-percent","source-mana-percent"])$(id).disabled=!enabled;
+      const enabled=$("enable-distance-scenario").checked; for(const id of ["target-distance","scenario-time","source-health-percent","source-mana-percent","scenario-motion-mode"])$(id).disabled=!enabled;
+      const motionMode=$("scenario-motion-mode").value,moving=motionMode==="moving_ordinary"||motionMode==="moving_skill";
+      $("scenario-stationary-band").disabled=!enabled||motionMode!=="stationary";
+      $("scenario-moving-band").disabled=!enabled||!moving;
+      $("scenario-prior-stationary-band").disabled=!enabled||!moving;
       if(!enabled)state.scenarioError="";
       const inputs=readScenarioInputs(),scenario=activeScenario(inputs),valid=!enabled||Boolean(scenario);
       $("distance-scenario-status").textContent=!enabled?"Disabled. Current stats and recommendations use persistent static totals only.":scenario?`Enabled: ${formatOptimizerScenario(scenario)}.`:!inputs.distanceValid?"Enter a finite target distance of 0m or more before optimizing.":`Enter ${inputs.invalidLabel} from 0% through 100% with at most two decimal places, or leave it unspecified.`;
@@ -360,6 +368,10 @@
     $("scenario-time").addEventListener("change",refreshScenarioControl);
     $("source-health-percent").addEventListener("input",refreshScenarioControl);
     $("source-mana-percent").addEventListener("input",refreshScenarioControl);
+    $("scenario-motion-mode").addEventListener("change",refreshScenarioControl);
+    $("scenario-stationary-band").addEventListener("change",refreshScenarioControl);
+    $("scenario-moving-band").addEventListener("change",refreshScenarioControl);
+    $("scenario-prior-stationary-band").addEventListener("change",refreshScenarioControl);
 
     const STAT_CATEGORIES = [
       ["featured","Featured"],["offense","Offense"],["defense","Defense"],["resources","Resources"],["utility","Utility"],["pvp","PvP"],["control","Control"],["pve","Boss & PvE"],["directional","Positioning"],["species","Enemy Types"],["attributes","Attributes"]

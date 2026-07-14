@@ -69,6 +69,23 @@ test("all 80 projected weapon passives have one explicit semantic class", () => 
   assertPartition(family, passiveIds, ["persistentStatic", "conditional"], "weapon passive contract");
 });
 
+test("mixed weapon passives declare conditional remainders without breaking the source partition", () => {
+  const family = contract.families.weaponPassive;
+  assert.deepEqual(family.scenarioComponents, [{
+    sourceId: "SkillSet_WP_ST_S_ManaRegenBuff",
+    componentKind: "conditional_remainder",
+    staticComponent: {
+      summary: "The always-active Mana Regen curve is calculated at the selected passive level.",
+      authority: "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff",
+    },
+  }]);
+  for (const component of family.scenarioComponents) {
+    assert.equal(family.classes.persistentStatic.includes(component.sourceId), true);
+    assert.equal(family.classes.conditional.includes(component.sourceId), false);
+    assert.equal(PASSIVE_SKILL_RULES[component.sourceId] !== undefined, true);
+  }
+});
+
 test("all 193 non-structured mastery nodes have one explicit semantic class", () => {
   const family = contract.families.masteryNonStructured;
   const breakdown = Object.fromEntries(["normal", "synergy", "unified"].map((kind) => [

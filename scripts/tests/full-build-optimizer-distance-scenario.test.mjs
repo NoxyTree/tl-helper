@@ -11,7 +11,7 @@ test("Full Build Optimizer keeps scenario scoring explicit and opt-in", () => {
   assert.match(html, /id="scenario-time" disabled/);
   assert.match(html, /id="source-health-percent" type="number" min="0" max="100" step="0\.01"[^>]+placeholder="Unspecified" disabled/);
   assert.match(html, /id="source-mana-percent" type="number" min="0" max="100" step="0\.01"[^>]+placeholder="Unspecified" disabled/);
-  assert.match(html, /Leave either resource blank when it is unspecified/);
+  assert.match(html, /Leave uncertain dimensions unspecified/);
   assert.match(html, /Static scoring remains the default/);
   assert.match(html, /function scenarioRequestFields\(\)/);
   assert.match(html, /return scenario\?\{scenario\}:\{\}/);
@@ -19,7 +19,7 @@ test("Full Build Optimizer keeps scenario scoring explicit and opt-in", () => {
 
 test("Full Build Optimizer creates one strict scenario for requests, results, hover, and tuning", () => {
   assert.match(html, /import \{ formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps \} from "\.\/full-build-optimizer\.js"/);
-  assert.match(html, /optimizerScenarioOptions\(\{targetDistanceMeters:inputs\.targetDistanceMeters,timeOfDay:\$\("scenario-time"\)\.value,sourceHealthRatioBps:inputs\.sourceHealthRatioBps,sourceManaRatioBps:inputs\.sourceManaRatioBps\}\)/);
+  assert.match(html, /optimizerScenarioOptions\(\{targetDistanceMeters:inputs\.targetDistanceMeters,timeOfDay:\$\("scenario-time"\)\.value,sourceHealthRatioBps:inputs\.sourceHealthRatioBps,sourceManaRatioBps:inputs\.sourceManaRatioBps,sourceMotion:inputs\.sourceMotion\}\)/);
   assert.match(html, /state\.core\.createBuildScenario\(state\.build\.build\?\?state\.build,options\)/);
   assert.match(html, /currentStats\(state\.build,\{includeSetEffects:\$\("include-sets"\)\.checked,\.\.\.scenarioRequestFields\(\)\}\)/);
   assert.match(html, /function request\(\) \{ return \{ build:state\.build, sourceKind:state\.source, \.\.\.scenarioRequestFields\(\)/);

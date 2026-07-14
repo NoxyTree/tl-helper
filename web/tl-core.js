@@ -2255,7 +2255,7 @@ export function applyArtifactSet(build, setId) {
 // The selected/equipped source projection below reuses the same progression
 // and Skill Core authority as calculateBuild, so a scenario cannot reactivate
 // a stored foreign-weapon passive or an unselected catalogue core.
-export function activeScenarioSources(build, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+export function activeScenarioSources(build, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build), includeSetEffects = true) {
   const passiveSkills = progression.skills
     .filter(({ loadoutType }) => loadoutType === "passive")
     .map(({ skill, selection }) => ({ id: skill.id, level: Number(selection.level || 1), selected: true }));
@@ -2271,12 +2271,19 @@ export function activeScenarioSources(build, progression = effectiveProgression(
     const selectedPerk = selectedItemPerk(item, selection);
     if (selectedPerk?.passive?.id) itemEffects.push({ id: selectedPerk.passive.id, sourceKind: "selected_core", selected: true, itemId: item.id, perkId: selectedPerk.id });
   }
+  const setBreakpoints = includeSetEffects
+    ? activeSetCounts(selections).flatMap(({ set, count }) => values(set.itemSetBonus ?? set.item_set_bonus)
+      .map((bonus) => Number(bonus.set_count ?? bonus.setCount ?? 0))
+      .filter((required) => required > 0 && count >= required)
+      .map((required) => `${set.id}:${required}`))
+    : [];
   return {
     equippedWeaponTypes: [...(progression.equippedWeaponTypes ?? equippedWeaponTypes(build))],
     passiveSkills,
     masteryIds,
     masteries,
     itemEffects,
+    setBreakpoints,
   };
 }
 
@@ -2298,6 +2305,8 @@ export function createBuildScenario(build, {
   sourceManaRatioBps,
   targetHealthRatioBps,
   targetManaRatioBps,
+  sourceMotion = { state: "unspecified" },
+  targetMotion = { state: "unspecified" },
 } = {}) {
   if (!data?.gameBuild) throw new Error("Game data must be initialized before creating a combat scenario.");
   const equipped = [...equippedWeaponTypes(build)].sort();
@@ -2315,6 +2324,7 @@ export function createBuildScenario(build, {
         buildSnapshotId: "calculation-build",
         equippedWeaponTypes: equipped,
         resources: participantResources({ healthRatioBps: sourceHealthRatioBps, manaRatioBps: sourceManaRatioBps }),
+        motion: sourceMotion,
       },
       {
         id: "target",
@@ -2322,6 +2332,7 @@ export function createBuildScenario(build, {
         buildSnapshotId: "scenario-target",
         equippedWeaponTypes: [],
         resources: participantResources({ healthRatioBps: targetHealthRatioBps, manaRatioBps: targetManaRatioBps }),
+        motion: targetMotion,
       },
     ],
     source: { participantId: "source" },
@@ -2384,7 +2395,7 @@ function scenarioTargetDistance(scenario) {
   return Number.isFinite(value) ? value : scenario?.target?.distanceMeters;
 }
 
-export function evaluateBuildScenario(build, scenario, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build)) {
+export function evaluateBuildScenario(build, scenario, progression = effectiveProgression(build), selections = allBuildSelectionEntries(build), options = {}) {
   const gameBuild = String(data?.gameBuild ?? "");
   let normalizedScenario;
   try {
@@ -2413,7 +2424,7 @@ export function evaluateBuildScenario(build, scenario, progression = effectivePr
       scenario: normalizedScenario,
     });
   }
-  const activeSources = activeScenarioSources(build, progression, selections);
+  const activeSources = activeScenarioSources(build, progression, selections, options.includeSetEffects !== false);
   const sourceParticipant = normalizedScenario.participants.find((participant) => participant.id === normalizedScenario.source.participantId);
   const targetParticipant = normalizedScenario.participants.find((participant) => participant.id === normalizedScenario.target.participantId);
   if (sourceParticipant?.relationship !== "self") {
@@ -2449,6 +2460,8 @@ export function evaluateBuildScenario(build, scenario, progression = effectivePr
       timeOfDay: normalizedScenario.environment.timeOfDay,
       sourceResources: sourceParticipant.resources,
       targetResources: targetParticipant?.resources ?? {},
+      sourceMotion: sourceParticipant.motion,
+      targetMotion: targetParticipant?.motion ?? { state: "unspecified" },
     },
   });
   return Object.freeze({ ...evaluated, scenario: normalizedScenario });
@@ -2492,6 +2505,8 @@ function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) 
       scenarioResourceThresholdRatioBps: effect.scenario?.thresholdRatioBps,
       scenarioResourceOperator: effect.scenario?.operator,
       scenarioResourceBranch: effect.scenario?.branch,
+      scenarioSourceMotion: effect.scenario?.sourceMotion,
+      scenarioMotionBranch: effect.scenario?.branch,
       sourceKinds: effect.sourceKinds,
       precision: effect.precision,
       provenance: effect.provenance,
@@ -2706,17 +2721,19 @@ export function calculateBuild(build, attributes, options = {}) {
     status: calculationStatus(validation),
   };
   if (options.scenario != null) {
-    const evaluated = evaluateBuildScenario(build, options.scenario, progression, selections);
+    const evaluated = evaluateBuildScenario(build, options.scenario, progression, selections, { includeSetEffects });
     const distanceMeters = scenarioTargetDistance(evaluated.scenario ?? options.scenario);
     const timeOfDay = evaluated.scenario?.environment?.timeOfDay ?? options.scenario?.environment?.timeOfDay;
     const sourceParticipant = evaluated.scenario?.participants?.find((participant) => participant.id === evaluated.scenario?.source?.participantId);
     const targetParticipant = evaluated.scenario?.participants?.find((participant) => participant.id === evaluated.scenario?.target?.participantId);
     const sourceResources = sourceParticipant?.resources ?? {};
     const targetResources = targetParticipant?.resources ?? {};
+    const sourceMotion = sourceParticipant?.motion ?? { state: "unspecified" };
+    const targetMotion = targetParticipant?.motion ?? { state: "unspecified" };
     const executable = evaluated.errors.length === 0;
     result.scenarioEffects = {
       schema: "tl-helper.build-scenario-effects",
-      schemaVersion: 3,
+      schemaVersion: 4,
       gameBuild: String(data?.gameBuild ?? ""),
       kind: "combat_scenario",
       ruleset: evaluated.ruleset ?? { id: SCENARIO_EFFECT_RULESET_ID, version: SCENARIO_EFFECT_RULESET_VERSION },
@@ -2724,7 +2741,9 @@ export function calculateBuild(build, attributes, options = {}) {
       timeOfDay,
       sourceResources,
       targetResources,
-      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources },
+      sourceMotion,
+      targetMotion,
+      dimensions: { targetDistanceMeters: distanceMeters, timeOfDay, sourceResources, targetResources, sourceMotion, targetMotion },
       status: executable ? "applied" : "unsupported",
       scenario: evaluated.scenario,
       evaluatedRows: evaluated.overlayRows,

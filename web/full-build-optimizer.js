@@ -1,3 +1,5 @@
+import { formatSourceMotion, scenarioSourceMotion, sourceMotionFromControls } from "./tl-motion-scenario-controls.js";
+
 export const OPTIMIZER_RESOURCE_BPS_SCALE = 10000;
 
 /** Convert an optional percentage input into exact basis points. */
@@ -21,12 +23,14 @@ export function optimizerScenarioOptions({
   timeOfDay,
   sourceHealthRatioBps = null,
   sourceManaRatioBps = null,
+  sourceMotion,
 }) {
   return {
     targetDistanceMeters,
     timeOfDay,
     ...(sourceHealthRatioBps === null ? {} : { sourceHealthRatioBps }),
     ...(sourceManaRatioBps === null ? {} : { sourceManaRatioBps }),
+    ...(sourceMotion === undefined ? {} : { sourceMotion: sourceMotionFromControls(sourceMotion) }),
   };
 }
 
@@ -54,5 +58,6 @@ export function formatOptimizerScenario(scenario) {
   const time = timeOfDay === "unspecified" ? "time unspecified" : String(timeOfDay || "time unspecified");
   const health = formatRatioBps(scenarioSourceResourceBps(scenario, "health"));
   const mana = formatRatioBps(scenarioSourceResourceBps(scenario, "mana"));
-  return `target ${Number.isFinite(distance) ? distance : "?"}m · ${time} · Health ${health} · Mana ${mana}`;
+  const motion = formatSourceMotion(scenarioSourceMotion(scenario));
+  return `target ${Number.isFinite(distance) ? distance : "?"}m · ${time} · Health ${health} · Mana ${mana} · ${motion}`;
 }

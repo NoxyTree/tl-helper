@@ -300,6 +300,38 @@
               <input type="number" min="0" max="100" step="0.01" value="{{ scenarioManaPercent }}" onInput="{{ setScenarioManaPercent }}" aria-label="Scenario source Mana percentage" placeholder="Unspecified" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 12px 'Instrument Sans';">
               <span style="color:#687991;font-size:9px;">Blank means unspecified.</span>
             </label>
+            <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+              <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Source movement</span>
+              <select value="{{ scenarioMotionMode }}" onChange="{{ setScenarioMotionMode }}" aria-label="Scenario source movement" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 11px 'Instrument Sans';">
+                <option value="unspecified">Unspecified</option><option value="stationary">Stationary</option><option value="moving_ordinary">Moving normally</option><option value="moving_skill">Using a movement skill</option>
+              </select>
+              <span style="color:#687991;font-size:9px;">Leave unspecified unless relevant.</span>
+            </label>
+            <sc-if value="{{ scenarioMotionStationary }}" hint-placeholder-val="{{ false }}">
+              <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+                <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Stationary duration</span>
+                <select value="{{ scenarioStationaryBand }}" onChange="{{ setScenarioStationaryBand }}" aria-label="Scenario stationary duration" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 11px 'Instrument Sans';">
+                  <option value="under_2s">Under 2 seconds</option><option value="2s_to_under_3s">2 to under 3 seconds</option><option value="3s_to_under_4s">3 to under 4 seconds</option><option value="4s_or_more">4 seconds or more</option>
+                </select>
+                <span style="color:#687991;font-size:9px;">Exact closed duration band.</span>
+              </label>
+            </sc-if>
+            <sc-if value="{{ scenarioMotionMoving }}" hint-placeholder-val="{{ false }}">
+              <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+                <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Moving duration</span>
+                <select value="{{ scenarioMovingBand }}" onChange="{{ setScenarioMovingBand }}" aria-label="Scenario moving duration" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 11px 'Instrument Sans';">
+                  <option value="unspecified">Unspecified</option><option value="under_2s">Under 2 seconds</option><option value="2s_or_more">2 seconds or more</option>
+                </select>
+                <span style="color:#687991;font-size:9px;">Time since movement began.</span>
+              </label>
+              <label style="display:grid;gap:6px;padding:10px 11px;border:1px solid rgba(135,172,239,.2);border-radius:10px;background:rgba(0,0,0,.22);">
+                <span style="color:#b9c8df;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Prior stationary duration</span>
+                <select value="{{ scenarioPriorStationaryBand }}" onChange="{{ setScenarioPriorStationaryBand }}" aria-label="Scenario prior stationary duration" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(135,172,239,.28);border-radius:7px;background:#080b10;color:#e7efff;font:600 11px 'Instrument Sans';">
+                  <option value="unspecified">Unspecified</option><option value="under_2s">Under 2 seconds</option><option value="2s_to_under_3s">2 to under 3 seconds</option><option value="3s_to_under_4s">3 to under 4 seconds</option><option value="4s_or_more">4 seconds or more</option>
+                </select>
+                <span style="color:#687991;font-size:9px;">Stationary band before moving.</span>
+              </label>
+            </sc-if>
           </div>
         </sc-if>
       </section>
@@ -1066,7 +1098,7 @@ class Component extends DCLogic {
     dragInsertAfter: false,
     weaponTypes: { main:'', off:'' },
     progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, includePotential:false },
-    scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'' },
+    scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified', stationaryBand:'under_2s', movingBand:'unspecified', priorStationaryBand:'unspecified' },
     openStatSource: null,
     source: null,
     result: null,
@@ -1092,11 +1124,12 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff]) => {
+    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls]) => {
       this.core = core;
       this.rulesData = rulesData;
       this.tuner = tuner;
       this.persistence = persistence;
+      this.motionControls = motionControls;
       const factory = adapterModule.createOptimizerAdapter || adapterModule.default;
       this.adapter = await factory();
       const source = await this.adapter.createScratchBuild();
@@ -1117,7 +1150,7 @@ class Component extends DCLogic {
         if(kept.main_hand)kept.main=true;if(kept.off_hand)kept.off=true;
         this.setState({source:{build:structuredClone(result.build),attributes:{...attributes},sourceKind:'existing',name:result.name},statOptions,engineReady:true,heroics,heroicMode,heroicsEngaged:Boolean(saved.heroics),
           result,resultCalc,phase:'result',resultOrigin:'improved',resultReturnUrl:improved.returnUrl||'./full-build-optimizer.html',priorities:improved.priorities,kept,locked:{...kept},
-          weaponTypes:{main:itemType('main_hand'),off:itemType('off_hand')},rules:{...this.state.rules,sets:improved.includeSetEffects}});
+          weaponTypes:{main:itemType('main_hand'),off:itemType('off_hand')},rules:{...this.state.rules,sets:improved.includeSetEffects},scenario:this.scenarioStateFromCanonical(result.scenario)});
         return;
       }
       this.setState({ source, statOptions, engineReady:true, heroics, heroicMode, heroicsEngaged:Boolean(saved.heroics) });
@@ -1720,6 +1753,10 @@ class Component extends DCLogic {
   setScenarioTimeOfDay = (event) => this.setState({scenario:{...this.state.scenario,timeOfDay:event.target.value}});
   setScenarioHealthPercent = (event) => this.setState({scenario:{...this.state.scenario,healthPercent:event.target.value}});
   setScenarioManaPercent = (event) => this.setState({scenario:{...this.state.scenario,manaPercent:event.target.value}});
+  setScenarioMotionMode = (event) => this.setState({scenario:{...this.state.scenario,motionMode:event.target.value}});
+  setScenarioStationaryBand = (event) => this.setState({scenario:{...this.state.scenario,stationaryBand:event.target.value}});
+  setScenarioMovingBand = (event) => this.setState({scenario:{...this.state.scenario,movingBand:event.target.value}});
+  setScenarioPriorStationaryBand = (event) => this.setState({scenario:{...this.state.scenario,priorStationaryBand:event.target.value}});
   scenarioPercentToBps(value,label) {
     const text=String(value??'').trim();
     if(!text)return null;
@@ -1740,7 +1777,14 @@ class Component extends DCLogic {
     if(!scenario)return '';
     const distance=Number(scenario?.target?.distanceMeters),time=scenario?.environment?.timeOfDay;
     const timeLabel=time==='unspecified'?'time unspecified':String(time||'time unspecified');
-    return `Target ${Number.isFinite(distance)?distance:'?'}m · ${timeLabel} · Health ${this.scenarioRatioLabel(scenario,'health')} · Mana ${this.scenarioRatioLabel(scenario,'mana')}`;
+    const motion=this.motionControls?.formatSourceMotion(this.motionControls.scenarioSourceMotion(scenario))||'motion unspecified';
+    return `Target ${Number.isFinite(distance)?distance:'?'}m · ${timeLabel} · Health ${this.scenarioRatioLabel(scenario,'health')} · Mana ${this.scenarioRatioLabel(scenario,'mana')} · ${motion}`;
+  }
+  scenarioStateFromCanonical(scenario) {
+    if(!scenario)return {...this.state.scenario,enabled:false};
+    const controls=this.motionControls.motionControlsFromSourceMotion(this.motionControls.scenarioSourceMotion(scenario));
+    const distance=Number(scenario?.target?.distanceMeters),timeOfDay=scenario?.environment?.timeOfDay;
+    return {enabled:true,distance:Number.isFinite(distance)?String(distance):'10',timeOfDay:['day','night'].includes(timeOfDay)?timeOfDay:'unspecified',healthPercent:this.scenarioRatioLabel(scenario,'health').replace('unspecified','').replace('%',''),manaPercent:this.scenarioRatioLabel(scenario,'mana').replace('unspecified','').replace('%',''),motionMode:controls.mode,stationaryBand:controls.stationaryBand,movingBand:controls.movingBand,priorStationaryBand:controls.priorStationaryBand};
   }
   buildScenario(build) {
     const input=this.state.scenario;
@@ -1750,9 +1794,10 @@ class Component extends DCLogic {
     const timeOfDay=['unspecified','day','night'].includes(input.timeOfDay)?input.timeOfDay:'unspecified';
     const sourceHealthRatioBps=this.scenarioPercentToBps(input.healthPercent,'Source Health %');
     const sourceManaRatioBps=this.scenarioPercentToBps(input.manaPercent,'Source Mana %');
+    const sourceMotion=this.motionControls.sourceMotionFromControls({mode:input.motionMode,stationaryBand:input.stationaryBand,movingBand:input.movingBand,priorStationaryBand:input.priorStationaryBand});
     return this.core.createBuildScenario(build,{targetDistanceMeters,timeOfDay,
       ...(sourceHealthRatioBps==null?{}:{sourceHealthRatioBps}),
-      ...(sourceManaRatioBps==null?{}:{sourceManaRatioBps})});
+      ...(sourceManaRatioBps==null?{}:{sourceManaRatioBps}),sourceMotion});
   }
   setGoalMode(id,event) { this.setState({goalModes:{...this.state.goalModes,[id]:event.target.value}}); }
   setGoalValue(id,event) { const value=event.target.value;this.setState({goalValues:{...this.state.goalValues,[id]:value===''?null:Number(value)}}); }
@@ -2253,7 +2298,8 @@ class Component extends DCLogic {
       weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,
       togglePotential:this.togglePotential,potentialEnabled:s.progression.includePotential,potentialBorder:s.progression.includePotential?'rgba(185,140,240,.5)':'rgba(185,140,240,.2)',potentialBg:s.progression.includePotential?'rgba(117,76,164,.14)':'rgba(0,0,0,.2)',potentialTrack:s.progression.includePotential?'linear-gradient(90deg,#8e5db8,#d8b8ff)':'rgba(120,105,128,.35)',potentialKnob:s.progression.includePotential?'16px':'2px',
       scenarioEnabled:s.scenario.enabled,scenarioDistance:s.scenario.distance,scenarioTimeOfDay:s.scenario.timeOfDay,scenarioHealthPercent:s.scenario.healthPercent,scenarioManaPercent:s.scenario.manaPercent,
-      toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,
+      scenarioMotionMode:s.scenario.motionMode,scenarioStationaryBand:s.scenario.stationaryBand,scenarioMovingBand:s.scenario.movingBand,scenarioPriorStationaryBand:s.scenario.priorStationaryBand,scenarioMotionStationary:s.scenario.motionMode==='stationary',scenarioMotionMoving:s.scenario.motionMode==='moving_ordinary'||s.scenario.motionMode==='moving_skill',
+      toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
       rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,

@@ -44,6 +44,7 @@ const REQUIRED_UNRESOLVED_FIELDS = Object.freeze([
 const EXECUTABLE_DISTANCE_UNRESOLVED_FIELDS = Object.freeze(["serverRounding"]);
 const EXECUTABLE_TIME_UNRESOLVED_FIELDS = Object.freeze(["eclipseState"]);
 const EXECUTABLE_RESOURCE_UNRESOLVED_FIELDS = Object.freeze([]);
+const EXECUTABLE_MOTION_UNRESOLVED_FIELDS = Object.freeze([]);
 
 const distanceRule = (sourceId) => Object.freeze({
   ruleId: `distance:${sourceId}`,
@@ -90,18 +91,38 @@ const resourceThresholdRule = (sourceId, resource) => Object.freeze({
   precisionLimitation: "Threshold operator, selected-mastery rank values, source recipient, equipped-weapon gate, and integer basis-point comparison are decoded and reviewed.",
 });
 
+const motionRule = (sourceId) => Object.freeze({
+  ruleId: `motion:${sourceId}`,
+  mechanic: "source_motion",
+  modulePath: "web/tl-motion-scenario-effects.js",
+  evaluatorExport: "evaluateMotionScenarioEffects",
+  definitionsExport: "MOTION_EFFECT_DEFINITIONS",
+  definitionKey: sourceId,
+  gameBuild: SCENARIO_EFFECT_GAME_BUILD,
+  requiredScenarioInputs: Object.freeze(["participants[source].motion"]),
+  unresolvedFields: EXECUTABLE_MOTION_UNRESOLVED_FIELDS,
+  precisionStage: "decoded_exact_motion_threshold",
+  precisionSemantics: "reviewed_source_motion_scenario",
+  precisionLimitation: "Stationary thresholds, ordinary-movement grace, movement-skill cancellation behavior, mastery replacement, source gating, and integer raw values are decoded and reviewed. No movement replay or uptime estimate is claimed.",
+});
+
 // Each promotion is an explicit reviewed binding. Absence from this registry
 // always remains non-executable. In particular, Predator's Focus is omitted
 // because its nearby-opponent replacement scenario is not represented yet.
 export const EXECUTABLE_SCENARIO_RULE_REFERENCES = Object.freeze({
+  "Bow_High_Tac_Skill": motionRule("Bow_High_Tac_Skill"),
   "Bow_Normal_Attack_Skill": distanceRule("Bow_Normal_Attack_Skill"),
+  "SkillSet_WP_BO_S_InplaceAttack": motionRule("SkillSet_WP_BO_S_InplaceAttack"),
   "SkillSet_WP_BO_S_DistanceCritical": distanceRule("SkillSet_WP_BO_S_DistanceCritical"),
   "SkillSet_WP_CR_CR_S_DistanceRangeAcc": distanceRule("SkillSet_WP_CR_CR_S_DistanceRangeAcc"),
+  "SkillSet_WP_Item_FieldBoss_T3_ST_02": motionRule("SkillSet_WP_Item_FieldBoss_T3_ST_02"),
   "SkillSet_WP_Item_kA_CR_61": timeOfDayRule("SkillSet_WP_Item_kA_CR_61"),
   "SkillSet_WP_Item_kA_DA_61_2": timeOfDayRule("SkillSet_WP_Item_kA_DA_61_2"),
   "SkillSet_WP_Item_kA_ST_55": distanceRule("SkillSet_WP_Item_kA_ST_55"),
+  "SkillSet_WP_ST_S_ManaRegenBuff": motionRule("SkillSet_WP_ST_S_ManaRegenBuff"),
   "Sword2h_Hero_Attack_01": resourceThresholdRule("Sword2h_Hero_Attack_01", "health"),
   "Orb_Rare_Util_Skill": resourceThresholdRule("Orb_Rare_Util_Skill", "mana"),
+  "set_aa_t4_leather_001:4": motionRule("set_aa_t4_leather_001:4"),
 });
 
 const WEAPON_TYPES = new Set(["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"]);
@@ -175,13 +196,13 @@ function assertExactUniverse(actual, expected, label) {
   }
 }
 
-function projectionProvenance(family, selector) {
+function projectionProvenance(family, selector, contractSelector = `PASSIVE_EFFECT_CONTRACT.families.${family}.classes.conditional`) {
   return Object.freeze([
     Object.freeze({ kind: "projection", path: PROJECTION_PATHS[family], selector }),
     Object.freeze({
       kind: "classification_contract",
       path: "web/tl-passive-effect-contract.js",
-      selector: `PASSIVE_EFFECT_CONTRACT.families.${family}.classes.conditional`,
+      selector: contractSelector,
     }),
   ]);
 }
@@ -199,6 +220,19 @@ function validateScenarioRuleReference(sourceId, reference) {
 
 function shell({ family, sourceId, name, description, carriers, weaponRequirements, supportState, provenance, sourceEdges, scenarioRule = null, componentKind = null, staticComponent = null, reason = null }) {
   if (scenarioRule) validateScenarioRuleReference(sourceId, scenarioRule);
+  const staticComponentDetails = staticComponent
+    ? typeof staticComponent === "string"
+      ? Object.freeze({
+        status: "calculated_separately",
+        summary: requiredText(staticComponent, `${family} ${sourceId} static component summary`),
+        authority: "web/tl-core.js set-effect trace",
+      })
+      : Object.freeze({
+        status: "calculated_separately",
+        summary: requiredText(staticComponent.summary, `${family} ${sourceId} static component summary`),
+        authority: requiredText(staticComponent.authority, `${family} ${sourceId} static component authority`),
+      })
+    : null;
   const effectiveProvenance = scenarioRule
     ? [...provenance, Object.freeze({
       kind: "decoded_executable_rule",
@@ -239,25 +273,33 @@ function shell({ family, sourceId, name, description, carriers, weaponRequiremen
     unresolvedFields: scenarioRule ? scenarioRule.unresolvedFields : REQUIRED_UNRESOLVED_FIELDS,
     executableSemantics: scenarioRule ?? null,
     ...(componentKind ? { componentKind } : {}),
-    ...(staticComponent ? {
-      staticComponent: Object.freeze({
-        status: "calculated_separately",
-        summary: staticComponent,
-        authority: "web/tl-core.js set-effect trace",
-      }),
-    } : {}),
-    ...(reason ? { unsupportedReason: reason } : {}),
+    ...(staticComponentDetails ? { staticComponent: staticComponentDetails } : {}),
+    ...(reason && !scenarioRule ? { unsupportedReason: reason } : {}),
   });
 }
 
 function weaponPassiveEffects(skills, contract) {
-  const ids = contract.families.weaponPassive.classes.conditional;
+  const family = contract.families.weaponPassive;
+  const conditionalIds = family.classes.conditional;
+  const components = Array.isArray(family.scenarioComponents) ? family.scenarioComponents : [];
+  const componentById = new Map();
+  for (const component of components) {
+    const sourceId = requiredText(component?.sourceId, "weapon passive scenario component sourceId");
+    if (componentById.has(sourceId)) fail(`weapon passive scenario component ${sourceId} is duplicated`);
+    if (conditionalIds.includes(sourceId)) fail(`weapon passive scenario component ${sourceId} duplicates a conditional source shell`);
+    if (!family.classes.persistentStatic.includes(sourceId)) fail(`weapon passive scenario component ${sourceId} must name a persistentStatic mixed source`);
+    if (component.componentKind !== "conditional_remainder") fail(`weapon passive scenario component ${sourceId} must be a conditional_remainder`);
+    if (!component.staticComponent) fail(`weapon passive scenario component ${sourceId} lacks its calculated static component`);
+    componentById.set(sourceId, component);
+  }
+  const ids = [...conditionalIds, ...componentById.keys()];
   const rows = skills.filter((row) => row.skillType === "passive" && ids.includes(row.id));
   assertExactUniverse(rows.map((row) => row.id), ids, "conditional weapon passive");
   return rows.map((row) => {
     const levels = Array.isArray(row.levels) ? row.levels : [];
     const last = levels[levels.length - 1];
     if (!last) fail(`weapon passive ${row.id} has no projected levels`);
+    const component = componentById.get(row.id) ?? null;
     return shell({
       family: SCENARIO_EFFECT_FAMILIES.weaponPassive,
       sourceId: row.id,
@@ -267,7 +309,15 @@ function weaponPassiveEffects(skills, contract) {
       weaponRequirements: [row.mainCategory],
       supportState: SCENARIO_EFFECT_SUPPORT_STATES.cataloguedUnmodeled,
       scenarioRule: EXECUTABLE_SCENARIO_RULE_REFERENCES[row.id] ?? null,
-      provenance: projectionProvenance("weaponPassive", `data.skills[id=${row.id}]`),
+      componentKind: component?.componentKind ?? null,
+      staticComponent: component?.staticComponent ?? null,
+      provenance: projectionProvenance(
+        "weaponPassive",
+        `data.skills[id=${row.id}]`,
+        component
+          ? "PASSIVE_EFFECT_CONTRACT.families.weaponPassive.scenarioComponents"
+          : undefined,
+      ),
       sourceEdges: [Object.freeze({
         from: row.id,
         relation: "has_level_descriptions",
@@ -389,6 +439,7 @@ function setEffects(itemSets) {
     const supportState = component.componentKind === "whole_breakpoint"
       ? SCENARIO_EFFECT_SUPPORT_STATES.unsupportedStaticCalculator
       : SCENARIO_EFFECT_SUPPORT_STATES.staticComponentOnly;
+    const scenarioRule = EXECUTABLE_SCENARIO_RULE_REFERENCES[component.key] ?? null;
     return shell({
       family: SCENARIO_EFFECT_FAMILIES.setBreakpointConditional,
       sourceId: component.key,
@@ -397,9 +448,10 @@ function setEffects(itemSets) {
       carriers,
       weaponRequirements: [],
       supportState,
+      scenarioRule,
       componentKind: component.componentKind,
       staticComponent: component.staticComponent ?? null,
-      reason: component.reason ?? "The persistent component is calculated separately; the conditional remainder requires a combat-stage model.",
+      reason: scenarioRule ? null : component.reason ?? "The persistent component is calculated separately; the conditional remainder requires a combat-stage model.",
       provenance: [
         Object.freeze({ kind: "projection", path: PROJECTION_PATHS.setBreakpointConditional, selector: `data.itemSets[id=${setId}].itemSetBonus[set_count=${count}]` }),
         Object.freeze({ kind: "static_calculation_boundary", path: "web/tl-core.js", selector: `set breakpoint ${component.key}` }),
@@ -449,7 +501,7 @@ export function buildScenarioEffectCatalog({
   ].sort((left, right) => codepointSort(left.catalogId, right.catalogId));
 
   if (new Set(effects.map((row) => row.catalogId)).size !== effects.length) fail("catalog IDs must be unique");
-  if (effects.length !== 530) fail(`expected 530 conditional effect shells, received ${effects.length}`);
+  if (effects.length !== 531) fail(`expected 531 conditional effect shells, received ${effects.length}`);
 
   return Object.freeze({
     schema: SCENARIO_EFFECT_CATALOG_SCHEMA,

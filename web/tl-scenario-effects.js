@@ -16,6 +16,12 @@ import {
   RESOURCE_THRESHOLD_EFFECT_IDS,
   evaluateResourceThresholdScenarioEffects,
 } from "./tl-resource-threshold-scenario-effects.js";
+import {
+  MOTION_EFFECT_DEFINITIONS,
+  MOTION_EFFECT_GAME_BUILD,
+  MOTION_EFFECT_IDS,
+  evaluateMotionScenarioEffects,
+} from "./tl-motion-scenario-effects.js";
 
 export const SCENARIO_EFFECT_GAME_BUILD = DISTANCE_EFFECT_GAME_BUILD;
 if (TIME_OF_DAY_EFFECT_GAME_BUILD !== SCENARIO_EFFECT_GAME_BUILD) {
@@ -24,13 +30,18 @@ if (TIME_OF_DAY_EFFECT_GAME_BUILD !== SCENARIO_EFFECT_GAME_BUILD) {
 if (RESOURCE_THRESHOLD_EFFECT_GAME_BUILD !== SCENARIO_EFFECT_GAME_BUILD) {
   throw new Error("Scenario effect family game builds do not match.");
 }
+if (MOTION_EFFECT_GAME_BUILD !== SCENARIO_EFFECT_GAME_BUILD) {
+  throw new Error("Scenario effect family game builds do not match.");
+}
 
 export const SCENARIO_EFFECT_RULESET_ID = "tl-helper.scenario-effects";
-export const SCENARIO_EFFECT_RULESET_VERSION = 3;
+export const SCENARIO_EFFECT_RULESET_VERSION = 4;
 
 export {
   DISTANCE_EFFECT_DEFINITIONS,
   DISTANCE_EFFECT_IDS,
+  MOTION_EFFECT_DEFINITIONS,
+  MOTION_EFFECT_IDS,
   RESOURCE_THRESHOLD_EFFECT_DEFINITIONS,
   RESOURCE_THRESHOLD_EFFECT_IDS,
   TIME_OF_DAY_EFFECT_DEFINITIONS,
@@ -39,6 +50,7 @@ export {
 
 export const SCENARIO_EFFECT_DEFINITIONS = Object.freeze({
   ...DISTANCE_EFFECT_DEFINITIONS,
+  ...MOTION_EFFECT_DEFINITIONS,
   ...RESOURCE_THRESHOLD_EFFECT_DEFINITIONS,
   ...TIME_OF_DAY_EFFECT_DEFINITIONS,
 });
@@ -47,6 +59,7 @@ const EVALUATORS = Object.freeze([
   Object.freeze({ family: "target_distance", evaluate: evaluateDistanceScenarioEffects }),
   Object.freeze({ family: "time_of_day", evaluate: evaluateTimeOfDayScenarioEffects }),
   Object.freeze({ family: "source_resource_threshold", evaluate: evaluateResourceThresholdScenarioEffects }),
+  Object.freeze({ family: "source_motion", evaluate: evaluateMotionScenarioEffects }),
 ]);
 
 /** Evaluate every reviewed family. The caller applies rows only when errors is empty. */

@@ -102,7 +102,17 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
           "SkillSet_WP_WA_GR_S_PartyCurseBurst",
           "SkillSet_WP_WA_GR_S_SupportAllyCostRegenUp"
         ]
-      }
+      },
+      "scenarioComponents": [
+        {
+          "sourceId": "SkillSet_WP_ST_S_ManaRegenBuff",
+          "componentKind": "conditional_remainder",
+          "staticComponent": {
+            "summary": "The always-active Mana Regen curve is calculated at the selected passive level.",
+            "authority": "web/tl-questlog-rules.js PASSIVE_SKILL_RULES.SkillSet_WP_ST_S_ManaRegenBuff"
+          }
+        }
+      ]
     },
     "masteryNonStructured": {
       "source": {

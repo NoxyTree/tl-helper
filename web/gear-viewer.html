@@ -201,7 +201,7 @@
       <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
       <span class="check-inline"><input id="set-fit-toggle" type="checkbox" checked><label for="set-fit-toggle">Include set effects in Fit</label></span>
-      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score combat scenario at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span><select id="scenario-time" aria-label="Time of day"><option value="unspecified">Time unspecified</option><option value="day">Day</option><option value="night">Night</option></select><label for="scenario-health-percent">Health %</label><input id="scenario-health-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Health percentage" style="width:4.75rem"><label for="scenario-mana-percent">Mana %</label><input id="scenario-mana-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Mana percentage" style="width:4.75rem"></span>
+      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score combat scenario at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span><select id="scenario-time" aria-label="Time of day"><option value="unspecified">Time unspecified</option><option value="day">Day</option><option value="night">Night</option></select><label for="scenario-health-percent">Health %</label><input id="scenario-health-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Health percentage" style="width:4.75rem"><label for="scenario-mana-percent">Mana %</label><input id="scenario-mana-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Mana percentage" style="width:4.75rem"><select id="scenario-motion-mode" aria-label="Source movement"><option value="unspecified">Motion unspecified</option><option value="stationary">Stationary</option><option value="moving_ordinary">Moving normally</option><option value="moving_skill">Using movement skill</option></select><select id="scenario-stationary-band" aria-label="Stationary duration"><option value="under_2s">Under 2s</option><option value="2s_to_under_3s">2 to under 3s</option><option value="3s_to_under_4s">3 to under 4s</option><option value="4s_or_more">4s or more</option></select><select id="scenario-moving-band" aria-label="Moving duration"><option value="unspecified">Moving duration unspecified</option><option value="under_2s">Moving under 2s</option><option value="2s_or_more">Moving 2s or more</option></select><select id="scenario-prior-stationary-band" aria-label="Prior stationary duration"><option value="unspecified">Prior stationary unspecified</option><option value="under_2s">Prior under 2s</option><option value="2s_to_under_3s">Prior 2 to under 3s</option><option value="3s_to_under_4s">Prior 3 to under 4s</option><option value="4s_or_more">Prior 4s or more</option></select></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -237,6 +237,7 @@
     import { STAT_EXPANSIONS } from "./tl-questlog-rules.js";
     import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
     import { loadArmoryState } from "./tl-persistence.js";
+    import { decodeSourceMotionControls, encodeSourceMotionControls, formatSourceMotion, sourceMotionFromControls } from "./tl-motion-scenario-controls.js";
 
     const $ = (id) => document.getElementById(id);
     const FAVORITES_KEY = "tlhelper-gear-viewer-favorites-v1";
@@ -258,6 +259,10 @@
       scenarioTime: "unspecified",
       scenarioHealthBps: null,
       scenarioManaBps: null,
+      scenarioMotionMode: "unspecified",
+      scenarioStationaryBand: "under_2s",
+      scenarioMovingBand: "unspecified",
+      scenarioPriorStationaryBand: "unspecified",
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -293,6 +298,7 @@
         timeOfDay: state.scenarioTime,
         ...(state.scenarioHealthBps === null ? {} : { sourceHealthRatioBps: state.scenarioHealthBps }),
         ...(state.scenarioManaBps === null ? {} : { sourceManaRatioBps: state.scenarioManaBps }),
+        sourceMotion: sourceMotionFromControls({ mode: state.scenarioMotionMode, stationaryBand: state.scenarioStationaryBand, movingBand: state.scenarioMovingBand, priorStationaryBand: state.scenarioPriorStationaryBand }),
       });
     }
 
@@ -329,6 +335,10 @@
       return parts.length ? `, ${parts.join(", ")}` : "";
     }
 
+    function scenarioMotionControls() {
+      return { mode: state.scenarioMotionMode, stationaryBand: state.scenarioStationaryBand, movingBand: state.scenarioMovingBand, priorStationaryBand: state.scenarioPriorStationaryBand };
+    }
+
     function syncScenarioControls() {
       const unavailable = state.mode === "bare";
       $("scenario-fit-toggle").disabled = unavailable;
@@ -336,6 +346,11 @@
       $("scenario-time").disabled = unavailable || !state.scenarioEnabled;
       $("scenario-health-percent").disabled = unavailable || !state.scenarioEnabled;
       $("scenario-mana-percent").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-motion-mode").disabled = unavailable || !state.scenarioEnabled;
+      const moving = state.scenarioMotionMode === "moving_ordinary" || state.scenarioMotionMode === "moving_skill";
+      $("scenario-stationary-band").disabled = unavailable || !state.scenarioEnabled || state.scenarioMotionMode !== "stationary";
+      $("scenario-moving-band").disabled = unavailable || !state.scenarioEnabled || !moving;
+      $("scenario-prior-stationary-band").disabled = unavailable || !state.scenarioEnabled || !moving;
     }
 
     function calculationOptions(scenario = activeScenario()) {
@@ -1086,7 +1101,7 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
-      const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}${scenarioResourceLabel()}` : "";
+      const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}${scenarioResourceLabel()}, ${formatSourceMotion(sourceMotionFromControls(scenarioMotionControls()))}` : "";
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
       if (calculationBlock) {
         const count = calculationBlock.blockingIssues?.length ?? 0;
@@ -1111,6 +1126,7 @@
         if (state.scenarioTime !== "unspecified") params.set("time", state.scenarioTime);
         if (state.scenarioHealthBps !== null) params.set("hpBps", String(state.scenarioHealthBps));
         if (state.scenarioManaBps !== null) params.set("mpBps", String(state.scenarioManaBps));
+        params.set("motion", encodeSourceMotionControls(scenarioMotionControls()));
       }
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
@@ -1150,6 +1166,14 @@
           state.scenarioEnabled = true;
           state.scenarioManaBps = mpBps;
         }
+      }
+      if (params.has("motion")) {
+        const motion = decodeSourceMotionControls(params.get("motion"));
+        state.scenarioMotionMode = motion.mode;
+        state.scenarioStationaryBand = motion.stationaryBand;
+        state.scenarioMovingBand = motion.movingBand;
+        state.scenarioPriorStationaryBand = motion.priorStationaryBand;
+        state.scenarioEnabled = true;
       }
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
@@ -1212,6 +1236,13 @@
             if (["unspecified", "day", "night"].includes(prefs.scenarioTime)) state.scenarioTime = prefs.scenarioTime;
             if (Object.hasOwn(prefs, "scenarioHealthBps")) state.scenarioHealthBps = normalizeScenarioBps(prefs.scenarioHealthBps);
             if (Object.hasOwn(prefs, "scenarioManaBps")) state.scenarioManaBps = normalizeScenarioBps(prefs.scenarioManaBps);
+            if (typeof prefs.scenarioMotion === "string") {
+              const motion = decodeSourceMotionControls(prefs.scenarioMotion);
+              state.scenarioMotionMode = motion.mode;
+              state.scenarioStationaryBand = motion.stationaryBand;
+              state.scenarioMovingBand = motion.movingBand;
+              state.scenarioPriorStationaryBand = motion.priorStationaryBand;
+            }
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
@@ -1219,7 +1250,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, scenarioTime: state.scenarioTime, scenarioHealthBps: state.scenarioHealthBps, scenarioManaBps: state.scenarioManaBps, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, scenarioTime: state.scenarioTime, scenarioHealthBps: state.scenarioHealthBps, scenarioManaBps: state.scenarioManaBps, scenarioMotion: encodeSourceMotionControls(scenarioMotionControls()), category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -1257,6 +1288,10 @@
       $("scenario-time").value = state.scenarioTime;
       $("scenario-health-percent").value = scenarioBpsToPercent(state.scenarioHealthBps);
       $("scenario-mana-percent").value = scenarioBpsToPercent(state.scenarioManaBps);
+      $("scenario-motion-mode").value = state.scenarioMotionMode;
+      $("scenario-stationary-band").value = state.scenarioStationaryBand;
+      $("scenario-moving-band").value = state.scenarioMovingBand;
+      $("scenario-prior-stationary-band").value = state.scenarioPriorStationaryBand;
       syncScenarioControls();
 
       let searchTimer = 0;
@@ -1297,6 +1332,15 @@
         state.limit = ROW_LIMIT;
         refresh();
       });
+      $("scenario-motion-mode").addEventListener("change", () => {
+        state.scenarioMotionMode = $("scenario-motion-mode").value;
+        syncScenarioControls();
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-stationary-band").addEventListener("change", () => { state.scenarioStationaryBand = $("scenario-stationary-band").value; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-moving-band").addEventListener("change", () => { state.scenarioMovingBand = $("scenario-moving-band").value; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-prior-stationary-band").addEventListener("change", () => { state.scenarioPriorStationaryBand = $("scenario-prior-stationary-band").value; state.limit = ROW_LIMIT; refresh(); });
       $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
 
       // column picker dropdown

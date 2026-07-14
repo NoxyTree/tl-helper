@@ -29,6 +29,12 @@ function scenario(overrides = {}) {
         buildSnapshotHash: "A".repeat(64),
         equippedWeaponTypes: [],
         resources: { health: { currentRatioBps: 4999 } },
+        motion: {
+          state: "moving",
+          movementKind: "ordinary",
+          movingBand: "under_2s",
+          priorStationaryBand: "3s_to_under_4s",
+        },
       },
       {
         id: "player",
@@ -40,6 +46,7 @@ function scenario(overrides = {}) {
           health: { currentRatioBps: 5000 },
           mana: { currentRatioBps: 3300 },
         },
+        motion: { state: "stationary", stationaryBand: "4s_or_more" },
       },
     ],
     source: { participantId: "player" },
@@ -130,18 +137,24 @@ test("combat scenarios normalize deterministic build-scoped state and deeply fre
   assert.ok(Object.isFrozen(normalized.environment));
   assert.ok(Object.isFrozen(normalized.participants[0].equippedWeaponTypes));
   assert.ok(Object.isFrozen(normalized.participants[0].resources.health));
+  assert.ok(Object.isFrozen(normalized.participants[0].motion));
   assert.throws(() => { normalized.target.distanceMeters = "99"; }, TypeError);
   input.environment.weather = "clear";
   input.participants[1].equippedWeaponTypes.push("staff");
+  input.participants[1].motion.stationaryBand = "under_2s";
   assert.equal(normalized.environment.weather, "rain");
   assert.deepEqual(normalized.participants[0].equippedWeaponTypes, ["dagger", "longbow"]);
   assert.deepEqual(normalized.participants[0].resources, {
     health: { currentRatioBps: 5000 },
     mana: { currentRatioBps: 3300 },
   });
+  assert.deepEqual(normalized.participants[0].motion, {
+    state: "stationary",
+    stationaryBand: "4s_or_more",
+  });
 });
 
-test("combat scenario v2 validates exact participant resource ratios", () => {
+test("combat scenarios validate exact participant resource ratios", () => {
   for (const currentRatioBps of [0, 1, 9999, 10000]) {
     const input = scenario();
     input.participants[1].resources.health.currentRatioBps = currentRatioBps;
@@ -160,16 +173,83 @@ test("combat scenario v2 validates exact participant resource ratios", () => {
   assert.throws(() => normalizeCombatScenario(unknownRatioField), /unknown field/);
 });
 
-test("combat scenario v1 migrates to canonical v2 without resource semantics", () => {
+test("combat scenario v1 migrates to canonical v3 without resource or motion semantics", () => {
   const input = scenario({ schemaVersion: 1 });
-  for (const participant of input.participants) delete participant.resources;
+  for (const participant of input.participants) {
+    delete participant.resources;
+    delete participant.motion;
+  }
   const migrated = normalizeCombatScenario(input);
-  assert.equal(migrated.schemaVersion, 2);
+  assert.equal(migrated.schemaVersion, 3);
   assert.ok(migrated.participants.every((participant) => Object.keys(participant.resources).length === 0));
+  assert.ok(migrated.participants.every((participant) => participant.motion.state === "unspecified"));
 
   const smuggled = scenario({ schemaVersion: 1 });
   assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
-  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 3 })), /Unsupported combat scenario schemaVersion/);
+  assert.throws(() => normalizeCombatScenario(scenario({ schemaVersion: 4 })), /Unsupported combat scenario schemaVersion/);
+});
+
+test("combat scenario v2 migrates resources to canonical v3 without motion semantics", () => {
+  const input = scenario({ schemaVersion: 2 });
+  for (const participant of input.participants) delete participant.motion;
+  const migrated = normalizeCombatScenario(input);
+  assert.equal(migrated.schemaVersion, 3);
+  assert.deepEqual(migrated.participants[0].resources, {
+    health: { currentRatioBps: 5000 },
+    mana: { currentRatioBps: 3300 },
+  });
+  assert.ok(migrated.participants.every((participant) => participant.motion.state === "unspecified"));
+
+  const smuggled = scenario({ schemaVersion: 2 });
+  assert.throws(() => normalizeCombatScenario(smuggled), /unknown field/);
+});
+
+test("combat scenario v3 validates the participant-owned motion union exactly", () => {
+  const stationaryBands = ["under_2s", "2s_to_under_3s", "3s_to_under_4s", "4s_or_more"];
+  const movingBands = ["under_2s", "2s_or_more", "unspecified"];
+  const movementKinds = ["ordinary", "movement_skill"];
+  const priorStationaryBands = ["unspecified", ...stationaryBands];
+
+  for (const stationaryBand of stationaryBands) {
+    const input = scenario();
+    input.participants[1].motion = { state: "stationary", stationaryBand };
+    assert.deepEqual(normalizeCombatScenario(input).participants[0].motion, { state: "stationary", stationaryBand });
+  }
+  for (const movementKind of movementKinds) {
+    for (const movingBand of movingBands) {
+      for (const priorStationaryBand of priorStationaryBands) {
+        const input = scenario();
+        input.participants[1].motion = { state: "moving", movementKind, movingBand, priorStationaryBand };
+        assert.deepEqual(normalizeCombatScenario(input).participants[0].motion, {
+          state: "moving",
+          movementKind,
+          movingBand,
+          priorStationaryBand,
+        });
+      }
+    }
+  }
+
+  const omitted = scenario();
+  delete omitted.participants[1].motion;
+  assert.deepEqual(normalizeCombatScenario(omitted).participants[0].motion, { state: "unspecified" });
+
+  for (const invalidMotion of [
+    { state: "unknown" },
+    { state: "unspecified", stationaryBand: "under_2s" },
+    { state: "stationary" },
+    { state: "stationary", stationaryBand: "2s_or_more" },
+    { state: "stationary", stationaryBand: "under_2s", movementKind: "ordinary" },
+    { state: "moving", movementKind: "ordinary", movingBand: "under_2s" },
+    { state: "moving", movementKind: "dash", movingBand: "under_2s", priorStationaryBand: "unspecified" },
+    { state: "moving", movementKind: "ordinary", movingBand: "3s_or_more", priorStationaryBand: "unspecified" },
+    { state: "moving", movementKind: "ordinary", movingBand: "under_2s", priorStationaryBand: "2s_or_more" },
+    { state: "moving", movementKind: "ordinary", movingBand: "under_2s", priorStationaryBand: "unspecified", extra: true },
+  ]) {
+    const input = scenario();
+    input.participants[1].motion = invalidMotion;
+    assert.throws(() => normalizeCombatScenario(input));
+  }
 });
 
 test("scenario normalization is deterministic across non-semantic input ordering", () => {

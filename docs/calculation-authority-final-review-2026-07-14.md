@@ -161,9 +161,9 @@ BuildSnapshot v2 stores raw build state and allocated attributes while treating 
 
 ## Exact scenario extensions
 
-The conditional-effect work queue now contains `530` deterministic source shells: `62` weapon passives, `159` non-structured masteries, `286` item or Skill Core complexes, and `23` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
+The conditional-effect work queue now contains `531` deterministic source components: `62` conditional weapon passives plus Asceticism's mixed conditional remainder, `159` non-structured masteries, `286` item or Skill Core complexes, and `23` conditional set components. The generated catalogue records carriers, weapon requirements, decoded source edges, provenance, and unresolved semantics without inferring executable behavior from tooltip prose.
 
-Eight decoded rules are now executable through an explicit combat scenario:
+The first eight decoded rules executable through an explicit combat scenario are:
 
 - Sniper's Sense
 - Far Sight
@@ -173,6 +173,14 @@ Eight decoded rules are now executable through an explicit combat scenario:
 - Kowazan's Madness, with exact ordinary day and night Melee Critical Hit Chance values
 - Critical Equilibrium, with all ten exact ranks and mutually exclusive Health branches at `50.00%`
 - Tranquil Will, with exact Mana Cost Efficiency at source Mana `<= 33.00%`
+
+Five additional decoded source-motion components are now executable:
+
+- Rapidfire Stance, with all twenty exact Attack Speed ranks and exact all Hit Chance after 2s stationary
+- Battle Tempo, with its 4s replacement threshold and all twenty transformed Attack Speed ranks
+- Asceticism's conditional second Mana Regen curve and all Heavy Attack Chance curve after 3s stationary
+- Aridus's Fury, with exact innate and Skill Core carriers and `+12%` Base Damage after 3s stationary
+- Stigma Executor 4-piece, with its conditional `+15%` Critical Damage after 4s stationary in addition to the separately calculated persistent `+20%`
 
 Predator's Focus remains fail-closed because its replacement needs nearby-opponent positions, which the current scenario does not yet model. Kowazan Eclipse behavior also remains fail-closed because distinct Eclipse rows exist but their activation graph is not decoded. Absolute-current-Health effects such as Adentus remain unsupported because a percentage-only scenario cannot represent their decoded scaling semantics honestly.
 
@@ -229,7 +237,7 @@ These are explicit and do not silently enter exact item ranking:
 
 1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
 2. `GT_Hero_Attack_01`, Instinct and Restraint, has exact level rates and an exact Eclipse reversal, but percentage All Defense materialization, Base Damage hand scope, stacking order, and rounding are not present in the decoded client rows. It remains provisional rather than receiving invented endpoint totals.
-3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the eight decoded distance, ordinary day/night, and self-resource threshold rules listed above are currently executable.
+3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Thirteen decoded distance, ordinary day/night, self-resource threshold, and source-motion components are currently executable.
 4. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
 5. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
 
@@ -245,13 +253,13 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `590/590`
+- Node test suite: `616/616`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
 - Set audit: `78` sets, `151` breakpoints, no incorrect or review classifications
 - Passive-effect contract: `80 + 193 + 294 = 567` effects, every ID classified exactly once
-- Conditional scenario catalogue: `530/530` source shells, with `8` decoded rules executable and `522` explicitly non-executable
+- Conditional scenario catalogue: `531/531` source components, with `13` decoded rules executable and `518` explicitly non-executable
 - Closed-world scenario, game-build drift, source-weapon binding, scratch-candidate rebinding, canonical cache identity, day/night separation, shared-abnormal conflict handling, derived-stat reconstruction, hard-cap reconstruction, and unsupported-current-stat regressions: passed
 - Browser combat-engine contract synchronization: passed
 - Passive registry binding audit: passed
