@@ -1,17 +1,18 @@
-# TL-Helper public beta deployment
+# TL-Helper production deployment
 
 The first production release is an anonymous, local-first Cloudflare Pages
-application at `https://tlhelper.org`. Supabase authentication and account sync
+application at `https://tlhelper.org`, hosted by the `noxy-tree/tl-helper`
+Vercel project. Supabase authentication and account sync
 are optional follow-up capabilities. They are not a prerequisite for creating,
 editing, auto-saving, or storing multiple builds in TL Helper.
 
 ## Production layout
 
-- `web/` is the static Pages output directory.
-- `functions/api/questlog/character.js` is the same-origin Questlog adapter.
-- `web/_headers` defines security and cache headers.
-- `web/_redirects` serves the Armory at `/`.
-- `wrangler.toml` records the Pages output and canonical origin.
+- `web/` is the static Vercel output directory.
+- `api/questlog/character.js` is the same-origin Questlog adapter.
+- `vercel.json` defines clean URLs, security headers, and cache policy.
+- `tlhelper.org` and `www.tlhelper.org` are the production aliases.
+- Cloudflare Pages remains an optional deployment mirror, not the public production origin.
 
 The function accepts only public HTTPS `questlog.gg` character-builder URLs,
 validates numeric build IDs, caps each upstream response at 8 MB, and never
@@ -45,29 +46,27 @@ Then verify in a browser:
 
 ## First deployment
 
-The optimized game icon mirror is part of the Git release artifact. Cloudflare
-Pages may deploy from the repository's production branch or through Wrangler
-Direct Upload from a verified release machine. Both paths must contain every
+The optimized game icon mirror is part of the Git release artifact. Vercel
+deploys the complete repository using `vercel.json`. The release must contain every
 icon checked by `scripts/tests/deployment-contract.test.mjs`.
 
-This requires a Cloudflare account authenticated on the release machine:
+This requires access to the `noxy-tree/tl-helper` Vercel project:
 
 ```powershell
 npm ci
-npx wrangler login
-npx wrangler pages project create tl-helper --production-branch master
+npx vercel login
+npx vercel link --project tl-helper --scope noxy-tree
 npm run deploy:production
 ```
 
-Wrangler Direct Upload from the repository root compiles the root `functions/`
-directory and uploads the complete local `web/` artifact. Git-connected Pages
-builds also include the tracked icon mirror and Functions directory. Dashboard
-drag-and-drop does not deploy Pages Functions and must not be used. Confirm the
-deployed `/api/questlog/character` route before attaching the production
-domain.
+After deployment, verify that both custom domains point to the returned ready
+deployment. If Vercel does not move them automatically, assign `tlhelper.org`
+and `www.tlhelper.org` to that deployment with `vercel alias set`. Confirm the
+deployed `/api/questlog/character` route and the visible build before considering
+the release complete.
 
-In the Pages dashboard, attach `tlhelper.org` as the custom domain. Do not
-change DNS until the preview URL passes the browser release gate.
+The Cloudflare mirror can be refreshed separately with
+`npm run deploy:production:cloudflare`; it does not update `tlhelper.org`.
 
 ## Supabase follow-up
 
