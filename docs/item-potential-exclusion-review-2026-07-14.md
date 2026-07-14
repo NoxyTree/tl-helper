@@ -1,9 +1,9 @@
 # Item Potential Exclusion Review
 
-Date: 2026-07-14  
-Game data build: `24118850`  
-Branch: `codex/calculation-consistency-release`  
-Pre-change snapshot: `snapshot/item-potential-skills-pre-implementation-20260714` at `f3ad237`
+- Date: 2026-07-14
+- Game data build: `24118850`
+- Branch: `codex/calculation-consistency-release`
+- Pre-implementation snapshot: `snapshot/item-potential-skills-pre-implementation-20260714` at `f3ad237`
 
 ## Decision
 

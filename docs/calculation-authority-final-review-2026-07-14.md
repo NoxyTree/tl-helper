@@ -1,14 +1,16 @@
 # Persistent Static Calculation Authority: Final Review
 
-Date: 2026-07-14  
-Game data build: `24118850`  
-Branch: `codex/calculation-consistency-release`  
-Pre-implementation snapshot: `snapshot/calculation-pre-implementation-20260714` at `a1a67c6`
-Scenario-extension snapshot: `snapshot/scenario-effects-pre-implementation-20260714` at `1307bc0`
-Static-gap implementation snapshot: `snapshot/static-gap-pre-implementation-20260714` at `2efad6a`
-Item-potential exclusion snapshot: `snapshot/item-potential-skills-pre-implementation-20260714` at `f3ad237`
+- Date: 2026-07-14
+- Game data build: `24118850`
+- Branch: `codex/calculation-consistency-release`
+- Calculation pre-implementation snapshot: `snapshot/calculation-pre-implementation-20260714` at `a1a67c6`
+- Scenario-effects pre-implementation snapshot: `snapshot/scenario-effects-pre-implementation-20260714` at `1307bc0`
+- Static-gap pre-implementation snapshot: `snapshot/static-gap-pre-implementation-20260714` at `2efad6a`
+- Item-potential pre-implementation snapshot: `snapshot/item-potential-skills-pre-implementation-20260714` at `f3ad237`
 
 ## Outcome
+
+This review certifies the isolated `codex/calculation-consistency-release` branch. It has not been merged into the actively changing product worktrees or deployed. Integration reconciliation, real-browser smoke testing, and preview promotion remain separate release gates.
 
 The shared calculator is now the authority for persistent static build totals and item-choice scoring across Armory, Tracker, Gear Viewer, Full Build Optimizer, Build From Scratch, saved BuildSnapshots, and Combat Lab build prefills.
 
@@ -284,7 +286,7 @@ These are explicit and do not silently enter exact item ranking:
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
-- Set audit: `78` sets, `151` breakpoints, no incorrect or review classifications
+- Set audit: `78` sets and `151` breakpoints, with `0` incorrect, `0` high-risk, `0` review, and `9` explicitly unsupported combat-conditional breakpoints
 - Passive-effect contract: `80 + 193 + 294 = 567` effects, every ID classified exactly once
 - Conditional scenario catalogue: `534/534` source components, with `22` decoded rules executable and `512` explicitly non-executable
 - Closed-world scenario, game-build drift, source-weapon binding, scratch-candidate rebinding, canonical cache identity, day/night separation, shared-abnormal conflict handling, derived-stat reconstruction, hard-cap reconstruction, and unsupported-current-stat regressions: passed
