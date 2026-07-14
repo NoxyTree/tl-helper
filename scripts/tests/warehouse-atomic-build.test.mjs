@@ -72,6 +72,22 @@ function makeFixture() {
       },
     },
   });
+  const prefixedSourcePath = path.join(extractRoot, "data", "TLItemStats2.uasset");
+  const prefixedSourceBytes = Buffer.from("fixture-prefixed-uasset", "utf8");
+  writeFileSync(prefixedSourcePath, prefixedSourceBytes);
+  writeJson(path.join(decodedDir, "TLItemStats2.json"), {
+    table: "TLItemStats2",
+    sourcePath: prefixedSourcePath,
+    sha256: sha256(prefixedSourceBytes),
+    gameBuild: build,
+    decoderVersion: "test-decoder-1",
+    declaredRowCount: 1,
+    decodedRowCount: 1,
+    unsupportedTypes: [],
+    warnings: [],
+    trailingBytes: 0,
+    rows: { prefix_row: { Value: 2 } },
+  });
   const zeroSourcePath = path.join(extractRoot, "data", "TLZeroTable.uasset");
   const zeroSourceBytes = Buffer.from("fixture-zero-uasset", "utf8");
   writeFileSync(zeroSourcePath, zeroSourceBytes);
@@ -128,17 +144,17 @@ test("warehouse validates all inputs, verifies the temp database, and promotes i
   const fixture = makeFixture();
   try {
     const validated = validateWarehouseInputs(fixture.options);
-    assert.equal(validated.tables.length, 2);
-    assert.equal(validated.decodedRows, 1);
+    assert.equal(validated.tables.length, 3);
+    assert.equal(validated.decodedRows, 2);
     assert.match(validated.provenance.sourceManifestSha256, /^[0-9a-f]{64}$/);
 
     const result = buildWarehouse(fixture.options);
-    assert.equal(result.records, 1);
+    assert.equal(result.records, 2);
     assert.equal(result.refs, 1);
     assert.equal(result.assets, 1);
     assert.equal(result.verification.integrity, "ok");
-    assert.equal(result.verification.ftsRecords, 1);
-    assert.equal(result.verification.tables, 2);
+    assert.equal(result.verification.ftsRecords, 2);
+    assert.equal(result.verification.tables, 3);
     assert.deepEqual(Object.keys(result.verification.semanticHashes).sort(), ["assets", "decodedTables", "fts", "records", "refs"]);
     assert.equal(result.sourceManifestSha256, validated.provenance.sourceManifestSha256);
     assert.equal(existsSync(`${fixture.dbPath}-wal`), false);
@@ -147,18 +163,17 @@ test("warehouse validates all inputs, verifies the temp database, and promotes i
     try { assert.equal(String(modeDb.prepare("PRAGMA journal_mode").get().journal_mode).toLowerCase(), "delete"); }
     finally { modeDb.close(); }
     const replacementResult = buildWarehouse(fixture.options);
-    assert.equal(replacementResult.records, 1);
+    assert.equal(replacementResult.records, 2);
     assert.equal(readdirSync(path.dirname(fixture.dbPath)).some((name) => name.includes(".backup-")), false);
 
     const db = new DatabaseSync(fixture.dbPath, { readOnly: true });
     try {
-      const tableCount = db.prepare("SELECT table_name, COUNT(*) AS count FROM records GROUP BY table_name").get();
-      assert.equal(tableCount.table_name, "TLItemStats");
-      assert.equal(tableCount.count, 1);
-      assert.equal(db.prepare("SELECT COUNT(*) AS count FROM records_fts").get().count, 1);
+      const tableCounts = db.prepare("SELECT table_name, COUNT(*) AS count FROM records GROUP BY table_name ORDER BY table_name").all();
+      assert.deepEqual(tableCounts.map((row) => [row.table_name, row.count]), [["TLItemStats", 1], ["TLItemStats2", 1]]);
+      assert.equal(db.prepare("SELECT COUNT(*) AS count FROM records_fts").get().count, 2);
       assert.deepEqual(
         db.prepare("SELECT table_name, row_count FROM decoded_tables ORDER BY table_name").all().map((row) => [row.table_name, row.row_count]),
-        [["TLItemStats", 1], ["TLZeroTable", 0]],
+        [["TLItemStats", 1], ["TLItemStats2", 1], ["TLZeroTable", 0]],
       );
       assert.equal(db.prepare("SELECT value FROM meta WHERE key='game_build'").get().value, fixture.options.build);
       assert.equal(db.prepare("SELECT value FROM meta WHERE key='source_manifest_sha256'").get().value, validated.provenance.sourceManifestSha256);

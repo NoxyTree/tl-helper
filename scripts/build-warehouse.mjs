@@ -386,7 +386,7 @@ export function databaseSemanticHashes(db) {
   return {
     decodedTables: querySemanticHash(
       db,
-      "SELECT table_name, row_count, source_path, source_sha256, decoded_json_sha256, decoder_version, game_build FROM decoded_tables ORDER BY table_name",
+      "SELECT table_name, row_count, source_path, source_sha256, decoded_json_sha256, decoder_version, game_build FROM decoded_tables ORDER BY (table_name || ':') COLLATE BINARY",
       ["table_name", "row_count", "source_path", "source_sha256", "decoded_json_sha256", "decoder_version", "game_build"],
     ),
     records: querySemanticHash(db, `SELECT ${RECORD_COLUMNS.join(", ")} FROM records ORDER BY record_id`, RECORD_COLUMNS),
@@ -456,7 +456,9 @@ function buildTemporaryDatabase(tempPath, validated) {
     const expectedAssets = new Map();
     db.exec("BEGIN IMMEDIATE");
     try {
-      for (const expected of [...tables].sort((left, right) => compareTextBinary(left.table, right.table))) {
+      // Hash-bearing record groups must follow complete record_id order. Appending
+      // the delimiter matters when one table name prefixes another (A vs A2).
+      for (const expected of [...tables].sort((left, right) => compareTextBinary(`${left.table}:`, `${right.table}:`))) {
         const bytes = readFileSync(expected.file);
         invariant(sha256Bytes(bytes) === expected.decodedJsonSha256, `decoded table changed after validation: ${expected.file}`);
         const decoded = JSON.parse(bytes.toString("utf8").replace(/^\uFEFF/, ""));
