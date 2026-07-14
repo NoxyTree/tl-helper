@@ -1498,8 +1498,12 @@ export function selectedSkillRows(build) {
 // swapping weapons does not destroy work, but only selections belonging to an
 // equipped weapon family are active. Unified mastery is global and therefore
 // has no weapon-family gate.
-export function effectiveProgression(build) {
-  const weaponTypes = equippedWeaponTypes(build);
+export function effectiveProgression(build, options = {}) {
+  const equippedTypes = equippedWeaponTypes(build);
+  const requestedWeaponTypes = Array.isArray(options.weaponTypes) ? options.weaponTypes : null;
+  const weaponTypes = requestedWeaponTypes && equippedTypes.length === 0
+    ? [...new Set(requestedWeaponTypes.filter((weapon) => WEAPON_TYPES.includes(weapon)))]
+    : equippedTypes;
   const weaponSet = new Set(weaponTypes);
   const skills = [];
   const inactiveSkills = [];
@@ -2418,7 +2422,7 @@ export function scenarioOverlayStats(staticStats, overlayRows, distanceMeters) {
 
 export function calculateBuild(build, attributes, options = {}) {
   const includeSetEffects = options.includeSetEffects !== false;
-  const progression = effectiveProgression(build);
+  const progression = effectiveProgression(build, { weaponTypes: options.progressionWeaponTypes });
   const totals = new Map();
   const sourceMap = new Map();
   const add = (statId, value, sourceLabel, sourceType = "source", grade = 0, icon = "", metadata = {}) => {

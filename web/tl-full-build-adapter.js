@@ -571,7 +571,11 @@ export async function createOptimizerAdapter(deps = {}) {
       let progression = null;
       if (scratch && request.progression?.enabled === true) {
         const initialScales = deriveObjectiveScales(core, rankedGoals, baseline);
-        const evaluate = (build) => withCompositeTotals(totalMap(core.calculateBuild(build, source.attributes ?? {}, { includeSetEffects: rules.includeSetEffects !== false, ...(scenario == null ? {} : { scenario }) })), rankedGoals);
+        const evaluate = (build, evaluationOptions = {}) => withCompositeTotals(totalMap(core.calculateBuild(build, source.attributes ?? {}, {
+          includeSetEffects: rules.includeSetEffects !== false,
+          ...(scenario == null ? {} : { scenario }),
+          ...(evaluationOptions.progressionWeaponTypes ? { progressionWeaponTypes: evaluationOptions.progressionWeaponTypes } : {}),
+        })), rankedGoals);
         const score = (stats) => scoreRankedGoals(withCompositeTotals(stats, rankedGoals), {}, initialScales, rankedGoals);
         progression = optimizeScratchProgression({
           core,

@@ -83,6 +83,20 @@ test("foreign passive and mastery selections stay stored but are excluded", () =
   assert.deepEqual(Object.keys(build.masteries), ["Staff_High_Attack_02", "Sword_Hero_Defense_03", "Bow_Rare_Def_Skill"]);
 });
 
+test("scratch weapon context cannot override concrete equipped weapon families", () => {
+  const build = core.createInitialBuild();
+  equip(build, "main_hand", "dagger");
+  equip(build, "off_hand", "crossbow");
+  build.skills = [{ skillId: "SkillSet_WP_ST_S_SkillPowerAmplificationBuff", level: 20, loadoutType: "passive" }];
+  build.masteries = { Staff_High_Attack_02: { level: 10 } };
+
+  const calc = core.calculateBuild(build, attributes, { progressionWeaponTypes: ["staff"] });
+  assert.equal(sourceValues(calc, "Forbidden Sanctuary").length, 0);
+  assert.equal(sourceValues(calc, "Magic Damage Intensity").length, 0);
+  assert.ok(issueCodes(calc).includes("foreign_weapon_skill"));
+  assert.ok(issueCodes(calc).includes("foreign_weapon_mastery"));
+});
+
 test("weapon swaps deactivate and later reactivate retained progression", () => {
   const build = core.createInitialBuild();
   equip(build, "main_hand", "dagger");

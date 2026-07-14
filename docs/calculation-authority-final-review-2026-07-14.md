@@ -5,6 +5,7 @@ Game data build: `24118850`
 Branch: `codex/calculation-consistency-release`  
 Pre-implementation snapshot: `snapshot/calculation-pre-implementation-20260714` at `a1a67c6`
 Scenario-extension snapshot: `snapshot/scenario-effects-pre-implementation-20260714` at `1307bc0`
+Static-gap implementation snapshot: `snapshot/static-gap-pre-implementation-20260714` at `2efad6a`
 
 ## Outcome
 
@@ -204,7 +205,9 @@ Locks existing weapon families so saved progression cannot be carried into anoth
 
 ### Build From Scratch
 
-Builds progression for its selected weapon pair, allocates legal mastery, records explicit Overall Mastery Potential state, and refuses a non-legal final or tradeoff build.
+Builds progression for its selected weapon pair, allocates legal mastery, records explicit Overall Mastery Potential state, and refuses a non-legal final or tradeoff build. Scratch evaluation activates only the requested weapon families before concrete weapon items exist. All `32` mapped weapon mastery effects, including `12` mastery-to-passive transformations, are scored through the shared calculator rather than through structured mastery rows alone. The allocator reserves Epic capacity, follows legal Achievement-category priority, and consumes the exact requested point budget across the `80`, `130`, and `220` point boundaries.
+
+Progression selection remains a deterministic bounded allocator. Its retained build is calculated exactly, but the selection process is not yet a proof of the globally optimal skill and mastery allocation. Gear-dependent and attribute-threshold progression should receive one bounded second pass against equipped finalists before that stronger claim is made.
 
 ### Combat Lab
 
@@ -217,9 +220,10 @@ Combat Lab remains a reviewed coefficient and scenario surface, not an exact fin
 These are explicit and do not silently enter exact item ranking:
 
 1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
-2. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the four decoded distance rules listed above are currently executable.
-3. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
-4. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
+2. `GT_Hero_Attack_01`, Instinct and Restraint, has exact level rates and an exact Eclipse reversal, but percentage All Defense materialization, Base Damage hand scope, stacking order, and rounding are not present in the decoded client rows. It remains provisional rather than receiving invented endpoint totals.
+3. The remaining conditional families need reviewed scenario semantics before they can influence optimizer scoring. Only the four decoded distance rules listed above are currently executable.
+4. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
+5. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
 
 ## Evidence added in the final static sweep
 
@@ -233,7 +237,7 @@ These are explicit and do not silently enter exact item ranking:
 
 ## Verification
 
-- Node test suite: `547/547`
+- Node test suite: `551/551`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed
