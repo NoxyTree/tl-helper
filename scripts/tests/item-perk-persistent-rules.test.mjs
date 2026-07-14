@@ -63,18 +63,47 @@ test("decoded personal item auras and Southpaw contribute exact persistent value
   });
 });
 
-test("weapon-specific cores require that weapon family and repeated complexes are explicit errors", () => {
-  const build = core.createInitialBuild();
-  build.equipment.main_hand = selection("bow_aa_t5_boss_002");
-  build.equipment.head = selection("bow_aa_t2_raid_001", "Perk_bow_aa_t5_boss_002");
-  const calc = core.calculateBuild(build, attributes);
-  const issueCodes = calc.validation.issues.map((issue) => issue.code).filter(Boolean);
+test("Orthodox uses decoded +40 Main Weapon Damage for its item and Skill Core", () => {
+  const innate = core.createInitialBuild();
+  innate.equipment.main_hand = selection("gauntlet_aa_S1_004");
+  assert.deepEqual(sourceValues(core.calculateBuild(innate, attributes), "Orthodox"), {
+    attack_power_main_hand: 40,
+  });
 
-  assert.equal(sourceValues(calc, "Angel Above the Frontier's Mind's Eye").attack_range_modifier, 900 * 2);
-  assert.ok(issueCodes.includes("repeated_passive_stacking_unresolved"));
+  const perk = core.createInitialBuild();
+  perk.equipment.main_hand = selection("gauntlet_aa_t2_raid_001", "Perk_gauntlet_aa_S1_004");
+  assert.deepEqual(sourceValues(core.calculateBuild(perk, attributes), "Orthodox"), {
+    attack_power_main_hand: 40,
+  });
+  assert.equal(core.itemTooltipEffects(core.indexes.itemById.gauntlet_aa_S1_004, innate.equipment.main_hand)[0].text, "Increases Main Weapon Damage by 40.");
+  assert.equal(core.itemTooltipEffects(core.indexes.itemById.gauntlet_aa_t2_raid_001, perk.equipment.main_hand)[0].text, "Increases Main Weapon Damage by 40.");
+});
 
-  build.equipment.main_hand = selection("crossbow_aa_t5_boss_002");
-  const withoutBow = core.calculateBuild(build, attributes);
-  assert.deepEqual(sourceValues(withoutBow, "Angel Above the Frontier's Mind's Eye"), {});
-  assert.ok(withoutBow.validation.issues.some((issue) => issue.code === "perk_required_weapon_missing"));
+test("one-copy dedupe spans innate and Skill Core carriers and retains weapon gating", () => {
+  const passiveId = "SkillSet_WP_Item_A08_kAA_BO";
+  const innateItem = {
+    id: "innate",
+    grade: 41,
+    passives: { id: passiveId, name: "Innate Mind's Eye" },
+  };
+  const perkItem = {
+    id: "perk-carrier",
+    grade: 41,
+    availablePerks: [{ id: "mind-eye-core", grade: 41, passive: { id: passiveId, name: "Core Mind's Eye" } }],
+  };
+  const active = core.activePersistentItemPassiveSources(
+    { equippedWeaponTypes: ["bow"] },
+    [
+      { slotId: "main_hand", item: innateItem, selection: {} },
+      { slotId: "head", item: perkItem, selection: { perkId: "mind-eye-core" } },
+    ],
+  );
+  assert.equal(active.length, 1);
+  assert.equal(active[0].passiveId, passiveId);
+
+  const foreign = core.activePersistentItemPassiveSources(
+    { equippedWeaponTypes: ["crossbow"] },
+    [{ slotId: "head", item: perkItem, selection: { perkId: "mind-eye-core" } }],
+  );
+  assert.deepEqual(foreign, []);
 });

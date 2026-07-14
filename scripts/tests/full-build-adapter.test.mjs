@@ -412,12 +412,24 @@ function perkOptimizerCore({ slots, items, invalidWhen = () => false }) {
     calculateBuild(build) {
       const selections = Object.values(build.equipment);
       const seen = new Set();
-      const duplicate = selections.some((selection) => passiveIds(itemById[selection?.itemId], selection).some((id) => seen.has(id) || !seen.add(id)));
       const invalid = selections.some((selection) => invalidWhen(selection));
+      let total = 0;
+      for (const selection of selections) {
+        const item = itemById[selection?.itemId];
+        const perk = selectedPerk(item, selection);
+        total += Number(item?.attack ?? 0);
+        total += (selection?.traits ?? []).reduce((sum, trait) => {
+          const tiers = item?.itemStats?.traits?.[trait.statId] ?? [];
+          return sum + Number(tiers[Math.max(0, Number(trait.tier ?? 1) - 1)] ?? 0);
+        }, 0);
+        if (perk && !seen.has(perk.passive.id)) {
+          seen.add(perk.passive.id);
+          total += Number(perk.attack ?? 0);
+        }
+      }
       return {
-        stats: [{ id: "attack", total: selections.reduce((sum, selection) => sum + selectionAttack(selection), 0) }],
+        stats: [{ id: "attack", total }],
         validation: { issues: [
-          ...(duplicate ? [{ severity: "error", code: "repeated_passive_stacking_unresolved", message: "Repeated passive." }] : []),
           ...(invalid ? [{ severity: "error", code: "invalid_candidate", message: "Invalid candidate." }] : []),
         ] },
       };
@@ -493,7 +505,7 @@ test("a generated current-item variant can improve traits without losing its sel
   assert.deepEqual(result.build.equipment.head.traits, [{ statId: "attack", tier: 3 }]);
 });
 
-test("partial legality prevents repeated passive cores", async () => {
+test("optimizer retains strong duplicate-core items and exact scoring activates one copy", async () => {
   const shared = (id, type, attack) => ({ id, name: id, grade: 41, equipmentType: type, attack, availablePerks: [
     { id: `${id}-core`, calculable: true, attack: 10, passive: { id: "shared-passive" } },
   ] });
@@ -505,9 +517,11 @@ test("partial legality prevents repeated passive cores", async () => {
     sourceKind: "scratch", goals: { increase: ["attack"] }, rules: {},
   });
 
-  const selectedCores = [result.build.equipment.head.perkId, result.build.equipment.chest.perkId].filter(Boolean);
-  assert.equal(selectedCores.length, 1);
+  assert.equal(result.build.equipment.head.itemId, "head-carrier");
+  assert.equal(result.build.equipment.chest.itemId, "chest-carrier");
+  assert.equal(core.calculateBuild(result.build).stats[0].total, 12);
   assert.equal(core.calculateBuild(result.build).validation.issues.length, 0);
+  assert.ok(result.assumptions.some((text) => text.includes("only one copy")));
 });
 
 test("exact evaluation refuses an invalid finalist", async () => {

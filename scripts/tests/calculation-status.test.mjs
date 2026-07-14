@@ -157,6 +157,28 @@ test("complete slot replacement status rejects a second Heroic in one equipment 
   build.equipment.head = { ...core.emptyEquipmentSelection(), itemId: head.id, level: core.itemMaxLevel(head) };
   assert.equal(core.calculateBuild(build, attributes).status.state, "legal");
   const status = core.slotSelectionCalculationStatus("chest", { ...core.emptyEquipmentSelection(), itemId: chest.id, level: core.itemMaxLevel(chest) }, build, attributes);
-  assert.equal(status.state, "provisional");
-  assert.ok(status.provisionalIssues.some((issue) => issue.code === "heroic_slot_cap_exceeded"));
+  assert.equal(status.state, "invalid");
+  assert.ok(status.invalidIssues.some((issue) => issue.code === "heroic_slot_cap_exceeded"));
+});
+
+test("Heroic cap is one weapon, one armor, and one accessory broad group", () => {
+  const heroic = (type) => data.items.find((item) => item.equipmentType === type && item.grade === core.HEROIC_GRADE);
+  const put = (build, slot, item) => { build.equipment[slot] = { ...core.emptyEquipmentSelection(), itemId: item.id, level: core.itemMaxLevel(item) }; };
+
+  const onePerGroup = core.createInitialBuild();
+  put(onePerGroup, "main_hand", heroic("bow"));
+  put(onePerGroup, "head", heroic("head"));
+  put(onePerGroup, "necklace", heroic("necklace"));
+  assert.equal(core.calculateBuild(onePerGroup, attributes).status.state, "legal");
+
+  for (const [firstSlot, firstType, secondSlot, secondType] of [
+    ["main_hand", "bow", "off_hand", "staff"],
+    ["head", "head", "chest", "chest"],
+    ["necklace", "necklace", "bracelet", "bracelet"],
+  ]) {
+    const build = core.createInitialBuild();
+    put(build, firstSlot, heroic(firstType));
+    put(build, secondSlot, heroic(secondType));
+    assert.ok(core.calculateBuild(build, attributes).status.invalidIssues.some((issue) => issue.code === "heroic_slot_cap_exceeded"));
+  }
 });

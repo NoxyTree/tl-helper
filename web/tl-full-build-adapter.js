@@ -198,10 +198,6 @@ function perkVariants(core, item) {
   return core.calculableItemPerkVariants?.(item) ?? [{ perkId: "", perk: null, passiveId: "", requiredWeapon: "" }];
 }
 
-function passiveComplexIds(core, item, selection) {
-  return core.itemPassiveComplexIds?.(item, selection) ?? [...new Set([item?.passives?.id].filter(Boolean))];
-}
-
 function itemCandidateId(itemId, selection, kind = "generated") {
   return `${itemId}::${selection?.perkId || "bare"}::${kind}`;
 }
@@ -586,7 +582,6 @@ export async function createOptimizerAdapter(deps = {}) {
         heroicGroup: item?.grade === core.HEROIC_GRADE ? core.heroicSlotGroupForSlot(slot) : "",
         weaponType: core.WEAPON_SLOTS.includes(slot) ? item?.equipmentType ?? "" : "",
         setKeys: item?.setId ? [item.setId] : [],
-        passiveIds: passiveComplexIds(core, item, selection),
         neutralHeroicCost: item?.grade === core.HEROIC_GRADE ? 1 : 0,
         neutralItemLevel: item ? core.itemMaxLevel(item) : 0,
         neutralGrade: Number(item?.grade ?? 0),
@@ -705,10 +700,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         if (Object.values(selections).some((selection) => selection?.itemId === itemId)) return false;
-        const usedPassiveIds = new Set(Object.values(selections).flatMap((selection) => (
-          passiveComplexIds(core, core.indexes.itemById[selection?.itemId], selection)
-        )));
-        return !(candidate.passiveIds ?? []).some((passiveId) => usedPassiveIds.has(passiveId));
+        return true;
       }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (attributePointBudget != null) {
         const exact = [];
@@ -795,7 +787,7 @@ export async function createOptimizerAdapter(deps = {}) {
         name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
         statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
         explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value.", "Repeated passive complexes are excluded from recommendations until stacking is proven.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+        assumptions: [...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), "Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value.", "Repeated Equipment Skills are legal, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,

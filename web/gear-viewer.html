@@ -298,19 +298,6 @@
       return types;
     }
 
-    function repeatsPassiveOutsideSlot(slotId, item, selection, build) {
-      const candidateIds = core.itemPassiveComplexIds(item, selection);
-      if (!candidateIds.length) return false;
-      const selectedElsewhere = new Set();
-      for (const slot of core.BUILD_SLOTS) {
-        if (slot.id === slotId) continue;
-        const otherSelection = core.slotSelection(slot.id, build);
-        const otherItem = core.indexes.itemById[otherSelection?.itemId];
-        for (const passiveId of core.itemPassiveComplexIds(otherItem, otherSelection)) selectedElsewhere.add(passiveId);
-      }
-      return candidateIds.some((passiveId) => selectedElsewhere.has(passiveId));
-    }
-
     function equippedWeaponSlots(build = scoringContext().build) {
       return ["main_hand", "off_hand"].map((slotId) => {
         const selection = core.slotSelection(slotId, build);
@@ -524,7 +511,6 @@
           if (currentCoreUnsupported) variants = [];
           for (const variant of variants) {
             const selection = { ...baseSelection, perkId: variant.perkId };
-            if (repeatsPassiveOutsideSlot(slotId, item, selection, build)) continue;
             const selectionStatus = core.itemSelectionCalculationStatus(item, selection, {
               slotId,
               equippedWeaponTypes: [...prospectiveWeaponTypes(slotId, item, build)],

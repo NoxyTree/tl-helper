@@ -14,11 +14,10 @@ test("Gear Viewer composes persistent Skill Core variants outside Heroic potenti
   assert.match(html, /const contribution = candidateContribution\(slotId, selection, build, attributes\)/);
 });
 
-test("Gear Viewer preserves the exact current core and excludes repeated passive variants", () => {
+test("Gear Viewer preserves the exact current core and permits legal repeated passive variants", () => {
   assert.match(html, /isExactCurrent: true/);
   assert.match(html, /core\.selectedItemPerk\(item, exactSelection\)/);
-  assert.match(html, /if \(repeatsPassiveOutsideSlot\(slotId, item, selection, build\)\) continue/);
-  assert.doesNotMatch(html, /if \(!isActualItem && repeatsPassiveOutsideSlot/);
+  assert.doesNotMatch(html, /repeatsPassiveOutsideSlot/);
   assert.match(html, /currentCoreUnsupported/);
 });
 

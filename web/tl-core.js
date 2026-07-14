@@ -74,9 +74,26 @@ export const NORMAL_TRAIT_CAP = 3;
 export const UNIQUE_TRAIT_CAP = 1;
 export const RESONANCE_CAP = 1;
 export const ACTIVE_SKILL_CAP = 12;
-export const PASSIVE_SKILL_CAP = 8;
+// TLGlobalCommon.GlobalCommonData.PassiveSkillSlotCountLevelLimits. The three
+// level-1 rows are cumulative initial unlocks; later rows add one slot each.
+export const PASSIVE_SKILL_SLOT_SCHEDULE = Object.freeze([
+  Object.freeze({ level: 1, slots: 3 }),
+  Object.freeze({ level: 20, slots: 4 }),
+  Object.freeze({ level: 25, slots: 5 }),
+  Object.freeze({ level: 30, slots: 6 }),
+  Object.freeze({ level: 35, slots: 7 }),
+  Object.freeze({ level: 40, slots: 8 }),
+]);
+export function passiveSkillCapForLevel(level = CHARACTER_LEVEL) {
+  const numericLevel = Math.max(1, Math.floor(Number(level) || 1));
+  return PASSIVE_SKILL_SLOT_SCHEDULE.reduce((slots, row) => numericLevel >= row.level ? row.slots : slots, 0);
+}
+export const PASSIVE_SKILL_CAP = passiveSkillCapForLevel(CHARACTER_LEVEL);
 export const ATTRIBUTE_POINT_BUDGET = 59;
 export const SPEC_BUDGET = 110;
+// TEXT_MSG_PERK_FAIL_EQUIP_LIMITS permits only one Heroic item of each type;
+// decoded TLPerkSocket and TLPerkOption rows partition those types into weapon,
+// armor, and accessory groups.
 export const HEROIC_SLOT_GROUPS = {
   weapon: WEAPON_SLOTS,
   armor: ["head", "chest", "cloak", "hands", "feet", "legs"],
@@ -762,6 +779,55 @@ export function itemPassiveComplexIds(item, selection) {
   return [...new Set([item?.passives?.id, selectedPerk?.passive?.id].filter(Boolean))];
 }
 
+// Shipped client text states that only the highest level of a repeated
+// Equipment Skill or Skill Core activates. Build 24118850 projects one fixed
+// rule per complex ID and no per-copy skill level, so one-copy deduplication is
+// exact for the current catalogue. The canonical topology test fails if a
+// future data build introduces a legal duplicate persistent complex; that
+// change must project levels before ranking differing copies.
+export function activePersistentItemPassiveSources(progression, selections) {
+  const weaponTypes = new Set(progression?.equippedWeaponTypes ?? []);
+  const candidates = [];
+  for (const [selectionIndex, { slotId, selection, item }] of values(selections).entries()) {
+    const itemPassiveId = item?.passives?.id;
+    const itemRule = ITEM_PASSIVE_RULES[itemPassiveId];
+    if (itemRule) candidates.push({
+      passiveId: itemPassiveId,
+      rule: itemRule,
+      name: item.passives.name ?? itemPassiveId,
+      slot: slotId,
+      grade: item.grade,
+      imageUrl: item.passives.imageUrl,
+      kind: "item",
+      selectionIndex,
+    });
+    const perk = selectedItemPerk(item, selection);
+    const perkPassiveId = perk?.passive?.id;
+    const perkRule = PERK_PASSIVE_RULES[perkPassiveId];
+    const requiredWeaponEquipped = !perkRule?.requiredWeapon || weaponTypes.has(perkRule.requiredWeapon);
+    if (perkRule && requiredWeaponEquipped) candidates.push({
+      passiveId: perkPassiveId,
+      rule: perkRule,
+      name: perk.passive.name ?? perk.name ?? perkPassiveId,
+      slot: "skill_core",
+      grade: perk.grade,
+      imageUrl: perk.passive.imageUrl,
+      kind: "perk",
+      selectionIndex,
+    });
+  }
+  candidates.sort((a, b) => a.selectionIndex - b.selectionIndex
+    || a.kind.localeCompare(b.kind));
+  const activated = [];
+  const seen = new Set();
+  for (const candidate of candidates) {
+    if (seen.has(candidate.passiveId)) continue;
+    seen.add(candidate.passiveId);
+    activated.push(candidate);
+  }
+  return activated;
+}
+
 // Candidate generation is deliberately narrower than Armory editing. Blank
 // is always legal, while automatic selection may use only executable static
 // rules. Multiple catalogue aliases for one passive complex are equivalent;
@@ -841,6 +907,16 @@ export function itemSelectionCalculationStatus(item, selection, options = {}) {
   return calculationStatus({ issues });
 }
 
+const PASSIVE_TEXT_OVERRIDES = Object.freeze({
+  // Several western localizations bind Orthodox to Southpaw's _GT_02 formula.
+  // The decoded Orthodox _GT_01 amount and correctly bound Asian strings are 40.
+  SkillSet_WP_Item_Field_NIX_GT_01: "Increases Main Weapon Damage by 40.",
+});
+
+export function passiveEffectText(passive) {
+  return PASSIVE_TEXT_OVERRIDES[passive?.id] ?? passive?.text ?? "";
+}
+
 export function itemTooltipEffects(item, selection) {
   const effects = [];
   if (item.passives?.name || item.passives?.text) {
@@ -848,7 +924,7 @@ export function itemTooltipEffects(item, selection) {
       label: "Passive:",
       type: "passive",
       name: item.passives.name ?? "Passive",
-      text: item.passives.text ?? "",
+      text: passiveEffectText(item.passives),
       imageUrl: item.passives.imageUrl ?? "",
     });
   }
@@ -858,7 +934,7 @@ export function itemTooltipEffects(item, selection) {
       label: "Skill Core:",
       type: "skillCore",
       name: selectedPerk.passive?.name ?? selectedPerk.name,
-      text: selectedPerk.passive?.text ?? "",
+      text: passiveEffectText(selectedPerk.passive),
       imageUrl: selectedPerk.passive?.imageUrl ?? selectedPerk.imageUrl ?? "",
     });
   }
@@ -1348,8 +1424,8 @@ export function skillTypeSort(skill) {
   return 2;
 }
 
-export function skillCapForType(type) {
-  return type === "passive" ? PASSIVE_SKILL_CAP : type === "defensive" ? 1 : ACTIVE_SKILL_CAP;
+export function skillCapForType(type, level = CHARACTER_LEVEL) {
+  return type === "passive" ? passiveSkillCapForLevel(level) : type === "defensive" ? 1 : ACTIVE_SKILL_CAP;
 }
 
 export function skillMaxLevel(skill) {
@@ -1481,7 +1557,7 @@ export function effectiveProgression(build) {
         "skill_cap_exceeded",
         `${label(type)} skill cap exceeded: ${count}/${cap}. All equipped-weapon selections remain active until deterministic truncation rules are defined.`,
         "error",
-        type === "passive" ? "assumed" : "dataBacked",
+        "dataBacked",
       );
     }
   }
@@ -2566,16 +2642,11 @@ export function setEffectBreakpointSummary(breakpoint) {
 }
 
 function applyQuestlogPhase(phase, progression, selections, totalsObject, add, includeSetEffects = true, setEffectTrace = null) {
-  for (const { slotId, selection, item } of selections) {
-    const itemRule = ITEM_PASSIVE_RULES[item?.passives?.id];
-    if (itemRule?.phase === phase) for (const row of itemRule.effect(totalsObject())) add(row.statId, row.value, item.passives.name, slotId, item.grade, item.passives.imageUrl);
-    const perk = selectedItemPerk(item, selection);
-    const perkRule = PERK_PASSIVE_RULES[perk?.passive?.id];
-    // Future registry overlap must not fire the same complex twice through an
-    // innate passive and a selected Skill Core on one item.
-    const alreadyAppliedAsItemPassive = itemRule && perk?.passive?.id === item?.passives?.id;
-    const requiredWeaponEquipped = !perkRule?.requiredWeapon || progression.equippedWeaponTypes.includes(perkRule.requiredWeapon);
-    if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive && requiredWeaponEquipped) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
+  for (const source of activePersistentItemPassiveSources(progression, selections)) {
+    if (source.rule.phase !== phase) continue;
+    for (const row of source.rule.effect(totalsObject())) {
+      add(row.statId, row.value, source.name, source.slot, source.grade, source.imageUrl);
+    }
   }
   if (includeSetEffects) {
     const active = activeSetCounts(selections);
@@ -2973,10 +3044,10 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
   for (const [passiveId, sourceSlots] of passiveSources) {
     if (sourceSlots.length < 2) continue;
     dataBacked.push({
-      severity: "error",
-      code: "repeated_passive_stacking_unresolved",
-      calculationImpact: "provisional",
-      message: `${passiveId} is selected from multiple slots (${sourceSlots.join(", ")}). Same-core stacking is unresolved, so these totals are provisional and must not be treated as exact.`,
+      severity: "info",
+      code: "duplicate_passive_suppressed",
+      calculationImpact: "none",
+      message: `${passiveId} is selected from multiple slots (${sourceSlots.join(", ")}). The shipped Equipment Skill rule activates one copy, so duplicate effects are suppressed.`,
     });
   }
 
@@ -2985,11 +3056,11 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
       .map((slot) => ({ slot, item: indexes.itemById[build.equipment[slot]?.itemId] }))
       .filter((entry) => entry.item?.grade === HEROIC_GRADE);
     if (heroicItems.length > 1) {
-      assumed.push({
-        severity: "warning",
+      dataBacked.push({
+        severity: "error",
         code: "heroic_slot_cap_exceeded",
-        calculationImpact: "provisional",
-        message: `Assumed heroic cap: only one heroic ${group} should be equipped. Current slots: ${heroicItems.map((entry) => slotById(entry.slot).label).join(", ")}.`,
+        calculationImpact: "invalid",
+        message: `Only one Heroic ${group} item can be equipped. Current slots: ${heroicItems.map((entry) => slotById(entry.slot).label).join(", ")}.`,
       });
     }
   }

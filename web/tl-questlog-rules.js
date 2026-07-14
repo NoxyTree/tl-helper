@@ -240,11 +240,17 @@ const windGuidanceRule={phase:1,effect:()=>[
   {statId:"range_evasion",value:z("range_evasion",160)},
   {statId:"magic_evasion",value:z("magic_evasion",160)},
 ]};
+// Orthodox is +40 Main Weapon Damage. The English localization accidentally
+// binds its description to the Southpaw (_GT_02) formula and displays 90;
+// WP_Item_Field_NIX_GT_01 is an unconditional Adjust_Stat effect whose decoded
+// formula row has min=max=tooltip1=40.
+const orthodoxRule={phase:1,effect:()=>[{statId:"attack_power_main_hand",value:z("attack_power_main_hand",40)}]};
 const southpawRule={phase:1,effect:()=>[{statId:"attack_power_off_hand",value:z("attack_power_off_hand",90)}]};
 const bulwarkRule={phase:1,effect:()=>[{statId:"hp_max",value:z("hp_max",2e3)},{statId:"magic_armor",value:z("magic_armor",300)}]};
 export const ITEM_PASSIVE_RULES={
   SkillSet_WP_Item_A08_kAA_BO:mindEyeRule,
   SkillSet_WP_Item_A07_kA_CR:eyeOfStormRule,
+  SkillSet_WP_Item_Field_NIX_GT_01:orthodoxRule,
   SkillSet_WP_Item_Nix_Field_CR_01:windGuidanceRule,
   SkillSet_WP_Item_Field_NIX_GT_02:southpawRule,
 };
@@ -296,6 +302,7 @@ export const PERK_PASSIVE_RULES={
   SkillSet_Unique_Armor_Skill_01:bulwarkRule,
   SkillSet_Unique_Accessory_Skill_01:{phase:1,effect:()=>[{statId:"range_armor",value:z("range_armor",300)},{statId:"melee_armor",value:z("melee_armor",300)},{statId:"cost_max",value:z("cost_max",1e3)}]},
   SkillSet_WP_Item_A08_kAA_BO:{...mindEyeRule,requiredWeapon:"bow"},
+  SkillSet_WP_Item_Field_NIX_GT_01:{...orthodoxRule,requiredWeapon:"gauntlet"},
   SkillSet_WP_Item_Nix_Field_CR_01:{...windGuidanceRule,requiredWeapon:"crossbow"},
   SkillSet_WP_Item_Field_NIX_GT_02:{...southpawRule,requiredWeapon:"gauntlet"},
 };

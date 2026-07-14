@@ -334,11 +334,11 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
         "union": 294
       },
       "expectedClassCounts": {
-        "persistentStatic": 6,
+        "persistentStatic": 7,
         "persistentOwnerSemanticsUnresolved": 1,
-        "sourceConflict": 1,
-        "unresolvedDecode": 1,
-        "conditional": 285
+        "sourceConflict": 0,
+        "unresolvedDecode": 0,
+        "conditional": 286
       },
       "classes": {
         "persistentStatic": [
@@ -346,18 +346,15 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
           "SkillSet_Unique_Armor_Skill_01",
           "SkillSet_WP_Item_A07_kA_CR",
           "SkillSet_WP_Item_A08_kAA_BO",
+          "SkillSet_WP_Item_Field_NIX_GT_01",
           "SkillSet_WP_Item_Field_NIX_GT_02",
           "SkillSet_WP_Item_Nix_Field_CR_01"
         ],
         "persistentOwnerSemanticsUnresolved": [
           "SkillSet_WP_Item_FieldBoss_T3_CR_02"
         ],
-        "sourceConflict": [
-          "SkillSet_WP_Item_Field_NIX_GT_01"
-        ],
-        "unresolvedDecode": [
-          "SkillSet_WP_Item_FieldBoss_T2_ORB_01"
-        ],
+        "sourceConflict": [],
+        "unresolvedDecode": [],
         "conditional": [
           "SkillSet_Gem_AC_High_Accuracy",
           "SkillSet_Gem_AC_High_AttackPower",
@@ -519,6 +516,7 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
           "SkillSet_WP_Item_FieldBoss_NIX_GT_01",
           "SkillSet_WP_Item_FieldBoss_StoneGuard_GT_01",
           "SkillSet_WP_Item_FieldBoss_T1_ORB_01",
+          "SkillSet_WP_Item_FieldBoss_T2_ORB_01",
           "SkillSet_WP_Item_FieldBoss_T2_WA_01",
           "SkillSet_WP_Item_FieldBoss_T3_BO_01",
           "SkillSet_WP_Item_FieldBoss_T3_CR_01",
@@ -753,6 +751,7 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
     "itemRule": [
       "SkillSet_WP_Item_A07_kA_CR",
       "SkillSet_WP_Item_A08_kAA_BO",
+      "SkillSet_WP_Item_Field_NIX_GT_01",
       "SkillSet_WP_Item_Field_NIX_GT_02",
       "SkillSet_WP_Item_Nix_Field_CR_01"
     ],
@@ -760,6 +759,7 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
       "SkillSet_Unique_Accessory_Skill_01",
       "SkillSet_Unique_Armor_Skill_01",
       "SkillSet_WP_Item_A08_kAA_BO",
+      "SkillSet_WP_Item_Field_NIX_GT_01",
       "SkillSet_WP_Item_Field_NIX_GT_02",
       "SkillSet_WP_Item_Nix_Field_CR_01"
     ]

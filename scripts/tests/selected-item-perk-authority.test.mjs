@@ -136,7 +136,7 @@ test("item-level authority uses explicit unresolved classes instead of tooltip h
   };
 
   assert.ok(statusFor("SkillSet_WP_Item_FieldBoss_T3_CR_02").provisionalIssues.some((issue) => issue.code === "persistent_owner_semantics_unresolved"));
-  assert.ok(statusFor("SkillSet_WP_Item_Field_NIX_GT_01").provisionalIssues.some((issue) => issue.code === "passive_effect_source_conflict"));
-  assert.ok(statusFor("SkillSet_WP_Item_FieldBoss_T2_ORB_01").provisionalIssues.some((issue) => issue.code === "passive_effect_decode_unresolved"));
+  assert.equal(statusFor("SkillSet_WP_Item_Field_NIX_GT_01").state, "legal", "decoded Orthodox must be persistent static");
+  assert.equal(statusFor("SkillSet_WP_Item_FieldBoss_T2_ORB_01").state, "legal", "Primal Brothers must be an explicit conditional proc");
   assert.equal(statusFor("SkillSet_WP_Item_FieldBoss_T3_ST_02").state, "legal", "conditional Aridus must not be mistaken for an unmapped persistent total");
 });

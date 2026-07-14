@@ -72,22 +72,20 @@ The nine unsupported breakpoints are retained in the set topology and calculatio
 
 | Semantic class | Count |
 | --- | ---: |
-| Persistent static and safely mapped | 6 |
+| Persistent static and safely mapped | 7 |
 | Persistent owner semantics unresolved | 1 |
-| Decoded source conflict | 1 |
-| Unresolved decoded join | 1 |
-| Conditional, proc, scenario, or skill-scoped | 285 |
+| Decoded source conflict | 0 |
+| Unresolved decoded join | 0 |
+| Conditional, proc, scenario, or skill-scoped | 286 |
 | Total | 294 |
 
-The six executable persistent complexes are Dark Wing's Bulwark, Dark Wing's Power, Mind's Eye, Eye of the Storm, Wind's Guidance, and Southpaw.
+The seven executable persistent complexes are Dark Wing's Bulwark, Dark Wing's Power, Mind's Eye, Eye of the Storm, Wind's Guidance, Orthodox, and Southpaw.
 
-The three deliberately blocked item uncertainties are:
+One item uncertainty remains deliberately blocked:
 
 1. Malakar's Blazing Wind: owner inclusion is not proven.
-2. Orthodox: the projection value `90` conflicts with decoded formula value `40`.
-3. Primal Brothers' Thunder Strike: the exact complex-to-simple decoded join remains missing.
 
-Aridus remains explicitly conditional and is not applied as a persistent Staff stat.
+Orthodox is now decoded-exact at `+40` Main Weapon Damage. The western projection value `90` is a localization binding error that references Southpaw's `_GT_02` formula instead of Orthodox's `_GT_01` formula. Primal Brothers' Thunder Strike is now an exact conditional Orb-summoning proc; its previously missing join was a case mismatch in `SkillSet_WP_Item_fieldBoss_T2_ORB_01`. Aridus and Primal Brothers remain excluded from persistent totals because both are explicitly conditional.
 
 ## One legality and authority model
 
@@ -107,7 +105,7 @@ Final candidate legality is checked on complete builds. Gear Viewer no longer va
 - Foreign saved selections remain stored but inactive so a weapon swap is non-destructive.
 - Canonical skill type defeats stored active, passive, or defensive type spoofing.
 - Active skill cap `12` and defensive skill cap `1` use shipped-client structure.
-- Passive skill cap `8` remains visibly derived pending a numeric client setting or in-game confirmation.
+- Passive skill capacity follows decoded `TLGlobalCommon.GlobalCommonData.PassiveSkillSlotCountLevelLimits`: three slots at level 1, then four at 20, five at 25, six at 30, seven at 35, and eight at 40. The current level-60 scope therefore uses an exact cap of `8`.
 - Normal mastery levels are `1` through `10`; Achievement levels are exactly `1`.
 - Each weapon has a decoded `220` point limit.
 - Tier prerequisites, top-two Achievement selection, hybrid-category accounting, Epic prerequisites, and Epic-to-Achievement matching are enforced.
@@ -125,7 +123,9 @@ Final candidate legality is checked on complete builds. Gear Viewer no longer va
 - Rune IDs, stats, levels, equipment category, Chaos cap, and three-socket cap are checked across equipment, artifacts, and support slots.
 - Three equal normal runes remain legal by design; only more than three sockets or multiple Chaos runes are rejected.
 - Malformed skill levels, specialization collections, duplicate specializations, mastery levels, and unified mastery IDs become non-legal.
-- Duplicate items, repeated passive complexes, and assumed Heroic group caps remain provisional until their runtime stacking or cap semantics are proven.
+- Duplicate item IDs remain provisional because unique-copy legality is not represented by the current catalogue.
+- Repeated Equipment Skills and Skill Cores are legal but only one copy, or the highest-level copy when levels differ, activates. Build `24118850` projects one fixed rule per complex ID and no per-copy levels, so the shared calculator performs exact one-copy deduplication across innate and selected-core sources.
+- The shipped Heroic equipment cap is enforced as one weapon, one armor item, and one accessory; conflicts are invalid.
 
 ## BuildSnapshot v2
 
@@ -153,7 +153,7 @@ Uses complete replacement deltas, set-aware totals, exact selected Skill Core va
 
 ### Full Build Optimizer
 
-Locks existing weapon families so saved progression cannot be carried into another weapon family. It enumerates decoded-proven persistent core variants, preserves set-completion routes, and rejects non-legal final candidates.
+Locks existing weapon families so saved progression cannot be carried into another weapon family. It enumerates decoded-proven persistent core variants, preserves set-completion routes, no longer rejects otherwise legal candidates merely because a conditional core ID repeats, and rejects non-legal final candidates. All seven currently mapped persistent duplicate topologies are mutually blocked by same-weapon-family or Heroic-group legality. A canonical topology test fails if a future data build introduces a beam-legal mapped duplicate, preventing additive partial scoring from silently double-counting it.
 
 ### Build From Scratch
 
@@ -169,17 +169,23 @@ Combat Lab remains a reviewed coefficient and scenario surface, not an exact fin
 
 These are explicit and do not silently enter exact item ranking:
 
-1. Passive skill capacity `8` is derived rather than numerically decoded.
-2. Same passive complex stacking across separate gear slots is unresolved.
-3. Heroic equipment-group caps remain an assumed rule and make conflicting builds provisional.
-4. Blazing Wind owner inclusion, Orthodox's source conflict, and Primal Brothers' missing decoded join remain unresolved.
-5. Conditional effects need a future scenario contract before they can influence optimizer scoring.
-6. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
-7. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
+1. Blazing Wind owner inclusion remains unresolved. Its `+2.5%` Base Damage magnitude, Crossbow requirement, and party aura are exact, but the decoded client graph does not expose the owner target filter.
+2. Conditional effects need a future scenario contract before they can influence optimizer scoring.
+3. Combat Power remains a fitted Questlog-parity heuristic rather than a decoded official game formula.
+4. Final damage, defense, block, live rolls, modifier order, and server rounding remain outside the persistent static claim.
+
+## Evidence added in the final static sweep
+
+- Passive slot schedule: `D:\TL_Data\raw\24118850\extracted\data\TL\Content\Game\Client\Table\TLGlobalCommon.uasset`, row `GlobalCommonData`, field `PassiveSkillSlotCountLevelLimits`. The AGS override contains the identical schedule.
+- Duplicate Equipment Skill behavior: `D:\TL_Data\raw\24118850\extracted\localization\csv\en.csv`, keys `TEXT_TOOLTIP_SKILL_MAIN_DESCRIPTION_Description`, `TEXT_TOOLTIP_SKILL_SPECIAL_SKILL_HELP_Description`, and `TEXT_RES_TUTORIAL_PC_MESSAGE_POTENTIAL_01`. All state that only one or the highest-level repeated skill activates.
+- Heroic group cap: the same localization projection, key `TEXT_MSG_PERK_FAIL_EQUIP_LIMITS`, corroborated by all eight shipped locales plus the weapon, armor, and accessory partitions decoded from `TLPerkSocket.uasset` and `TLPerkOption.uasset`.
+- Orthodox: `TLFormulaParameterNew.json` row `WP_Item_Field_NIX_GT_01` has `min=max=tooltip1=40`; `WP_Item_GT.json` and `TLEffectProperty.json` prove the persistent join. Korean, Japanese, and Traditional Chinese bind `_GT_01`; the affected western strings bind `_GT_02` incorrectly.
+- Primal Brothers: `WP_Item_ORB.json` uses lowercase `fieldBoss` in the complex ID and joins to `WP_Item_FieldBoss_T2_ORB_01`. Its decoded effect graph is a delayed conditional direct-damage proc with a `300%` Base Damage formula.
+- Blazing Wind: all shipped strings name party members within 16m but omit self. The client-visible aura graph does not expose the decisive owner filter, so exact owner scoring remains blocked pending one solo stat-panel test or a server target-filter decode.
 
 ## Verification
 
-- Node test suite: `464/464`
+- Node test suite: `468/468`
 - Reference build assertions: `69/69`
 - Edge cases: `12/12`
 - BuildSnapshot v2 authority and migration verification: passed

@@ -135,8 +135,8 @@ test("item and perk rule bindings are exact, reachable, and semantically mapped"
   const bindings = contract.bindings;
   assertExactSet(Object.keys(ITEM_PASSIVE_RULES), bindings.itemRule, "item passive registry drifted");
   assertExactSet(Object.keys(PERK_PASSIVE_RULES), bindings.perkRule, "perk passive registry drifted");
-  assert.equal(bindings.itemRule.length, 4);
-  assert.equal(bindings.perkRule.length, 5);
+  assert.equal(bindings.itemRule.length, 5);
+  assert.equal(bindings.perkRule.length, 6);
 
   const innateUniverse = new Set(innateIds);
   const perkUniverse = new Set(perkIds);
@@ -144,7 +144,7 @@ test("item and perk rule bindings are exact, reachable, and semantically mapped"
   for (const id of bindings.perkRule) assert.equal(perkUniverse.has(id), true, "perk binding is unreachable " + id);
 
   const mapped = sorted([...bindings.itemRule, ...bindings.perkRule]);
-  assert.equal(mapped.length, 6);
+  assert.equal(mapped.length, 7);
   assertExactSet(mapped, contract.families.itemPerkComplex.classes.persistentStatic, "persistent item binding drifted");
   assertExactSet(mapped.filter((id) => itemComplexIds.includes(id)), mapped, "item binding is not projected");
 });
@@ -152,8 +152,9 @@ test("item and perk rule bindings are exact, reachable, and semantically mapped"
 test("known unresolved and conditional item complexes cannot silently gain static rules", () => {
   const classes = contract.families.itemPerkComplex.classes;
   assert.deepEqual(classes.persistentOwnerSemanticsUnresolved, ["SkillSet_WP_Item_FieldBoss_T3_CR_02"]);
-  assert.deepEqual(classes.sourceConflict, ["SkillSet_WP_Item_Field_NIX_GT_01"]);
-  assert.deepEqual(classes.unresolvedDecode, ["SkillSet_WP_Item_FieldBoss_T2_ORB_01"]);
+  assert.deepEqual(classes.sourceConflict, []);
+  assert.deepEqual(classes.unresolvedDecode, []);
+  assert.equal(classes.conditional.includes("SkillSet_WP_Item_FieldBoss_T2_ORB_01"), true, "Primal Brothers must remain a conditional proc");
   assert.equal(classes.conditional.includes("SkillSet_WP_Item_FieldBoss_T3_ST_02"), true, "Aridus must remain conditional");
 
   const forbiddenStaticRules = [
@@ -165,6 +166,29 @@ test("known unresolved and conditional item complexes cannot silently gain stati
   for (const id of forbiddenStaticRules) {
     assert.equal(ITEM_PASSIVE_RULES[id], undefined, id + " unexpectedly gained an item rule");
     assert.equal(PERK_PASSIVE_RULES[id], undefined, id + " unexpectedly gained a perk rule");
+  }
+});
+
+test("mapped persistent duplicate carriers cannot become beam-legal silently", () => {
+  const items = equipmentProjection.data.items;
+  const weaponTypes = new Set(["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"]);
+  const armorTypes = new Set(["head", "chest", "cloak", "hands", "feet", "legs"]);
+  const accessoryTypes = new Set(["necklace", "bracelet", "ring", "brooch", "earring", "belt"]);
+  const heroicGroup = (item) => item.grade !== 51 ? "" : armorTypes.has(item.equipmentType) ? "armor" : accessoryTypes.has(item.equipmentType) ? "accessory" : weaponTypes.has(item.equipmentType) ? "weapon" : "";
+
+  for (const passiveId of contract.families.itemPerkComplex.classes.persistentStatic) {
+    const carriers = items.filter((item) => item.passives?.id === passiveId
+      || item.availablePerks?.some((perk) => perk.passive?.id === passiveId));
+    if (carriers.length < 2) continue;
+    const sameWeaponType = carriers.every((item) => weaponTypes.has(item.equipmentType))
+      && new Set(carriers.map((item) => item.equipmentType)).size === 1;
+    const groups = new Set(carriers.map(heroicGroup));
+    const sameHeroicGroup = groups.size === 1 && !groups.has("");
+    assert.equal(
+      sameWeaponType || sameHeroicGroup,
+      true,
+      `${passiveId} gained a potentially legal duplicate topology; partial optimizer scoring must model one-copy activation before accepting this data build`,
+    );
   }
 });
 
@@ -187,4 +211,3 @@ test("implementation binding lists have deterministic ordering", () => {
   const interactionIds = contract.bindings.masteryPassiveInteraction.map((row) => row.masteryId);
   assertSortedUnique(interactionIds, "mastery interaction bindings are not sorted");
 });
-
