@@ -718,7 +718,8 @@
               </div>
             </sc-if>
           </div></sc-if>
-        <sc-if value="{{ tabMastery }}" hint-placeholder-val="{{ false }}"><div style="animation: tlFadeUp 0.3s ease;">
+        <sc-if value="{{ tabMastery }}" hint-placeholder-val="{{ false }}"><dc-import name="MasteryWheel" data="{{ masteryPanel }}" hint-size="1200px,1000px"></dc-import></sc-if>
+        <sc-if value="{{ false }}" hint-placeholder-val="{{ false }}"><div style="animation: tlFadeUp 0.3s ease;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
               <sc-for list="{{ masteryWeaponChips }}" as="chip" hint-placeholder-count="2">
                 <button type="button" onClick="{{ chip.onClick }}"
@@ -3087,6 +3088,7 @@ class Component extends DCLogic {
         bg: selected ? `radial-gradient(circle at 35% 30%, ${p.color}40, rgba(16, 12, 7, 0.95))` : categoryFallback ? `radial-gradient(circle at 35% 30%, ${p.color}32, rgba(12, 10, 8, 0.97))` : "radial-gradient(circle at 35% 30%, #221a10, #0f0b06)",
         shadow: focused ? "0 0 0 4px rgba(246, 211, 145, 0.16), 0 0 18px rgba(246, 211, 145, 0.35)" : selected ? `0 0 14px ${p.color}66` : categoryFallback ? `0 0 16px ${p.color}44, inset 0 0 12px rgba(0, 0, 0, 0.72)` : "inset 0 0 8px rgba(0, 0, 0, 0.7)",
         glyphColor: selected ? "#f3e9d4" : categoryFallback ? p.color : "#7a6b52",
+        glyph: iconLane === "attack" ? "×" : iconLane === "defense" ? "○" : iconLane === "tactic" ? "△" : iconLane === "util" ? "□" : "●",
         iconSize: Math.round(size * (p.kind === "capstone" ? 0.52 : 0.46)),
         icon: p.m.imageUrl ?? "",
         hasIcon: Boolean(p.m.imageUrl),
@@ -3230,7 +3232,7 @@ class Component extends DCLogic {
     const wheelStageOffset = Math.max(140, Math.round(180 * responsiveScale));
     const wheelSurfaceSize = wheelCanvasSize + wheelStageOffset * 2;
 
-    return {
+    const masteryPanel = {
       masteryLoaded: true,
       masteryWeaponChips: weapons.map((weapon) => ({
         id: weapon,
@@ -3250,6 +3252,7 @@ class Component extends DCLogic {
       centerIcon: centerItem?.imageUrl ?? "",
       centerIconEmpty: !centerItem?.imageUrl,
       laneLegend,
+      interactionHint: "Drag empty space to pan · wheel to zoom · click nodes to edit their level",
       wheelCenterLabel: core.label(selectedWeapon),
       wheelCombinedScale,
       wheelCanvasSize,
@@ -3281,6 +3284,7 @@ class Component extends DCLogic {
       hasMasteryError: Boolean(this.state.masteryError),
       ...this.unifiedMasteryVals(build),
     };
+    return { ...masteryPanel, masteryPanel };
   }
 
   unifiedMasteryVals(build) {

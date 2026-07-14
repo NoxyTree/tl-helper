@@ -46,7 +46,7 @@
   .tl-tune-range:hover::-webkit-slider-thumb{transform:scale(1.14);box-shadow:0 0 0 5px rgba(242,199,119,.16),0 0 22px rgba(242,199,119,.66);}
   .tl-tune-range::-moz-range-track{height:7px;border:1px solid rgba(242,199,119,.28);border-radius:999px;background:linear-gradient(90deg,rgba(185,140,240,.72),rgba(242,199,119,.9));}
   .tl-tune-range::-moz-range-thumb{width:18px;height:18px;border:2px solid #fff0c9;border-radius:50%;background:#f2c777;box-shadow:0 0 16px rgba(242,199,119,.48);}
-  @media (max-width:900px){.tl-priority-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-priority-result-grid{grid-template-columns:1fr;}}
+  @media (max-width:900px){.tl-priority-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-priority-result-grid,.tl-result-progression-grid,.tl-mastery-panel-grid{grid-template-columns:1fr!important;}}
 </style>
 </helmet>
 
@@ -777,6 +777,7 @@
   <main id="main-content" style="position:relative;z-index:3;display:grid;grid-template-columns:{{ resultCols }};gap:14px;align-items:start;padding:10px clamp(16px,2.2vw,34px) 56px;">
 
     <!-- ===== LEFT: EQUIPMENT CANVAS ===== -->
+    <sc-if value="{{ showResultOverview }}" hint-placeholder-val="{{ true }}">
     <section style="min-width:0;animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
         <h2 style="margin:0;color:#ead8b7;font:400 17px Marcellus,serif;">Equipment</h2>
@@ -904,7 +905,7 @@
       </div>
 
       <!-- Passive skills and mastery -->
-      <sc-if value="{{ hasProgression }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ showCompactProgression }}" hint-placeholder-val="{{ false }}">
       <div style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
           <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(185,140,240,.45));"></span>
@@ -976,9 +977,19 @@
         </div>
       </div>
     </section>
+    </sc-if>
 
     <!-- ===== RIGHT: STAT SCREEN ===== -->
     <section style="min-width:0;grid-column:{{ statsSpan }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
+      <div style="display:flex;gap:3px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);overflow-x:auto;margin-bottom:13px;">
+        <sc-for list="{{ statTabs }}" as="t" hint-placeholder-count="10">
+          <button onClick="{{ t.select }}" title="{{ t.name }}" style="flex:1;min-width:58px;display:grid;justify-items:center;gap:3px;padding:8px 4px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};cursor:pointer;">
+            <span style="width:16px;height:16px;border-radius:{{ t.shape }};border:1.5px solid {{ t.mark }};background:{{ t.fill }};transform:{{ t.rot }};"></span>
+            <span style="color:{{ t.color }};font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;">{{ t.short }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ false }}">
         <div style="margin-bottom:13px;padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
@@ -1032,15 +1043,6 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:3px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);overflow-x:auto;">
-        <sc-for list="{{ statTabs }}" as="t" hint-placeholder-count="8">
-          <button onClick="{{ t.select }}" title="{{ t.name }}" style="flex:1;min-width:52px;display:grid;justify-items:center;gap:3px;padding:8px 4px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};cursor:pointer;">
-            <span style="width:16px;height:16px;border-radius:{{ t.shape }};border:1.5px solid {{ t.mark }};background:{{ t.fill }};transform:{{ t.rot }};"></span>
-            <span style="color:{{ t.color }};font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;">{{ t.short }}</span>
-          </button>
-        </sc-for>
-      </div>
-
       <div style="margin-top:8px;color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;">{{ activeTabName }}</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 22px;margin-top:8px;">
@@ -1061,6 +1063,53 @@
           </div>
         </sc-for>
       </div>
+      </sc-if>
+
+      <sc-if value="{{ tabSkills }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:tlRise .24s ease both;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;margin-bottom:16px;padding:12px 16px;border:1px solid rgba(212,166,94,.16);border-radius:10px;background:rgba(18,14,9,.5);">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a795f;">Selected Passive Skills</span><span style="font-size:13px;font-weight:650;color:#f3e9d4;font-variant-numeric:tabular-nums;">{{ passiveSkillCount }} / 8</span></div>
+              <div style="margin-top:6px;height:4px;border-radius:2px;background:rgba(212,166,94,.12);overflow:hidden;"><div style="height:100%;width:{{ passiveBudgetPct }};background:linear-gradient(90deg,#c08a3e,#f6d391);box-shadow:0 0 8px rgba(246,211,145,.35);"></div></div>
+            </div>
+            <span style="font-size:10px;color:#6e5f49;">Optimizer-selected permanent-effect loadout</span>
+          </div>
+          <div class="tl-result-progression-grid" style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start;">
+            <div style="min-width:0;">
+              <div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a795f;margin:0 0 8px;">Passive Skills</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <sc-for list="{{ resultPassiveCards }}" as="card" hint-placeholder-count="8">
+                  <button type="button" onClick="{{ card.onClick }}" title="{{ card.name }}" style="position:relative;width:58px;height:58px;border-radius:999px;border:{{ card.ring }};box-shadow:{{ card.shadow }};background:radial-gradient(circle at 35% 30%,#241c12,#120e08);cursor:pointer;padding:0;display:grid;place-items:center;transition:transform .13s ease;" style-hover="transform:translateY(-2px);">
+                    <sc-if value="{{ card.icon }}" hint-placeholder-val="{{ false }}"><span style="width:50px;height:50px;border-radius:999px;background:url({{ card.icon }}) center/cover;display:block;"></span></sc-if>
+                    <b style="position:absolute;right:-3px;bottom:-1px;min-width:17px;height:17px;padding:0 3px;display:grid;place-items:center;font-size:10px;font-weight:800;font-style:normal;color:#0c0a07;background:{{ card.tierColor }};border:1px solid rgba(10,8,5,.6);border-radius:5px;">{{ card.level }}</b>
+                  </button>
+                </sc-for>
+                <sc-for list="{{ resultPassiveEmpty }}" as="cell" hint-placeholder-count="0"><span style="width:58px;height:58px;border-radius:999px;border:1.5px dashed rgba(212,166,94,.16);background:rgba(12,9,6,.35);"></span></sc-for>
+              </div>
+              <div style="margin-top:18px;padding:12px 14px;border:1px solid rgba(185,140,240,.18);border-radius:10px;background:rgba(16,10,20,.32);color:#8f7e9f;font-size:10.5px;line-height:1.5;">Only passive skills are selected by Build from Scratch. Active and defensive skills are combat actions and are not invented by a permanent-stat optimizer.</div>
+            </div>
+            <aside style="position:sticky;top:20px;border:1px solid rgba(212,166,94,.2);border-radius:10px;background:rgba(18,14,9,.6);padding:16px;">
+              <sc-if value="{{ hasResultSkillFocus }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span style="flex:none;width:48px;height:48px;border-radius:10px;overflow:hidden;border:1.5px solid rgba(232,184,106,.5);box-shadow:0 0 14px rgba(232,184,106,.2);background:#171209;display:grid;place-items:center;"><sc-if value="{{ resultSkillFocus.icon }}" hint-placeholder-val="{{ false }}"><span style="width:48px;height:48px;background:url({{ resultSkillFocus.icon }}) center/cover;display:block;"></span></sc-if></span>
+                  <div style="min-width:0;"><div style="display:flex;align-items:center;gap:8px;"><div style="font-family:Marcellus,serif;font-size:16px;color:#f6d391;">{{ resultSkillFocus.name }}</div><span style="flex:none;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:{{ resultSkillFocus.tierColor }};border:1px solid {{ resultSkillFocus.tierColor }};border-radius:999px;padding:1px 8px;">{{ resultSkillFocus.tierName }}</span></div><div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a795f;">{{ resultSkillFocus.meta }}</div></div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;"><span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a795f;">Skill Level</span><span style="font-size:10px;color:{{ resultSkillFocus.tierColor }};font-variant-numeric:tabular-nums;">{{ resultSkillFocus.tierName }} {{ resultSkillFocus.tierLevel }} / {{ resultSkillFocus.tierSize }}</span></div>
+                <div style="display:grid;gap:8px;margin-top:8px;">
+                  <sc-for list="{{ resultSkillFocus.levelBands }}" as="band" hint-placeholder-count="4"><div><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="width:7px;height:7px;border-radius:999px;background:{{ band.color }};box-shadow:0 0 6px {{ band.color }};"></span><span style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:{{ band.color }};">{{ band.name }}</span></div><div style="display:flex;flex-wrap:wrap;gap:4px;"><sc-for list="{{ band.chips }}" as="chip" hint-placeholder-count="5"><span style="min-width:26px;padding:3px 6px;text-align:center;font-size:11px;border-radius:6px;border:1px solid {{ chip.border }};background:{{ chip.bg }};color:{{ chip.color }};font-variant-numeric:tabular-nums;">{{ chip.rel }}</span></sc-for></div></div></sc-for>
+                </div>
+                <p style="margin:12px 0 0;font-size:12px;line-height:1.55;color:#c4ae89;">{{ resultSkillFocus.desc }}</p>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin:16px 0 8px;"><span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a795f;">Specializations</span><span style="font-size:10px;color:#6e5f49;">{{ resultSkillFocus.specPoints }} pts on this skill</span></div>
+                <div style="display:grid;gap:6px;max-height:320px;overflow:auto;">
+                  <sc-for list="{{ resultSkillFocus.specs }}" as="spec" hint-placeholder-count="3"><div style="display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:8px;border:1px solid {{ spec.border }};background:{{ spec.bg }};opacity:{{ spec.opacity }};"><span style="flex:none;width:14px;height:14px;margin-top:2px;border-radius:4px;border:1px solid rgba(212,166,94,.45);background:{{ spec.markBg }};"></span><span style="min-width:0;"><span style="display:block;font-size:12px;font-weight:600;color:#e6d6b4;">{{ spec.name }}</span><span style="display:block;font-size:9.5px;color:#8a795f;margin-top:1px;">{{ spec.meta }}</span><span style="display:block;font-size:10.5px;line-height:1.45;color:#a4906d;margin-top:3px;">{{ spec.desc }}</span></span></div></sc-for>
+                </div>
+                <sc-if value="{{ resultSkillFocus.hasVariants }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:baseline;justify-content:space-between;margin:16px 0 8px;"><span style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a795f;">Mastery Variants</span><span style="font-size:10px;color:#6e5f49;">Unlocked via the mastery wheel</span></div><div style="display:grid;gap:6px;"><sc-for list="{{ resultSkillFocus.variants }}" as="variant" hint-placeholder-count="2"><div style="display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:8px;border:1px solid rgba(212,166,94,.14);background:rgba(12,9,6,.4);"><sc-if value="{{ variant.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="flex:none;width:30px;height:30px;border-radius:7px;border:1px solid rgba(212,166,94,.3);background:url({{ variant.icon }}) center/cover #171209;"></span></sc-if><span><span style="display:block;font-size:12px;font-weight:600;color:#e6d6b4;">{{ variant.name }}</span><span style="display:block;font-size:9.5px;color:#8a795f;">{{ variant.meta }}</span><span style="display:block;font-size:10.5px;line-height:1.45;color:#a4906d;margin-top:3px;">{{ variant.desc }}</span></span></div></sc-for></div></sc-if>
+              </sc-if>
+            </aside>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ tabMastery }}" hint-placeholder-val="{{ false }}"><dc-import name="MasteryWheel" data="{{ masteryPanel }}" hint-size="1200px,1000px"></dc-import></sc-if>
     </section>
   </main>
   </sc-if>
@@ -1158,6 +1207,12 @@ class Component extends DCLogic {
     progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, overallMasteryLevel:0 },
     scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified', stationaryBand:'under_2s', movingBand:'unspecified', priorStationaryBand:'unspecified', eventMode:'unspecified', eventWeaponType:'', partyTotal:'', partyWithin4:'', partyAdditional4To16:'', alliedNonpartyWithin4:'' },
     openStatSource: null,
+    skillFocusId: '',
+    masteryWeapon: '',
+    masterySearch: '',
+    masteryFocusId: '',
+    wheelScale: 0.675,
+    wheelZoom: 1.25,
     source: null,
     result: null,
     resultCalc: null,
@@ -1216,6 +1271,32 @@ class Component extends DCLogic {
       }
       this.setState({ source, statOptions, engineReady:true, heroics, heroicMode, heroicsEngaged:Boolean(saved.heroics) });
     }).catch(error => this.setState({ engineError:String(error && error.message || error) }));
+  }
+
+  componentDidUpdate() {
+    this.syncResultWheelObserver();
+    this.syncResultMasteryPanCenter();
+  }
+
+  syncResultWheelObserver() {
+    const el=document.querySelector('[data-result-wheel-box]');
+    if(el===this._resultWheelEl)return;
+    if(this._resultWheelRO){this._resultWheelRO.disconnect();this._resultWheelRO=null;}
+    this._resultWheelEl=el;
+    if(!el)return;
+    const update=()=>{const width=el.clientWidth||850,scale=Math.max(.34,Math.min(.675,width/1260));if(Math.abs(scale-(this.state.wheelScale||.675))>.005)this.setState({wheelScale:scale});};
+    this._resultWheelRO=new ResizeObserver(update);
+    this._resultWheelRO.observe(el);
+    update();
+  }
+
+  syncResultMasteryPanCenter() {
+    const viewport=document.querySelector('[data-result-mastery-pan]');
+    if(!viewport){this._resultMasteryPanViewport=null;return;}
+    const key=`${this.state.masteryWeapon}|${this.state.wheelScale}|${this.state.wheelZoom}`;
+    if(viewport===this._resultMasteryPanViewport&&key===this._resultMasteryPanCenterKey)return;
+    this._resultMasteryPanViewport=viewport;this._resultMasteryPanCenterKey=key;
+    requestAnimationFrame(()=>{viewport.scrollLeft=Math.max(0,(viewport.scrollWidth-viewport.clientWidth)/2);viewport.scrollTop=Math.max(0,(viewport.scrollHeight-viewport.clientHeight)/2);});
   }
 
   ATTR_BUDGET = 59;
@@ -1328,6 +1409,8 @@ class Component extends DCLogic {
     { id:'boss',    name:'Boss',         short:'Boss', shape:'50%',   rot:'none' },
     { id:'gear',    name:'Gear',         short:'Gear', shape:'20%',   rot:'none' },
     { id:'sets',    name:'Sets & Runes', short:'Sets', shape:'20%',   rot:'none' },
+    { id:'skills',  name:'Skills',        short:'Skills',shape:'50%',   rot:'none' },
+    { id:'mastery', name:'Mastery',       short:'Mastery',shape:'0',    rot:'rotate(45deg)' },
   ];
 
   STATS = {
@@ -1742,7 +1825,22 @@ class Component extends DCLogic {
     const next={...result,scenario:result.scenario??null,score:candidate.score,build:structuredClone(candidate.build),attributes:{...(candidate.optimizedAttributes||{})},optimizedAttributes:{...(candidate.optimizedAttributes||{})},activeAttributeBreakpoints:structuredClone(candidate.activeAttributeBreakpoints||[]),progression:candidateProgression,goalResults,allStats};
     this.setState({result:next,resultCalc,source:{build:structuredClone(candidate.build),attributes:{...(candidate.optimizedAttributes||{})},sourceKind:'scratch',name:result.name}});
   }
-  componentWillUnmount() { this._worker?.terminate(); window.removeEventListener('resize', this._onResize); }
+  setResultMasteryZoom(value){this.setState({wheelZoom:this.core.clamp(Number(value)||1,.65,1.8)});}
+  startResultMasteryPan(event){
+    if(event.button!==0||event.target.closest('button'))return;
+    const viewport=event.currentTarget;
+    this._resultMasteryPan={pointerId:event.pointerId,x:event.clientX,y:event.clientY,scrollLeft:viewport.scrollLeft,scrollTop:viewport.scrollTop};
+    viewport.setPointerCapture?.(event.pointerId);viewport.style.cursor='grabbing';event.preventDefault();
+  }
+  moveResultMasteryPan(event){
+    const pan=this._resultMasteryPan;if(!pan||pan.pointerId!==event.pointerId)return;
+    const viewport=event.currentTarget;viewport.scrollLeft=pan.scrollLeft-(event.clientX-pan.x);viewport.scrollTop=pan.scrollTop-(event.clientY-pan.y);event.preventDefault();
+  }
+  endResultMasteryPan(event){
+    const pan=this._resultMasteryPan;if(!pan||pan.pointerId!==event.pointerId)return;
+    const viewport=event.currentTarget;viewport.releasePointerCapture?.(event.pointerId);viewport.style.cursor='grab';this._resultMasteryPan=null;
+  }
+  componentWillUnmount() { this._worker?.terminate(); this._resultWheelRO?.disconnect(); window.removeEventListener('resize', this._onResize); }
 
   movePriority(id, dir) {
     const arr = [...this.state.priorities];
@@ -1959,6 +2057,36 @@ class Component extends DCLogic {
       traits:(hover?.traits||[]).map(row=>({name:row.name,value:row.formattedValue})),heroic,runes,imageUrl:item.imageUrl||'',
       hoverModel:{...hover,lockVerb:this.state.locked[slotId]?'unlock':'lock'} };
     return model;
+  }
+
+  resultMasteryPanel(build,weapons) {
+    const core=this.core,selectedWeapon=weapons.includes(this.state.masteryWeapon)?this.state.masteryWeapon:weapons[0],search=this.state.masterySearch.trim().toLowerCase();
+    if(!core||!build||!selectedWeapon)return{};
+    const allRows=core.masteryRowsForWeapon(selectedWeapon),matchIds=new Set(allRows.filter(node=>!search||node.name.toLowerCase().includes(search)).map(node=>node.id));
+    let focusNode=core.indexes.masteryById[this.state.masteryFocusId];
+    if(!focusNode||focusNode.mainCategory!==selectedWeapon)focusNode=allRows.find(node=>build.masteries?.[node.id])||allRows[0]||null;
+    const laneColors={attack:'#f56565',tacticattack:'#f56565',tactic:'#f2dd92',defensetactic:'#f2dd92',defense:'#65b0fc',utildefense:'#65b0fc',util:'#A979CB',attackutil:'#A979CB',general:'#cbb185'};
+    const laneLabels={tacticattack:'Tactic · Attack',attackutil:'Attack · Utility',utildefense:'Utility · Defense',defensetactic:'Defense · Tactic',util:'Utility'};
+    const CENTER=630,categoryOrder=['attack','tacticattack','tactic','defensetactic','defense','utildefense','util','attackutil'],numberOrder=[3,1,2,12,11,10,9,7,8,6,5,4];
+    const decorated=allRows.map(mastery=>{const [,circle='',position='',number='']=mastery.id.split('_');return{...mastery,circle:circle.toLowerCase(),position,number:Number(number)};}).sort((a,b)=>categoryOrder.indexOf(a.subCategory)-categoryOrder.indexOf(b.subCategory)||numberOrder.indexOf(a.number)-numberOrder.indexOf(b.number));
+    const normalGroups=[decorated.filter(m=>m.circle==='normal'&&m.specializationType==='normal'),decorated.filter(m=>m.circle==='high'&&m.specializationType==='normal'),decorated.filter(m=>m.circle==='rare'&&m.specializationType==='normal'),decorated.filter(m=>m.circle==='hero'&&m.specializationType==='normal')];
+    const synergyGroups=[decorated.filter(m=>m.circle==='normal'&&m.specializationType==='synergy'),decorated.filter(m=>m.circle==='high'&&m.specializationType==='synergy'),decorated.filter(m=>m.circle==='rare'&&m.specializationType==='synergy')];
+    const pointOnCircle=(index,radius,count,rotation)=>{const angle=(index*(360/count)+rotation)*Math.PI/180;return{x:CENTER+radius*Math.cos(angle),y:CENTER+radius*Math.sin(angle)};};
+    const placed=[],pointById=new Map(),normalRadii=[200,326,452,630],synergyRadii=[263,389,520];
+    normalGroups.forEach((group,circleIndex)=>group.forEach((mastery,index)=>{const point=pointOnCircle(index,normalRadii[circleIndex],circleIndex===3?4:12,circleIndex===3?-45:-60),hybrid=['tacticattack','defensetactic','utildefense','attackutil'].includes(mastery.subCategory),entry={m:mastery,...point,circleIndex,index,kind:mastery.grade===41?'capstone':hybrid?'corner':'normal',lane:mastery.subCategory,color:laneColors[mastery.subCategory]||'#cbb185'};placed.push(entry);pointById.set(mastery.id,entry);}));
+    synergyGroups.forEach((group,tierIndex)=>group.forEach((mastery,index)=>{const entry={m:mastery,...pointOnCircle(index,synergyRadii[tierIndex],4,-45),circleIndex:tierIndex+4,index,kind:'synergy',lane:mastery.subCategory,color:laneColors[mastery.subCategory]||'#cbb185'};placed.push(entry);pointById.set(mastery.id,entry);}));
+    const selected=point=>Boolean(point&&build.masteries?.[point.m.id]),connectorColors=['#f56565','#f2dd92','#65b0fc','#A979CB'],wheelSegs=[];
+    normalGroups.slice(0,3).forEach((group,circleIndex)=>group.forEach((mastery,index)=>{const start=pointById.get(mastery.id),matching=synergyGroups[circleIndex].filter(synergy=>mastery.subCategory.includes(synergy.subCategory));let targets=[0];if(index===2)targets=[0,1];else if(index===5)targets=[1,2];else if(index===8)targets=[2,3];else if(index===11)targets=[3,0];else if([0,1].includes(index))targets=[0];else if([3,4,5].includes(index))targets=[1];else if([6,7,8].includes(index))targets=[2];else if([9,10,11].includes(index))targets=[3];for(const targetIndex of targets){const synergy=matching.find(candidate=>({attack:0,tactic:1,defense:2,util:3})[candidate.subCategory]===targetIndex);if(!synergy)continue;const end=pointById.get(synergy.id),raw=[start.x,start.y],elbow=mastery.grade===21?188:mastery.grade===31?242:136,offset=35;if([2,5,8,11].includes(index)){if(mastery.subCategory==='attackutil'){if(targetIndex===0)raw.push(start.x+offset,start.y-offset,start.x+elbow,start.y-offset);if(targetIndex===3)raw.push(start.x-offset,start.y-offset,start.x-elbow,start.y-offset);}else if(mastery.subCategory==='tacticattack'){if(targetIndex===0)raw.push(start.x+offset,start.y-offset,start.x+offset,start.y-elbow);if(targetIndex===1)raw.push(start.x+offset,start.y+offset,start.x+offset,start.y+elbow);}else if(mastery.subCategory==='defensetactic'){if(targetIndex===1)raw.push(start.x+offset,start.y+offset,start.x+elbow,start.y+offset);if(targetIndex===2)raw.push(start.x-offset,start.y+offset,start.x-elbow,start.y+offset);}else if(mastery.subCategory==='utildefense'){if(targetIndex===2)raw.push(start.x-offset,start.y+offset,start.x-offset,start.y+elbow);if(targetIndex===3)raw.push(start.x-offset,start.y-offset,start.x-offset,start.y-elbow);}}raw.push(end.x,end.y);const pairs=[];for(let i=0;i<raw.length;i+=2)pairs.push(`${Math.round(raw[i])},${Math.round(raw[i+1])}`);const active=selected(start)&&selected(end);wheelSegs.push({points:pairs.join(' '),color:active?connectorColors[targetIndex]:'#333333',opacity:active?1:.72,width:4});}}));
+    const pointState=core.masteryWeaponPointState(selectedWeapon,build),primaryLanes=['attack','defense','tactic','util'];
+    const wheelNodes=placed.map(point=>{const isSelected=selected(point),focused=focusNode?.id===point.m.id,dim=search&&!matchIds.has(point.m.id),lock=core.masteryLockInfo(point.m,selectedWeapon,build),diamond=point.kind==='corner',square=point.kind==='synergy',categoryFallback=point.kind==='capstone'&&!point.m.imageUrl,radius=(point.kind==='capstone'||diamond?30:20)+2*point.circleIndex,size=radius*2,iconLane=primaryLanes.includes(point.lane)?point.lane:null;return{id:point.m.id,x:Math.round(point.x),y:Math.round(point.y),size,rot:diamond?'45deg':'0deg',unrot:diamond?'-45deg':'0deg',radius:diamond?'9px':square?'6px':'999px',border:focused?'2px solid #f6d391':isSelected||categoryFallback?`2px solid ${point.color}`:lock.locked?'1.5px solid rgba(212,166,94,.14)':'1.5px solid rgba(212,166,94,.28)',bg:isSelected?`radial-gradient(circle at 35% 30%,${point.color}40,rgba(16,12,7,.95))`:categoryFallback?`radial-gradient(circle at 35% 30%,${point.color}32,rgba(12,10,8,.97))`:'radial-gradient(circle at 35% 30%,#221a10,#0f0b06)',shadow:focused?'0 0 0 4px rgba(246,211,145,.16),0 0 18px rgba(246,211,145,.35)':isSelected?`0 0 14px ${point.color}66`:'inset 0 0 8px rgba(0,0,0,.7)',glyph:iconLane==='attack'?'×':iconLane==='defense'?'○':iconLane==='tactic'?'△':iconLane==='util'?'□':'●',glyphColor:isSelected?'#f3e9d4':categoryFallback?point.color:'#7a6b52',iconSize:Math.round(size*(point.kind==='capstone'?.52:.46)),icon:point.m.imageUrl||'',hasIcon:Boolean(point.m.imageUrl),iconFade:isSelected?'1':'.62',iconFilter:isSelected?'none':'grayscale(.35) brightness(.85)',showGlyph:!point.m.imageUrl,opacity:dim?'.22':lock.locked?'.42':'1',hasBadge:isSelected,badge:isSelected?String(build.masteries[point.m.id].level||core.masteryMaxLevel(point.m)):'',badgeOffset:diamond?'-13px':'-7px',badgeBorder:point.color,badgeGlow:`${point.color}88`,z:focused?6:isSelected?5:4,title:`${point.m.name} · ${laneLabels[point.lane]||core.label(point.lane)}${isSelected?` · selected level ${build.masteries[point.m.id].level}`:' · not selected'}`,onClick:event=>{event.stopPropagation();this.setState({masteryFocusId:point.m.id});},onContextMenu:event=>event.preventDefault(),onWheel:()=>{}};});
+    const wheelRings=[{r:200,color:'#ffffff50'},{r:326,color:'#48bb7850'},{r:452,color:'#65b0fc50'},{r:630,color:'#A979CB50'}];
+    const wheelCategoryMarkers=[{lane:'util',x:550,y:550,glyph:'UT'},{lane:'attack',x:710,y:550,glyph:'AT'},{lane:'defense',x:550,y:710,glyph:'DF'},{lane:'tactic',x:710,y:710,glyph:'TC'}].map(marker=>{const active=(pointState.categoryTotals[marker.lane]||0)>0,color=laneColors[marker.lane];return{...marker,color,border:active?color:'#3a3226',bg:active?`${color}22`:'#11100d',opacity:active?1:.48,shadow:active?`0 0 16px ${color}55`:'none'};});
+    const laneLegend=primaryLanes.map(lane=>{const rows=allRows.filter(node=>node.subCategory===lane),count=rows.filter(node=>build.masteries?.[node.id]).length;return{label:core.label(lane),color:laneColors[lane],count:`${count}/${rows.length}`};});
+    let masteryDetail=null;
+    if(focusNode){const selection=build.masteries?.[focusNode.id],isSelected=Boolean(selection),max=core.masteryMaxLevel(focusNode),level=core.clamp(Number(selection?.level||max),1,max);masteryDetail={name:focusNode.name,icon:focusNode.imageUrl||'',hasIcon:Boolean(focusNode.imageUrl),meta:`${core.label(focusNode.mainCategory)} · ${core.label(focusNode.subCategory||'general')}`,costs:core.masteryCostRows(focusNode).map(row=>({amount:row.amountLabel,name:row.name,icon:row.icon,hasIcon:Boolean(row.icon),color:core.gradeColor(row.grade)})),effects:core.masteryTextRows(focusNode,level),stats:core.masteryStructuredStats(focusNode,level).map(row=>({name:core.statName(row.statId),value:core.formatStat(row.statId,row.value)})),hasLevels:max>1,levelChips:Array.from({length:max},(_,index)=>index+1).map(n=>({n,bg:n===level?'rgba(232,184,106,.2)':'transparent',border:n===level?'rgba(232,184,106,.7)':'rgba(212,166,94,.18)',color:n===level?'#f6d391':'#9d8a68',onClick:()=>{},disabled:true,cursor:'default'})),actionLabel:isSelected?`Selected at level ${level}`:'Not selected in this build',actionColor:isSelected?'#7ee0a6':'#8a795f',actionBg:isSelected?'rgba(31,76,47,.12)':'rgba(10,8,5,.4)',actionBorder:isSelected?'rgba(126,224,166,.4)':'rgba(212,166,94,.18)',onAction:()=>{},actionDisabled:true,actionCursor:'default'};}
+    const totalSelected=Object.keys(build.masteries||{}).length,costRows=core.masteryCostSummaryRows(build).slice(0,4).map(row=>({amount:row.amountLabel,name:row.name,icon:row.icon,hasIcon:Boolean(row.icon),color:core.gradeColor(row.grade)})),mainItem=core.slotItem('main_hand',build),offItem=core.slotItem('off_hand',build),centerItem=[mainItem,offItem].find(item=>item&&item.equipmentType===selectedWeapon),responsiveScale=this.state.wheelScale||.675,zoom=this.state.wheelZoom||1.25,combined=responsiveScale*zoom,canvas=Math.round(1260*combined),offset=Math.max(140,Math.round(180*responsiveScale));
+    const unifiedSelected=core.selectedUnifiedMasteries(build),unifiedMasteryRows=core.unifiedMasteryNodes().map(node=>{const isSelected=unifiedSelected.includes(node.id),counted=core.unifiedMasteryCounted(node.id);return{name:node.name,nameColor:isSelected?'#f6d391':'#8a795f',icon:node.imageUrl||'',hasIcon:Boolean(node.imageUrl),desc:core.plainInline(core.values(node.passives)[0]||node.description||''),meta:`Overall Lv ${node.requiredLevel||0} · ${counted?'Counted in totals':'Conditional effect'} · ${isSelected?'Selected':'Not selected'}`,border:isSelected?'rgba(232,184,106,.65)':'rgba(212,166,94,.12)',bg:isSelected?'rgba(212,166,94,.12)':'rgba(10,8,5,.35)',opacity:isSelected?'1':'.55',onToggle:()=>{},disabled:true,cursor:'default'};});
+    return{masteryWeaponChips:weapons.map(weapon=>({label:core.label(weapon),border:weapon===selectedWeapon?'rgba(232,184,106,.65)':'rgba(212,166,94,.2)',bg:weapon===selectedWeapon?'rgba(212,166,94,.16)':'transparent',color:weapon===selectedWeapon?'#f6d391':'#9d8a68',onClick:()=>this.setState({masteryWeapon:weapon,masteryFocusId:''})})),masterySearch:this.state.masterySearch,onMasterySearch:event=>this.setState({masterySearch:event.target.value}),masterySelectedCount:core.formatNumber(totalSelected),hasMasteryCostSummary:costRows.length>0,masteryCostSummaryRows:costRows,masteryBudgetPct:`${core.clamp(Math.round(pointState.totalPoints/core.MASTERY_POINT_BUDGET*100),0,100)}%`,masteryPointsSpent:pointState.totalPoints,masteryPointsBudget:core.MASTERY_POINT_BUDGET,wheelRings,wheelSegs,wheelCategoryMarkers,wheelNodes,laneLegend,wheelCenterLabel:core.label(selectedWeapon),centerIcon:centerItem?.imageUrl||'',wheelCombinedScale:combined,wheelStageOffset:offset,wheelSurfaceSize:canvas+offset*2,wheelBoxH:Math.round(1260*responsiveScale),masteryZoomLabel:`${Math.round(zoom*100)}%`,zoomOutMastery:()=>this.setResultMasteryZoom(zoom-.15),zoomInMastery:()=>this.setResultMasteryZoom(zoom+.15),resetMasteryZoom:()=>this.setResultMasteryZoom(1.25),startMasteryPan:event=>this.startResultMasteryPan(event),moveMasteryPan:event=>this.moveResultMasteryPan(event),endMasteryPan:event=>this.endResultMasteryPan(event),onMasteryWheelZoom:event=>{event.preventDefault();this.setResultMasteryZoom(zoom+(event.deltaY>0?-.1:.1));},interactionHint:'Drag empty space to pan · wheel to zoom · click any node to inspect its exact level and effects',hasMasteryDetail:Boolean(masteryDetail),masteryDetail,unifiedMasteryRows,unifiedSelectedLabel:`${unifiedSelected.length}/${core.UNIFIED_MASTERY_CAP} active`};
   }
 
   renderVals() {
@@ -2204,6 +2332,21 @@ class Component extends DCLogic {
       const contributionSources=resultStats.flatMap(stat=>(stat.sources||[]).filter(source=>source.type==='skill_passive'&&source.sourceLabel===skill.name).map(source=>this.statLabel(stat.id)+' '+this.core.formatSigned(source.value,stat.id)));
       return{name:skill.name,weapon:this.core.label(skill.mainCategory),level:selection.level,color:tier.color,icon:skill.imageUrl?`url(${skill.imageUrl}) center/cover`:'radial-gradient(circle at 35% 30%,#372644,#130e18)',title:[skill.name,'Level '+selection.level,...contributionSources].join(' | ')};
     }):[];
+    const selectedPassiveRows=s.result&&this.core?this.core.selectedSkillRows(s.result.build).filter(row=>row.loadoutType==='passive'):[];
+    const resultSkillFocusId=selectedPassiveRows.some(row=>row.skill.id===s.skillFocusId)?s.skillFocusId:(selectedPassiveRows[0]?.skill.id||'');
+    const resultPassiveCards=selectedPassiveRows.map(({skill,selection})=>{
+      const max=this.core.skillBandedMax(skill),level=this.core.clamp(Number(selection.level||1),1,max),tier=this.core.skillLevelTierFor(level,max),color=tier?.color||this.core.gradeColor(skill.grade||0),focused=skill.id===resultSkillFocusId;
+      return{id:skill.id,name:skill.name,icon:skill.imageUrl||'',level:String(level-(tier?.min||1)+1),tierColor:color,ring:focused?'2px solid #f6d391':`1.5px solid ${color}`,shadow:focused?'0 0 16px rgba(246,211,145,.45)':`0 0 10px ${color}30`,onClick:()=>this.setState({skillFocusId:skill.id})};
+    });
+    const resultFocusRow=selectedPassiveRows.find(row=>row.skill.id===resultSkillFocusId);
+    let resultSkillFocus=null;
+    if(resultFocusRow){
+      const {skill,selection}=resultFocusRow,max=this.core.skillBandedMax(skill),level=this.core.clamp(Number(selection.level||1),1,max),levelRow=this.core.skillLevelRow(skill,level),tier=this.core.skillLevelTierFor(level,max),selectedSpecs=new Set(selection.specializationIds||[]);
+      resultSkillFocus={id:skill.id,icon:skill.imageUrl||'',name:skill.name,meta:`${this.core.label(skill.mainCategory)} · ${this.core.label(skill.skillType)}`,tierName:tier?.name||'',tierColor:tier?.color||'#9d8a68',tierLevel:level-(tier?.min||1)+1,tierSize:tier?.levels?.length||1,desc:this.core.plainInline(levelRow?.description||levelRow?.effect||'No level text in this data snapshot.'),specPoints:this.core.skillSpecSpentForSelection(selection),
+        levelBands:this.core.skillLevelBands(max).map(band=>({name:band.name,color:band.color,chips:band.levels.map(n=>({rel:n-band.min+1,bg:n===level?`${band.color}2e`:'transparent',border:n===level?band.color:'rgba(212,166,94,.18)',color:n===level?'#f6d391':'#9d8a68'}))})),
+        specs:this.core.skillTraitsFor(skill.id).map(trait=>{const selected=selectedSpecs.has(trait.id),locked=!selected&&Number(trait.unlockLevel||0)>level;return{name:trait.rawName||trait.name,meta:`${this.core.formatNumber(trait.points)} pts · unlock Lv ${this.core.formatNumber(trait.unlockLevel||1)}`,desc:this.core.plainInline(trait.levels?.[0]?.description||trait.levels?.[0]?.effect||''),opacity:locked?'.45':'1',border:selected?'rgba(232,184,106,.6)':'rgba(212,166,94,.14)',bg:selected?'rgba(212,166,94,.1)':'rgba(12,9,6,.4)',markBg:selected?'#e8b86a':'transparent'};}),
+        variants:(skill.specializations||[]).map(variant=>({name:variant.name,icon:variant.imageUrl||'',hasIcon:Boolean(variant.imageUrl),meta:this.core.label(variant.skillType||'active'),desc:this.core.plainInline(variant.levels?.[0]?.description||variant.levels?.[0]?.effect||'')})),hasVariants:(skill.specializations||[]).length>0};
+    }
     const masteryGroups=s.result&&this.core?[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(weapon=>{
       const state=this.core.masteryWeaponPointState(weapon,s.result.build),available=Number(s.result.progression?.settings?.masteryPointsByWeapon?.[weapon]??this.core.MASTERY_POINT_BUDGET);
       const nodes=[...state.selectedNormal,...state.selectedSynergy].sort((a,b)=>a.grade-b.grade||this.core.masteryNodeOrder(a)-this.core.masteryNodeOrder(b)).map(node=>{
@@ -2239,6 +2382,8 @@ class Component extends DCLogic {
     }).filter(Boolean):[];
     const resultOverallMasteryLevel=Number(s.result?.build?.overallMasteryLevel??s.result?.progression?.settings?.overallMasteryLevel??0);
     const hasProgression=passiveSkills.length>0||masteryGroups.some(group=>group.nodeCount>0)||overallMasteries.length>0;
+    const resultWeaponTypes=[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean);
+    const masteryPanel=s.result&&this.core&&s.statTab==='mastery'?this.resultMasteryPanel(s.result.build,resultWeaponTypes):{};
 
     const ghostSlots = ['Head','Chest','Hands','Legs','Feet','Cloak','Neck','Brace','Belt','Ring I','Art I','Art II'];
     const totalSlots = gearSource.length + this.WEAPONS.length + this.ARTIFACTS.length;
@@ -2247,7 +2392,8 @@ class Component extends DCLogic {
     const setupCols = vw <= 820 ? '1fr' : 'minmax(0,1.6fr) minmax(0,.9fr)';
     const twoCol = vw <= 1350 && vw > 820;
     const resultCols = vw <= 820 ? '1fr' : twoCol ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr) minmax(0,1.12fr)';
-    const statsSpan = twoCol ? '1 / -1' : 'auto';
+    const progressionTab=s.statTab==='skills'||s.statTab==='mastery';
+    const statsSpan = progressionTab||twoCol ? '1 / -1' : 'auto';
 
     // ---------- My Heroics ----------
     const heroicCount = Object.values(s.heroics).filter(Boolean).length;
@@ -2416,7 +2562,7 @@ class Component extends DCLogic {
         : 'Pick two weapon families, rank the stats you care about, set your rules, then forge a complete character from the equipment catalogue.',
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
-      setupCols, resultCols, statsSpan, weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
+      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
 
       weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,
       overallMasteryLevel:String(s.progression.overallMasteryLevel),overallMasteryLevelOptions,setOverallMasteryLevel:this.setOverallMasteryLevel,
@@ -2442,7 +2588,7 @@ class Component extends DCLogic {
       weaponStats, attrTracks, setSummary, runeChips, noActiveSystems:setSummary.length===0&&runeChips.length===0,
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
-      hasProgression,passiveSkills,passiveSkillCount:passiveSkills.length,masteryGroups,overallMasteries,hasOverallMastery:overallMasteries.length>0,hasNoOverallMastery:overallMasteries.length===0,overallMasteryCount:overallMasteries.length,resultOverallMasteryLevel,
+      hasProgression,showCompactProgression:false,passiveSkills,passiveSkillCount:passiveSkills.length,passiveBudgetPct:`${Math.min(100,passiveSkills.length/8*100)}%`,resultPassiveCards,resultPassiveEmpty:Array.from({length:Math.max(0,8-resultPassiveCards.length)},(_,index)=>({id:index})),resultSkillFocus,hasResultSkillFocus:Boolean(resultSkillFocus),masteryPanel,masteryGroups,overallMasteries,hasOverallMastery:overallMasteries.length>0,hasNoOverallMastery:overallMasteries.length===0,overallMasteryCount:overallMasteries.length,resultOverallMasteryLevel,
 
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
 
