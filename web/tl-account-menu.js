@@ -216,6 +216,8 @@ async function init() {
   if (!(await isAvailable())) return;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount, { once: true });
   else mount();
+  // Merge local ↔ cloud once signed in. Lazy-imported so guest pages never load it.
+  import("./tl-sync.js").then((sync) => sync.installSync()).catch(() => {});
 }
 
 init();
