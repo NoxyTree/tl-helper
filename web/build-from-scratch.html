@@ -1767,27 +1767,11 @@ class Component extends DCLogic {
         this.setState({progress:Math.round(progress),stepIndex,candidates:Number(String(row.detail||'').match(/[\d,]+/)?.[0]?.replaceAll(',',''))||this.state.candidates,
           progressPhase:row.label||this.FORGE_PHASES[stepIndex].title,progressMsg:row.detail||'Evaluating complete loadouts…'});
       }else if(message.type==='preliminary'){
-        // Gear, attributes, and runes are settled; show the build now while the
-        // worker keeps running to finalize mastery and passive skills. The worker
-        // is NOT terminated here — the final 'result' message replaces this view.
-        const result=message.result;
-        const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
-        const scenarioUnsupported=result.scenario&&resultCalc.scenarioEffects?.status!=='applied';
-        if(resultCalc.status?.state==='legal'&&!scenarioUnsupported){
-          this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:Math.max(this.state.progress,90),masteryPending:true});
-        }
+        // Gear/attributes/runes are settled; show the build now while the worker
+        // keeps running to finalize mastery. It is NOT terminated here.
+        this.applyForgeResult(message.result,true);
       }else if(message.type==='result'){
-        const result=message.result;
-        const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
-        const scenarioUnsupported=result.scenario&&resultCalc.scenarioEffects?.status!=='applied';
-        if(resultCalc.status?.state!=='legal'||scenarioUnsupported){
-          const count=scenarioUnsupported?(resultCalc.scenarioEffects?.errors?.length??0):(resultCalc.status?.blockingIssues?.length??0);
-          this._worker.terminate(); this._worker=null;
-          this.setState({phase:'setup',masteryPending:false,engineError:`The optimizer finalist is ${scenarioUnsupported?'unsupported for this combat scenario':(resultCalc.status?.state??'provisional')} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
-          return;
-        }
-        this._worker.terminate(); this._worker=null;
-        this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:100,masteryPending:false});
+        this.applyForgeResult(message.result,false);
       }else if(message.type==='cancelled'){
         this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'});
       }else if(message.type==='error'){
@@ -1797,6 +1781,23 @@ class Component extends DCLogic {
     this._worker.postMessage({type:'optimize',request});
   };
   cancelForge = () => { this._worker?.postMessage({type:'cancel'}); this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'}); };
+  // Shared by the 'preliminary' and final 'result' worker messages so both go
+  // through one calculation + legality gate. Preliminary: render the gear build
+  // but keep the worker alive (masteryPending) and skip silently if it can't be
+  // calculated. Final: terminate the worker and surface any calculation error.
+  applyForgeResult = (result, preliminary) => {
+    const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
+    const scenarioUnsupported=result.scenario&&resultCalc.scenarioEffects?.status!=='applied';
+    if(resultCalc.status?.state!=='legal'||scenarioUnsupported){
+      if(preliminary) return;
+      const count=scenarioUnsupported?(resultCalc.scenarioEffects?.errors?.length??0):(resultCalc.status?.blockingIssues?.length??0);
+      this._worker?.terminate(); this._worker=null;
+      this.setState({phase:'setup',masteryPending:false,engineError:`The optimizer finalist is ${scenarioUnsupported?'unsupported for this combat scenario':(resultCalc.status?.state??'provisional')} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
+      return;
+    }
+    if(!preliminary){ this._worker?.terminate(); this._worker=null; }
+    this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:preliminary?Math.max(this.state.progress,90):100,masteryPending:!!preliminary});
+  };
   editGoals = () => {
     if(this.state.resultOrigin==='improved'){
       if(history.length>1){history.back();return;}
