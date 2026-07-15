@@ -115,8 +115,8 @@
     <!-- ======================= TOP BAR ======================= -->
     <header class="tl-app-header tl-armory-header">
       <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
-        <div class="tl-app-brand-mark"><span>T</span></div>
-        <div class="tl-app-brand-copy"><div class="tl-app-brand-title">TL HELPER</div><div class="tl-app-brand-subtitle">Armory</div></div>
+        <span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span>
+        <span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Armory</span></span>
       </a>
       <nav class="tl-app-nav" aria-label="Primary navigation">
         <a class="tl-app-nav-item is-active" href="./index.html" aria-current="page">Armory</a>
@@ -134,6 +134,7 @@
           style="min-width:84px;width:clamp(84px,9vw,130px);padding:6px 9px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(8,6,4,.36);color:#cbb185;font-size:11px;">
         <input value="{{ charServer }}" onChange="{{ onServerChange }}" aria-label="Server" placeholder="Server" spellcheck="false"
           style="min-width:72px;width:clamp(72px,8vw,110px);padding:6px 9px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(8,6,4,.36);color:#9d8a68;font-size:11px;">
+        <span data-tl-account-slot style="display:inline-flex;align-items:center;"></span>
       </div>
       <div class="tl-app-header-end tl-toolbar-actions" data-screen-label="Header Actions">
         <button type="button" onClick="{{ openPresets }}" title="Save, load, rename, reorder, or remove your TL Helper builds"

@@ -110,7 +110,7 @@
           <button onClick="{{ saveResult }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">Save as preset</button>
           <button onClick="{{ useResult }}" style="min-height:44px;padding:0 18px;color:#0b0805;border:1px solid #f2c777;border-radius:10px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 12px 'Instrument Sans';">Use in Armory</button>
         </sc-if>
-        <sc-if value="{{ masteryPending }}" hint-placeholder-val="{{ false }}"><span role="status" style="color:#d8c9a4;font-size:10px;">Save &amp; Use available once mastery is finalized…</span></sc-if>
+        <sc-if value="{{ masteryPending }}" hint-placeholder-val="{{ false }}"><span role="status" style="display:inline-flex;align-items:center;gap:6px;color:#f6d391;font-size:11px;"><span style="width:9px;height:9px;border:2px solid rgba(246,211,145,.35);border-top-color:#f6d391;border-radius:50%;display:inline-block;animation:tlSpin .8s linear infinite;"></span>Save &amp; Use unlock once mastery is finalized</span></sc-if>
         <sc-if value="{{ resultActionMessage }}" hint-placeholder-val="{{ false }}"><span role="status" style="flex-basis:100%;color:#7ee0a6;font-size:10px;text-align:right;">{{ resultActionMessage }}</span></sc-if>
       </div>
     </sc-if>
@@ -1370,7 +1370,7 @@ class Component extends DCLogic {
       stats:[{name:'All Defense',value:'+180'},{name:'Damage Reduction',value:'+14'}],
       traits:[{name:'Weaken Tolerance',value:'T4'},{name:'Collide Resistance',value:'T4'},{name:'Skill Power Resistance',value:'T4'}],
       heroic:[{grp:'1',name:'All Accuracy',value:'Lv 10'},{grp:'2',name:'All Critical Defense',value:'Lv 10'},{grp:'3',name:'Damage Reduction',value:'Lv 10'}],
-      runes:[{type:'ATK',grade:'Chaos',level:60,contribution:'PvP Melee Double Attack +30'}] },
+      runes:[{type:'ATK',grade:'Chaos',level:60,contribution:'PvP Melee Heavy Attack +30'}] },
     { slot:'necklace', slotLabel:'Necklace', name:'Amulet of the Ward',  meta:'Season 1 · Lv 80', rarity:'epic', level:80, topStat:'Max Health +1,410',
       stats:[{name:'Melee Accuracy',value:'+66'},{name:'Max Health',value:'+1,410'}],
       traits:[{name:'Weaken Accuracy',value:'T4'},{name:'Collide Amplification',value:'T4'},{name:'Buff Duration',value:'T4'}],
@@ -1452,7 +1452,7 @@ class Component extends DCLogic {
     ],
     boss: [
       ['Boss Damage Reduction','+8.4%'],['Boss Bonus Attack Power','+142'],['Boss All Accuracy','96'],['Boss All Crit Attack','88'],
-      ['Boss Melee Double Attack','64'],['Boss Damage Dealt','+6.1%'],['Undead Damage Resistance','+11%'],['Demon Damage Resistance','+9%'],
+      ['Boss Melee Heavy Attack','64'],['Boss Damage Dealt','+6.1%'],['Undead Damage Resistance','+11%'],['Demon Damage Resistance','+9%'],
     ],
     gear: [
       ['Gear Score','5,842'],['Set Pieces Active','7 / 10'],['Runes Socketed','36 / 36'],['Traits (T4)','30'],

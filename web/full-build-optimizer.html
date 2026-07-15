@@ -12,7 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./tl-shell.css?v=20260713">
   <style>
-    :root { --panel:rgba(24,18,11,.72); --panel-2:rgba(13,10,7,.88); --line:rgba(212,166,94,.25); --muted:#9d8a68; --gold:#d4a65e; --cream:#f0e5cb; --good:#7ee0a6; --bad:#ff9d84; }
+    /* --good/--bad/--gold defer to the shared shell tokens so accents match app-wide. */
+    :root { --panel:rgba(24,18,11,.72); --panel-2:rgba(13,10,7,.88); --line:rgba(212,166,94,.25); --muted:#9d8a68; --gold:var(--tl-shell-gold,#d4a65e); --cream:#f0e5cb; --good:var(--tl-shell-good,#7ee0a6); --bad:var(--tl-shell-bad,#ff9d84); }
     * { box-sizing:border-box; }
     body { color:#e8dcc2; font-family:"Instrument Sans",system-ui,sans-serif; }
     main { max-width:1380px; margin:auto; padding:24px clamp(14px,2.5vw,32px) 80px; }

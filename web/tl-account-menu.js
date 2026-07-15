@@ -32,15 +32,21 @@ const STYLE = `
 .tl-account[data-open="true"] .tl-account-caret { transform: rotate(180deg); }
 
 .tl-account-popover {
-  position: absolute; top: calc(100% + 9px); right: 0; z-index: 1200; width: 264px; padding: 14px;
-  border: 1px solid rgba(242,199,119,.4); border-radius: 13px;
+  position: absolute; top: calc(100% + 9px); right: 0; z-index: 1200; width: min(264px, calc(100vw - 28px)); padding: 14px;
+  border: 1px solid var(--tl-shell-line-strong, rgba(242,199,119,.4)); border-radius: 13px;
   background: linear-gradient(180deg, rgba(28,21,13,.99), rgba(11,8,5,.995));
   box-shadow: 0 20px 48px rgba(0,0,0,.55), inset 0 1px 0 rgba(246,211,145,.06);
   transform-origin: top right; animation: tl-account-in .16s ease; color: #cdbb98;
 }
 .tl-account-popover::before {
   content: ""; position: absolute; top: -5px; right: 20px; width: 9px; height: 9px; transform: rotate(45deg);
-  background: rgba(28,21,13,.99); border-left: 1px solid rgba(242,199,119,.4); border-top: 1px solid rgba(242,199,119,.4);
+  background: rgba(28,21,13,.99); border-left: 1px solid var(--tl-shell-line-strong, rgba(242,199,119,.4)); border-top: 1px solid var(--tl-shell-line-strong, rgba(242,199,119,.4));
+}
+/* Below 620px the shell drops the header-end to the left edge, so a right-anchored
+   popover would clip off-screen — anchor it left there instead. */
+@media (max-width: 620px) {
+  .tl-account-popover { right: auto; left: 0; transform-origin: top left; }
+  .tl-account-popover::before { right: auto; left: 20px; }
 }
 @keyframes tl-account-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .tl-account-popover { animation: none; } }
@@ -69,8 +75,8 @@ const STYLE = `
 .tl-account-id-copy { min-width: 0; }
 .tl-account-id-name { color: #f2e4c4; font: 600 13px 'Instrument Sans', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tl-account-id-mail { color: #9c8d70; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tl-account-synced { display: inline-flex; align-items: center; gap: 6px; margin-top: 3px; color: #7ee0a6; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.tl-account-synced::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #7ee0a6; box-shadow: 0 0 7px rgba(126,224,166,.7); }
+.tl-account-synced { display: inline-flex; align-items: center; gap: 6px; margin-top: 3px; color: var(--tl-shell-good, #7ee0a6); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tl-account-synced::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--tl-shell-good, #7ee0a6); box-shadow: 0 0 7px rgba(126,224,166,.7); }
 .tl-signout-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 40px; margin-top: 12px;
   border: 1px solid rgba(212,166,94,.4); border-radius: 10px; background: rgba(28,21,13,.7); color: #e6d6b4;
@@ -98,18 +104,28 @@ function avatarMarkup(user) {
   return `<span class="tl-account-avatar">${esc(displayName(user).trim().charAt(0) || "A")}</span>`;
 }
 
-function mount() {
-  const host = document.querySelector(".tl-app-header-end") || document.querySelector(".tl-app-header");
-  if (!host || host.querySelector("[data-tl-account]")) return;
+let controller = null;
 
+function findHost() {
+  // Prefer an explicit slot (pages with a busy header-end, e.g. the Armory
+  // toolbar, place one elsewhere so the account chip has a stable home).
+  return document.querySelector("[data-tl-account-slot]") || document.querySelector(".tl-app-header-end") || document.querySelector(".tl-app-header");
+}
+
+function ensureStyle() {
+  if (document.getElementById("tl-account-style")) return;
   const style = document.createElement("style");
+  style.id = "tl-account-style";
   style.textContent = STYLE;
   document.head.appendChild(style);
+}
 
+// Builds the account control once (element, handlers, and the single auth
+// subscription). The element is (re)attached to the header by attach().
+function createController() {
   const root = document.createElement("div");
   root.className = "tl-account";
   root.setAttribute("data-tl-account", "");
-  host.appendChild(root);
 
   let currentUser = null;
   let open = false;
@@ -208,16 +224,37 @@ function mount() {
 
   render();
   onAuthChange((session) => { currentUser = session?.user ?? null; render(); });
+  return { root };
+}
+
+// (Re)attach the control to the current header host. Idempotent: no-op when
+// already connected. Returns false while no host exists yet.
+function attach() {
+  if (controller?.root?.isConnected) return true;
+  const host = findHost();
+  if (!host) return false;
+  ensureStyle();
+  if (!controller) controller = createController();
+  host.appendChild(controller.root);
+  return true;
 }
 
 async function init() {
   // Guest-only when Supabase isn't configured or its library can't load: render
   // nothing rather than a dead sign-in control.
   if (!(await isAvailable())) return;
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount, { once: true });
-  else mount();
-  // Merge local ↔ cloud once signed in. Lazy-imported so guest pages never load it.
-  import("./tl-sync.js").then((sync) => sync.installSync()).catch(() => {});
+  const start = () => {
+    attach();
+    // These pages render their header client-side (and re-render it), so the
+    // host may appear after this runs or be replaced later. Keep the chip
+    // present by re-attaching whenever it becomes detached.
+    new MutationObserver(() => { if (!controller?.root?.isConnected) attach(); })
+      .observe(document.body, { childList: true, subtree: true });
+    // Merge local ↔ cloud once signed in. Lazy-imported so guest pages never load it.
+    import("./tl-sync.js").then((sync) => sync.installSync()).catch(() => {});
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+  else start();
 }
 
 init();

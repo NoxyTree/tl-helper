@@ -1,7 +1,23 @@
 :root {
-  --tl-shell-gold: #d4a65e;
+  /* Gold family — single source of truth for the whole app. */
+  --tl-shell-gold: #d4a65e;         /* primary accent (borders, sigils) */
+  --tl-shell-gold-bright: #f6d391;  /* headings / emphasis */
+  --tl-shell-gold-nav: #d8b878;     /* header title, active nav */
+  --tl-shell-gold-soft: #cbb185;    /* secondary labels / muted actions */
   --tl-shell-line: rgba(212, 166, 94, 0.18);
-  --tl-shell-muted: rgba(220, 199, 158, 0.58);
+  --tl-shell-line-strong: rgba(242, 199, 119, 0.4);
+  --tl-shell-muted: rgba(220, 199, 158, 0.72);  /* body-muted (raised for contrast) */
+  --tl-shell-faint: rgba(220, 199, 158, 0.6);   /* smallest labels floor */
+  /* Semantic accents (unify the per-page --good/--bad, --red/--green sets). */
+  --tl-shell-good: #7ee0a6;
+  --tl-shell-bad: #ff9d84;
+  --tl-shell-warn: #f2c777;
+  --tl-shell-blue: #72a9ff;
+  /* Radius scale. */
+  --tl-r-sm: 8px;
+  --tl-r-md: 10px;
+  --tl-r-lg: 13px;
+  --tl-r-pill: 999px;
 }
 
 .tl-skip-link {
@@ -10,9 +26,9 @@
   left: 14px;
   top: 10px;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--tl-r-sm);
   color: #0b0805;
-  background: #f6d391;
+  background: var(--tl-shell-gold-bright);
   transform: translateY(-160%);
   transition: transform 0.15s ease;
 }
@@ -103,7 +119,7 @@
 .tl-app-title,
 .tl-app-brand-title {
   display: block;
-  color: #d8b878;
+  color: var(--tl-shell-gold-nav);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -115,9 +131,9 @@
   display: block;
   margin-top: 4px;
   color: var(--tl-shell-muted);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -137,8 +153,8 @@
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid transparent;
-  border-radius: 999px;
-  color: rgba(220, 199, 158, 0.55);
+  border-radius: var(--tl-r-pill);
+  color: var(--tl-shell-muted);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -159,8 +175,8 @@
   background: radial-gradient(600px 180px at 10% 0%, rgba(114, 169, 255, 0.12), transparent 70%), linear-gradient(135deg, rgba(24, 25, 27, 0.92), rgba(14, 11, 7, 0.94));
   box-shadow: 0 18px 50px rgba(0,0,0,.24);
 }
-.tl-first-run-kicker { color: #72a9ff; font-size: 10px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
-.tl-first-run h2 { margin: 5px 0 0; color: #f6d391; font: 400 clamp(24px, 3vw, 36px)/1.12 Marcellus, serif; }
+.tl-first-run-kicker { color: var(--tl-shell-blue); font-size: 10px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
+.tl-first-run h2 { margin: 5px 0 0; color: var(--tl-shell-gold-bright); font: 400 clamp(24px, 3vw, 36px)/1.12 Marcellus, serif; }
 .tl-first-run p { max-width: 700px; margin: 9px 0 0; color: #b9a98c; font-size: 13px; line-height: 1.55; }
 .tl-first-run-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; max-width: 430px; }
 .tl-first-run-actions button { min-height: 42px; padding: 0 16px; border: 1px solid rgba(114,169,255,.55); border-radius: 9px; color: #eaf2ff; background: rgba(114,169,255,.14); cursor: pointer; }
@@ -169,14 +185,16 @@
 
 .tl-app-nav-item:hover,
 .tl-app-nav-item:focus-visible {
-  color: #d8b878;
+  color: var(--tl-shell-gold-nav);
   border-color: rgba(212, 166, 94, 0.24);
   outline: none;
   text-decoration: none !important;
 }
 
+.tl-app-nav-item:focus-visible { outline: 2px solid var(--tl-shell-gold-bright); outline-offset: 2px; }
+
 .tl-app-nav-item.is-active {
-  color: #d8b878;
+  color: var(--tl-shell-gold-nav);
   border-color: rgba(212, 166, 94, 0.45);
   background: rgba(212, 166, 94, 0.09);
 }
@@ -208,10 +226,10 @@
 }
 
 .tl-app-status-label {
-  color: rgba(220, 199, 158, 0.4);
-  font-size: 7px;
+  color: var(--tl-shell-faint);
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -219,13 +237,13 @@
 .tl-app-status-value {
   display: block;
   margin-top: 3px;
-  color: #d8b878;
+  color: var(--tl-shell-gold-nav);
   font-family: Marcellus, serif;
   font-size: 15px;
   white-space: nowrap;
 }
 
-.tl-app-status-value-muted { color: rgba(220, 199, 158, 0.72); }
+.tl-app-status-value-muted { color: var(--tl-shell-muted); }
 
 .tl-toolbar-actions {
   display: flex;
