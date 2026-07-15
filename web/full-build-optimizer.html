@@ -551,5 +551,6 @@
     $("cancel-optimizer").addEventListener("click",()=>{state.worker?.postMessage({type:"cancel"});state.worker?.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}); $("retry-engine").addEventListener("click",connectEngine);
     connectEngine();
   </script>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>
