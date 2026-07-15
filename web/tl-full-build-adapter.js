@@ -1211,6 +1211,94 @@ export async function createOptimizerAdapter(deps = {}) {
         const exactFrontier = diverseFinalistsWithSetRoutes(exact, rankedGoals, attributePoolSize, setRoutes, structuralStateKeys);
         search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), frontier: exactFrontier, attributeFinalistsEvaluated: preliminaryFrontier.length };
       }
+      // Shapes the full optimizer result from a finalist. Called for the final
+      // build, and — when the caller supplies `onPreliminary` — for the best
+      // gear/attribute/rune finalist just before the mastery stage, so the UI
+      // can show the loadout while mastery is still being refined. `preliminary`
+      // results carry `masteryPending: true` and the provisional (pre-refinement)
+      // progression; a preliminary that fails final calculation is skipped, never
+      // thrown, so it can never break the real run.
+      const shapeResult = (best, { preliminary = false } = {}) => {
+        const finalStats = best.evaluation.stats;
+        const finalScenario = scenarioForBuild(best.evaluation.build);
+        const finalCalculation = core.calculateBuild(best.evaluation.build, best.evaluation.attributes ?? source.attributes ?? {}, { includeSetEffects: rules.includeSetEffects !== false, ...(finalScenario == null ? {} : { scenario: finalScenario }) });
+        const finalBlockingIssues = blockingCalculationIssues(core, finalCalculation);
+        if (finalBlockingIssues.length) {
+          if (preliminary) return null;
+          throw new Error(`Optimizer produced an invalid finalist: ${finalBlockingIssues.map((issue) => issue.message).join(" ")}`);
+        }
+        const goalResults = rankedGoals.map((goal) => {
+          const value = goalValue(finalStats, goal);
+          const delta = value - Number(objectiveBaseline[goal.id] ?? 0);
+          const normalizedContribution = goal.weight * delta / objectiveScales[goal.id];
+          const components = goal.components.map((id) => ({ id, name: core.statName(id), value: Number(finalStats[id] ?? 0), formattedValue: core.formatStat(id, Number(finalStats[id] ?? 0)) }));
+          const hardCap = core.statHardCap?.(goal.id) ?? null;
+          return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), hardCap, formattedHardCap: hardCap == null ? null : core.formatStat(goal.id, hardCap), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), formattedTarget: goal.target == null ? null : core.formatStat(goal.id, goal.target), minimumMet: goal.minimum == null ? null : value >= goal.minimum, components };
+        });
+        const tradeoffs = goalResults.filter((goal) => goal.delta < 0).map((goal) => ({ id: goal.id, name: goal.name, delta: goal.delta, rank: goal.rank, text: `${goal.name} is ${Math.abs(goal.delta)} below the fixed objective baseline.` }));
+        const allStats = Object.entries(finalStats).map(([id, value]) => ({ id, name: core.statName(id), value, formattedValue: core.formatStat(id, value), group: core.statPageFor(id) }))
+          .sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+        const describe = (slot, selection) => {
+          const item = core.indexes.itemById[selection?.itemId];
+          return { id: slot.id, label: slot.label, name: item?.name ?? "Empty", imageUrl: item?.imageUrl ?? "", grade: item?.grade ?? 0, color: item ? core.gradeColor(item.grade) : "#8a795f", level: selection?.level ?? 0, selection: clone(selection ?? {}) };
+        };
+        const equipmentLoadout = core.EQUIPMENT_SLOTS.map((slot) => describe(slot, best.selections[slot.id]));
+        const artifactLoadout = core.ARTIFACT_SLOTS.map((slot) => describe(slot, best.evaluation.build.artifacts?.[slot.id]));
+        const outputSlots = [...core.EQUIPMENT_SLOTS, ...core.ARTIFACT_SLOTS].map((slot) => {
+          const recommendedSelection = best.selections[slot.id] ?? best.evaluation.build.artifacts?.[slot.id];
+          const currentSelection = selectionFor(source.build, slot.id);
+          const candidate = best.candidates[slot.id];
+          const directGoals = rankedGoals.filter(({ id }) => Math.abs(Number(candidate?.stats?.[id] ?? 0)) > 1e-9);
+          const reason = recommendedSelection?.itemId === currentSelection?.itemId && !scratch ? "Kept"
+            : directGoals.length ? `Directly contributes to ${directGoals.map((goal) => core.statName(goal.id)).join(", ")}`
+              : candidate?.setKeys?.length ? "Selected for its set-aware contribution"
+                : "Neutral fallback: conserves Heroic allowances, then prefers item level and grade";
+          return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason, neutralFallback: !directGoals.length && !candidate?.setKeys?.length };
+        });
+        const tuningFrontier = (search.frontier?.length ? search.frontier : [best]).map((row) => ({
+          id: row.key,
+          score: Number(row.evaluation.score) || 0,
+          build: clone(row.evaluation.build),
+          ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}),
+          optimizedAttributes: clone(row.evaluation.attributes ?? source.attributes ?? {}),
+          activeAttributeBreakpoints: clone(row.evaluation.activeAttributeBreakpoints ?? []),
+          goalValues: Object.fromEntries(rankedGoals.map((goal) => [goal.id, goalValue(row.evaluation.stats, goal)])),
+        }));
+        return {
+          name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", masteryPending: !!preliminary, preliminary: !!preliminary, score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
+          statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
+          explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
+          assumptions: ["Item Potentials are excluded from calculations and recommendations in this release; same-item selections are preserved.", ...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "The game allows repeated Equipment Skills, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+          warnings: [...(preliminary ? ["Mastery and passive skills are still being finalized; this loadout and its stats may adjust when they complete."] : []), "This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
+          alternatives: (search.alternatives ?? []).slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score, ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}) })),
+          build: best.evaluation.build,
+          attributes: clone(best.evaluation.attributes ?? source.attributes ?? {}),
+          optimizedAttributes: attributePointBudget == null ? null : clone(best.evaluation.attributes),
+          attributePointBudget: attributePointBudget ?? null,
+          activeAttributeBreakpoints: clone(best.evaluation.activeAttributeBreakpoints ?? []),
+          attributeFinalistsEvaluated: search.attributeFinalistsEvaluated ?? 0,
+          progressionFinalistsEvaluated: search.progressionFinalistsEvaluated ?? 0,
+          objectiveBaseline: clone(objectiveBaseline),
+          objectiveScales: clone(objectiveScales),
+          goalResults,
+          tuningFrontier,
+          tradeoffs,
+          allStats,
+          progression: progression ? clone({ ...progression.summary, settings: progression.settings }) : null,
+          setEffects: clone(finalCalculation.setEffects),
+          searchMetrics: { profile: profile.id, combinations: search.searched, preliminaryFinalists: search.finalists, setRoutes: { ...(search.setRouteMetrics ?? { requested: 0, represented: 0, representedRouteIds: [] }), stages: setRouteStages }, structuralStates: { ...(search.structuralStateMetrics ?? { requested: 0, represented: 0, representedKeys: [] }), stages: structuralStateStages }, attributeFinalists: search.attributeFinalistsEvaluated ?? 0, progressionFinalists: search.progressionFinalistsEvaluated ?? 0 },
+          scenario: scenario == null ? null : clone(finalCalculation.scenarioEffects?.scenario ?? scenario),
+          scenarioEffects: scenario == null ? null : clone(finalCalculation.scenarioEffects),
+        };
+      };
+      // Emit the gear/attribute/rune build before the (much slower) mastery stage
+      // so the UI can render it immediately. Best-effort: never breaks the run.
+      if (progression && typeof runtime.onPreliminary === "function" && search.best) {
+        try {
+          const prelim = shapeResult(search.best, { preliminary: true });
+          if (prelim) runtime.onPreliminary(prelim);
+        } catch { /* preliminary result is advisory; a failure here must not abort optimization */ }
+      }
       if (progression) {
         const seedProgression = clone({ summary: progression.summary, settings: progression.settings });
         const progressionSource = [...(search.alternatives ?? []), ...(search.frontier ?? [])]
@@ -1301,77 +1389,7 @@ export async function createOptimizerAdapter(deps = {}) {
         if (rejectionDiagnostics.constraints || Object.keys(protectedStats).length) throw new Error("No build satisfies the protected or minimum stat constraints.");
         throw new Error("No complete build passed the final calculation checks.");
       }
-      const best = search.best;
-      const finalStats = best.evaluation.stats;
-      const finalScenario = scenarioForBuild(best.evaluation.build);
-      const finalCalculation = core.calculateBuild(best.evaluation.build, best.evaluation.attributes ?? source.attributes ?? {}, { includeSetEffects: rules.includeSetEffects !== false, ...(finalScenario == null ? {} : { scenario: finalScenario }) });
-      const finalBlockingIssues = blockingCalculationIssues(core, finalCalculation);
-      if (finalBlockingIssues.length) {
-        throw new Error(`Optimizer produced an invalid finalist: ${finalBlockingIssues.map((issue) => issue.message).join(" ")}`);
-      }
-      const goalResults = rankedGoals.map((goal) => {
-        const value = goalValue(finalStats, goal);
-        const delta = value - Number(objectiveBaseline[goal.id] ?? 0);
-        const normalizedContribution = goal.weight * delta / objectiveScales[goal.id];
-        const components = goal.components.map((id) => ({ id, name: core.statName(id), value: Number(finalStats[id] ?? 0), formattedValue: core.formatStat(id, Number(finalStats[id] ?? 0)) }));
-        const hardCap = core.statHardCap?.(goal.id) ?? null;
-        return { ...goal, name: core.statName(goal.id), value, formattedValue: core.formatStat(goal.id, value), hardCap, formattedHardCap: hardCap == null ? null : core.formatStat(goal.id, hardCap), delta, scale: objectiveScales[goal.id], normalizedContribution, formattedMinimum: goal.minimum == null ? null : core.formatStat(goal.id, goal.minimum), formattedTarget: goal.target == null ? null : core.formatStat(goal.id, goal.target), minimumMet: goal.minimum == null ? null : value >= goal.minimum, components };
-      });
-      const tradeoffs = goalResults.filter((goal) => goal.delta < 0).map((goal) => ({ id: goal.id, name: goal.name, delta: goal.delta, rank: goal.rank, text: `${goal.name} is ${Math.abs(goal.delta)} below the fixed objective baseline.` }));
-      const allStats = Object.entries(finalStats).map(([id, value]) => ({ id, name: core.statName(id), value, formattedValue: core.formatStat(id, value), group: core.statPageFor(id) }))
-        .sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
-      const describe = (slot, selection) => {
-        const item = core.indexes.itemById[selection?.itemId];
-        return { id: slot.id, label: slot.label, name: item?.name ?? "Empty", imageUrl: item?.imageUrl ?? "", grade: item?.grade ?? 0, color: item ? core.gradeColor(item.grade) : "#8a795f", level: selection?.level ?? 0, selection: clone(selection ?? {}) };
-      };
-      const equipmentLoadout = core.EQUIPMENT_SLOTS.map((slot) => describe(slot, best.selections[slot.id]));
-      const artifactLoadout = core.ARTIFACT_SLOTS.map((slot) => describe(slot, best.evaluation.build.artifacts?.[slot.id]));
-      const outputSlots = [...core.EQUIPMENT_SLOTS, ...core.ARTIFACT_SLOTS].map((slot) => {
-        const recommendedSelection = best.selections[slot.id] ?? best.evaluation.build.artifacts?.[slot.id];
-        const currentSelection = selectionFor(source.build, slot.id);
-        const candidate = best.candidates[slot.id];
-        const directGoals = rankedGoals.filter(({ id }) => Math.abs(Number(candidate?.stats?.[id] ?? 0)) > 1e-9);
-        const reason = recommendedSelection?.itemId === currentSelection?.itemId && !scratch ? "Kept"
-          : directGoals.length ? `Directly contributes to ${directGoals.map((goal) => core.statName(goal.id)).join(", ")}`
-            : candidate?.setKeys?.length ? "Selected for its set-aware contribution"
-              : "Neutral fallback: conserves Heroic allowances, then prefers item level and grade";
-        return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason, neutralFallback: !directGoals.length && !candidate?.setKeys?.length };
-      });
-      const tuningFrontier = (search.frontier?.length ? search.frontier : [best]).map((row) => ({
-        id: row.key,
-        score: Number(row.evaluation.score) || 0,
-        build: clone(row.evaluation.build),
-        ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}),
-        optimizedAttributes: clone(row.evaluation.attributes ?? source.attributes ?? {}),
-        activeAttributeBreakpoints: clone(row.evaluation.activeAttributeBreakpoints ?? []),
-        goalValues: Object.fromEntries(rankedGoals.map((goal) => [goal.id, goalValue(row.evaluation.stats, goal)])),
-      }));
-      return {
-        name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
-        statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
-        explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-        assumptions: ["Item Potentials are excluded from calculations and recommendations in this release; same-item selections are preserved.", ...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "The game allows repeated Equipment Skills, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
-        warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
-        alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score, ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}) })),
-        build: best.evaluation.build,
-        attributes: clone(best.evaluation.attributes ?? source.attributes ?? {}),
-        optimizedAttributes: attributePointBudget == null ? null : clone(best.evaluation.attributes),
-        attributePointBudget: attributePointBudget ?? null,
-        activeAttributeBreakpoints: clone(best.evaluation.activeAttributeBreakpoints ?? []),
-        attributeFinalistsEvaluated: search.attributeFinalistsEvaluated ?? 0,
-        progressionFinalistsEvaluated: search.progressionFinalistsEvaluated ?? 0,
-        objectiveBaseline: clone(objectiveBaseline),
-        objectiveScales: clone(objectiveScales),
-        goalResults,
-        tuningFrontier,
-        tradeoffs,
-        allStats,
-        progression: progression ? clone({ ...progression.summary, settings: progression.settings }) : null,
-        setEffects: clone(finalCalculation.setEffects),
-        searchMetrics: { profile: profile.id, combinations: search.searched, preliminaryFinalists: search.finalists, setRoutes: { ...(search.setRouteMetrics ?? { requested: 0, represented: 0, representedRouteIds: [] }), stages: setRouteStages }, structuralStates: { ...(search.structuralStateMetrics ?? { requested: 0, represented: 0, representedKeys: [] }), stages: structuralStateStages }, attributeFinalists: search.attributeFinalistsEvaluated ?? 0, progressionFinalists: search.progressionFinalistsEvaluated ?? 0 },
-        scenario: scenario == null ? null : clone(finalCalculation.scenarioEffects?.scenario ?? scenario),
-        scenarioEffects: scenario == null ? null : clone(finalCalculation.scenarioEffects),
-      };
+      return shapeResult(search.best);
     },
   };
 }

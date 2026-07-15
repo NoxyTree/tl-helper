@@ -90,6 +90,12 @@
       <h1 style="margin:6px 0 0;color:#f6d391;font-family:Marcellus,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1;">{{ title }}</h1>
       <p style="margin:9px 0 0;max-width:560px;color:#b3a488;font-size:13px;line-height:1.5;">{{ subtitle }}</p>
       <p role="note" style="margin:7px 0 0;max-width:620px;color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. The Overall Mastery named Potential is a separate system.</p>
+      <sc-if value="{{ masteryPending }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="max-width:660px;margin-top:10px;padding:9px 11px;border:1px solid rgba(242,199,119,.35);border-radius:9px;background:rgba(70,55,20,.18);color:#f6d391;font-size:11px;line-height:1.5;display:flex;align-items:center;gap:9px;">
+          <span style="width:11px;height:11px;border:2px solid rgba(246,211,145,.35);border-top-color:#f6d391;border-radius:50%;display:inline-block;animation:tlSpin .8s linear infinite;"></span>
+          <span><strong>Gear locked in.</strong> Finalizing mastery &amp; passive skills — stats and the mastery panel update in a moment.</span>
+        </div>
+      </sc-if>
       <sc-if value="{{ resultScenarioActive }}" hint-placeholder-val="{{ false }}">
         <div style="max-width:660px;margin-top:10px;padding:9px 11px;border:1px solid rgba(135,172,239,.35);border-radius:9px;background:rgba(65,92,136,.13);color:#b8d0ff;font-size:10.5px;line-height:1.5;">
           <strong style="color:#dce8ff;">Scenario totals:</strong> {{ resultScenarioSummary }}<br>
@@ -100,8 +106,11 @@
     <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
       <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
         <button onClick="{{ editGoals }}" style="display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';letter-spacing:.06em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;"><span style="font-size:15px;">⚙</span> Edit build goals</button>
-        <button onClick="{{ saveResult }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">Save as preset</button>
-        <button onClick="{{ useResult }}" style="min-height:44px;padding:0 18px;color:#0b0805;border:1px solid #f2c777;border-radius:10px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 12px 'Instrument Sans';">Use in Armory</button>
+        <sc-if value="{{ resultActionsReady }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ saveResult }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">Save as preset</button>
+          <button onClick="{{ useResult }}" style="min-height:44px;padding:0 18px;color:#0b0805;border:1px solid #f2c777;border-radius:10px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 12px 'Instrument Sans';">Use in Armory</button>
+        </sc-if>
+        <sc-if value="{{ masteryPending }}" hint-placeholder-val="{{ false }}"><span role="status" style="color:#d8c9a4;font-size:10px;">Save &amp; Use available once mastery is finalized…</span></sc-if>
         <sc-if value="{{ resultActionMessage }}" hint-placeholder-val="{{ false }}"><span role="status" style="flex-basis:100%;color:#7ee0a6;font-size:10px;text-align:right;">{{ resultActionMessage }}</span></sc-if>
       </div>
     </sc-if>
@@ -1746,7 +1755,7 @@ class Component extends DCLogic {
     }
     let request;
     try{request=this.optimizerRequest();}catch(error){this.setState({engineError:error.message||String(error)});return;}
-    this.setState({ phase:'forging', progress:0, candidates:0, stepIndex:0, engineError:'',
+    this.setState({ phase:'forging', progress:0, candidates:0, stepIndex:0, engineError:'', masteryPending:false,
       progressPhase:this.FORGE_PHASES[0].title, progressMsg:'Starting the optimizer worker…' });
     this._worker?.terminate();
     this._worker=new Worker('./tl-builder-worker.js',{type:'module'});
@@ -1757,6 +1766,16 @@ class Component extends DCLogic {
         const stepIndex=progress<35?0:progress<70?1:progress<90?2:3;
         this.setState({progress:Math.round(progress),stepIndex,candidates:Number(String(row.detail||'').match(/[\d,]+/)?.[0]?.replaceAll(',',''))||this.state.candidates,
           progressPhase:row.label||this.FORGE_PHASES[stepIndex].title,progressMsg:row.detail||'Evaluating complete loadouts…'});
+      }else if(message.type==='preliminary'){
+        // Gear, attributes, and runes are settled; show the build now while the
+        // worker keeps running to finalize mastery and passive skills. The worker
+        // is NOT terminated here — the final 'result' message replaces this view.
+        const result=message.result;
+        const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
+        const scenarioUnsupported=result.scenario&&resultCalc.scenarioEffects?.status!=='applied';
+        if(resultCalc.status?.state==='legal'&&!scenarioUnsupported){
+          this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:Math.max(this.state.progress,90),masteryPending:true});
+        }
       }else if(message.type==='result'){
         const result=message.result;
         const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
@@ -1764,11 +1783,11 @@ class Component extends DCLogic {
         if(resultCalc.status?.state!=='legal'||scenarioUnsupported){
           const count=scenarioUnsupported?(resultCalc.scenarioEffects?.errors?.length??0):(resultCalc.status?.blockingIssues?.length??0);
           this._worker.terminate(); this._worker=null;
-          this.setState({phase:'setup',engineError:`The optimizer finalist is ${scenarioUnsupported?'unsupported for this combat scenario':(resultCalc.status?.state??'provisional')} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
+          this.setState({phase:'setup',masteryPending:false,engineError:`The optimizer finalist is ${scenarioUnsupported?'unsupported for this combat scenario':(resultCalc.status?.state??'provisional')} with ${count} calculation issue${count===1?'':'s'}. It was not displayed or saved.`});
           return;
         }
         this._worker.terminate(); this._worker=null;
-        this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:100});
+        this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:100,masteryPending:false});
       }else if(message.type==='cancelled'){
         this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'});
       }else if(message.type==='error'){
@@ -2562,6 +2581,7 @@ class Component extends DCLogic {
         : 'Pick two weapon families, rank the stats you care about, set your rules, then forge a complete character from the equipment catalogue.',
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
+      masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
       setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
 
       weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,

@@ -92,29 +92,14 @@ function routeCount(state, route) {
   return number(state.sets?.[route.setId]);
 }
 
-function stateCanReachRoute(state, route, futureSlots, candidatesBySlot, options) {
-  const count = routeCount(state, route);
-  if (count > route.maximumPieces) return false;
-  if (count >= route.minimumPieces) return true;
-  const reachableSlots = futureSlots.filter((slot) => (candidatesBySlot[slot] ?? []).some((candidate) => candidate.setKeys?.includes(route.setId)));
-  if (count + reachableSlots.length < route.minimumPieces) return false;
-  if (options.routeLegalityMetadataComplete === true) {
-    const selectedIds = new Set(Object.values(state.selections).map((selection) => selection?.itemId).filter(Boolean));
-    const futureIdSlots = new Map();
-    let interactive = false;
-    for (const slot of reachableSlots) for (const candidate of candidatesBySlot[slot] ?? []) {
-      if (!candidate.setKeys?.includes(route.setId)) continue;
-      const itemId = candidate.selection?.itemId;
-      if (candidate.heroicGroup || candidate.weaponType || (itemId && selectedIds.has(itemId))) interactive = true;
-      if (itemId) {
-        const seenSlots = futureIdSlots.get(itemId) ?? new Set();
-        seenSlots.add(slot);
-        futureIdSlots.set(itemId, seenSlots);
-        if (seenSlots.size > 1) interactive = true;
-      }
-    }
-    if (!interactive) return true;
-  }
+const EMPTY_REACH_STATE = Object.freeze({ selections: {}, candidates: {}, stats: {}, heroic: {}, weapons: [], sets: {}, custom: [], hint: 0, neutralHeroics: 0, neutralLevel: 0, neutralGrade: 0, key: "" });
+
+// Bounded backtracking search that answers "starting from `startState`, can
+// enough distinct set pieces be added across the reachable future slots to land
+// inside the route's [minimumPieces, maximumPieces] band?" — respecting the
+// same legality rules (Heroic caps, distinct weapon types, distinct items) as
+// the live beam expansion.
+function routeReachableViaFutureSlots(startState, route, reachableSlots, candidatesBySlot, options) {
   const visit = (startIndex, current) => {
     const currentCount = routeCount(current, route);
     if (currentCount >= route.minimumPieces && currentCount <= route.maximumPieces) return true;
@@ -128,14 +113,82 @@ function stateCanReachRoute(state, route, futureSlots, candidatesBySlot, options
     }
     return false;
   };
-  return visit(0, state);
+  return visit(0, startState);
+}
+
+// Route reachability metadata depends only on (route, futureSlots, candidates),
+// not on the beam state, so it is computed once per prune call and reused for
+// every candidate state. `structural` marks routes whose reachability genuinely
+// interacts with the rest of the build (a reachable set piece is Heroic-capped
+// or carries a weapon type); only those need a per-state search. For every other
+// route a state that holds none of the set's pieces has the exact reachability
+// of an empty build, so `reachableFromEmpty` is computed once and reused.
+function routeReachMetadata(route, futureSlots, candidatesBySlot, options) {
+  const reachableSlots = [];
+  const reachableItemIds = new Set();
+  const idSlots = new Map();
+  let duplicateItem = false;
+  let structural = false;
+  for (const slot of futureSlots) {
+    const candidates = candidatesBySlot[slot] ?? [];
+    let slotReaches = false;
+    for (const candidate of candidates) {
+      if (!candidate.setKeys?.includes(route.setId)) continue;
+      slotReaches = true;
+      if (candidate.heroicGroup || candidate.weaponType) structural = true;
+      const itemId = candidate.selection?.itemId;
+      if (itemId) {
+        reachableItemIds.add(itemId);
+        const seenSlots = idSlots.get(itemId) ?? new Set();
+        seenSlots.add(slot);
+        idSlots.set(itemId, seenSlots);
+        if (seenSlots.size > 1) duplicateItem = true;
+      }
+    }
+    if (slotReaches) reachableSlots.push(slot);
+  }
+  const reachableFromEmpty = !structural
+    && reachableSlots.length >= route.minimumPieces
+    && routeReachableViaFutureSlots(EMPTY_REACH_STATE, route, reachableSlots, candidatesBySlot, options);
+  return { reachableSlots, reachableItemIds, baseInteractive: structural || duplicateItem, structural, reachableFromEmpty };
+}
+
+function stateCanReachRoute(state, route, candidatesBySlot, options, reach) {
+  const count = routeCount(state, route);
+  if (count > route.maximumPieces) return false;
+  if (count >= route.minimumPieces) return true;
+  const reachableSlots = reach.reachableSlots;
+  if (count + reachableSlots.length < route.minimumPieces) return false;
+  if (options.routeLegalityMetadataComplete === true) {
+    let interactive = reach.baseInteractive;
+    if (!interactive && reach.reachableItemIds.size) {
+      for (const selection of Object.values(state.selections)) {
+        if (selection?.itemId && reach.reachableItemIds.has(selection.itemId)) { interactive = true; break; }
+      }
+    }
+    if (!interactive) return true;
+  }
+  // Non-structural route + no pieces held yet ⇒ reachability is build-independent
+  // (the set candidates the search would add carry no Heroic/weapon interaction
+  // and none of them is already equipped), so reuse the once-per-route result.
+  if (!reach.structural && count === 0) return reach.reachableFromEmpty;
+  return routeReachableViaFutureSlots(state, route, reachableSlots, candidatesBySlot, options);
 }
 
 function reserveSetRouteStates(states, routes, futureSlots, candidatesBySlot, options, weights, statCaps) {
   const retained = new Map();
   for (const route of routes) {
-    const best = states.filter((state) => stateCanReachRoute(state, route, futureSlots, candidatesBySlot, options))
-      .sort((left, right) => routeCount(right, route) - routeCount(left, route) || stateOrder(left, right, weights, statCaps))[0];
+    const reach = routeReachMetadata(route, futureSlots, candidatesBySlot, options);
+    // Linear scan for the single best reachable state (equivalent to
+    // filter(...).sort(...)[0]) — avoids materializing and sorting the pool.
+    let best = null;
+    for (const state of states) {
+      if (!stateCanReachRoute(state, route, candidatesBySlot, options, reach)) continue;
+      if (best === null
+        || (routeCount(best, route) - routeCount(state, route) || stateOrder(state, best, weights, statCaps)) < 0) {
+        best = state;
+      }
+    }
     if (best) retained.set(best.key, best);
   }
   return [...retained.values()];
@@ -144,8 +197,19 @@ function reserveSetRouteStates(states, routes, futureSlots, candidatesBySlot, op
 function reserveStructuralStates(states, structuralKeys, remainingStructuralKeys, weights, statCaps) {
   const retained = new Map();
   for (const key of structuralKeys) {
-    const best = states.filter((state) => state.custom.includes(key) || remainingStructuralKeys.has(key))
-      .sort((left, right) => Number(right.custom.includes(key)) - Number(left.custom.includes(key)) || stateOrder(left, right, weights, statCaps))[0];
+    const keyRemaining = remainingStructuralKeys.has(key);
+    // Linear scan for the single best (equivalent to filter(...).sort(...)[0]):
+    // prefer a state that already holds the structural key, then general order.
+    let best = null;
+    let bestHas = false;
+    for (const state of states) {
+      const has = state.custom.includes(key);
+      if (!has && !keyRemaining) continue;
+      if (best === null || (Number(bestHas) - Number(has) || stateOrder(state, best, weights, statCaps)) < 0) {
+        best = state;
+        bestHas = has;
+      }
+    }
     if (best) retained.set(best.key, best);
   }
   return [...retained.values()];

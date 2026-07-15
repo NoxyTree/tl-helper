@@ -25,6 +25,7 @@ self.onmessage = async (event) => {
     const result = await adapter.optimize(event.data.request, {
       signal: activeController.signal,
       onProgress: (progress) => self.postMessage({ type: "progress", progress }),
+      onPreliminary: (preliminary) => self.postMessage({ type: "preliminary", result: preliminary }),
     });
     self.postMessage({ type: "result", result: { ...result, calculationWorkerCount: activeTaskPool.parallelism } });
   } catch (error) {
