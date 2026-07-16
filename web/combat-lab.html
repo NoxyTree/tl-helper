@@ -3,41 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Combat Calculator | TL Helper</title>
+  <title>Combat Lab | TL Helper</title>
   <meta name="description" content="Explore Throne and Liberty ability ranges and PvP stat matchups with transparent formula confidence and known limits.">
-  <meta name="theme-color" content="#0e0a07"><link rel="canonical" href="https://tlhelper.org/combat-lab"><link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <meta property="og:type" content="website"><meta property="og:title" content="Combat Calculator | TL Helper"><meta property="og:description" content="Explore ability ranges and PvP matchups with transparent evidence."><meta property="og:url" content="https://tlhelper.org/combat-lab"><meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/combat-lab"><link rel="icon" href="./tl-logo.png" type="image/png">
+  <meta property="og:type" content="website"><meta property="og:title" content="Combat Lab | TL Helper"><meta property="og:description" content="Explore ability ranges and PvP matchups with transparent evidence."><meta property="og:url" content="https://tlhelper.org/combat-lab"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
   <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./tl-shell.css">
-  <link rel="stylesheet" href="./combat-lab.css?v=24118850-9">
+  <link rel="stylesheet" href="./tl-shell.css?v=20260713">
+  <link rel="stylesheet" href="./combat-lab.css?v=20260713">
 </head>
 <body data-combat-view="matchup">
   <a class="tl-skip-link" href="#main-content">Skip to combat calculator</a>
   <header class="tl-app-header">
-    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Combat Calculator</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><span class="tl-app-nav-item is-active" aria-current="page">Combat Lab</span><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
-    <div class="tl-app-header-end"><div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div></div>
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Combat Lab</span></span></a>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item is-active" href="./combat-lab.html" aria-current="page">Combat Lab</a><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+    <div class="tl-app-header-end"><div class="tl-app-status-group"><div class="tl-app-status"><span class="tl-app-status-label">Game data build</span><strong class="tl-app-status-value" id="game-build">Loading</strong></div></div></div>
   </header>
 
   <main id="main-content">
     <section class="hero">
-      <div><p class="eyebrow">Combat Lab</p><h1>PvP Matchup</h1></div>
-      <p>Compare two builds to see your Hit, Critical, Heavy Attack, and Skill Damage Boost chances against a real opponent.</p>
+      <div><p class="eyebrow">Combat Lab</p><h1>Combat Calculator</h1></div>
+      <p>Pit your build against another and see who wins the exchange — or switch to Ability Damage for a single-skill range.</p>
     </section>
+    <p role="note" class="field-note">Item Potentials are excluded from calculations and recommendations in this release. Build selections remain stored for future support.</p>
     <div id="fatal-error" class="alert danger hidden" role="alert"></div>
 
     <div class="tool-tabs" role="tablist" aria-label="Combat tools">
-      <button id="matchup-tab" class="tool-tab active" type="button" role="tab" aria-selected="true" data-view="matchup">PvP Matchup<span>Compare two complete builds</span></button>
-      <button id="ability-tab" class="tool-tab" type="button" role="tab" aria-selected="false" data-view="ability">Reviewed Ability Formulas <small>3</small><span>Limited formula previews</span></button>
+      <button id="matchup-tab" class="tool-tab active" type="button" role="tab" aria-selected="true" data-view="matchup">PvP Matchup<span>Your build versus another</span></button>
+      <button id="ability-tab" class="tool-tab" type="button" role="tab" aria-selected="false" data-view="ability">Ability Damage<span>Single-skill damage or healing range</span></button>
     </div>
 
     <section class="build-picker panel" aria-label="Build selection">
       <div class="build-picker-title"><span class="step-dot">1</span><div><p class="eyebrow">Start here</p><h2 id="build-picker-heading">Choose both builds</h2></div></div>
       <label>Calculate using<select id="source-build"></select></label>
       <label class="opponent-control">Opponent build<select id="target-build"><option value="">Choose an opponent</option></select></label>
+      <label class="opponent-control">Alternative attacker<select id="comparison-build"><option value="">No comparison build</option></select></label>
       <div id="source-summary" class="hidden"></div><div id="target-summary" class="hidden">No opponent selected.</div>
     </section>
 
@@ -62,6 +64,7 @@
               <label id="cast-field" class="hidden">Swift Healing cast<select id="cast"><option value="first">First cast</option><option value="second">Second consecutive cast</option></select></label>
               <label>Outcome preview<select id="outcome"></select></label><p id="outcome-note" class="field-note"></p>
               <label>Base Damage source<select id="damage-source"><option value="main">Main-hand weapon</option><option value="off">Off-hand weapon</option><option value="manual">Manual values</option></select></label>
+              <p id="damage-source-note" class="field-note"></p>
               <div class="two-column"><label>Minimum<input id="damage-min" inputmode="decimal" value="100"></label><label>Maximum<input id="damage-max" inputmode="decimal" value="120"></label></div>
               <p class="field-note">Saved-build values already include Stellarite. The live roll and rounding order are not invented.</p>
               <div id="healing-inputs" class="hidden">
@@ -92,7 +95,7 @@
     <section id="matchup-view" class="calculator-view active" aria-labelledby="matchup-tab">
       <div class="versus-stage">
         <article class="fighter-card player-card">
-          <div class="fighter-label"><span>Your build</span><strong id="source-fighter-name">Local build</strong></div>
+          <div class="fighter-label"><span>Your build</span><strong id="source-fighter-name">Local build</strong><span id="source-legality" class="legality-badge" hidden></span></div>
           <div class="questlog-import"><input id="source-questlog-url" type="url" placeholder="Paste Questlog character-builder link" aria-label="Your Questlog build URL"><button id="source-questlog-import" type="button">Import</button></div>
           <p id="source-import-error" class="import-error hidden"></p>
           <div class="character-loadout"><div id="source-gear-left" class="gear-column"></div><label class="character-stage player-stage" id="player-image-drop"><input id="player-image-input" type="file" accept="image/*"><img id="source-character-image" alt="" hidden><span class="portrait-prompt"><b>＋</b><strong>Add your character</strong><small>Drop or choose a screenshot</small></span><span class="portrait-identity"><strong id="source-portrait-name">Your character</strong><small id="source-portrait-weapons">Build weapons</small></span></label><div id="source-gear-right" class="gear-column"></div></div>
@@ -101,7 +104,7 @@
         </article>
         <button id="swap-builds" class="versus-mark" type="button" aria-label="Swap builds"><span>VS</span><small>Swap</small></button>
         <article class="fighter-card enemy-card">
-          <div class="fighter-label"><span>Opponent</span><strong id="target-fighter-name">Choose a build</strong></div>
+          <div class="fighter-label"><span>Opponent</span><strong id="target-fighter-name">Choose a build</strong><span id="target-legality" class="legality-badge" hidden></span></div>
           <div class="questlog-import"><input id="target-questlog-url" type="url" placeholder="Paste Questlog character-builder link" aria-label="Opponent Questlog build URL"><button id="target-questlog-import" type="button">Import</button></div>
           <p id="target-import-error" class="import-error hidden"></p>
           <div class="character-loadout"><div id="target-gear-left" class="gear-column"></div><div class="character-stage enemy-stage"><img src="./assets/portraits/shadow-opponent.webp" alt="Mysterious shadow opponent"><span class="portrait-identity"><strong id="target-portrait-name">Unknown challenger</strong><small id="target-portrait-weapons">Opponent weapons</small></span></div><div id="target-gear-right" class="gear-column"></div></div>
@@ -109,18 +112,21 @@
           <div id="target-combat-stats" class="fighter-stat-strip"></div><div id="target-artifacts" class="fighter-artifacts"></div>
         </article>
       </div>
+      <div id="trade-verdict" class="trade-verdict pending" hidden></div>
       <div class="workspace">
         <div class="control-stack">
           <article class="panel quick-panel"><div class="panel-heading"><span>2</span><div><p class="eyebrow">Matchup</p><h2>Choose the fight</h2></div></div><div class="two-column"><label>Mode<select id="pvp-mode"><option value="general">General PvP</option><option value="battleground">Battleground</option><option value="arena">Arena</option></select></label><label>Attack type<select id="attack-type"><option value="melee">Melee</option><option value="range">Ranged</option><option value="magic">Magic</option></select></label></div><p class="field-note" id="attack-type-note">Attack type follows the attacker’s main weapon automatically.</p><p class="field-note">Uses the complete typed PvP totals calculated for each build. Normal stats are already included inside those totals and are not added again.</p></article>
-          <details class="panel advanced-panel"><summary>Edit matchup stats</summary><p class="field-note">These are complete typed PvP totals. They replace the normal totals and are never added to them.</p><div class="matchup-inputs advanced-content"><label>Your PvP Hit<input id="pvp-hit" inputmode="decimal" value="0"></label><label>Opponent PvP Evasion<input id="pvp-evasion" inputmode="decimal" value="0"></label><label>Your PvP Critical<input id="pvp-critical" inputmode="decimal" value="0"></label><label>Opponent PvP Endurance<input id="pvp-endurance" inputmode="decimal" value="0"></label><label>Your PvP Heavy Chance<input id="pvp-heavy" inputmode="decimal" value="0"></label><label>Opponent PvP Heavy Evasion<input id="pvp-heavy-evasion" inputmode="decimal" value="0"></label><label>Your SDB<input id="pvp-sdb" inputmode="decimal" value="0"></label><label>Opponent SDR<input id="pvp-sdr" inputmode="decimal" value="0"></label></div><p class="field-note">SDB and SDR have no separate PvP projection. Edit any value to test a hypothetical matchup.</p></details>
+          <details class="panel advanced-panel"><summary>Edit matchup stats</summary><p class="field-note">These are complete typed PvP totals. They replace the normal totals and are never added to them.</p><div class="matchup-inputs advanced-content"><label>Your PvP Hit<input id="pvp-hit" inputmode="decimal" value="0"></label><label>Opponent PvP Evasion<input id="pvp-evasion" inputmode="decimal" value="0"></label><label>Your PvP Critical<input id="pvp-critical" inputmode="decimal" value="0"></label><label>Opponent PvP Endurance<input id="pvp-endurance" inputmode="decimal" value="0"></label><label>Your PvP Heavy Chance<input id="pvp-heavy" inputmode="decimal" value="0"></label><label>Opponent PvP Heavy Evasion<input id="pvp-heavy-evasion" inputmode="decimal" value="0"></label><label>Your SDB<input id="pvp-sdb" inputmode="decimal" value="0"></label><label>Opponent SDR<input id="pvp-sdr" inputmode="decimal" value="0"></label><label>Your Critical Damage (%)<input id="pvp-critical-damage" inputmode="decimal" value="0"></label><label>Opponent Critical Damage Resistance (%)<input id="pvp-critical-resistance" inputmode="decimal" value="0"></label><label>Your Heavy Attack Damage (%)<input id="pvp-heavy-damage" inputmode="decimal" value="0"></label><label>Opponent Heavy Attack Damage Resistance (%)<input id="pvp-heavy-resistance" inputmode="decimal" value="0"></label></div><p class="field-note">Edit any value to test a hypothetical matchup. Percentage damage modifiers use character-sheet percentage points.</p></details>
         </div>
         <div class="result-stack">
           <article class="result-card matchup-card"><div class="result-head"><div><p class="eyebrow">Matchup summary</p><h2 id="matchup-title">General PvP · Melee</h2></div><span class="badge modeled">Evidence-scoped</span></div><p id="matchup-context" class="matchup-context"></p><div id="matchup-results" class="matchup-results"></div><p id="matchup-note" class="field-note"></p></article>
+          <article class="result-card matchup-card"><div class="result-head"><div><p class="eyebrow">Damage comparison</p><h2>Modeled expected damage</h2></div><span class="badge modeled">Before Defense</span></div><div class="two-column"><label>Damage packet<select id="expected-ability"></select></label><label>Weapon family<select id="expected-weapon"></select></label></div><label id="expected-level-field">Global ability level<select id="expected-level"></select></label><p class="field-note">The generic packet compares one 100% weapon-damage hit for any weapon. Reviewed abilities use their decoded component. This is expected damage per component, not whole-skill damage or DPS.</p><div id="expected-damage-results" class="matchup-results"></div><p id="expected-damage-verdict" class="matchup-context"></p><details class="result-evidence"><summary>Assumptions and unsupported stages</summary><div id="expected-damage-limits" class="warning-list"></div></details></article>
           <article class="panel next-step-card"><p class="eyebrow">How to use this</p><h2>Find the stat that changes the fight.</h2><p>Adjust one value and the result updates instantly. Compare a gear swap without pretending every server-only damage stage is known.</p></article>
         </div>
       </div>
     </section>
   </main>
-  <script type="module" src="./combat-lab.js?v=24118850-11"></script>
+  <script type="module" src="./combat-lab.js?v=20260713"></script>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>

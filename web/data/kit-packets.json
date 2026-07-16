@@ -1,0 +1,4548 @@
+{
+  "schema": "tl-helper.kit-damage-packets",
+  "schemaVersion": 1,
+  "gameBuild": "24118850",
+  "generatedAtUtc": "2026-07-16T17:11:07.611Z",
+  "provenance": {
+    "skillFormulaMap": {
+      "skillSets": {
+        "path": "out/questlog-public/skillBuilder.getSkillSets.json",
+        "sha256": "d38532d584b64457b50867df6d1f35610ccb3abf7b128d49ca6ed0611122d1bf"
+      },
+      "formulaTable": {
+        "table": "TLFormulaParameterNew",
+        "sourcePath": "D:/TL_Extracted/data/TL/Content/Game/Client/Table/TLFormulaParameterNew.uasset",
+        "sha256": "be0b30086faf1a5e63e89cf42944beed3287e824930cecfac1c57cd380e3fb92",
+        "decoderVersion": "0.1.0"
+      },
+      "localization": {
+        "path": "D:\\TL_Data\\raw\\24118850\\extracted\\localization\\csv\\en.csv",
+        "sha256": "f3886f590ef15955a68f0ac9f4c50ed7eab38b533fa89c4756aaa5e3b1e8664b",
+        "locale": "en"
+      }
+    },
+    "cooldownSource": "web/data/projections/skills.json (client-visible per-level cooldowns)",
+    "coefficientBasis": "kAmountFromAttackPower mul / 10000, verified display encoding"
+  },
+  "method": {
+    "componentSelection": "single largest-coefficient attack-power row per skill (multi-hit kits undercounted, never overcounted)",
+    "confidence": "mappingClass exact|derived carried per skill; unresolved and non-attack-power actives excluded"
+  },
+  "summary": {
+    "skills": 62,
+    "exact": 46,
+    "derived": 16,
+    "excluded": 58
+  },
+  "skills": {
+    "SkillSet_WP_BO_S_PowerShot": {
+      "name": "Decisive Sniping",
+      "weapon": "bow",
+      "mappingClass": "exact",
+      "formulaRowId": "BO_PowerShot_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "5.0000",
+          "flatAdd": "53",
+          "cooldown": 18
+        },
+        "2": {
+          "coefficient": "5.0000",
+          "flatAdd": "80",
+          "cooldown": 18
+        },
+        "3": {
+          "coefficient": "5.3000",
+          "flatAdd": "106",
+          "cooldown": 18
+        },
+        "4": {
+          "coefficient": "5.3000",
+          "flatAdd": "133",
+          "cooldown": 18
+        },
+        "5": {
+          "coefficient": "5.6000",
+          "flatAdd": "159",
+          "cooldown": 18
+        },
+        "6": {
+          "coefficient": "5.9000",
+          "flatAdd": "186",
+          "cooldown": 18
+        },
+        "7": {
+          "coefficient": "5.9000",
+          "flatAdd": "212",
+          "cooldown": 18
+        },
+        "8": {
+          "coefficient": "6.2000",
+          "flatAdd": "239",
+          "cooldown": 18
+        },
+        "9": {
+          "coefficient": "6.2000",
+          "flatAdd": "265",
+          "cooldown": 18
+        },
+        "10": {
+          "coefficient": "6.5000",
+          "flatAdd": "292",
+          "cooldown": 18
+        },
+        "11": {
+          "coefficient": "6.8000",
+          "flatAdd": "318",
+          "cooldown": 18
+        },
+        "12": {
+          "coefficient": "6.8000",
+          "flatAdd": "345",
+          "cooldown": 18
+        },
+        "13": {
+          "coefficient": "7.1000",
+          "flatAdd": "371",
+          "cooldown": 18
+        },
+        "14": {
+          "coefficient": "7.1000",
+          "flatAdd": "398",
+          "cooldown": 18
+        },
+        "15": {
+          "coefficient": "7.4000",
+          "flatAdd": "424",
+          "cooldown": 18
+        },
+        "16": {
+          "coefficient": "7.5500",
+          "flatAdd": "451",
+          "cooldown": 18
+        },
+        "17": {
+          "coefficient": "7.7000",
+          "flatAdd": "477",
+          "cooldown": 18
+        },
+        "18": {
+          "coefficient": "7.8500",
+          "flatAdd": "504",
+          "cooldown": 18
+        },
+        "19": {
+          "coefficient": "8.0000",
+          "flatAdd": "530",
+          "cooldown": 18
+        },
+        "20": {
+          "coefficient": "8.1500",
+          "flatAdd": "557",
+          "cooldown": 18
+        },
+        "21": {
+          "coefficient": "8.3000",
+          "flatAdd": "583",
+          "cooldown": 18
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_MainAttack": {
+      "name": "Valiant Brawl",
+      "weapon": "sword2h",
+      "mappingClass": "exact",
+      "formulaRowId": "SW2_MainAttack_DD_Last",
+      "attackPowerComponentCount": 7,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.0700",
+          "flatAdd": "12",
+          "cooldown": 9
+        },
+        "2": {
+          "coefficient": "3.0700",
+          "flatAdd": "20",
+          "cooldown": 9
+        },
+        "3": {
+          "coefficient": "3.2300",
+          "flatAdd": "26",
+          "cooldown": 9
+        },
+        "4": {
+          "coefficient": "3.2300",
+          "flatAdd": "32",
+          "cooldown": 9
+        },
+        "5": {
+          "coefficient": "3.4600",
+          "flatAdd": "38",
+          "cooldown": 9
+        },
+        "6": {
+          "coefficient": "3.6200",
+          "flatAdd": "46",
+          "cooldown": 9
+        },
+        "7": {
+          "coefficient": "3.6200",
+          "flatAdd": "52",
+          "cooldown": 9
+        },
+        "8": {
+          "coefficient": "3.6200",
+          "flatAdd": "58",
+          "cooldown": 9
+        },
+        "9": {
+          "coefficient": "3.6200",
+          "flatAdd": "64",
+          "cooldown": 9
+        },
+        "10": {
+          "coefficient": "3.6200",
+          "flatAdd": "70",
+          "cooldown": 9
+        },
+        "11": {
+          "coefficient": "4.8200",
+          "flatAdd": "78",
+          "cooldown": 9
+        },
+        "12": {
+          "coefficient": "4.8200",
+          "flatAdd": "84",
+          "cooldown": 9
+        },
+        "13": {
+          "coefficient": "4.8200",
+          "flatAdd": "90",
+          "cooldown": 9
+        },
+        "14": {
+          "coefficient": "4.8200",
+          "flatAdd": "96",
+          "cooldown": 9
+        },
+        "15": {
+          "coefficient": "4.8200",
+          "flatAdd": "103",
+          "cooldown": 9
+        },
+        "16": {
+          "coefficient": "5.1200",
+          "flatAdd": "110",
+          "cooldown": 9
+        },
+        "17": {
+          "coefficient": "5.1200",
+          "flatAdd": "110",
+          "cooldown": 9
+        },
+        "18": {
+          "coefficient": "5.1200",
+          "flatAdd": "110",
+          "cooldown": 9
+        },
+        "19": {
+          "coefficient": "5.1200",
+          "flatAdd": "110",
+          "cooldown": 9
+        },
+        "20": {
+          "coefficient": "5.1200",
+          "flatAdd": "110",
+          "cooldown": 9
+        },
+        "21": {
+          "coefficient": "5.1200",
+          "flatAdd": "110",
+          "cooldown": 9
+        }
+      }
+    },
+    "SkillSet_WP_BO_S_StrongShot": {
+      "name": "Zephyr's Nock",
+      "weapon": "bow",
+      "mappingClass": "exact",
+      "formulaRowId": "BO_StrongShot_Trait2_Explosion_DD",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "4.5000",
+          "flatAdd": "182",
+          "cooldown": 6
+        }
+      }
+    },
+    "SkillSet_WP_CR_FuriousFire": {
+      "name": "Merciless Barrage",
+      "weapon": "crossbow",
+      "mappingClass": "exact",
+      "formulaRowId": "CR_Gale_Explosion_DD",
+      "attackPowerComponentCount": 4,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.7500",
+          "flatAdd": "75",
+          "cooldown": 75
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_CriticalStrike": {
+      "name": "Cleaving Moonlight",
+      "weapon": "dagger",
+      "mappingClass": "exact",
+      "formulaRowId": "DA_CriticalStrike_DD_Poison",
+      "attackPowerComponentCount": 7,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.1990",
+          "flatAdd": "4",
+          "cooldown": 6
+        },
+        "2": {
+          "coefficient": "1.1990",
+          "flatAdd": "8",
+          "cooldown": 6
+        },
+        "3": {
+          "coefficient": "1.3080",
+          "flatAdd": "10",
+          "cooldown": 6
+        },
+        "4": {
+          "coefficient": "1.3080",
+          "flatAdd": "12",
+          "cooldown": 6
+        },
+        "5": {
+          "coefficient": "1.4170",
+          "flatAdd": "14",
+          "cooldown": 6
+        },
+        "6": {
+          "coefficient": "1.5260",
+          "flatAdd": "16",
+          "cooldown": 6
+        },
+        "7": {
+          "coefficient": "1.5260",
+          "flatAdd": "20",
+          "cooldown": 6
+        },
+        "8": {
+          "coefficient": "1.6350",
+          "flatAdd": "22",
+          "cooldown": 6
+        },
+        "9": {
+          "coefficient": "1.6350",
+          "flatAdd": "24",
+          "cooldown": 6
+        },
+        "10": {
+          "coefficient": "1.7440",
+          "flatAdd": "26",
+          "cooldown": 6
+        },
+        "11": {
+          "coefficient": "1.8530",
+          "flatAdd": "28",
+          "cooldown": 6
+        },
+        "12": {
+          "coefficient": "1.8530",
+          "flatAdd": "32",
+          "cooldown": 6
+        },
+        "13": {
+          "coefficient": "1.9620",
+          "flatAdd": "34",
+          "cooldown": 6
+        },
+        "14": {
+          "coefficient": "1.9620",
+          "flatAdd": "36",
+          "cooldown": 6
+        },
+        "15": {
+          "coefficient": "2.0710",
+          "flatAdd": "38",
+          "cooldown": 6
+        },
+        "16": {
+          "coefficient": "2.3980",
+          "flatAdd": "40",
+          "cooldown": 6
+        },
+        "17": {
+          "coefficient": "1.8530",
+          "flatAdd": "32",
+          "cooldown": 6
+        },
+        "18": {
+          "coefficient": "1.9620",
+          "flatAdd": "34",
+          "cooldown": 6
+        },
+        "19": {
+          "coefficient": "1.9620",
+          "flatAdd": "36",
+          "cooldown": 6
+        },
+        "20": {
+          "coefficient": "2.0710",
+          "flatAdd": "38",
+          "cooldown": 6
+        },
+        "21": {
+          "coefficient": "2.3980",
+          "flatAdd": "40",
+          "cooldown": 6
+        }
+      }
+    },
+    "SkillSet_WP_GT_Active_Earthquake": {
+      "name": "Earthquake",
+      "weapon": "gauntlet",
+      "mappingClass": "exact",
+      "formulaRowId": "GT_Earthquake_Last_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.5500",
+          "flatAdd": "16",
+          "cooldown": 36
+        },
+        "2": {
+          "coefficient": "2.5500",
+          "flatAdd": "19",
+          "cooldown": 36
+        },
+        "3": {
+          "coefficient": "2.7000",
+          "flatAdd": "22",
+          "cooldown": 36
+        },
+        "4": {
+          "coefficient": "2.7000",
+          "flatAdd": "26",
+          "cooldown": 36
+        },
+        "5": {
+          "coefficient": "2.8000",
+          "flatAdd": "29",
+          "cooldown": 36
+        },
+        "6": {
+          "coefficient": "2.9000",
+          "flatAdd": "32",
+          "cooldown": 36
+        },
+        "7": {
+          "coefficient": "2.9000",
+          "flatAdd": "35",
+          "cooldown": 36
+        },
+        "8": {
+          "coefficient": "3.0500",
+          "flatAdd": "38",
+          "cooldown": 36
+        },
+        "9": {
+          "coefficient": "3.0500",
+          "flatAdd": "42",
+          "cooldown": 36
+        },
+        "10": {
+          "coefficient": "3.1000",
+          "flatAdd": "45",
+          "cooldown": 36
+        },
+        "11": {
+          "coefficient": "3.2000",
+          "flatAdd": "48",
+          "cooldown": 36
+        },
+        "12": {
+          "coefficient": "3.2000",
+          "flatAdd": "51",
+          "cooldown": 36
+        },
+        "13": {
+          "coefficient": "3.3500",
+          "flatAdd": "54",
+          "cooldown": 36
+        },
+        "14": {
+          "coefficient": "3.3500",
+          "flatAdd": "58",
+          "cooldown": 36
+        },
+        "15": {
+          "coefficient": "3.5000",
+          "flatAdd": "61",
+          "cooldown": 36
+        },
+        "16": {
+          "coefficient": "3.5700",
+          "flatAdd": "64",
+          "cooldown": 36
+        },
+        "17": {
+          "coefficient": "3.6400",
+          "flatAdd": "67",
+          "cooldown": 36
+        },
+        "18": {
+          "coefficient": "3.7100",
+          "flatAdd": "70",
+          "cooldown": 36
+        },
+        "19": {
+          "coefficient": "3.7800",
+          "flatAdd": "74",
+          "cooldown": 36
+        },
+        "20": {
+          "coefficient": "3.8500",
+          "flatAdd": "77",
+          "cooldown": 36
+        },
+        "21": {
+          "coefficient": "3.9200",
+          "flatAdd": "80",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_GT_Active_OneInchPunch": {
+      "name": "One-Inch Punch",
+      "weapon": "gauntlet",
+      "mappingClass": "exact",
+      "formulaRowId": "GT_OneInchPunch_Last_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "11": {
+          "coefficient": "8.5000",
+          "flatAdd": "44",
+          "cooldown": 39
+        },
+        "12": {
+          "coefficient": "8.5000",
+          "flatAdd": "66",
+          "cooldown": 39
+        },
+        "13": {
+          "coefficient": "9.4000",
+          "flatAdd": "88",
+          "cooldown": 39
+        },
+        "14": {
+          "coefficient": "9.4000",
+          "flatAdd": "110",
+          "cooldown": 39
+        },
+        "15": {
+          "coefficient": "10.5000",
+          "flatAdd": "132",
+          "cooldown": 39
+        },
+        "16": {
+          "coefficient": "10.7000",
+          "flatAdd": "154",
+          "cooldown": 39
+        },
+        "17": {
+          "coefficient": "10.9000",
+          "flatAdd": "176",
+          "cooldown": 39
+        },
+        "18": {
+          "coefficient": "11.1000",
+          "flatAdd": "198",
+          "cooldown": 39
+        },
+        "19": {
+          "coefficient": "11.3000",
+          "flatAdd": "220",
+          "cooldown": 39
+        },
+        "20": {
+          "coefficient": "11.6000",
+          "flatAdd": "242",
+          "cooldown": 39
+        },
+        "21": {
+          "coefficient": "11.8000",
+          "flatAdd": "264",
+          "cooldown": 39
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_CurseBurst": {
+      "name": "Curse Explosion",
+      "weapon": "wand",
+      "mappingClass": "derived",
+      "formulaRowId": "WA_CurseBurst_DD_to_Target",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.8000",
+          "flatAdd": "34",
+          "cooldown": 21
+        },
+        "2": {
+          "coefficient": "2.8000",
+          "flatAdd": "51",
+          "cooldown": 21
+        },
+        "3": {
+          "coefficient": "2.9500",
+          "flatAdd": "68",
+          "cooldown": 21
+        },
+        "4": {
+          "coefficient": "2.9500",
+          "flatAdd": "85",
+          "cooldown": 21
+        },
+        "5": {
+          "coefficient": "3.1500",
+          "flatAdd": "102",
+          "cooldown": 21
+        },
+        "6": {
+          "coefficient": "3.3000",
+          "flatAdd": "119",
+          "cooldown": 21
+        },
+        "7": {
+          "coefficient": "3.3000",
+          "flatAdd": "136",
+          "cooldown": 21
+        },
+        "8": {
+          "coefficient": "3.4500",
+          "flatAdd": "153",
+          "cooldown": 21
+        },
+        "9": {
+          "coefficient": "3.4500",
+          "flatAdd": "170",
+          "cooldown": 21
+        },
+        "10": {
+          "coefficient": "3.6500",
+          "flatAdd": "187",
+          "cooldown": 21
+        },
+        "11": {
+          "coefficient": "3.8000",
+          "flatAdd": "204",
+          "cooldown": 21
+        },
+        "12": {
+          "coefficient": "3.8000",
+          "flatAdd": "221",
+          "cooldown": 21
+        },
+        "13": {
+          "coefficient": "4.0000",
+          "flatAdd": "238",
+          "cooldown": 21
+        },
+        "14": {
+          "coefficient": "4.0000",
+          "flatAdd": "255",
+          "cooldown": 21
+        },
+        "15": {
+          "coefficient": "4.2000",
+          "flatAdd": "272",
+          "cooldown": 21
+        },
+        "16": {
+          "coefficient": "4.2800",
+          "flatAdd": "289",
+          "cooldown": 21
+        },
+        "17": {
+          "coefficient": "4.3600",
+          "flatAdd": "306",
+          "cooldown": 21
+        },
+        "18": {
+          "coefficient": "4.4500",
+          "flatAdd": "323",
+          "cooldown": 21
+        },
+        "19": {
+          "coefficient": "4.5300",
+          "flatAdd": "340",
+          "cooldown": 21
+        },
+        "20": {
+          "coefficient": "4.6100",
+          "flatAdd": "357",
+          "cooldown": 21
+        },
+        "21": {
+          "coefficient": "4.7000",
+          "flatAdd": "374",
+          "cooldown": 21
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_CurseArea": {
+      "name": "Corrupted Magic Circle",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WA_CurseArea_DD_trait3",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.6000",
+          "flatAdd": "0",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_Corruption": {
+      "name": "Touch of Despair",
+      "weapon": "wand",
+      "mappingClass": "derived",
+      "formulaRowId": "WA_Corruption_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.0000",
+          "flatAdd": "0",
+          "cooldown": 6
+        }
+      }
+    },
+    "SkillSet_WP_ORB_Active_OrbExplosion": {
+      "name": "Interstellar Explosion",
+      "weapon": "orb",
+      "mappingClass": "exact",
+      "formulaRowId": "ORB_Active_OrbExplosion_DD",
+      "attackPowerComponentCount": 5,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "5.6000",
+          "flatAdd": "120",
+          "cooldown": 24
+        },
+        "2": {
+          "coefficient": "5.6000",
+          "flatAdd": "136",
+          "cooldown": 24
+        },
+        "3": {
+          "coefficient": "6.1000",
+          "flatAdd": "151",
+          "cooldown": 24
+        },
+        "4": {
+          "coefficient": "6.1000",
+          "flatAdd": "167",
+          "cooldown": 24
+        },
+        "5": {
+          "coefficient": "6.6000",
+          "flatAdd": "182",
+          "cooldown": 24
+        },
+        "6": {
+          "coefficient": "7.1000",
+          "flatAdd": "197",
+          "cooldown": 24
+        },
+        "7": {
+          "coefficient": "7.1000",
+          "flatAdd": "213",
+          "cooldown": 24
+        },
+        "8": {
+          "coefficient": "7.5500",
+          "flatAdd": "228",
+          "cooldown": 24
+        },
+        "9": {
+          "coefficient": "7.5500",
+          "flatAdd": "244",
+          "cooldown": 24
+        },
+        "10": {
+          "coefficient": "8.0500",
+          "flatAdd": "259",
+          "cooldown": 24
+        },
+        "11": {
+          "coefficient": "8.5500",
+          "flatAdd": "274",
+          "cooldown": 24
+        },
+        "12": {
+          "coefficient": "8.5500",
+          "flatAdd": "290",
+          "cooldown": 24
+        },
+        "13": {
+          "coefficient": "9.0000",
+          "flatAdd": "305",
+          "cooldown": 24
+        },
+        "14": {
+          "coefficient": "9.0000",
+          "flatAdd": "321",
+          "cooldown": 24
+        },
+        "15": {
+          "coefficient": "9.5000",
+          "flatAdd": "336",
+          "cooldown": 24
+        },
+        "16": {
+          "coefficient": "9.6800",
+          "flatAdd": "352",
+          "cooldown": 24
+        },
+        "17": {
+          "coefficient": "9.8600",
+          "flatAdd": "368",
+          "cooldown": 24
+        },
+        "18": {
+          "coefficient": "10.0500",
+          "flatAdd": "384",
+          "cooldown": 24
+        },
+        "19": {
+          "coefficient": "10.2300",
+          "flatAdd": "400",
+          "cooldown": 24
+        },
+        "20": {
+          "coefficient": "10.4100",
+          "flatAdd": "416",
+          "cooldown": 24
+        },
+        "21": {
+          "coefficient": "10.6000",
+          "flatAdd": "432",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_WhirlwindSlash": {
+      "name": "Annihilating Slash",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_WhirlwindSlash_Weaken_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.6000",
+          "flatAdd": "21",
+          "cooldown": 24
+        },
+        "2": {
+          "coefficient": "3.6000",
+          "flatAdd": "24",
+          "cooldown": 24
+        },
+        "3": {
+          "coefficient": "3.6750",
+          "flatAdd": "27",
+          "cooldown": 24
+        },
+        "4": {
+          "coefficient": "3.6750",
+          "flatAdd": "30",
+          "cooldown": 24
+        },
+        "5": {
+          "coefficient": "3.7500",
+          "flatAdd": "33",
+          "cooldown": 24
+        },
+        "6": {
+          "coefficient": "3.8250",
+          "flatAdd": "36",
+          "cooldown": 24
+        },
+        "7": {
+          "coefficient": "3.8250",
+          "flatAdd": "39",
+          "cooldown": 24
+        },
+        "8": {
+          "coefficient": "3.9000",
+          "flatAdd": "42",
+          "cooldown": 24
+        },
+        "9": {
+          "coefficient": "3.9000",
+          "flatAdd": "45",
+          "cooldown": 24
+        },
+        "10": {
+          "coefficient": "3.9750",
+          "flatAdd": "48",
+          "cooldown": 24
+        },
+        "11": {
+          "coefficient": "4.0500",
+          "flatAdd": "51",
+          "cooldown": 24
+        },
+        "12": {
+          "coefficient": "4.0500",
+          "flatAdd": "54",
+          "cooldown": 24
+        },
+        "13": {
+          "coefficient": "4.1250",
+          "flatAdd": "57",
+          "cooldown": 24
+        },
+        "14": {
+          "coefficient": "4.1250",
+          "flatAdd": "60",
+          "cooldown": 24
+        },
+        "15": {
+          "coefficient": "4.2000",
+          "flatAdd": "63",
+          "cooldown": 24
+        },
+        "16": {
+          "coefficient": "4.2900",
+          "flatAdd": "66",
+          "cooldown": 24
+        },
+        "17": {
+          "coefficient": "4.3800",
+          "flatAdd": "69",
+          "cooldown": 24
+        },
+        "18": {
+          "coefficient": "4.4700",
+          "flatAdd": "72",
+          "cooldown": 24
+        },
+        "19": {
+          "coefficient": "4.5600",
+          "flatAdd": "75",
+          "cooldown": 24
+        },
+        "20": {
+          "coefficient": "4.6500",
+          "flatAdd": "78",
+          "cooldown": 24
+        },
+        "21": {
+          "coefficient": "4.7400",
+          "flatAdd": "81",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_VictoryAttack": {
+      "name": "A Shot at Victory",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_SH_S_VictoryAttack_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "11": {
+          "coefficient": "7.3000",
+          "flatAdd": "51",
+          "cooldown": 24
+        },
+        "12": {
+          "coefficient": "7.3000",
+          "flatAdd": "65",
+          "cooldown": 24
+        },
+        "13": {
+          "coefficient": "7.9000",
+          "flatAdd": "79",
+          "cooldown": 24
+        },
+        "14": {
+          "coefficient": "7.9000",
+          "flatAdd": "93",
+          "cooldown": 24
+        },
+        "15": {
+          "coefficient": "8.8000",
+          "flatAdd": "107",
+          "cooldown": 24
+        },
+        "16": {
+          "coefficient": "8.9500",
+          "flatAdd": "121",
+          "cooldown": 24
+        },
+        "17": {
+          "coefficient": "9.1000",
+          "flatAdd": "135",
+          "cooldown": 24
+        },
+        "18": {
+          "coefficient": "9.2500",
+          "flatAdd": "149",
+          "cooldown": 24
+        },
+        "19": {
+          "coefficient": "9.4000",
+          "flatAdd": "163",
+          "cooldown": 24
+        },
+        "20": {
+          "coefficient": "9.5500",
+          "flatAdd": "177",
+          "cooldown": 24
+        },
+        "21": {
+          "coefficient": "9.7000",
+          "flatAdd": "191",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_ShieldThrow": {
+      "name": "Shield Throw",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_ShieldThrow_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.7000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "2": {
+          "coefficient": "2.7500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "3": {
+          "coefficient": "2.8000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "4": {
+          "coefficient": "2.8500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "5": {
+          "coefficient": "2.9000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "6": {
+          "coefficient": "2.9500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "7": {
+          "coefficient": "3.0000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "8": {
+          "coefficient": "3.0500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "9": {
+          "coefficient": "3.1000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "10": {
+          "coefficient": "3.1500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "11": {
+          "coefficient": "3.2000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "12": {
+          "coefficient": "3.2500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "13": {
+          "coefficient": "3.3000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "14": {
+          "coefficient": "3.3500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "15": {
+          "coefficient": "3.4000",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "16": {
+          "coefficient": "3.4700",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "17": {
+          "coefficient": "3.5400",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "18": {
+          "coefficient": "3.6100",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "19": {
+          "coefficient": "3.6800",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "20": {
+          "coefficient": "3.7500",
+          "flatAdd": "0",
+          "cooldown": 33
+        },
+        "21": {
+          "coefficient": "3.8200",
+          "flatAdd": "0",
+          "cooldown": 33
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_ManaAttack": {
+      "name": "Witty Retort",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_SH_S_ManaAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.8000",
+          "flatAdd": "8",
+          "cooldown": 21
+        },
+        "2": {
+          "coefficient": "1.8000",
+          "flatAdd": "12",
+          "cooldown": 21
+        },
+        "3": {
+          "coefficient": "1.9500",
+          "flatAdd": "16",
+          "cooldown": 21
+        },
+        "4": {
+          "coefficient": "1.9500",
+          "flatAdd": "20",
+          "cooldown": 21
+        },
+        "5": {
+          "coefficient": "2.1000",
+          "flatAdd": "24",
+          "cooldown": 21
+        },
+        "6": {
+          "coefficient": "2.2000",
+          "flatAdd": "28",
+          "cooldown": 21
+        },
+        "7": {
+          "coefficient": "2.2000",
+          "flatAdd": "32",
+          "cooldown": 21
+        },
+        "8": {
+          "coefficient": "2.3500",
+          "flatAdd": "36",
+          "cooldown": 21
+        },
+        "9": {
+          "coefficient": "2.3500",
+          "flatAdd": "40",
+          "cooldown": 21
+        },
+        "10": {
+          "coefficient": "2.5000",
+          "flatAdd": "44",
+          "cooldown": 21
+        },
+        "11": {
+          "coefficient": "2.6000",
+          "flatAdd": "48",
+          "cooldown": 21
+        },
+        "12": {
+          "coefficient": "2.6000",
+          "flatAdd": "52",
+          "cooldown": 21
+        },
+        "13": {
+          "coefficient": "2.7500",
+          "flatAdd": "56",
+          "cooldown": 21
+        },
+        "14": {
+          "coefficient": "2.7500",
+          "flatAdd": "60",
+          "cooldown": 21
+        },
+        "15": {
+          "coefficient": "2.9000",
+          "flatAdd": "64",
+          "cooldown": 21
+        },
+        "16": {
+          "coefficient": "2.9600",
+          "flatAdd": "68",
+          "cooldown": 21
+        },
+        "17": {
+          "coefficient": "3.0200",
+          "flatAdd": "72",
+          "cooldown": 21
+        },
+        "18": {
+          "coefficient": "3.0800",
+          "flatAdd": "76",
+          "cooldown": 21
+        },
+        "19": {
+          "coefficient": "3.1400",
+          "flatAdd": "80",
+          "cooldown": 21
+        },
+        "20": {
+          "coefficient": "3.2000",
+          "flatAdd": "84",
+          "cooldown": 21
+        },
+        "21": {
+          "coefficient": "3.2600",
+          "flatAdd": "88",
+          "cooldown": 21
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_SpearThrower": {
+      "name": "Javelin Surge",
+      "weapon": "spear",
+      "mappingClass": "exact",
+      "formulaRowId": "WP_Item_Gear_SP_01_DD_SpearThrower",
+      "attackPowerComponentCount": 4,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.9400",
+          "flatAdd": "24",
+          "cooldown": 18
+        },
+        "2": {
+          "coefficient": "1.9400",
+          "flatAdd": "30",
+          "cooldown": 18
+        },
+        "3": {
+          "coefficient": "2.1100",
+          "flatAdd": "37",
+          "cooldown": 18
+        },
+        "4": {
+          "coefficient": "2.1100",
+          "flatAdd": "43",
+          "cooldown": 18
+        },
+        "5": {
+          "coefficient": "2.2700",
+          "flatAdd": "49",
+          "cooldown": 18
+        },
+        "6": {
+          "coefficient": "2.3500",
+          "flatAdd": "56",
+          "cooldown": 18
+        },
+        "7": {
+          "coefficient": "2.3500",
+          "flatAdd": "62",
+          "cooldown": 18
+        },
+        "8": {
+          "coefficient": "2.5100",
+          "flatAdd": "70",
+          "cooldown": 18
+        },
+        "9": {
+          "coefficient": "2.5100",
+          "flatAdd": "76",
+          "cooldown": 18
+        },
+        "10": {
+          "coefficient": "2.6800",
+          "flatAdd": "82",
+          "cooldown": 18
+        },
+        "11": {
+          "coefficient": "2.7600",
+          "flatAdd": "89",
+          "cooldown": 18
+        },
+        "12": {
+          "coefficient": "2.7600",
+          "flatAdd": "95",
+          "cooldown": 18
+        },
+        "13": {
+          "coefficient": "2.9200",
+          "flatAdd": "102",
+          "cooldown": 18
+        },
+        "14": {
+          "coefficient": "2.9200",
+          "flatAdd": "108",
+          "cooldown": 18
+        },
+        "15": {
+          "coefficient": "3.0800",
+          "flatAdd": "114",
+          "cooldown": 18
+        },
+        "16": {
+          "coefficient": "3.1300",
+          "flatAdd": "121",
+          "cooldown": 18
+        },
+        "17": {
+          "coefficient": "3.2000",
+          "flatAdd": "127",
+          "cooldown": 18
+        },
+        "18": {
+          "coefficient": "3.2600",
+          "flatAdd": "134",
+          "cooldown": 18
+        },
+        "19": {
+          "coefficient": "3.3200",
+          "flatAdd": "140",
+          "cooldown": 18
+        },
+        "20": {
+          "coefficient": "3.4000",
+          "flatAdd": "146",
+          "cooldown": 18
+        },
+        "21": {
+          "coefficient": "3.4600",
+          "flatAdd": "154",
+          "cooldown": 18
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_ThrustPull": {
+      "name": "Culling Arc",
+      "weapon": "spear",
+      "mappingClass": "derived",
+      "formulaRowId": "SP_ThrustPull_DD_Debuff_NPC",
+      "attackPowerComponentCount": 8,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.4976",
+          "flatAdd": "13",
+          "cooldown": 9
+        },
+        "2": {
+          "coefficient": "1.5408",
+          "flatAdd": "18",
+          "cooldown": 9
+        },
+        "3": {
+          "coefficient": "1.7316",
+          "flatAdd": "23",
+          "cooldown": 9
+        },
+        "4": {
+          "coefficient": "1.7940",
+          "flatAdd": "28",
+          "cooldown": 9
+        },
+        "5": {
+          "coefficient": "1.9824",
+          "flatAdd": "32",
+          "cooldown": 9
+        },
+        "6": {
+          "coefficient": "2.1228",
+          "flatAdd": "38",
+          "cooldown": 9
+        },
+        "7": {
+          "coefficient": "2.1924",
+          "flatAdd": "44",
+          "cooldown": 9
+        },
+        "8": {
+          "coefficient": "2.3994",
+          "flatAdd": "49",
+          "cooldown": 9
+        },
+        "9": {
+          "coefficient": "2.4738",
+          "flatAdd": "56",
+          "cooldown": 9
+        },
+        "10": {
+          "coefficient": "2.7126",
+          "flatAdd": "62",
+          "cooldown": 9
+        },
+        "11": {
+          "coefficient": "2.8560",
+          "flatAdd": "68",
+          "cooldown": 9
+        },
+        "12": {
+          "coefficient": "2.9376",
+          "flatAdd": "76",
+          "cooldown": 9
+        },
+        "13": {
+          "coefficient": "3.1968",
+          "flatAdd": "84",
+          "cooldown": 9
+        },
+        "14": {
+          "coefficient": "3.2616",
+          "flatAdd": "91",
+          "cooldown": 9
+        },
+        "15": {
+          "coefficient": "3.5340",
+          "flatAdd": "98",
+          "cooldown": 9
+        },
+        "16": {
+          "coefficient": "3.6084",
+          "flatAdd": "104",
+          "cooldown": 9
+        },
+        "17": {
+          "coefficient": "3.6828",
+          "flatAdd": "109",
+          "cooldown": 9
+        },
+        "18": {
+          "coefficient": "3.7572",
+          "flatAdd": "115",
+          "cooldown": 9
+        },
+        "19": {
+          "coefficient": "3.8316",
+          "flatAdd": "121",
+          "cooldown": 9
+        },
+        "20": {
+          "coefficient": "3.9060",
+          "flatAdd": "126",
+          "cooldown": 9
+        },
+        "21": {
+          "coefficient": "3.9804",
+          "flatAdd": "132",
+          "cooldown": 9
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_DebuffAttack": {
+      "name": "Shield Strike",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_DebuffAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.6000",
+          "flatAdd": "16",
+          "cooldown": 6
+        },
+        "2": {
+          "coefficient": "3.6000",
+          "flatAdd": "24",
+          "cooldown": 6
+        },
+        "3": {
+          "coefficient": "3.8500",
+          "flatAdd": "32",
+          "cooldown": 6
+        },
+        "4": {
+          "coefficient": "3.8500",
+          "flatAdd": "40",
+          "cooldown": 6
+        },
+        "5": {
+          "coefficient": "4.1500",
+          "flatAdd": "48",
+          "cooldown": 6
+        },
+        "6": {
+          "coefficient": "4.4000",
+          "flatAdd": "56",
+          "cooldown": 6
+        },
+        "7": {
+          "coefficient": "4.4000",
+          "flatAdd": "64",
+          "cooldown": 6
+        },
+        "8": {
+          "coefficient": "4.6500",
+          "flatAdd": "72",
+          "cooldown": 6
+        },
+        "9": {
+          "coefficient": "4.6500",
+          "flatAdd": "80",
+          "cooldown": 6
+        },
+        "10": {
+          "coefficient": "4.9500",
+          "flatAdd": "88",
+          "cooldown": 6
+        },
+        "11": {
+          "coefficient": "5.2000",
+          "flatAdd": "96",
+          "cooldown": 6
+        },
+        "12": {
+          "coefficient": "5.2000",
+          "flatAdd": "104",
+          "cooldown": 6
+        },
+        "13": {
+          "coefficient": "5.5000",
+          "flatAdd": "112",
+          "cooldown": 6
+        },
+        "14": {
+          "coefficient": "5.5000",
+          "flatAdd": "120",
+          "cooldown": 6
+        },
+        "15": {
+          "coefficient": "5.8000",
+          "flatAdd": "129",
+          "cooldown": 6
+        },
+        "16": {
+          "coefficient": "5.9200",
+          "flatAdd": "137",
+          "cooldown": 6
+        },
+        "17": {
+          "coefficient": "6.0300",
+          "flatAdd": "145",
+          "cooldown": 6
+        },
+        "18": {
+          "coefficient": "6.1500",
+          "flatAdd": "153",
+          "cooldown": 6
+        },
+        "19": {
+          "coefficient": "6.2600",
+          "flatAdd": "161",
+          "cooldown": 6
+        },
+        "20": {
+          "coefficient": "6.3800",
+          "flatAdd": "169",
+          "cooldown": 6
+        },
+        "21": {
+          "coefficient": "6.5000",
+          "flatAdd": "178",
+          "cooldown": 6
+        }
+      }
+    },
+    "SkillSet_WP_ST_S_WideAreaDebuffAttack": {
+      "name": "Inferno Wave",
+      "weapon": "staff",
+      "mappingClass": "exact",
+      "formulaRowId": "ST_WideAreaDebuffAttack_DD",
+      "attackPowerComponentCount": 13,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.6000",
+          "flatAdd": "62",
+          "cooldown": 18
+        },
+        "2": {
+          "coefficient": "2.6000",
+          "flatAdd": "69",
+          "cooldown": 18
+        },
+        "3": {
+          "coefficient": "2.7000",
+          "flatAdd": "76",
+          "cooldown": 18
+        },
+        "4": {
+          "coefficient": "2.7000",
+          "flatAdd": "83",
+          "cooldown": 18
+        },
+        "5": {
+          "coefficient": "2.8000",
+          "flatAdd": "90",
+          "cooldown": 18
+        },
+        "6": {
+          "coefficient": "2.9000",
+          "flatAdd": "97",
+          "cooldown": 18
+        },
+        "7": {
+          "coefficient": "2.9000",
+          "flatAdd": "104",
+          "cooldown": 18
+        },
+        "8": {
+          "coefficient": "3.0000",
+          "flatAdd": "111",
+          "cooldown": 18
+        },
+        "9": {
+          "coefficient": "3.0000",
+          "flatAdd": "118",
+          "cooldown": 18
+        },
+        "10": {
+          "coefficient": "3.1000",
+          "flatAdd": "125",
+          "cooldown": 18
+        },
+        "11": {
+          "coefficient": "3.2000",
+          "flatAdd": "132",
+          "cooldown": 18
+        },
+        "12": {
+          "coefficient": "3.2000",
+          "flatAdd": "139",
+          "cooldown": 18
+        },
+        "13": {
+          "coefficient": "3.3000",
+          "flatAdd": "146",
+          "cooldown": 18
+        },
+        "14": {
+          "coefficient": "3.3000",
+          "flatAdd": "153",
+          "cooldown": 18
+        },
+        "15": {
+          "coefficient": "3.4000",
+          "flatAdd": "160",
+          "cooldown": 18
+        },
+        "16": {
+          "coefficient": "3.4700",
+          "flatAdd": "167",
+          "cooldown": 18
+        },
+        "17": {
+          "coefficient": "3.5400",
+          "flatAdd": "174",
+          "cooldown": 18
+        },
+        "18": {
+          "coefficient": "3.6100",
+          "flatAdd": "181",
+          "cooldown": 18
+        },
+        "19": {
+          "coefficient": "3.6800",
+          "flatAdd": "188",
+          "cooldown": 18
+        },
+        "20": {
+          "coefficient": "3.7500",
+          "flatAdd": "195",
+          "cooldown": 18
+        },
+        "21": {
+          "coefficient": "3.8200",
+          "flatAdd": "202",
+          "cooldown": 18
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_UpperAttack": {
+      "name": "Ascending Slash",
+      "weapon": "sword2h",
+      "mappingClass": "exact",
+      "formulaRowId": "SW2_UpperAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.6500",
+          "flatAdd": "54",
+          "cooldown": 24
+        },
+        "2": {
+          "coefficient": "2.6500",
+          "flatAdd": "59",
+          "cooldown": 24
+        },
+        "3": {
+          "coefficient": "2.7000",
+          "flatAdd": "64",
+          "cooldown": 24
+        },
+        "4": {
+          "coefficient": "2.7000",
+          "flatAdd": "69",
+          "cooldown": 24
+        },
+        "5": {
+          "coefficient": "2.8000",
+          "flatAdd": "74",
+          "cooldown": 24
+        },
+        "6": {
+          "coefficient": "2.8500",
+          "flatAdd": "79",
+          "cooldown": 24
+        },
+        "7": {
+          "coefficient": "2.8500",
+          "flatAdd": "84",
+          "cooldown": 24
+        },
+        "8": {
+          "coefficient": "2.9000",
+          "flatAdd": "90",
+          "cooldown": 24
+        },
+        "9": {
+          "coefficient": "2.9000",
+          "flatAdd": "95",
+          "cooldown": 24
+        },
+        "10": {
+          "coefficient": "3.0000",
+          "flatAdd": "100",
+          "cooldown": 24
+        },
+        "11": {
+          "coefficient": "3.0500",
+          "flatAdd": "105",
+          "cooldown": 24
+        },
+        "12": {
+          "coefficient": "3.0500",
+          "flatAdd": "110",
+          "cooldown": 24
+        },
+        "13": {
+          "coefficient": "3.1000",
+          "flatAdd": "115",
+          "cooldown": 24
+        },
+        "14": {
+          "coefficient": "3.1000",
+          "flatAdd": "120",
+          "cooldown": 24
+        },
+        "15": {
+          "coefficient": "3.2000",
+          "flatAdd": "126",
+          "cooldown": 24
+        },
+        "16": {
+          "coefficient": "3.3000",
+          "flatAdd": "131",
+          "cooldown": 24
+        },
+        "17": {
+          "coefficient": "3.4000",
+          "flatAdd": "136",
+          "cooldown": 24
+        },
+        "18": {
+          "coefficient": "3.5000",
+          "flatAdd": "141",
+          "cooldown": 24
+        },
+        "19": {
+          "coefficient": "3.6000",
+          "flatAdd": "146",
+          "cooldown": 24
+        },
+        "20": {
+          "coefficient": "3.7000",
+          "flatAdd": "151",
+          "cooldown": 24
+        },
+        "21": {
+          "coefficient": "3.8000",
+          "flatAdd": "157",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_DefenseDebuffAttack": {
+      "name": "Willbreaker",
+      "weapon": "sword2h",
+      "mappingClass": "derived",
+      "formulaRowId": "SW2_DefenseDebuffAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.0000",
+          "flatAdd": "0",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_ST_S_ManaRengeUp": {
+      "name": "Inner Peace",
+      "weapon": "staff",
+      "mappingClass": "exact",
+      "formulaRowId": "WP_Item_Gear_ST_01_2_DD",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.9000",
+          "flatAdd": "0",
+          "cooldown": 60
+        }
+      }
+    },
+    "SkillSet_WP_CR_CR_S_AddProjectile": {
+      "name": "Mother Nature's Protest",
+      "weapon": "crossbow",
+      "mappingClass": "derived",
+      "formulaRowId": "CR_AddProjectile_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.2400",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "2": {
+          "coefficient": "0.2500",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "3": {
+          "coefficient": "0.2600",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "4": {
+          "coefficient": "0.2700",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "5": {
+          "coefficient": "0.2900",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "6": {
+          "coefficient": "0.3000",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "7": {
+          "coefficient": "0.3100",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "8": {
+          "coefficient": "0.3200",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "9": {
+          "coefficient": "0.3300",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "10": {
+          "coefficient": "0.3500",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "11": {
+          "coefficient": "0.3600",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "12": {
+          "coefficient": "0.3700",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "13": {
+          "coefficient": "0.3800",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "14": {
+          "coefficient": "0.3900",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "15": {
+          "coefficient": "0.4100",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "16": {
+          "coefficient": "0.4200",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "17": {
+          "coefficient": "0.4300",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "18": {
+          "coefficient": "0.4400",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "19": {
+          "coefficient": "0.4500",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "20": {
+          "coefficient": "0.4600",
+          "flatAdd": "0",
+          "cooldown": 75
+        },
+        "21": {
+          "coefficient": "0.4700",
+          "flatAdd": "0",
+          "cooldown": 75
+        }
+      }
+    },
+    "SkillSet_WP_ORB_Active_OrbSummon": {
+      "name": "Starcalling",
+      "weapon": "orb",
+      "mappingClass": "exact",
+      "formulaRowId": "ORB_Active_OrbSummon_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.6000",
+          "flatAdd": "35",
+          "cooldown": 6
+        },
+        "2": {
+          "coefficient": "2.6000",
+          "flatAdd": "42",
+          "cooldown": 6
+        },
+        "3": {
+          "coefficient": "2.8500",
+          "flatAdd": "49",
+          "cooldown": 6
+        },
+        "4": {
+          "coefficient": "2.8500",
+          "flatAdd": "56",
+          "cooldown": 6
+        },
+        "5": {
+          "coefficient": "3.1000",
+          "flatAdd": "63",
+          "cooldown": 6
+        },
+        "6": {
+          "coefficient": "3.3000",
+          "flatAdd": "70",
+          "cooldown": 6
+        },
+        "7": {
+          "coefficient": "3.3000",
+          "flatAdd": "77",
+          "cooldown": 6
+        },
+        "8": {
+          "coefficient": "3.5500",
+          "flatAdd": "84",
+          "cooldown": 6
+        },
+        "9": {
+          "coefficient": "3.5500",
+          "flatAdd": "91",
+          "cooldown": 6
+        },
+        "10": {
+          "coefficient": "3.8000",
+          "flatAdd": "98",
+          "cooldown": 6
+        },
+        "11": {
+          "coefficient": "4.0000",
+          "flatAdd": "105",
+          "cooldown": 6
+        },
+        "12": {
+          "coefficient": "4.0000",
+          "flatAdd": "112",
+          "cooldown": 6
+        },
+        "13": {
+          "coefficient": "4.2500",
+          "flatAdd": "119",
+          "cooldown": 6
+        },
+        "14": {
+          "coefficient": "4.2500",
+          "flatAdd": "126",
+          "cooldown": 6
+        },
+        "15": {
+          "coefficient": "4.5000",
+          "flatAdd": "133",
+          "cooldown": 6
+        },
+        "16": {
+          "coefficient": "4.5900",
+          "flatAdd": "140",
+          "cooldown": 6
+        },
+        "17": {
+          "coefficient": "4.6800",
+          "flatAdd": "147",
+          "cooldown": 6
+        },
+        "18": {
+          "coefficient": "4.7700",
+          "flatAdd": "154",
+          "cooldown": 6
+        },
+        "19": {
+          "coefficient": "4.8600",
+          "flatAdd": "161",
+          "cooldown": 6
+        },
+        "20": {
+          "coefficient": "4.9500",
+          "flatAdd": "168",
+          "cooldown": 6
+        },
+        "21": {
+          "coefficient": "5.0400",
+          "flatAdd": "175",
+          "cooldown": 6
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_BloodStrike": {
+      "name": "Vampiric Strike",
+      "weapon": "dagger",
+      "mappingClass": "exact",
+      "formulaRowId": "DA_BloodStrike_Trait_3_DD",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "5.4000",
+          "flatAdd": "0",
+          "cooldown": 21
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_LegAttack": {
+      "name": "Ankle Strike",
+      "weapon": "dagger",
+      "mappingClass": "derived",
+      "formulaRowId": "DA_LegAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.7000",
+          "flatAdd": "2",
+          "cooldown": 27
+        },
+        "2": {
+          "coefficient": "1.7000",
+          "flatAdd": "3",
+          "cooldown": 27
+        },
+        "3": {
+          "coefficient": "1.7500",
+          "flatAdd": "4",
+          "cooldown": 27
+        },
+        "4": {
+          "coefficient": "1.7500",
+          "flatAdd": "5",
+          "cooldown": 27
+        },
+        "5": {
+          "coefficient": "1.8000",
+          "flatAdd": "6",
+          "cooldown": 27
+        },
+        "6": {
+          "coefficient": "1.8500",
+          "flatAdd": "7",
+          "cooldown": 27
+        },
+        "7": {
+          "coefficient": "1.8500",
+          "flatAdd": "8",
+          "cooldown": 27
+        },
+        "8": {
+          "coefficient": "1.9000",
+          "flatAdd": "9",
+          "cooldown": 27
+        },
+        "9": {
+          "coefficient": "1.9000",
+          "flatAdd": "10",
+          "cooldown": 27
+        },
+        "10": {
+          "coefficient": "1.9500",
+          "flatAdd": "11",
+          "cooldown": 27
+        },
+        "11": {
+          "coefficient": "2.0000",
+          "flatAdd": "12",
+          "cooldown": 27
+        },
+        "12": {
+          "coefficient": "2.0000",
+          "flatAdd": "13",
+          "cooldown": 27
+        },
+        "13": {
+          "coefficient": "2.0500",
+          "flatAdd": "14",
+          "cooldown": 27
+        },
+        "14": {
+          "coefficient": "2.0500",
+          "flatAdd": "15",
+          "cooldown": 27
+        },
+        "15": {
+          "coefficient": "2.1000",
+          "flatAdd": "16",
+          "cooldown": 27
+        },
+        "16": {
+          "coefficient": "2.1500",
+          "flatAdd": "17",
+          "cooldown": 27
+        },
+        "17": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 27
+        },
+        "18": {
+          "coefficient": "2.2500",
+          "flatAdd": "19",
+          "cooldown": 27
+        },
+        "19": {
+          "coefficient": "2.3000",
+          "flatAdd": "20",
+          "cooldown": 27
+        },
+        "20": {
+          "coefficient": "2.3500",
+          "flatAdd": "21",
+          "cooldown": 27
+        },
+        "21": {
+          "coefficient": "2.4000",
+          "flatAdd": "22",
+          "cooldown": 27
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_PoisonEnchant": {
+      "name": "Inject Venom",
+      "weapon": "dagger",
+      "mappingClass": "exact",
+      "formulaRowId": "DA_PoisonEnchant_Context_DD_additional",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.8000",
+          "flatAdd": "7",
+          "cooldown": 18
+        },
+        "2": {
+          "coefficient": "1.8000",
+          "flatAdd": "10",
+          "cooldown": 18
+        },
+        "3": {
+          "coefficient": "1.9000",
+          "flatAdd": "14",
+          "cooldown": 18
+        },
+        "4": {
+          "coefficient": "1.9000",
+          "flatAdd": "18",
+          "cooldown": 18
+        },
+        "5": {
+          "coefficient": "2.0000",
+          "flatAdd": "22",
+          "cooldown": 18
+        },
+        "6": {
+          "coefficient": "2.0500",
+          "flatAdd": "26",
+          "cooldown": 18
+        },
+        "7": {
+          "coefficient": "2.0500",
+          "flatAdd": "30",
+          "cooldown": 18
+        },
+        "8": {
+          "coefficient": "2.1500",
+          "flatAdd": "33",
+          "cooldown": 18
+        },
+        "9": {
+          "coefficient": "2.1500",
+          "flatAdd": "38",
+          "cooldown": 18
+        },
+        "10": {
+          "coefficient": "2.2500",
+          "flatAdd": "41",
+          "cooldown": 18
+        },
+        "11": {
+          "coefficient": "2.3500",
+          "flatAdd": "47",
+          "cooldown": 18
+        },
+        "12": {
+          "coefficient": "2.3500",
+          "flatAdd": "50",
+          "cooldown": 18
+        },
+        "13": {
+          "coefficient": "2.4500",
+          "flatAdd": "53",
+          "cooldown": 18
+        },
+        "14": {
+          "coefficient": "2.4500",
+          "flatAdd": "58",
+          "cooldown": 18
+        },
+        "15": {
+          "coefficient": "2.5500",
+          "flatAdd": "61",
+          "cooldown": 18
+        },
+        "16": {
+          "coefficient": "2.6000",
+          "flatAdd": "65",
+          "cooldown": 18
+        },
+        "17": {
+          "coefficient": "2.6500",
+          "flatAdd": "69",
+          "cooldown": 18
+        },
+        "18": {
+          "coefficient": "2.7000",
+          "flatAdd": "73",
+          "cooldown": 18
+        },
+        "19": {
+          "coefficient": "2.7500",
+          "flatAdd": "77",
+          "cooldown": 18
+        },
+        "20": {
+          "coefficient": "2.8000",
+          "flatAdd": "81",
+          "cooldown": 18
+        },
+        "21": {
+          "coefficient": "2.8500",
+          "flatAdd": "85",
+          "cooldown": 18
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_ShadowChaser": {
+      "name": "Umbral Spirit",
+      "weapon": "dagger",
+      "mappingClass": "derived",
+      "formulaRowId": "DA_ShadowChaser_DD_SP_NPC",
+      "attackPowerComponentCount": 9,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.3700",
+          "flatAdd": "4",
+          "cooldown": 30
+        },
+        "2": {
+          "coefficient": "0.4000",
+          "flatAdd": "7",
+          "cooldown": 30
+        },
+        "3": {
+          "coefficient": "0.4500",
+          "flatAdd": "8",
+          "cooldown": 30
+        },
+        "4": {
+          "coefficient": "0.4800",
+          "flatAdd": "11",
+          "cooldown": 30
+        },
+        "5": {
+          "coefficient": "0.5400",
+          "flatAdd": "13",
+          "cooldown": 30
+        },
+        "6": {
+          "coefficient": "0.6100",
+          "flatAdd": "15",
+          "cooldown": 30
+        },
+        "7": {
+          "coefficient": "0.6400",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "8": {
+          "coefficient": "0.7100",
+          "flatAdd": "24",
+          "cooldown": 30
+        },
+        "9": {
+          "coefficient": "0.7400",
+          "flatAdd": "27",
+          "cooldown": 30
+        },
+        "10": {
+          "coefficient": "0.8200",
+          "flatAdd": "31",
+          "cooldown": 30
+        },
+        "11": {
+          "coefficient": "0.9000",
+          "flatAdd": "34",
+          "cooldown": 30
+        },
+        "12": {
+          "coefficient": "0.9300",
+          "flatAdd": "38",
+          "cooldown": 30
+        },
+        "13": {
+          "coefficient": "1.0200",
+          "flatAdd": "42",
+          "cooldown": 30
+        },
+        "14": {
+          "coefficient": "1.0500",
+          "flatAdd": "46",
+          "cooldown": 30
+        },
+        "15": {
+          "coefficient": "1.1500",
+          "flatAdd": "53",
+          "cooldown": 30
+        },
+        "16": {
+          "coefficient": "1.1800",
+          "flatAdd": "56",
+          "cooldown": 30
+        },
+        "17": {
+          "coefficient": "1.2000",
+          "flatAdd": "59",
+          "cooldown": 30
+        },
+        "18": {
+          "coefficient": "1.2300",
+          "flatAdd": "62",
+          "cooldown": 30
+        },
+        "19": {
+          "coefficient": "1.2600",
+          "flatAdd": "64",
+          "cooldown": 30
+        },
+        "20": {
+          "coefficient": "1.2900",
+          "flatAdd": "67",
+          "cooldown": 30
+        },
+        "21": {
+          "coefficient": "1.3200",
+          "flatAdd": "73",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_PoisonDagger": {
+      "name": "Knife Throwing",
+      "weapon": "dagger",
+      "mappingClass": "exact",
+      "formulaRowId": "DA_PoisonDagger_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.6000",
+          "flatAdd": "0",
+          "cooldown": 18
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_PushAttack": {
+      "name": "Fierce Clash",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_PushAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.2000",
+          "flatAdd": "0",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_CR_D_RobShot": {
+      "name": "Wind Snatcher",
+      "weapon": "crossbow",
+      "mappingClass": "derived",
+      "formulaRowId": "CR_RobShot_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "11": {
+          "coefficient": "1.0000",
+          "flatAdd": "0",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_DefenceAttack": {
+      "name": "Cataclysm",
+      "weapon": "spear",
+      "mappingClass": "derived",
+      "formulaRowId": "SP_DefenceAttack_DD_PVE",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "11": {
+          "coefficient": "22.0000",
+          "flatAdd": "600",
+          "cooldown": 27
+        },
+        "12": {
+          "coefficient": "22.0000",
+          "flatAdd": "660",
+          "cooldown": 27
+        },
+        "13": {
+          "coefficient": "24.0000",
+          "flatAdd": "720",
+          "cooldown": 27
+        },
+        "14": {
+          "coefficient": "24.0000",
+          "flatAdd": "780",
+          "cooldown": 27
+        },
+        "15": {
+          "coefficient": "27.0000",
+          "flatAdd": "840",
+          "cooldown": 27
+        },
+        "16": {
+          "coefficient": "32.0000",
+          "flatAdd": "870",
+          "cooldown": 27
+        },
+        "17": {
+          "coefficient": "32.7000",
+          "flatAdd": "900",
+          "cooldown": 27
+        },
+        "18": {
+          "coefficient": "33.4000",
+          "flatAdd": "960",
+          "cooldown": 27
+        },
+        "19": {
+          "coefficient": "34.1000",
+          "flatAdd": "1020",
+          "cooldown": 27
+        },
+        "20": {
+          "coefficient": "34.8000",
+          "flatAdd": "1080",
+          "cooldown": 27
+        },
+        "21": {
+          "coefficient": "35.5000",
+          "flatAdd": "1140",
+          "cooldown": 27
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_StunAttack": {
+      "name": "Abyssal Cleave",
+      "weapon": "spear",
+      "mappingClass": "derived",
+      "formulaRowId": "SP_StunAttack_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.5000",
+          "flatAdd": "0",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_Decay": {
+      "name": "Time for Punishment",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WA_Decay_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "0",
+          "cooldown": 21
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_LeapAttack": {
+      "name": "Devastating Smash",
+      "weapon": "sword2h",
+      "mappingClass": "exact",
+      "formulaRowId": "SW2_LeapAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.3000",
+          "flatAdd": "49",
+          "cooldown": 36
+        },
+        "2": {
+          "coefficient": "2.3000",
+          "flatAdd": "53",
+          "cooldown": 36
+        },
+        "3": {
+          "coefficient": "2.4000",
+          "flatAdd": "58",
+          "cooldown": 36
+        },
+        "4": {
+          "coefficient": "2.4000",
+          "flatAdd": "62",
+          "cooldown": 36
+        },
+        "5": {
+          "coefficient": "2.5000",
+          "flatAdd": "66",
+          "cooldown": 36
+        },
+        "6": {
+          "coefficient": "2.6000",
+          "flatAdd": "70",
+          "cooldown": 36
+        },
+        "7": {
+          "coefficient": "2.6000",
+          "flatAdd": "74",
+          "cooldown": 36
+        },
+        "8": {
+          "coefficient": "2.7000",
+          "flatAdd": "79",
+          "cooldown": 36
+        },
+        "9": {
+          "coefficient": "2.7000",
+          "flatAdd": "83",
+          "cooldown": 36
+        },
+        "10": {
+          "coefficient": "2.8000",
+          "flatAdd": "87",
+          "cooldown": 36
+        },
+        "11": {
+          "coefficient": "2.9000",
+          "flatAdd": "91",
+          "cooldown": 36
+        },
+        "12": {
+          "coefficient": "2.9000",
+          "flatAdd": "95",
+          "cooldown": 36
+        },
+        "13": {
+          "coefficient": "3.0000",
+          "flatAdd": "100",
+          "cooldown": 36
+        },
+        "14": {
+          "coefficient": "3.0000",
+          "flatAdd": "104",
+          "cooldown": 36
+        },
+        "15": {
+          "coefficient": "3.1000",
+          "flatAdd": "109",
+          "cooldown": 36
+        },
+        "16": {
+          "coefficient": "3.1600",
+          "flatAdd": "113",
+          "cooldown": 36
+        },
+        "17": {
+          "coefficient": "3.2200",
+          "flatAdd": "117",
+          "cooldown": 36
+        },
+        "18": {
+          "coefficient": "3.2800",
+          "flatAdd": "122",
+          "cooldown": 36
+        },
+        "19": {
+          "coefficient": "3.3400",
+          "flatAdd": "126",
+          "cooldown": 36
+        },
+        "20": {
+          "coefficient": "3.4000",
+          "flatAdd": "130",
+          "cooldown": 36
+        },
+        "21": {
+          "coefficient": "3.4600",
+          "flatAdd": "135",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_CurseSpread": {
+      "name": "Karmic Haze",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WA_CurseSpread_DD_trait3",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "0",
+          "cooldown": 63
+        }
+      }
+    },
+    "SkillSet_WP_ORB_Active_GravityCollapse": {
+      "name": "Supernova Collapse",
+      "weapon": "orb",
+      "mappingClass": "exact",
+      "formulaRowId": "ORB_Active_GravityCollapse_Explosion_DD",
+      "attackPowerComponentCount": 4,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.6000",
+          "flatAdd": "140",
+          "cooldown": 90
+        },
+        "2": {
+          "coefficient": "3.6000",
+          "flatAdd": "180",
+          "cooldown": 90
+        },
+        "3": {
+          "coefficient": "3.9000",
+          "flatAdd": "220",
+          "cooldown": 90
+        },
+        "4": {
+          "coefficient": "3.9000",
+          "flatAdd": "260",
+          "cooldown": 90
+        },
+        "5": {
+          "coefficient": "4.2000",
+          "flatAdd": "300",
+          "cooldown": 90
+        },
+        "6": {
+          "coefficient": "4.4000",
+          "flatAdd": "340",
+          "cooldown": 90
+        },
+        "7": {
+          "coefficient": "4.4000",
+          "flatAdd": "380",
+          "cooldown": 90
+        },
+        "8": {
+          "coefficient": "4.7000",
+          "flatAdd": "420",
+          "cooldown": 90
+        },
+        "9": {
+          "coefficient": "4.7000",
+          "flatAdd": "460",
+          "cooldown": 90
+        },
+        "10": {
+          "coefficient": "5.0000",
+          "flatAdd": "500",
+          "cooldown": 90
+        },
+        "11": {
+          "coefficient": "5.2000",
+          "flatAdd": "540",
+          "cooldown": 90
+        },
+        "12": {
+          "coefficient": "5.2000",
+          "flatAdd": "580",
+          "cooldown": 90
+        },
+        "13": {
+          "coefficient": "5.5000",
+          "flatAdd": "620",
+          "cooldown": 90
+        },
+        "14": {
+          "coefficient": "5.5000",
+          "flatAdd": "660",
+          "cooldown": 90
+        },
+        "15": {
+          "coefficient": "5.8000",
+          "flatAdd": "700",
+          "cooldown": 90
+        },
+        "16": {
+          "coefficient": "5.9000",
+          "flatAdd": "740",
+          "cooldown": 90
+        },
+        "17": {
+          "coefficient": "6.0000",
+          "flatAdd": "780",
+          "cooldown": 90
+        },
+        "18": {
+          "coefficient": "6.1000",
+          "flatAdd": "820",
+          "cooldown": 90
+        },
+        "19": {
+          "coefficient": "6.2000",
+          "flatAdd": "860",
+          "cooldown": 90
+        },
+        "20": {
+          "coefficient": "6.3000",
+          "flatAdd": "900",
+          "cooldown": 90
+        },
+        "21": {
+          "coefficient": "6.5000",
+          "flatAdd": "940",
+          "cooldown": 90
+        }
+      }
+    },
+    "SkillSet_WP_CR_TauntTrap": {
+      "name": "Explosive Trap",
+      "weapon": "crossbow",
+      "mappingClass": "exact",
+      "formulaRowId": "CR_TauntTrap_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "6.0000",
+          "flatAdd": "165",
+          "cooldown": 60
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_Sleep": {
+      "name": "Cursed Nightmare",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WP_Item_Gear_WA_01_3_DD_PC",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "6.0000",
+          "flatAdd": "200",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_StunAttack": {
+      "name": "Stunning Blow",
+      "weapon": "sword2h",
+      "mappingClass": "exact",
+      "formulaRowId": "SW2_StunAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.5000",
+          "flatAdd": "0",
+          "cooldown": 24
+        }
+      }
+    },
+    "SkillSet_WP_ST_S_IceFreeze": {
+      "name": "Icebound Tomb",
+      "weapon": "staff",
+      "mappingClass": "exact",
+      "formulaRowId": "ST_IceFreeze_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "2": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "3": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "4": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "5": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "6": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "7": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "8": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "9": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "10": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "11": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "12": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "13": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "14": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "15": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "16": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "17": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "18": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "19": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "20": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "21": {
+          "coefficient": "2.2000",
+          "flatAdd": "18",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_BO_S_TornadoShot": {
+      "name": "Arrow Vortex",
+      "weapon": "bow",
+      "mappingClass": "exact",
+      "formulaRowId": "BO_TornadoShot_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.0000",
+          "flatAdd": "0",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_BO_S_BindShot": {
+      "name": "Ensnaring Arrow",
+      "weapon": "bow",
+      "mappingClass": "derived",
+      "formulaRowId": "BO_BindShot_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.3000",
+          "flatAdd": "0",
+          "cooldown": 15
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_TauntBuff": {
+      "name": "Provoking Roar",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_TauntBuff_DD_Trait4",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.2000",
+          "flatAdd": "0",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_CR_CR_S_ArmorBreakShot": {
+      "name": "Mortal Mark",
+      "weapon": "crossbow",
+      "mappingClass": "derived",
+      "formulaRowId": "CR_ArmorBreakShot_DD",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "14",
+          "cooldown": 15
+        },
+        "2": {
+          "coefficient": "2.0000",
+          "flatAdd": "20",
+          "cooldown": 15
+        },
+        "3": {
+          "coefficient": "2.1000",
+          "flatAdd": "27",
+          "cooldown": 15
+        },
+        "4": {
+          "coefficient": "2.1000",
+          "flatAdd": "34",
+          "cooldown": 15
+        },
+        "5": {
+          "coefficient": "2.2000",
+          "flatAdd": "41",
+          "cooldown": 15
+        },
+        "6": {
+          "coefficient": "2.3000",
+          "flatAdd": "48",
+          "cooldown": 15
+        },
+        "7": {
+          "coefficient": "2.3000",
+          "flatAdd": "54",
+          "cooldown": 15
+        },
+        "8": {
+          "coefficient": "2.4000",
+          "flatAdd": "61",
+          "cooldown": 15
+        },
+        "9": {
+          "coefficient": "2.4000",
+          "flatAdd": "68",
+          "cooldown": 15
+        },
+        "10": {
+          "coefficient": "2.5000",
+          "flatAdd": "75",
+          "cooldown": 15
+        },
+        "11": {
+          "coefficient": "2.6000",
+          "flatAdd": "82",
+          "cooldown": 15
+        },
+        "12": {
+          "coefficient": "2.6000",
+          "flatAdd": "88",
+          "cooldown": 15
+        },
+        "13": {
+          "coefficient": "2.7000",
+          "flatAdd": "95",
+          "cooldown": 15
+        },
+        "14": {
+          "coefficient": "2.7000",
+          "flatAdd": "102",
+          "cooldown": 15
+        },
+        "15": {
+          "coefficient": "2.8000",
+          "flatAdd": "109",
+          "cooldown": 15
+        },
+        "16": {
+          "coefficient": "2.8500",
+          "flatAdd": "116",
+          "cooldown": 15
+        },
+        "17": {
+          "coefficient": "2.9100",
+          "flatAdd": "122",
+          "cooldown": 15
+        },
+        "18": {
+          "coefficient": "2.9600",
+          "flatAdd": "129",
+          "cooldown": 15
+        },
+        "19": {
+          "coefficient": "3.0200",
+          "flatAdd": "136",
+          "cooldown": 15
+        },
+        "20": {
+          "coefficient": "3.0700",
+          "flatAdd": "143",
+          "cooldown": 15
+        },
+        "21": {
+          "coefficient": "3.1300",
+          "flatAdd": "150",
+          "cooldown": 15
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_PushAttack": {
+      "name": "Tempest Strike",
+      "weapon": "spear",
+      "mappingClass": "derived",
+      "formulaRowId": "SP_PushAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.5000",
+          "flatAdd": "0",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_CR_CR_S_BuckShot": {
+      "name": "Multi-Shot",
+      "weapon": "crossbow",
+      "mappingClass": "derived",
+      "formulaRowId": "CR_BuckShot_DD_DamageUp",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "11": {
+          "coefficient": "2.7000",
+          "flatAdd": "79",
+          "cooldown": 15
+        },
+        "12": {
+          "coefficient": "2.7000",
+          "flatAdd": "84",
+          "cooldown": 15
+        },
+        "13": {
+          "coefficient": "2.8000",
+          "flatAdd": "89",
+          "cooldown": 15
+        },
+        "14": {
+          "coefficient": "2.8000",
+          "flatAdd": "94",
+          "cooldown": 15
+        },
+        "15": {
+          "coefficient": "2.9000",
+          "flatAdd": "99",
+          "cooldown": 15
+        },
+        "16": {
+          "coefficient": "2.9800",
+          "flatAdd": "104",
+          "cooldown": 15
+        }
+      }
+    },
+    "SkillSet_WP_ST_S_IceSpear": {
+      "name": "Ice Spear",
+      "weapon": "staff",
+      "mappingClass": "exact",
+      "formulaRowId": "ST_IceSpear_DD",
+      "attackPowerComponentCount": 3,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.8000",
+          "flatAdd": "42",
+          "cooldown": 30
+        },
+        "2": {
+          "coefficient": "3.8000",
+          "flatAdd": "46",
+          "cooldown": 30
+        },
+        "3": {
+          "coefficient": "3.9500",
+          "flatAdd": "49",
+          "cooldown": 30
+        },
+        "4": {
+          "coefficient": "3.9500",
+          "flatAdd": "53",
+          "cooldown": 30
+        },
+        "5": {
+          "coefficient": "4.1000",
+          "flatAdd": "56",
+          "cooldown": 30
+        },
+        "6": {
+          "coefficient": "4.2500",
+          "flatAdd": "60",
+          "cooldown": 30
+        },
+        "7": {
+          "coefficient": "4.2500",
+          "flatAdd": "64",
+          "cooldown": 30
+        },
+        "8": {
+          "coefficient": "4.4500",
+          "flatAdd": "67",
+          "cooldown": 30
+        },
+        "9": {
+          "coefficient": "4.4500",
+          "flatAdd": "71",
+          "cooldown": 30
+        },
+        "10": {
+          "coefficient": "4.6000",
+          "flatAdd": "74",
+          "cooldown": 30
+        },
+        "11": {
+          "coefficient": "4.7500",
+          "flatAdd": "78",
+          "cooldown": 30
+        },
+        "12": {
+          "coefficient": "4.7500",
+          "flatAdd": "82",
+          "cooldown": 30
+        },
+        "13": {
+          "coefficient": "4.9000",
+          "flatAdd": "85",
+          "cooldown": 30
+        },
+        "14": {
+          "coefficient": "4.9000",
+          "flatAdd": "89",
+          "cooldown": 30
+        },
+        "15": {
+          "coefficient": "5.1000",
+          "flatAdd": "92",
+          "cooldown": 30
+        },
+        "16": {
+          "coefficient": "5.2000",
+          "flatAdd": "96",
+          "cooldown": 30
+        },
+        "17": {
+          "coefficient": "5.3000",
+          "flatAdd": "100",
+          "cooldown": 30
+        },
+        "18": {
+          "coefficient": "5.4000",
+          "flatAdd": "104",
+          "cooldown": 30
+        },
+        "19": {
+          "coefficient": "5.5000",
+          "flatAdd": "108",
+          "cooldown": 30
+        },
+        "20": {
+          "coefficient": "5.6000",
+          "flatAdd": "112",
+          "cooldown": 30
+        },
+        "21": {
+          "coefficient": "5.7000",
+          "flatAdd": "116",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_DA_DA_S_BlinkStrike": {
+      "name": "Shadow Strike",
+      "weapon": "dagger",
+      "mappingClass": "exact",
+      "formulaRowId": "DA_BlinkStrike_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "0",
+          "cooldown": 15
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_DashAttack": {
+      "name": "Gale Rush",
+      "weapon": "spear",
+      "mappingClass": "derived",
+      "formulaRowId": "SP_DashAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.2000",
+          "flatAdd": "0",
+          "cooldown": 15
+        }
+      }
+    },
+    "SkillSet_WP_ST_S_AoeTeleport": {
+      "name": "Frost Smokescreen",
+      "weapon": "staff",
+      "mappingClass": "exact",
+      "formulaRowId": "WP_Item_Gear_ST_02_2_DD_Area_PC",
+      "attackPowerComponentCount": 4,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.6000",
+          "flatAdd": "180",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_SpinAttack": {
+      "name": "Devastating Tornado",
+      "weapon": "sword2h",
+      "mappingClass": "exact",
+      "formulaRowId": "SW2_SpinAttack_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.5700",
+          "flatAdd": "9",
+          "cooldown": 15
+        },
+        "2": {
+          "coefficient": "0.5700",
+          "flatAdd": "10",
+          "cooldown": 15
+        },
+        "3": {
+          "coefficient": "0.5800",
+          "flatAdd": "11",
+          "cooldown": 15
+        },
+        "4": {
+          "coefficient": "0.5800",
+          "flatAdd": "12",
+          "cooldown": 15
+        },
+        "5": {
+          "coefficient": "0.5900",
+          "flatAdd": "13",
+          "cooldown": 15
+        },
+        "6": {
+          "coefficient": "0.6000",
+          "flatAdd": "14",
+          "cooldown": 15
+        },
+        "7": {
+          "coefficient": "0.6000",
+          "flatAdd": "15",
+          "cooldown": 15
+        },
+        "8": {
+          "coefficient": "0.6100",
+          "flatAdd": "16",
+          "cooldown": 15
+        },
+        "9": {
+          "coefficient": "0.6100",
+          "flatAdd": "17",
+          "cooldown": 15
+        },
+        "10": {
+          "coefficient": "0.6200",
+          "flatAdd": "18",
+          "cooldown": 15
+        },
+        "11": {
+          "coefficient": "0.6300",
+          "flatAdd": "19",
+          "cooldown": 15
+        },
+        "12": {
+          "coefficient": "0.6300",
+          "flatAdd": "20",
+          "cooldown": 15
+        },
+        "13": {
+          "coefficient": "0.6400",
+          "flatAdd": "21",
+          "cooldown": 15
+        },
+        "14": {
+          "coefficient": "0.6400",
+          "flatAdd": "22",
+          "cooldown": 15
+        },
+        "15": {
+          "coefficient": "0.6500",
+          "flatAdd": "23",
+          "cooldown": 15
+        },
+        "16": {
+          "coefficient": "0.6600",
+          "flatAdd": "24",
+          "cooldown": 15
+        },
+        "17": {
+          "coefficient": "0.6700",
+          "flatAdd": "25",
+          "cooldown": 15
+        },
+        "18": {
+          "coefficient": "0.6900",
+          "flatAdd": "26",
+          "cooldown": 15
+        },
+        "19": {
+          "coefficient": "0.7000",
+          "flatAdd": "27",
+          "cooldown": 15
+        },
+        "20": {
+          "coefficient": "0.7200",
+          "flatAdd": "28",
+          "cooldown": 15
+        },
+        "21": {
+          "coefficient": "0.7300",
+          "flatAdd": "29",
+          "cooldown": 15
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_DashAttack": {
+      "name": "Strategic Rush",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_DashAttack_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "19",
+          "cooldown": 18
+        },
+        "2": {
+          "coefficient": "2.0000",
+          "flatAdd": "28",
+          "cooldown": 18
+        },
+        "3": {
+          "coefficient": "2.1000",
+          "flatAdd": "38",
+          "cooldown": 18
+        },
+        "4": {
+          "coefficient": "2.1000",
+          "flatAdd": "47",
+          "cooldown": 18
+        },
+        "5": {
+          "coefficient": "2.2000",
+          "flatAdd": "56",
+          "cooldown": 18
+        },
+        "6": {
+          "coefficient": "2.3000",
+          "flatAdd": "66",
+          "cooldown": 18
+        },
+        "7": {
+          "coefficient": "2.3000",
+          "flatAdd": "75",
+          "cooldown": 18
+        },
+        "8": {
+          "coefficient": "2.4000",
+          "flatAdd": "84",
+          "cooldown": 18
+        },
+        "9": {
+          "coefficient": "2.4000",
+          "flatAdd": "94",
+          "cooldown": 18
+        },
+        "10": {
+          "coefficient": "2.5000",
+          "flatAdd": "103",
+          "cooldown": 18
+        },
+        "11": {
+          "coefficient": "2.6000",
+          "flatAdd": "113",
+          "cooldown": 18
+        },
+        "12": {
+          "coefficient": "2.6000",
+          "flatAdd": "122",
+          "cooldown": 18
+        },
+        "13": {
+          "coefficient": "2.7000",
+          "flatAdd": "131",
+          "cooldown": 18
+        },
+        "14": {
+          "coefficient": "2.7000",
+          "flatAdd": "141",
+          "cooldown": 18
+        },
+        "15": {
+          "coefficient": "2.8000",
+          "flatAdd": "150",
+          "cooldown": 18
+        },
+        "16": {
+          "coefficient": "2.8600",
+          "flatAdd": "159",
+          "cooldown": 18
+        },
+        "17": {
+          "coefficient": "2.9200",
+          "flatAdd": "167",
+          "cooldown": 18
+        },
+        "18": {
+          "coefficient": "2.9800",
+          "flatAdd": "175",
+          "cooldown": 18
+        },
+        "19": {
+          "coefficient": "3.0400",
+          "flatAdd": "183",
+          "cooldown": 18
+        },
+        "20": {
+          "coefficient": "3.1000",
+          "flatAdd": "191",
+          "cooldown": 18
+        },
+        "21": {
+          "coefficient": "3.1600",
+          "flatAdd": "200",
+          "cooldown": 18
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_PullSkill": {
+      "name": "Chain Hook",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SW_GrabAttack_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "1.0000",
+          "flatAdd": "0",
+          "cooldown": 35
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_HealAll": {
+      "name": "Clay's Salvation",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WA_HealAll_Heal",
+      "attackPowerComponentCount": 8,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.2000",
+          "flatAdd": "330",
+          "cooldown": 45
+        },
+        "2": {
+          "coefficient": "2.2000",
+          "flatAdd": "385",
+          "cooldown": 45
+        },
+        "3": {
+          "coefficient": "2.2500",
+          "flatAdd": "440",
+          "cooldown": 45
+        },
+        "4": {
+          "coefficient": "2.2500",
+          "flatAdd": "495",
+          "cooldown": 45
+        },
+        "5": {
+          "coefficient": "2.3000",
+          "flatAdd": "550",
+          "cooldown": 45
+        },
+        "6": {
+          "coefficient": "2.3500",
+          "flatAdd": "605",
+          "cooldown": 45
+        },
+        "7": {
+          "coefficient": "2.3500",
+          "flatAdd": "660",
+          "cooldown": 45
+        },
+        "8": {
+          "coefficient": "2.4000",
+          "flatAdd": "715",
+          "cooldown": 45
+        },
+        "9": {
+          "coefficient": "2.4000",
+          "flatAdd": "770",
+          "cooldown": 45
+        },
+        "10": {
+          "coefficient": "2.5000",
+          "flatAdd": "825",
+          "cooldown": 45
+        },
+        "11": {
+          "coefficient": "2.5500",
+          "flatAdd": "880",
+          "cooldown": 45
+        },
+        "12": {
+          "coefficient": "2.5500",
+          "flatAdd": "935",
+          "cooldown": 45
+        },
+        "13": {
+          "coefficient": "2.6000",
+          "flatAdd": "990",
+          "cooldown": 45
+        },
+        "14": {
+          "coefficient": "2.6000",
+          "flatAdd": "1045",
+          "cooldown": 45
+        },
+        "15": {
+          "coefficient": "2.7000",
+          "flatAdd": "1100",
+          "cooldown": 45
+        },
+        "16": {
+          "coefficient": "2.7500",
+          "flatAdd": "1155",
+          "cooldown": 45
+        },
+        "17": {
+          "coefficient": "2.8000",
+          "flatAdd": "1210",
+          "cooldown": 45
+        },
+        "18": {
+          "coefficient": "2.8500",
+          "flatAdd": "1265",
+          "cooldown": 45
+        },
+        "19": {
+          "coefficient": "2.9000",
+          "flatAdd": "1320",
+          "cooldown": 45
+        },
+        "20": {
+          "coefficient": "2.9500",
+          "flatAdd": "1375",
+          "cooldown": 45
+        },
+        "21": {
+          "coefficient": "3.0000",
+          "flatAdd": "1430",
+          "cooldown": 45
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_HealField": {
+      "name": "Fountain of Life",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WM_WA_RARE_TAC_HealField_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "11": {
+          "coefficient": "0.6500",
+          "flatAdd": "42",
+          "cooldown": 36
+        },
+        "12": {
+          "coefficient": "0.6500",
+          "flatAdd": "52",
+          "cooldown": 36
+        },
+        "13": {
+          "coefficient": "0.7500",
+          "flatAdd": "62",
+          "cooldown": 36
+        },
+        "14": {
+          "coefficient": "0.7500",
+          "flatAdd": "72",
+          "cooldown": 36
+        },
+        "15": {
+          "coefficient": "0.9000",
+          "flatAdd": "82",
+          "cooldown": 36
+        },
+        "16": {
+          "coefficient": "0.9200",
+          "flatAdd": "92",
+          "cooldown": 36
+        },
+        "17": {
+          "coefficient": "0.9400",
+          "flatAdd": "102",
+          "cooldown": 36
+        },
+        "18": {
+          "coefficient": "0.9600",
+          "flatAdd": "112",
+          "cooldown": 36
+        },
+        "19": {
+          "coefficient": "0.9800",
+          "flatAdd": "122",
+          "cooldown": 36
+        },
+        "20": {
+          "coefficient": "1.0000",
+          "flatAdd": "132",
+          "cooldown": 36
+        },
+        "21": {
+          "coefficient": "1.0200",
+          "flatAdd": "142",
+          "cooldown": 36
+        }
+      }
+    },
+    "SkillSet_WP_BO_S_RegenHeal": {
+      "name": "Healing Touch",
+      "weapon": "bow",
+      "mappingClass": "exact",
+      "formulaRowId": "BO_RegenHeal_PowerUp_Heal_Stack3",
+      "attackPowerComponentCount": 6,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "4.5000",
+          "flatAdd": "1950",
+          "cooldown": 6
+        }
+      }
+    },
+    "SkillSet_WP_WA_GR_S_MagicShield": {
+      "name": "Invincible Wall",
+      "weapon": "wand",
+      "mappingClass": "exact",
+      "formulaRowId": "WA_MagicShield_Shield_ArchBoss_T2",
+      "attackPowerComponentCount": 4,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "4.9360",
+          "flatAdd": "1098",
+          "cooldown": 30
+        },
+        "2": {
+          "coefficient": "4.9360",
+          "flatAdd": "1203",
+          "cooldown": 30
+        },
+        "3": {
+          "coefficient": "5.2445",
+          "flatAdd": "1308",
+          "cooldown": 30
+        },
+        "4": {
+          "coefficient": "5.2445",
+          "flatAdd": "1412",
+          "cooldown": 30
+        },
+        "5": {
+          "coefficient": "5.6147",
+          "flatAdd": "1517",
+          "cooldown": 30
+        },
+        "6": {
+          "coefficient": "5.9232",
+          "flatAdd": "1622",
+          "cooldown": 30
+        },
+        "7": {
+          "coefficient": "5.9232",
+          "flatAdd": "1727",
+          "cooldown": 30
+        },
+        "8": {
+          "coefficient": "6.2934",
+          "flatAdd": "1832",
+          "cooldown": 30
+        },
+        "9": {
+          "coefficient": "6.2934",
+          "flatAdd": "1937",
+          "cooldown": 30
+        },
+        "10": {
+          "coefficient": "6.6019",
+          "flatAdd": "2042",
+          "cooldown": 30
+        },
+        "11": {
+          "coefficient": "6.9721",
+          "flatAdd": "2147",
+          "cooldown": 30
+        },
+        "12": {
+          "coefficient": "6.9721",
+          "flatAdd": "2252",
+          "cooldown": 30
+        },
+        "13": {
+          "coefficient": "7.3423",
+          "flatAdd": "2356",
+          "cooldown": 30
+        },
+        "14": {
+          "coefficient": "7.3423",
+          "flatAdd": "2461",
+          "cooldown": 30
+        },
+        "15": {
+          "coefficient": "7.7125",
+          "flatAdd": "2566",
+          "cooldown": 30
+        },
+        "16": {
+          "coefficient": "7.8359",
+          "flatAdd": "2671",
+          "cooldown": 30
+        },
+        "17": {
+          "coefficient": "7.9593",
+          "flatAdd": "2776",
+          "cooldown": 30
+        },
+        "18": {
+          "coefficient": "8.0827",
+          "flatAdd": "2881",
+          "cooldown": 30
+        },
+        "19": {
+          "coefficient": "8.2061",
+          "flatAdd": "2986",
+          "cooldown": 30
+        },
+        "20": {
+          "coefficient": "8.3295",
+          "flatAdd": "3091",
+          "cooldown": 30
+        },
+        "21": {
+          "coefficient": "8.4529",
+          "flatAdd": "3196",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_SW_SH_S_BuffAttack": {
+      "name": "Counter Barrier",
+      "weapon": "sword",
+      "mappingClass": "exact",
+      "formulaRowId": "SH_BuffAttack_trait1_DD",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "0",
+          "cooldown": 45
+        }
+      }
+    },
+    "SkillSet_WP_SP_S_BloodAura": {
+      "name": "Bloodleech Aura",
+      "weapon": "spear",
+      "mappingClass": "derived",
+      "formulaRowId": "SP_BloodAura_DD",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "0.6000",
+          "flatAdd": "6",
+          "cooldown": 30
+        },
+        "2": {
+          "coefficient": "0.6000",
+          "flatAdd": "7",
+          "cooldown": 30
+        },
+        "3": {
+          "coefficient": "0.6400",
+          "flatAdd": "9",
+          "cooldown": 30
+        },
+        "4": {
+          "coefficient": "0.6400",
+          "flatAdd": "10",
+          "cooldown": 30
+        },
+        "5": {
+          "coefficient": "0.6800",
+          "flatAdd": "12",
+          "cooldown": 30
+        },
+        "6": {
+          "coefficient": "0.7200",
+          "flatAdd": "13",
+          "cooldown": 30
+        },
+        "7": {
+          "coefficient": "0.7200",
+          "flatAdd": "15",
+          "cooldown": 30
+        },
+        "8": {
+          "coefficient": "0.7600",
+          "flatAdd": "16",
+          "cooldown": 30
+        },
+        "9": {
+          "coefficient": "0.7600",
+          "flatAdd": "18",
+          "cooldown": 30
+        },
+        "10": {
+          "coefficient": "0.8000",
+          "flatAdd": "19",
+          "cooldown": 30
+        },
+        "11": {
+          "coefficient": "0.8400",
+          "flatAdd": "21",
+          "cooldown": 30
+        },
+        "12": {
+          "coefficient": "0.8400",
+          "flatAdd": "22",
+          "cooldown": 30
+        },
+        "13": {
+          "coefficient": "0.8800",
+          "flatAdd": "24",
+          "cooldown": 30
+        },
+        "14": {
+          "coefficient": "0.8800",
+          "flatAdd": "25",
+          "cooldown": 30
+        },
+        "15": {
+          "coefficient": "0.9200",
+          "flatAdd": "27",
+          "cooldown": 30
+        },
+        "16": {
+          "coefficient": "0.9400",
+          "flatAdd": "28",
+          "cooldown": 30
+        },
+        "17": {
+          "coefficient": "0.9600",
+          "flatAdd": "30",
+          "cooldown": 30
+        },
+        "18": {
+          "coefficient": "0.9800",
+          "flatAdd": "31",
+          "cooldown": 30
+        },
+        "19": {
+          "coefficient": "1.0000",
+          "flatAdd": "33",
+          "cooldown": 30
+        },
+        "20": {
+          "coefficient": "1.0200",
+          "flatAdd": "34",
+          "cooldown": 30
+        },
+        "21": {
+          "coefficient": "1.0400",
+          "flatAdd": "36",
+          "cooldown": 30
+        }
+      }
+    },
+    "SkillSet_WP_ORB_Active_Shield": {
+      "name": "Distortion Veil",
+      "weapon": "orb",
+      "mappingClass": "exact",
+      "formulaRowId": "ORB_Active_Shield_Trait1_ShieldHp",
+      "attackPowerComponentCount": 2,
+      "componentSelection": "primary_largest_coefficient",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "3.6000",
+          "flatAdd": "720",
+          "cooldown": 9
+        },
+        "2": {
+          "coefficient": "3.6000",
+          "flatAdd": "798",
+          "cooldown": 9
+        },
+        "3": {
+          "coefficient": "3.8000",
+          "flatAdd": "876",
+          "cooldown": 9
+        },
+        "4": {
+          "coefficient": "3.8000",
+          "flatAdd": "954",
+          "cooldown": 9
+        },
+        "5": {
+          "coefficient": "4.0000",
+          "flatAdd": "1032",
+          "cooldown": 9
+        },
+        "6": {
+          "coefficient": "4.2000",
+          "flatAdd": "1110",
+          "cooldown": 9
+        },
+        "7": {
+          "coefficient": "4.2000",
+          "flatAdd": "1188",
+          "cooldown": 9
+        },
+        "8": {
+          "coefficient": "4.4000",
+          "flatAdd": "1266",
+          "cooldown": 9
+        },
+        "9": {
+          "coefficient": "4.4000",
+          "flatAdd": "1344",
+          "cooldown": 9
+        },
+        "10": {
+          "coefficient": "4.6000",
+          "flatAdd": "1422",
+          "cooldown": 9
+        },
+        "11": {
+          "coefficient": "4.8000",
+          "flatAdd": "1500",
+          "cooldown": 9
+        },
+        "12": {
+          "coefficient": "4.8000",
+          "flatAdd": "1578",
+          "cooldown": 9
+        },
+        "13": {
+          "coefficient": "5.0500",
+          "flatAdd": "1656",
+          "cooldown": 9
+        },
+        "14": {
+          "coefficient": "5.0500",
+          "flatAdd": "1734",
+          "cooldown": 9
+        },
+        "15": {
+          "coefficient": "5.3000",
+          "flatAdd": "1812",
+          "cooldown": 9
+        },
+        "16": {
+          "coefficient": "5.3760",
+          "flatAdd": "1890",
+          "cooldown": 9
+        },
+        "17": {
+          "coefficient": "5.4720",
+          "flatAdd": "1968",
+          "cooldown": 9
+        },
+        "18": {
+          "coefficient": "5.5680",
+          "flatAdd": "2046",
+          "cooldown": 9
+        },
+        "19": {
+          "coefficient": "5.6640",
+          "flatAdd": "2124",
+          "cooldown": 9
+        },
+        "20": {
+          "coefficient": "5.7600",
+          "flatAdd": "2202",
+          "cooldown": 9
+        },
+        "21": {
+          "coefficient": "5.8560",
+          "flatAdd": "2280",
+          "cooldown": 9
+        }
+      }
+    },
+    "SkillSet_WP_SW2_S_ShieldBuff": {
+      "name": "DaVinci's Courage",
+      "weapon": "sword2h",
+      "mappingClass": "exact",
+      "formulaRowId": "SW2_ShieldBuff_Trait_4_Heal",
+      "attackPowerComponentCount": 1,
+      "componentSelection": "single",
+      "maxLevel": 21,
+      "levels": {
+        "1": {
+          "coefficient": "2.0000",
+          "flatAdd": "200",
+          "cooldown": 45
+        }
+      }
+    }
+  },
+  "excluded": [
+    {
+      "skillSetId": "SkillSet_WP_SW2_S_GaiaCrash",
+      "name": "Gaia Crash",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SW2_S_PowerAttack",
+      "name": "Guillotine Blade",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_WA_GR_S_LinkLaser",
+      "name": "Ray of Disaster",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_CR_CR_S_RapidShot",
+      "name": "Quick Fire",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_CR_D_AddShot",
+      "name": "Recoil Shot",
+      "reason": "no_level_with_cooldown"
+    },
+    {
+      "skillSetId": "SkillSet_WP_CR_D_WeakPointShot",
+      "name": "Weak Point Shot",
+      "reason": "no_level_with_cooldown"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SW2_S_CounterAttack",
+      "name": "Death Blow",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_DA_DA_S_DeadlyStrike",
+      "name": "Brutal Incision",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_ChainAttack",
+      "name": "Chain Strike",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_ChargeAttack",
+      "name": "Critical Hit",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_Laser",
+      "name": "Stellar Dash",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbitSlash",
+      "name": "Void Slash",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SP_S_CrossAttack",
+      "name": "Rising Slash",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_DropShot",
+      "name": "Brutal Arrow",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SP_S_RapidAttack",
+      "name": "Cyclonic Fury",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SP_S_RapidThrust",
+      "name": "Vicious Fury",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_MultiShot",
+      "name": "Strafing",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_FireCombo",
+      "name": "Fireball Barrage",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_MainAttack",
+      "name": "Chain Lightning",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_PowerAttack",
+      "name": "Judgment Lightning",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_EclipseOfBlood",
+      "name": "Eclipse of Blood",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_DoubleShot",
+      "name": "Blitz",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SW2_S_DamageReceive",
+      "name": "Blood Devotion",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbShoot",
+      "name": "Summon Constellation",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_CR_CR_S_BloodToSoul",
+      "name": "Mana Exchange",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_GlobalCoolDownBuff",
+      "name": "High Focus",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_Satellite",
+      "name": "Summon Satellite",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_DA_DA_S_Smoke",
+      "name": "Phantom Smokescreen",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_AggroBuff",
+      "name": "Threat Boost",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SP_S_AbnormalTolerance",
+      "name": "Unyielding Sentinel",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaAttack",
+      "name": "Serial Fire Bombs",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SP_S_DropAttack",
+      "name": "Death From Above",
+      "reason": "no_level_with_cooldown"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_RollingBall",
+      "name": "Star Destroyer",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_Detection",
+      "name": "Flash Arrow",
+      "reason": "no_level_with_cooldown"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaPowerAttack",
+      "name": "Infernal Meteor",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_DA_DA_S_DelayDamage",
+      "name": "Fatal Stigma",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_Bulldozer",
+      "name": "Sweep",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_AttackMark",
+      "name": "Deadly Marker",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_CR_CR_S_Step",
+      "name": "Nimble Leap",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+      "name": "Frenzied Sword Dance",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_GatlingAttack",
+      "name": "Explosive Flurry",
+      "reason": "no_level_with_cooldown"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_MoveAttack",
+      "name": "Mobility Strike",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ST_S_BringSkill",
+      "name": "Salvation Chain",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SW2_S_DashAttack",
+      "name": "Precision Dash",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_BattleTrance",
+      "name": "Trance",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_DA_DA_S_Stealth",
+      "name": "Camouflage Cloak",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_CR_S_GhostWalk",
+      "name": "Selfless Diffusion",
+      "reason": "unresolved_mapping"
+    },
+    {
+      "skillSetId": "SkillSet_WP_WA_GR_S_DefenseUp",
+      "name": "Blessed Barrier",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "name": "Swift Healing",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_RegenAura",
+      "name": "Nature's Blessing",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SW_SH_S_MaxHealthUp",
+      "name": "Immortal Pride",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldBuff",
+      "name": "Stalwart Bastion",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_Restoration",
+      "name": "Restoring Constellation",
+      "reason": "tooltip_coefficient_mismatch"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_Phasing",
+      "name": "Temporal Leap",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_ORB_Active_PartyBarrier",
+      "name": "Guardian Defensive Wall",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_TurtleStance",
+      "name": "Fortifying Shell",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_GT_Active_Taunt",
+      "name": "Taunt",
+      "reason": "no_attack_power_component"
+    },
+    {
+      "skillSetId": "SkillSet_WP_BO_S_AbnormalDispel",
+      "name": "Purifying Touch",
+      "reason": "no_attack_power_component"
+    }
+  ]
+}

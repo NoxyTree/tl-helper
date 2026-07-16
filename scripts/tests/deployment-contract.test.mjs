@@ -20,6 +20,7 @@ test("Vercel serves the static web directory without invoking Vite", async () =>
   assert.match(handler, /export default async function handler/);
   assert.match(handler, /ALLOWED_HOSTS/);
   assert.match(handler, /CACHE_TTL_MS = 300_000/);
+  assert.match(handler, /cache\.delete\(cacheKey\)/, "expired cache entries are deleted on read, not left for FIFO eviction");
 });
 
 test("hosted Questlog adapter preserves the local adapter safety boundary", async () => {
@@ -33,11 +34,53 @@ test("hosted Questlog adapter preserves the local adapter safety boundary", asyn
   assert.doesNotMatch(worker, /service[_-]?role/i);
 });
 
+test("both Questlog adapter variants share the abuse and failure contract", async () => {
+  for (const file of ["api/questlog/character.js", "functions/api/questlog/character.js"]) {
+    const source = await read(file);
+    assert.match(source, /sec-fetch-site/i, `${file} gates cross-site requests`);
+    assert.match(source, /"cross-site"/, `${file} rejects only the cross-site fetch class`);
+    assert.match(source, /403/, `${file} answers cross-site abuse with 403`);
+    assert.match(source, /AbortSignal\.timeout\(12_000\)/, `${file} bounds every upstream fetch at 12 s`);
+    assert.match(source, /TimeoutError/, `${file} classifies timeouts`);
+    assert.match(source, /502/, `${file} maps upstream failure to 502`);
+    assert.match(source, /504/, `${file} maps timeouts to 504`);
+    assert.doesNotMatch(source, /String\(error\?\.message/, `${file} never echoes raw internal error text`);
+  }
+});
+
 test("production headers protect documents without freezing stable projection names", async () => {
   const headers = await read("web/_headers");
   assert.match(headers, /X-Content-Type-Options: nosniff/);
   assert.match(headers, /\/data\/projections\/\*/);
   assert.match(headers, /\/data\/projections\/\*[\s\S]*max-age=300, must-revalidate/);
+  assert.match(headers, /Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'self'/);
+  assert.match(headers, /X-Frame-Options: DENY/);
+  // Cloudflare mirror only — Vercel injects HSTS at the platform level.
+  assert.match(headers, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
+});
+
+test("Vercel headers mirror the Cloudflare security and cache policy", async () => {
+  const config = JSON.parse(await read("vercel.json"));
+  const blockFor = (source) => config.headers.find((entry) => entry.source === source);
+  const headerMap = (block) => Object.fromEntries(block.headers.map(({ key, value }) => [key, value]));
+  const all = headerMap(blockFor("/(.*)"));
+  assert.equal(all["Content-Security-Policy"], "frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
+  assert.equal(all["X-Frame-Options"], "DENY");
+  assert.equal(all["X-Content-Type-Options"], "nosniff");
+  assert.equal(all["Strict-Transport-Security"], undefined, "HSTS comes from the Vercel platform, not vercel.json");
+  assert.equal(headerMap(blockFor("/data/(.*)"))["Cache-Control"], "public, max-age=300, must-revalidate");
+  assert.equal(headerMap(blockFor("/data/projections/(.*)"))["Cache-Control"], "public, max-age=300, must-revalidate");
+  assert.ok(
+    config.headers.indexOf(blockFor("/data/(.*)")) < config.headers.indexOf(blockFor("/data/projections/(.*)")),
+    "the more specific projections rule must come last so it wins",
+  );
+});
+
+test("Combat Lab data requests honor the production data cache policy", async () => {
+  const source = await read("web/combat-lab.js");
+  assert.match(source, /fetch\("\.\/data\/combat-abilities\.json"\)/);
+  assert.match(source, /fetch\("\.\/data\/reference-build\.json"\)/);
+  assert.doesNotMatch(source, /fetch\("\.\/data\/(?:combat-abilities|reference-build)\.json",\s*\{\s*cache:\s*"no-store"/);
 });
 
 test("direct-upload artifact contains every projected icon", async () => {
@@ -78,6 +121,9 @@ test("public pages expose production discovery and accessibility metadata", asyn
     ["web/tracker.html", "https://tlhelper.org/tracker"],
     ["web/achievements.html", "https://tlhelper.org/achievements"],
     ["web/combat-lab.html", "https://tlhelper.org/combat-lab"],
+    ["web/gear-viewer.html", "https://tlhelper.org/gear-viewer"],
+    ["web/full-build-optimizer.html", "https://tlhelper.org/full-build-optimizer"],
+    ["web/build-from-scratch.html", "https://tlhelper.org/build-from-scratch"],
     ["web/privacy.html", "https://tlhelper.org/privacy"],
   ];
   for (const [file, canonical] of pages) {
@@ -85,7 +131,7 @@ test("public pages expose production discovery and accessibility metadata", asyn
     assert.match(document, /<html lang="en">/i, `${file} declares its language`);
     assert.match(document, /<meta name="description"/i, `${file} has a description`);
     assert.ok(document.includes(`<link rel="canonical" href="${canonical}">`), `${file} has its canonical URL`);
-    assert.match(document, /<link rel="icon" href="\.\/icon\.svg"/i, `${file} has a favicon`);
+    assert.match(document, /<link rel="icon" href="\.\/tl-logo\.png" type="image\/png">/i, `${file} uses the current brand favicon`);
     assert.match(document, /class="tl-skip-link"[^>]*href="#main-content"/i, `${file} has a skip link`);
     assert.match(document, /<main[^>]*id="main-content"/i, `${file} exposes the main landmark`);
     assert.match(document, /<h1\b/i, `${file} has a primary heading`);
@@ -99,15 +145,19 @@ test("search discovery files publish only the clean production pages", async () 
   const sitemap = await read("web/sitemap.xml");
   assert.match(robots, /Sitemap: https:\/\/tlhelper\.org\/sitemap\.xml/);
   assert.match(robots, /Disallow: \/api\//);
-  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/privacy"]) {
+  // cleanUrls serves dev component pages both with and without .html.
+  for (const route of ["/ItemHoverCard.dc.html", "/ItemHoverCard.dc", "/MasteryWheel.dc.html", "/MasteryWheel.dc"]) {
+    assert.ok(robots.includes(`Disallow: ${route}\n`) || robots.includes(`Disallow: ${route}\r\n`), `robots.txt disallows ${route}`);
+  }
+  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/gear-viewer", "/full-build-optimizer", "/build-from-scratch", "/privacy"]) {
     assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
   }
 });
 
 test("standalone pages use the shared application header", async () => {
-  for (const file of ["web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/privacy.html"]) {
+  for (const file of ["web/index.html", "web/tracker.html", "web/achievements.html", "web/combat-lab.html", "web/gear-viewer.html", "web/full-build-optimizer.html", "web/build-from-scratch.html", "web/privacy.html"]) {
     const document = await read(file);
-    assert.match(document, /<header class="tl-app-header">/i, `${file} uses the shared header`);
+    assert.match(document, /<header class="tl-app-header(?: [^"]+)?">/i, `${file} uses the shared header`);
     assert.match(document, /<nav class="tl-app-nav"/i, `${file} uses the shared navigation`);
     assert.match(document, /class="tl-app-brand"/i, `${file} uses the shared brand`);
   }

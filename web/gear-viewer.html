@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gear Viewer | TL Helper</title>
   <meta name="description" content="Browse every item as a sortable table: pick stat columns, filter, and rank by a build-aware aggregate score.">
-  <meta name="theme-color" content="#0e0a07"><link rel="canonical" href="https://tlhelper.org/gear-viewer"><link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <meta property="og:type" content="website"><meta property="og:title" content="Gear Viewer | TL Helper"><meta property="og:description" content="Compare Throne and Liberty gear while increasing chosen stats and protecting the stats your build needs."><meta property="og:url" content="https://tlhelper.org/gear-viewer"><meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/gear-viewer"><link rel="icon" href="./tl-logo.png" type="image/png">
+  <meta property="og:type" content="website"><meta property="og:title" content="Gear Viewer | TL Helper"><meta property="og:description" content="Compare Throne and Liberty gear while increasing chosen stats and protecting the stats your build needs."><meta property="og:url" content="https://tlhelper.org/gear-viewer"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
   <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./tl-shell.css">
+  <link rel="stylesheet" href="./tl-shell.css?v=20260713">
   <style>
     body { font-family: "Instrument Sans", system-ui, sans-serif; color: #e8dcc2; }
     main { max-width: 1400px; margin: 0 auto; padding: 18px clamp(14px, 2.5vw, 30px) 80px; }
@@ -21,7 +21,7 @@
     .page-head p { margin: 0; color: var(--tl-shell-muted); font-size: 13.5px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 14px; }
     .toolbar label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--tl-shell-muted); }
-    .toolbar select, .toolbar input[type="search"], .toolbar input[type="url"] { box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13.5px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
+    .toolbar select, .toolbar input[type="search"], .toolbar input[type="url"], .toolbar input[type="number"] { box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13.5px; color: #f0e5cb; background: rgba(10, 8, 5, 0.85); border: 1px solid var(--tl-shell-line); border-radius: 8px; }
     .toolbar input[type="search"] { width: 240px; }
     .toolbar .grow { flex: 1; }
     .check-inline { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--tl-shell-muted); padding-bottom: 9px; }
@@ -119,6 +119,9 @@
     #hover-card .hc-gain-hint kbd { margin: 0 3px; padding: 1px 5px; border: 1px solid rgba(212, 166, 94, 0.28); border-radius: 4px; background: rgba(212, 166, 94, 0.08); color: #cbb185; font: inherit; }
     #hover-card.show-gains .hc-gain-hint { color: #a89572; }
     #hover-card .hc-resonance { background: rgba(159, 86, 214, 0.055); }
+    #hover-card .resonance-all { display: none; }
+    #hover-card.show-all-resonance .resonance-selected { display: none; }
+    #hover-card.show-all-resonance .resonance-all { display: block; }
     #hover-card .hc-effect { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 6px; }
     #hover-card .hc-effect:last-child { margin-bottom: 0; }
     #hover-card .hc-effect-icon { flex: none; width: 30px; height: 30px; border-radius: 999px; border: 1px solid rgba(212, 166, 94, 0.35); background-size: cover; background-position: center; background-color: #171209; }
@@ -148,8 +151,8 @@
   <a class="tl-skip-link" href="#main-content">Skip to gear viewer</a>
   <header class="tl-app-header">
     <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Gear Viewer</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><span class="tl-app-nav-item is-active" aria-current="page">Gear Viewer</span><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
-    <div class="tl-app-header-end"><div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div></div>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><a class="tl-app-nav-item is-active" href="./gear-viewer.html" aria-current="page">Gear Viewer</a><a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+    <div class="tl-app-header-end"><div class="tl-app-status-group"><div class="tl-app-status"><span class="tl-app-status-label">Game data build</span><strong class="tl-app-status-value" id="game-build">Loading</strong></div></div></div>
   </header>
 
   <main id="main-content">
@@ -157,6 +160,8 @@
       <h1>Gear Viewer</h1>
       <p>Every item, one table. Pick stat columns, sort any of them, and rank by a scale-normalized score — optionally against your build.</p>
     </div>
+
+    <p role="note" style="margin:-8px 0 14px;color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Same-item comparisons preserve stored selections.</p>
 
     <div class="toolbar">
       <label>Search
@@ -194,9 +199,11 @@
       <label>Item level
         <select id="level-select"><option value="all">All levels</option></select>
       </label>
-      <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Max traits</label></span>
+      <span class="check-inline"><input id="traits-toggle" type="checkbox" checked><label for="traits-toggle">Optimize 3 traits</label></span>
+      <span class="check-inline"><input id="heroic-potential-toggle" type="checkbox"><label for="heroic-potential-toggle" title="Scores Heroic candidates with 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Runes and skill cores are excluded.">Use best Heroic configuration in Fit</label></span>
       <span class="check-inline"><input id="heroic-toggle" type="checkbox" checked><label for="heroic-toggle">Keep equipped Heroic items</label></span>
-      <span class="check-inline"><input id="set-fit-toggle" type="checkbox"><label for="set-fit-toggle">Include set effects in Fit</label></span>
+      <span class="check-inline"><input id="set-fit-toggle" type="checkbox" checked><label for="set-fit-toggle">Include set effects in Fit</label></span>
+      <span class="check-inline"><input id="scenario-fit-toggle" type="checkbox"><label for="scenario-fit-toggle">Score combat scenario at</label><input id="scenario-distance" type="number" min="0" step="0.5" value="10" aria-label="Target distance in metres" style="width:4.5rem"><span>m</span><select id="scenario-time" aria-label="Time of day"><option value="unspecified">Time unspecified</option><option value="day">Day</option><option value="night">Night</option></select><label for="scenario-health-percent">Health %</label><input id="scenario-health-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Health percentage" style="width:4.75rem"><label for="scenario-mana-percent">Mana %</label><input id="scenario-mana-percent" type="number" min="0" max="100" step="0.01" placeholder="Any" aria-label="Current Mana percentage" style="width:4.75rem"><select id="scenario-motion-mode" aria-label="Source movement"><option value="unspecified">Motion unspecified</option><option value="stationary">Stationary</option><option value="moving_ordinary">Moving normally</option><option value="moving_skill">Using movement skill</option></select><select id="scenario-stationary-band" aria-label="Stationary duration"><option value="under_2s">Under 2s</option><option value="2s_to_under_3s">2 to under 3s</option><option value="3s_to_under_4s">3 to under 4s</option><option value="4s_or_more">4s or more</option></select><select id="scenario-moving-band" aria-label="Moving duration"><option value="unspecified">Moving duration unspecified</option><option value="under_2s">Moving under 2s</option><option value="2s_or_more">Moving 2s or more</option></select><select id="scenario-prior-stationary-band" aria-label="Prior stationary duration"><option value="unspecified">Prior stationary unspecified</option><option value="under_2s">Prior under 2s</option><option value="2s_to_under_3s">Prior 2 to under 3s</option><option value="3s_to_under_4s">Prior 3 to under 4s</option><option value="4s_or_more">Prior 4s or more</option></select><select id="scenario-event-mode" aria-label="Successful source skill activation at the evaluation instant" title="Scores the exact instant after a confirmed successful activation. Elapsed buff duration is not assumed."><option value="unspecified">Skill event unspecified</option><option value="mobility_now">Mobility activation now</option><option value="movement_now">Movement activation now</option><option value="mobility_movement_now">Mobility + Movement now</option></select><select id="scenario-event-weapon" aria-label="Triggering weapon"><option value="">Trigger weapon</option></select><input id="scenario-party-total" type="number" min="1" step="1" placeholder="Party total" aria-label="Total party members including self" title="Blank means unspecified" style="width:5.75rem"><input id="scenario-party-within4" type="number" min="0" step="1" placeholder="Party ≤4m" aria-label="Other party members within 4 metres" title="Blank means unspecified; explicit zero means none" style="width:5.75rem"><input id="scenario-party-additional-4to16" type="number" min="0" step="1" placeholder="Party 4–16m" aria-label="Additional other party members beyond 4 metres through 16 metres" title="Blank means unspecified; explicit zero means none" style="width:6.25rem"><input id="scenario-allied-nonparty-within4" type="number" min="0" step="1" placeholder="Allies ≤4m" aria-label="Allied nonparty players within 4 metres" title="Blank means unspecified; explicit zero means none" style="width:5.75rem"></span>
       <span class="check-inline"><input id="fav-toggle" type="checkbox"><label for="fav-toggle">★ only</label></span>
       <div class="col-picker">
         <button id="col-button" type="button" aria-haspopup="true" aria-expanded="false">Choose Stats <span class="count" id="col-count">0</span> ▾</button>
@@ -228,7 +235,13 @@
 
   <script type="module">
     import * as core from "./tl-core.js";
+    import { scenarioCalculationFingerprint, staticCalculationFingerprint } from "./tl-build-snapshot.js";
+    import { STAT_EXPANSIONS } from "./tl-questlog-rules.js";
+    import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
     import { loadArmoryState } from "./tl-persistence.js";
+    import { decodeSourceMotionControls, encodeSourceMotionControls, formatSourceMotion, sourceMotionFromControls } from "./tl-motion-scenario-controls.js";
+    import { decodeSourceEventControls, encodeSourceEventControls, formatSourceEventHistory, sourceEventHistoryFromControls } from "./tl-event-scenario-controls.js";
+    import { decodeSourceSocialControls, encodeSourceSocialControls, formatSourceSocial, sourceSocialFromControls } from "./tl-social-scenario-controls.js";
 
     const $ = (id) => document.getElementById(id);
     const FAVORITES_KEY = "tlhelper-gear-viewer-favorites-v1";
@@ -242,8 +255,24 @@
       itemLevel: "all",
       search: "",
       withTraits: true,
+      heroicPotential: false,
       keepHeroic: true,
-      includeSetEffects: false,
+      includeSetEffects: true,
+      scenarioEnabled: false,
+      scenarioDistance: 10,
+      scenarioTime: "unspecified",
+      scenarioHealthBps: null,
+      scenarioManaBps: null,
+      scenarioMotionMode: "unspecified",
+      scenarioStationaryBand: "under_2s",
+      scenarioMovingBand: "unspecified",
+      scenarioPriorStationaryBand: "unspecified",
+      scenarioEventMode: "unspecified",
+      scenarioEventWeapon: "",
+      scenarioPartyTotal: "",
+      scenarioPartyWithin4: "",
+      scenarioPartyAdditional4To16: "",
+      scenarioAlliedNonpartyWithin4: "",
       favoritesOnly: false,
       columns: [],            // selected statIds, in pick order
       protected: [],          // stats that candidates should not reduce beyond tolerance
@@ -272,6 +301,133 @@
       return { build: core.createInitialBuild(), attributes: ZERO_ATTRS };
     }
 
+    function activeScenario() {
+      if (!state.scenarioEnabled || state.mode === "bare") return null;
+      if (state.scenarioEventMode !== "unspecified" && !state.scenarioEventWeapon) return null;
+      let social;
+      try { social = sourceSocialFromControls(scenarioSocialControls()); } catch { return null; }
+      return core.createBuildScenario(scoringContext().build, {
+        targetDistanceMeters: state.scenarioDistance,
+        timeOfDay: state.scenarioTime,
+        ...(state.scenarioHealthBps === null ? {} : { sourceHealthRatioBps: state.scenarioHealthBps }),
+        ...(state.scenarioManaBps === null ? {} : { sourceManaRatioBps: state.scenarioManaBps }),
+        sourceMotion: sourceMotionFromControls({ mode: state.scenarioMotionMode, stationaryBand: state.scenarioStationaryBand, movingBand: state.scenarioMovingBand, priorStationaryBand: state.scenarioPriorStationaryBand }),
+        sourceEventHistory: sourceEventHistoryFromControls({ mode: state.scenarioEventMode, weaponType: state.scenarioEventWeapon }),
+        sourceParty: social.sourceParty ?? social.party,
+        sourceProximity: social.sourceProximity ?? social.proximity,
+      });
+    }
+
+    function normalizeScenarioDistance(value, fallback = 10) {
+      const distance = Number(value);
+      return Number.isFinite(distance) && distance >= 0 ? distance : fallback;
+    }
+
+    function normalizeScenarioBps(value, fallback = null) {
+      if (value === null || value === undefined || value === "") return null;
+      const bps = Number(value);
+      return Number.isSafeInteger(bps) && bps >= 0 && bps <= 10000 ? bps : fallback;
+    }
+
+    function scenarioPercentToBps(value, fallback = null) {
+      const match = /^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(String(value ?? "").trim());
+      if (!match) return String(value ?? "").trim() ? fallback : null;
+      const bps = Number(match[1]) * 100 + Number(`${match[2] ?? ""}00`.slice(0, 2));
+      return bps <= 10000 ? bps : fallback;
+    }
+
+    function scenarioBpsToPercent(value) {
+      const bps = normalizeScenarioBps(value);
+      if (bps === null) return "";
+      const whole = Math.floor(bps / 100);
+      const fraction = String(bps % 100).padStart(2, "0").replace(/0+$/, "");
+      return fraction ? `${whole}.${fraction}` : String(whole);
+    }
+
+    function scenarioResourceLabel() {
+      const parts = [];
+      if (state.scenarioHealthBps !== null) parts.push(`Health ${scenarioBpsToPercent(state.scenarioHealthBps)}%`);
+      if (state.scenarioManaBps !== null) parts.push(`Mana ${scenarioBpsToPercent(state.scenarioManaBps)}%`);
+      return parts.length ? `, ${parts.join(", ")}` : "";
+    }
+
+    function scenarioMotionControls() {
+      return { mode: state.scenarioMotionMode, stationaryBand: state.scenarioStationaryBand, movingBand: state.scenarioMovingBand, priorStationaryBand: state.scenarioPriorStationaryBand };
+    }
+
+    function scenarioEventControls() {
+      return { mode: state.scenarioEventMode, weaponType: state.scenarioEventWeapon };
+    }
+
+    function scenarioSocialControls() {
+      return {
+        totalPartyMembersIncludingSelf: state.scenarioPartyTotal,
+        otherPartyPlayersWithin4m: state.scenarioPartyWithin4,
+        additionalOtherPartyPlayersAbove4mThrough16m: state.scenarioPartyAdditional4To16,
+        alliedNonpartyPlayersWithin4m: state.scenarioAlliedNonpartyWithin4,
+      };
+    }
+
+    function scenarioSocialLabel() {
+      try {
+        const social = sourceSocialFromControls(scenarioSocialControls());
+        return formatSourceSocial({ party: social.sourceParty ?? social.party, proximity: social.sourceProximity ?? social.proximity });
+      } catch {
+        return "social counts invalid";
+      }
+    }
+
+    function syncScenarioEventWeapons() {
+      const select = $("scenario-event-weapon");
+      const weapons = state.mode === "bare" ? [] : core.equippedWeaponTypes(scoringContext().build);
+      if (state.scenarioEventMode !== "unspecified" && !weapons.includes(state.scenarioEventWeapon)) {
+        state.scenarioEventWeapon = weapons[0] ?? "";
+        if (!state.scenarioEventWeapon) state.scenarioEventMode = "unspecified";
+      }
+      select.replaceChildren(new Option("Trigger weapon", ""), ...weapons.map((weapon) => new Option(core.label(weapon), weapon)));
+      select.value = state.scenarioEventWeapon;
+      $("scenario-event-mode").value = state.scenarioEventMode;
+    }
+
+    function syncScenarioControls() {
+      const unavailable = state.mode === "bare";
+      $("scenario-fit-toggle").disabled = unavailable;
+      $("scenario-distance").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-time").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-health-percent").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-mana-percent").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-motion-mode").disabled = unavailable || !state.scenarioEnabled;
+      $("scenario-event-mode").disabled = unavailable || !state.scenarioEnabled;
+      syncScenarioEventWeapons();
+      $("scenario-event-weapon").disabled = unavailable || !state.scenarioEnabled || state.scenarioEventMode === "unspecified";
+      for (const id of ["scenario-party-total", "scenario-party-within4", "scenario-party-additional-4to16", "scenario-allied-nonparty-within4"]) $(id).disabled = unavailable || !state.scenarioEnabled;
+      const moving = state.scenarioMotionMode === "moving_ordinary" || state.scenarioMotionMode === "moving_skill";
+      $("scenario-stationary-band").disabled = unavailable || !state.scenarioEnabled || state.scenarioMotionMode !== "stationary";
+      $("scenario-moving-band").disabled = unavailable || !state.scenarioEnabled || !moving;
+      $("scenario-prior-stationary-band").disabled = unavailable || !state.scenarioEnabled || !moving;
+    }
+
+    function calculationOptions(scenario = activeScenario()) {
+      return { includeSetEffects: state.includeSetEffects, ...(scenario == null ? {} : { scenario }) };
+    }
+
+    function candidateContribution(slotId, selection, build, attributes, options = calculationOptions()) {
+      return state.mode !== "bare" && core.WEAPON_SLOTS.includes(slotId)
+        ? core.slotReplacementDelta(slotId, selection, build, attributes, options)
+        : core.slotSelectionContribution(slotId, selection, build, attributes, options);
+    }
+
+    function prospectiveWeaponTypes(slotId, item, build) {
+      const types = new Set();
+      for (const weaponSlot of core.WEAPON_SLOTS) {
+        if (weaponSlot === slotId) continue;
+        const selectedItem = core.indexes.itemById[core.slotSelection(weaponSlot, build)?.itemId];
+        if (selectedItem?.equipmentType) types.add(selectedItem.equipmentType);
+      }
+      if (core.WEAPON_SLOTS.includes(slotId) && item?.equipmentType) types.add(item.equipmentType);
+      return types;
+    }
+
     function equippedWeaponSlots(build = scoringContext().build) {
       return ["main_hand", "off_hand"].map((slotId) => {
         const selection = core.slotSelection(slotId, build);
@@ -288,51 +444,237 @@
       return Boolean(item) && core.gradeName(item.grade) === "Heroic";
     }
 
-    function candidateSlotFor(item, build) {
-      if (state.mode === "bare") return TYPE_SLOT[item.equipmentType];
+    function candidateSlotsFor(item, build) {
+      if (state.mode === "bare") return [TYPE_SLOT[item.equipmentType]].filter(Boolean);
       const matching = core.BUILD_SLOTS
         .filter((slot) => slot.types.includes(item.equipmentType))
         .map((slot) => ({ slotId: slot.id, equipped: equippedItemForSlot(slot.id, build) }))
         .filter((row) => row.equipped?.equipmentType === item.equipmentType)
         .sort((a, b) => Number(b.equipped.id === item.id) - Number(a.equipped.id === item.id)
-          || Number(isHeroic(a.equipped)) - Number(isHeroic(b.equipped)));
-      return matching[0]?.slotId ?? TYPE_SLOT[item.equipmentType];
+          || Number(isHeroic(a.equipped)) - Number(isHeroic(b.equipped))
+          || a.slotId.localeCompare(b.slotId));
+      const alreadyEquipped = matching.filter((row) => row.equipped.id === item.id);
+      if (alreadyEquipped.length) return alreadyEquipped.map((row) => row.slotId);
+      return matching.length ? matching.map((row) => row.slotId) : [TYPE_SLOT[item.equipmentType]].filter(Boolean);
     }
 
-    function maxTraitRows(item) {
-      return Object.entries(item.itemStats?.traits ?? {}).map(([statId, tiers]) => {
-        const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
-        return { statId, tier: list.length };
-      }).filter((row) => row.tier > 0);
+    function maxTierRow(statId, tiers) {
+      const list = Array.isArray(tiers) ? tiers : Object.values(tiers ?? {});
+      return { statId, tier: list.length, value: Number(list.at(-1) ?? 0) };
+    }
+
+    function addExpandedStat(target, statId, value, seen = new Set()) {
+      if (!statId || seen.has(statId)) return;
+      seen.add(statId);
+      target[statId] = (target[statId] ?? 0) + Number(value || 0);
+      for (const expandedId of STAT_EXPANSIONS[statId] ?? []) addExpandedStat(target, expandedId, value, seen);
+    }
+
+    function potentialVector(item, selection) {
+      const totals = {};
+      for (const row of selection.traits ?? []) {
+        const tiers = item.itemStats?.traits?.[row.statId];
+        addExpandedStat(totals, row.statId, maxTierRow(row.statId, tiers).value);
+      }
+      if (selection.uniqueTrait?.statId) {
+        const tiers = item.itemStats?.uniqueTraits?.[selection.uniqueTrait.statId];
+        addExpandedStat(totals, selection.uniqueTrait.statId, maxTierRow(selection.uniqueTrait.statId, tiers).value);
+      }
+      for (const row of selection.heroicEffects ?? []) addExpandedStat(totals, row.statId, row.value ?? 0);
+      return totals;
+    }
+
+    function potentialReference(item) {
+      const reference = {};
+      const record = (statId, value) => {
+        const expanded = {};
+        addExpandedStat(expanded, statId, value);
+        for (const [id, amount] of Object.entries(expanded)) reference[id] = Math.max(reference[id] ?? 0, Math.abs(amount));
+      };
+      for (const [statId, tiers] of Object.entries(item.itemStats?.traits ?? {})) record(statId, maxTierRow(statId, tiers).value);
+      for (const [statId, tiers] of Object.entries(item.itemStats?.uniqueTraits ?? {})) record(statId, maxTierRow(statId, tiers).value);
+      for (let group = 1; Array.isArray(item.itemStats?.[`random_stat_group_${group}`]); group += 1) {
+        for (const row of item.itemStats[`random_stat_group_${group}`]) {
+          const levels = row.levels ?? [];
+          record(row.stat_id ?? row.statId, Number(levels[Number(row.max_level ?? levels.length - 1)] ?? levels.at(-1) ?? row.base_value ?? 0));
+        }
+      }
+      return reference;
+    }
+
+    function potentialStatIds(item, contribution) {
+      const ids = new Set(Object.keys(contribution ?? {}));
+      const include = (statId) => {
+        const expanded = {};
+        addExpandedStat(expanded, statId, 1);
+        for (const id of Object.keys(expanded)) ids.add(id);
+      };
+      for (const statId of Object.keys(item.itemStats?.traits ?? {})) include(statId);
+      for (const statId of Object.keys(item.itemStats?.uniqueTraits ?? {})) include(statId);
+      for (let group = 1; Array.isArray(item.itemStats?.[`random_stat_group_${group}`]); group += 1) {
+        for (const row of item.itemStats[`random_stat_group_${group}`]) include(row.stat_id ?? row.statId);
+      }
+      return [...ids];
+    }
+
+    function potentialEvaluation(item, selection) {
+      const vector = potentialVector(item, selection);
+      const reference = potentialReference(item);
+      const goalIds = state.columns.length ? state.columns : [...state.protected];
+      let score = goalIds.reduce((sum, statId) => sum + Number(vector[statId] ?? 0) / Math.max(1, reference[statId] ?? 0), 0);
+      for (const statId of state.protected) score += 0.1 * Number(vector[statId] ?? 0) / Math.max(1, reference[statId] ?? 0);
+      for (const statId of ["str", "dex", "int", "per", "con"]) score += 0.0001 * Math.max(0, Number(vector[statId] ?? 0));
+      return { score, allowed: true, protectionHeadroom: 0 };
+    }
+
+    function combinations(values, count, start = 0, chosen = [], output = []) {
+      if (chosen.length === count) { output.push(chosen.slice()); return output; }
+      for (let index = start; index <= values.length - (count - chosen.length); index += 1) {
+        chosen.push(values[index]);
+        combinations(values, count, index + 1, chosen, output);
+        chosen.pop();
+      }
+      return output;
+    }
+
+    function optimizedTraitRows(item) {
+      const options = Object.entries(item.itemStats?.traits ?? {})
+        .map(([statId, tiers]) => maxTierRow(statId, tiers))
+        .filter((row) => row.tier > 0)
+        .sort((a, b) => a.statId.localeCompare(b.statId));
+      if (options.length <= core.NORMAL_TRAIT_CAP) return options.map(({ statId, tier }) => ({ statId, tier }));
+      const ranked = combinations(options, core.NORMAL_TRAIT_CAP).map((traits) => {
+        const selection = { traits, uniqueTrait: null, heroicEffects: [] };
+        return { traits, score: potentialEvaluation(item, selection).score, signature: traits.map((row) => row.statId).join("|") };
+      }).sort((a, b) => b.score - a.score || a.signature.localeCompare(b.signature));
+      return ranked[0].traits.map(({ statId, tier }) => ({ statId, tier }));
+    }
+
+    function exactHeroicPotential(item, slotId, build, attributes, level, currentTotals, options) {
+      const potential = optimizeHeroicPotential(item, {
+        evaluate: (selection) => potentialEvaluation(item, selection),
+        allowDuplicateEffects: false,
+        frontierLimit: 4,
+      });
+      const finalists = potential.finalists.map((candidate) => {
+        const selection = { ...core.emptyEquipmentSelection(), ...candidate.selection, itemId: item.id, level };
+        const contribution = candidateContribution(slotId, selection, build, attributes, options);
+        return { ...candidate, selection, contribution };
+      });
+      const maxima = Object.fromEntries(state.columns.map((statId) => [statId, Math.max(0, ...finalists.map((row) => Number(row.contribution[statId] ?? 0)))]));
+      const equipped = state.mode === "bare" ? null : core.slotSelection(slotId, build);
+      const equippedContribution = equipped?.itemId
+        ? candidateContribution(slotId, equipped, build, attributes, options)
+        : {};
+      for (const row of finalists) {
+        row.exactScore = state.columns.length
+          ? state.columns.reduce((sum, statId) => sum + Number(row.contribution[statId] ?? 0) / Math.max(1, maxima[statId] ?? 0), 0) / state.columns.length
+          : row.evaluation.score;
+        row.protection = state.mode === "bare" ? [] : state.protected.map((statId) => {
+          const delta = Number(row.contribution[statId] ?? 0) - Number(equippedContribution[statId] ?? 0);
+          const allowedLoss = Math.abs(currentTotals[statId] ?? 0) * state.protectTolerancePct / 100;
+          return { delta, allowedLoss, pass: delta >= -allowedLoss - 1e-9 };
+        });
+        row.allowed = row.protection.every((part) => part.pass);
+        row.headroom = row.protection.reduce((sum, part) => sum + part.delta + part.allowedLoss, 0);
+      }
+      finalists.sort((a, b) => Number(b.allowed) - Number(a.allowed) || b.exactScore - a.exactScore || b.headroom - a.headroom || a.signature.localeCompare(b.signature));
+      const best = finalists[0];
+      return { selection: best.selection, contribution: best.contribution, potential, assumptions: potential.assumptions };
     }
 
     // ---------- compute pipeline (chunked, cancellable, cached) ----------
-    const poolCache = new Map(); // mode|traits -> rows
+    const poolCache = new Map();
     let computeToken = 0;
+    let calculationBlock = null;
 
     async function computeRows() {
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${state.includeSetEffects ? "sets" : "no-sets"}`;
-      if (poolCache.has(key)) return poolCache.get(key);
-      const token = ++computeToken;
       const { build, attributes } = scoringContext();
+      const scenario = activeScenario();
+      if (state.scenarioEnabled && state.mode !== "bare" && scenario == null) {
+        calculationBlock = {
+          state: "invalid",
+          blockingIssues: [{ code: "invalid_combat_scenario_controls", message: "The combat scenario inputs are invalid or internally inconsistent." }],
+        };
+        return [];
+      }
+      const options = calculationOptions(scenario);
+      const currentCalculation = core.calculateBuild(build, attributes, options);
+      calculationBlock = state.mode === "bare" || (currentCalculation.status?.state === "legal" && currentCalculation.scenarioEffects?.status !== "unsupported")
+        ? null
+        : currentCalculation.scenarioEffects?.status === "unsupported"
+          ? { state: "provisional", blockingIssues: currentCalculation.scenarioEffects.errors }
+          : currentCalculation.status;
+      if (calculationBlock) return [];
+      const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
+      const calculationKey = scenario == null
+        ? staticCalculationFingerprint({ build, attributes, includeSetEffects: state.includeSetEffects })
+        : scenarioCalculationFingerprint({ build, attributes, includeSetEffects: state.includeSetEffects, scenario });
+      const key = `${state.mode}|${calculationKey}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${objectiveKey}`;
+      if (poolCache.has(key)) {
+        calculationBlock = null;
+        return poolCache.get(key);
+      }
+      const token = ++computeToken;
+      const currentTotals = Object.fromEntries((currentCalculation.scenarioStats ?? currentCalculation.stats).map((row) => [row.id, row.total]));
       const items = core.data.items.filter((item) => TYPE_SLOT[item.equipmentType] && SLOT_CATEGORY[TYPE_SLOT[item.equipmentType]] !== "support");
       const rows = [];
       $("progress").classList.remove("hidden");
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        const slotId = candidateSlotFor(item, build);
         const level = core.itemMaxLevel(item);
-        const selection = {
-          ...core.emptyEquipmentSelection(),
-          itemId: item.id,
-          level,
-          traits: state.withTraits ? maxTraitRows(item) : [],
-        };
-        const contribution = core.slotSelectionContribution(slotId, selection, build, attributes, { includeSetEffects: state.includeSetEffects });
-        rows.push({
-          item, slotId, level, contribution,
-          haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${Object.keys(contribution).map(core.statName).join(" ")}`.toLowerCase(),
-        });
+        for (const slotId of candidateSlotsFor(item, build)) {
+          let baseSelection = {
+            ...core.emptyEquipmentSelection(),
+            itemId: item.id,
+            level,
+            traits: state.withTraits ? optimizedTraitRows(item) : [],
+          };
+          let potential = null;
+          if (state.withTraits && state.heroicPotential && isHeroic(item)) {
+            potential = exactHeroicPotential(item, slotId, build, attributes, level, currentTotals, options);
+            baseSelection = potential.selection;
+          }
+          const actualSelection = state.mode === "bare" ? null : core.slotSelection(slotId, build);
+          const isActualItem = actualSelection?.itemId === item.id;
+          // Same-item generated configurations may change traits, Heroic
+          // effects, or Skill Cores, but must preserve the excluded potential.
+          if (isActualItem && actualSelection?.potentialId) {
+            baseSelection = { ...baseSelection, potentialId: actualSelection.potentialId };
+          }
+          if (isActualItem) {
+            const exactSelection = core.deepClone(actualSelection);
+            const contribution = candidateContribution(slotId, exactSelection, build, attributes, options);
+            const availableStatIds = potentialStatIds(item, contribution);
+            const selectedPerk = core.selectedItemPerk(item, exactSelection);
+            rows.push({
+              candidateId: `current:${slotId}:${item.id}`, item, slotId, level: exactSelection.level ?? level, selection: exactSelection, contribution, potential: null, availableStatIds, isExactCurrent: true,
+              haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${selectedPerk?.passive?.name ?? ""} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
+            });
+          }
+
+          let variants = core.calculableItemPerkVariants(item, { scenario })
+            .filter((variant) => !variant.requiredWeapon || prospectiveWeaponTypes(slotId, item, build).has(variant.requiredWeapon));
+          const currentCoreUnsupported = isActualItem
+            && actualSelection?.perkId
+            && !variants.some((variant) => variant.perkId === actualSelection.perkId);
+          if (currentCoreUnsupported) variants = [];
+          for (const variant of variants) {
+            const selection = { ...baseSelection, perkId: variant.perkId };
+            const selectionStatus = core.itemSelectionCalculationStatus(item, selection, {
+              slotId,
+              equippedWeaponTypes: [...prospectiveWeaponTypes(slotId, item, build)],
+            });
+            if (selectionStatus.state !== "legal") continue;
+            if (core.slotSelectionCalculationStatus(slotId, selection, build, attributes, options)?.state !== "legal") continue;
+            const contribution = candidateContribution(slotId, selection, build, attributes, options);
+            const availableStatIds = potentialStatIds(item, contribution);
+            rows.push({
+              candidateId: `variant:${slotId}:${item.id}:${variant.perkId || "bare"}`, item, slotId, level, selection, contribution, potential, availableStatIds, isExactCurrent: false,
+              haystack: `${item.name} ${core.label(item.equipmentType)} ${core.gradeName(item.grade)} ${variant.perk?.passive?.name ?? ""} ${availableStatIds.map(core.statName).join(" ")}`.toLowerCase(),
+            });
+          }
+        }
         if (i % 40 === 39) {
           $("status").textContent = `Scoring items… ${i + 1} / ${items.length}`;
           $("progress-fill").style.width = `${Math.round(((i + 1) / items.length) * 100)}%`;
@@ -360,7 +702,8 @@
         }
       }
       return rows.filter((row) => {
-        row.isPinned = Boolean(contextBuild && core.slotSelection(row.slotId, contextBuild)?.itemId === row.item.id);
+        row.isEquippedItem = Boolean(contextBuild && core.slotSelection(row.slotId, contextBuild)?.itemId === row.item.id);
+        row.isPinned = Boolean(row.isEquippedItem && row.isExactCurrent);
         const structuralMatch = (!types || types.has(row.item.equipmentType))
           && (SLOT_CATEGORY[row.slotId] !== "weapons" || !equippedWeaponTypes.size || equippedWeaponTypes.has(row.item.equipmentType))
           && (!lockedHeroicBySlot.has(row.slotId) || lockedHeroicBySlot.get(row.slotId) === row.item.id)
@@ -369,15 +712,19 @@
           && (state.itemLevel === "all" || String(row.level) === state.itemLevel)
           && (!state.favoritesOnly || favorites.has(row.item.id))
           && (!query || row.haystack.includes(query));
-        return structuralMatch && (row.isPinned || ordinaryMatch);
+        return structuralMatch && (row.isEquippedItem || ordinaryMatch);
       });
     }
 
     function availableStats(rows) {
       const counts = new Map();
+      const seen = new Set();
       for (const row of rows) {
-        for (const [statId, value] of Object.entries(row.contribution)) {
-          if (value > 0) counts.set(statId, (counts.get(statId) ?? 0) + 1);
+        for (const statId of row.availableStatIds ?? Object.keys(row.contribution)) {
+          const key = `${row.item.id}|${statId}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          counts.set(statId, (counts.get(statId) ?? 0) + 1);
         }
       }
       return [...counts.entries()]
@@ -406,8 +753,11 @@
       }
       const protectionActive = state.mode !== "bare" && state.protected.length > 0;
       const context = protectionActive ? scoringContext() : null;
-      const currentTotals = context
-        ? Object.fromEntries(core.calculateBuild(context.build, context.attributes, { includeSetEffects: state.includeSetEffects }).stats.map((row) => [row.id, row.total]))
+      const protectionScenario = protectionActive ? activeScenario() : null;
+      const protectionOptions = calculationOptions(protectionScenario);
+      const currentCalculation = context ? core.calculateBuild(context.build, context.attributes, protectionOptions) : null;
+      const currentTotals = currentCalculation
+        ? Object.fromEntries((currentCalculation.scenarioStats ?? currentCalculation.stats).map((row) => [row.id, row.total]))
         : {};
       const currentBySlot = new Map();
       for (const row of filtered) {
@@ -425,7 +775,7 @@
           if (!currentBySlot.has(row.slotId)) {
             const equipped = core.slotSelection(row.slotId, context.build);
             currentBySlot.set(row.slotId, equipped?.itemId
-              ? core.slotSelectionContribution(row.slotId, equipped, context.build, context.attributes, { includeSetEffects: state.includeSetEffects })
+              ? candidateContribution(row.slotId, equipped, context.build, context.attributes, protectionOptions)
               : {});
           }
           const equippedContribution = currentBySlot.get(row.slotId);
@@ -435,12 +785,28 @@
             return { statId, delta, allowedLoss, pass: delta >= -allowedLoss - 1e-9 };
           });
           row.protectionPass = row.protection.every((part) => part.pass);
+          row.protectionHeadroom = row.protection.reduce((sum, part) => sum + part.delta + part.allowedLoss, 0);
         } else {
           row.protection = [];
           row.protectionPass = true;
+          row.protectionHeadroom = 0;
         }
       }
       return filtered;
+    }
+
+    function bestCandidateSlots(rows) {
+      const bestByItem = new Map();
+      const compare = (a, b) => Number(b.isPinned) - Number(a.isPinned)
+        || Number(b.protectionPass) - Number(a.protectionPass)
+        || (b.score ?? 0) - (a.score ?? 0)
+        || (b.protectionHeadroom ?? 0) - (a.protectionHeadroom ?? 0)
+        || a.slotId.localeCompare(b.slotId);
+      for (const row of rows) {
+        const current = bestByItem.get(row.item.id);
+        if (!current || compare(row, current) < 0) bestByItem.set(row.item.id, row);
+      }
+      return [...bestByItem.values()];
     }
 
     function sortRows(rows) {
@@ -502,7 +868,8 @@
       }
       const shown = rows.slice(0, state.limit);
       $("table-body").innerHTML = shown.map((row) => {
-        const color = core.gradeColor(row.item.grade) ?? "#d4a65e";
+        const gradeColor = core.gradeColor(row.item.grade) ?? "#d4a65e";
+        const color = /^#[0-9a-fA-F]{3,8}$|^[a-z-]+$/.test(gradeColor) ? gradeColor : "#d4a65e";
         const statCells = state.columns.map((statId) => {
           const value = row.contribution[statId] ?? 0;
           if (value > 0) return `<td>${core.formatStat(statId, value)}</td>`;
@@ -514,7 +881,7 @@
           .map((part) => `${core.statName(part.statId)}: ${Math.round(part.normalized * 100)}/100 (best in group: ${part.max > 0 ? core.formatStat(part.statId, part.max) : "n/a"})`)
           .join("\n");
         const scoreCell = state.columns.length
-          ? `<td class="score-cell" title="${breakdown ? `${breakdown}\nCompared with items for the same slot / weapon type.` : ""}"><span class="score-bar"><i style="width:${fit}%"></i><b>${fit}</b></span></td>`
+          ? `<td class="score-cell" title="${esc(breakdown ? `${breakdown}\nCompared with items for the same slot / weapon type.` : "")}"><span class="score-bar"><i style="width:${fit}%"></i><b>${fit}</b></span></td>`
           : "";
         const guardDetails = (row.protection ?? []).map((part) => `${core.statName(part.statId)}: ${core.formatStat(part.statId, part.delta)} (allowed loss ${core.formatStat(part.statId, part.allowedLoss)})`).join("\n");
         const guardCell = state.protected.length
@@ -522,15 +889,15 @@
             ? `<td class="zero" title="Choose My Armory build or import Questlog to compare protected stats">Needs build</td>`
             : `<td class="${row.protectionPass ? "guard-pass" : "guard-blocked"}" title="${esc(guardDetails)}">${row.protectionPass ? "Pass" : "Blocked"}</td>`
           : "";
-        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
-          <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${row.item.id}" aria-label="Toggle favourite">★</button></td>
+        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-candidate-id="${esc(row.candidateId)}" data-item-id="${esc(row.item.id)}" data-slot-id="${esc(row.slotId)}">
+          <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${esc(row.item.id)}" aria-label="Toggle favourite">★</button></td>
           <td class="item-cell-td"><span class="item-cell">
-            <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <span><span class="name" style="color:${color}">${row.item.name}</span>
-            <span class="sub"><span>${core.label(row.item.equipmentType)}</span>${row.isPinned ? `<span class="pinned-mark">● Currently equipped</span>` : equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
+            <img src="${esc(row.item.imageUrl ?? "")}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span><span class="name" style="color:${color}">${esc(row.item.name)}</span>
+            <span class="sub"><span>${esc(core.label(row.item.equipmentType))}</span>${row.isPinned ? `<span class="pinned-mark">● Currently equipped</span>` : equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
           </span></td>
-          <td style="color:${color}">${core.gradeName(row.item.grade)}</td>
-          <td>${row.level}</td>
+          <td style="color:${color}">${esc(core.gradeName(row.item.grade))}</td>
+          <td>${esc(row.level)}</td>
           ${statCells}
           ${guardCell}
           ${scoreCell}
@@ -540,7 +907,7 @@
         button.addEventListener("click", () => {
           const id = button.dataset.fav;
           favorites.has(id) ? favorites.delete(id) : favorites.add(id);
-          localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+          try { localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites])); } catch { /* private mode — keep the in-memory toggle */ }
           button.classList.toggle("on", favorites.has(id));
           if (state.favoritesOnly) refresh({ recompute: false });
         });
@@ -651,20 +1018,34 @@
     }
 
     // ---------- item hover card (same model as the Armory's ItemHoverCard) ----------
-    const hoverModelCache = new Map(); // mode|itemId|slotId -> model
+    const hoverModelCache = new Map();
+    let lastRows = [];
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-    function hoverModelFor(itemId, slotId) {
-      const key = `${state.mode}|${state.withTraits ? "t" : "b"}|${itemId}|${slotId}`;
-      if (hoverModelCache.has(key)) return hoverModelCache.get(key);
+    function hoverModelFor(candidateId) {
+      const candidate = lastRows.find((row) => row.candidateId === candidateId);
+      if (!candidate) return null;
+      const { item, slotId, selection } = candidate;
+      const objectiveKey = `${state.columns.join(",")}|${state.protected.join(",")}|${state.protectTolerancePct}`;
       const context = scoringContext();
-      const beforeCalc = core.calculateBuild(context.build, context.attributes);
+      const scenario = activeScenario();
+      const options = calculationOptions(scenario);
+      const calculationKey = scenario == null
+        ? staticCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects })
+        : scenarioCalculationFingerprint({ build: context.build, attributes: context.attributes, includeSetEffects: state.includeSetEffects, scenario });
+      const key = `${state.mode}|${calculationKey}|${state.withTraits ? "t" : "b"}|${state.heroicPotential ? "heroic" : "base"}|${objectiveKey}|${candidateId}`;
+      if (hoverModelCache.has(key)) return hoverModelCache.get(key);
+      const beforeCalc = core.calculateBuild(context.build, context.attributes, options);
       const build = core.deepClone(context.build);
-      const item = core.indexes.itemById[itemId];
-      const selection = { ...core.emptyEquipmentSelection(), itemId, level: core.itemMaxLevel(item), traits: state.withTraits ? maxTraitRows(item) : [] };
       core.slotCollectionForSlot(build, slotId)[slotId] = selection;
-      const calc = core.calculateBuild(build, context.attributes);
-      const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected] });
+      let candidateScenario = scenario;
+      if (scenario != null) {
+        try { candidateScenario = core.bindCombatScenarioToBuild(scenario, build); } catch { candidateScenario = scenario; }
+      }
+      const calc = core.calculateBuild(build, context.attributes, calculationOptions(candidateScenario));
+      const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected], optionalFallback: state.withTraits });
+      model.isPotential = Boolean(candidate?.potential);
+      model.potentialAssumptions = candidate?.potential?.assumptions ?? null;
       hoverModelCache.set(key, model);
       return model;
     }
@@ -681,16 +1062,15 @@
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
+      if (model.isPotential) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.22);background:rgba(255,152,45,0.045)"><div class="hc-title heroic">Strong bounded configuration</div><div class="hc-effect-text">Best configuration retained by the bounded search for the selected Fit goals. Uses 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Your equipped item is not changed.</div></div>`);
       if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}${model.hasAttributeGains ? `<div class="hc-gain-hint">Hold <kbd>Shift</kbd> to show attribute gains</div>` : ""}</div>`);
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
-        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
-      if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}</div>`);
+        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}${row.levelKnown ? ` · Lv ${esc(row.level)}` : " · level unknown"}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
+      if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="resonance-selected"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}${model.resonanceOptions.length > model.resonance.length ? `<div class="hc-gain-hint">Hold <kbd>R</kbd> to show all possibilities</div>` : ""}</div><div class="resonance-all"><div class="hc-title resonance">Possible Trait Resonances</div>${statRows(model.resonanceOptions, "resonance")}</div></div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
-      if (model.hasAbilities) sections.push(`<div class="hc-section"><div class="hc-title">Weapon Abilities</div><div class="hc-abilities">${model.abilities.map((ab) =>
-        `<span class="hc-ability" title="${esc(ab.name)}" style="background-image:url('${esc(ab.icon)}')"></span>`).join("")}</div></div>`);
       if (model.hasSet) sections.push(`<div class="hc-section"><div class="hc-set-head"><span class="hc-title" style="margin:0">Set Effects</span><span class="hc-set-count">${esc(model.setInfo.countLabel)}</span></div><div class="hc-set-name">${esc(model.setInfo.name)}</div>${model.setInfo.bonuses.map((bonus) =>
         `<div class="hc-bonus ${bonus.active ? "active" : "inactive"}"><span class="req" style="color:${bonus.color}">${bonus.mark} ${esc(bonus.required)}</span><span class="txt">${esc(bonus.text)}${bonus.hasComputed ? `<i style="display:block;font-style:normal;color:${bonus.color}">${esc(bonus.computedText)}</i>` : ""}</span></div>`).join("")}</div>`);
       $("hover-card").innerHTML = sections.join("");
@@ -704,46 +1084,55 @@
       card.style.bottom = flip ? `${window.innerHeight - event.clientY}px` : "";
     }
 
-    let hoverItemId = "";
+    let hoverCandidateId = "";
     let attributeGainKeyHeld = false;
+    let resonanceKeyHeld = false;
     function setAttributeGainsVisible(visible) {
-      $("hover-card").classList.toggle("show-gains", Boolean(visible && hoverItemId));
+      $("hover-card").classList.toggle("show-gains", Boolean(visible && hoverCandidateId));
+    }
+    function setAllResonanceVisible(visible) {
+      $("hover-card").classList.toggle("show-all-resonance", Boolean(visible && hoverCandidateId));
     }
     function bindHoverCard() {
       const body = $("table-body");
       body.addEventListener("mouseover", (event) => {
         const tr = event.target.closest("tr[data-item-id]");
-        if (!tr || tr.dataset.itemId === hoverItemId) return;
-        hoverItemId = tr.dataset.itemId;
-        const model = hoverModelFor(tr.dataset.itemId, tr.dataset.slotId);
+        if (!tr || tr.dataset.candidateId === hoverCandidateId) return;
+        hoverCandidateId = tr.dataset.candidateId;
+        const model = hoverModelFor(tr.dataset.candidateId);
         if (!model) {
-          hoverItemId = "";
+          hoverCandidateId = "";
           return;
         }
         renderHoverCard(model);
         $("hover-card").classList.remove("hidden");
         $("hover-card").setAttribute("aria-hidden", "false");
         setAttributeGainsVisible(attributeGainKeyHeld);
+        setAllResonanceVisible(resonanceKeyHeld);
         positionHoverCard(event);
       });
       body.addEventListener("mousemove", (event) => {
-        if (hoverItemId) positionHoverCard(event);
+        if (hoverCandidateId) positionHoverCard(event);
       });
       body.addEventListener("mouseleave", () => {
-        hoverItemId = "";
+        hoverCandidateId = "";
         setAttributeGainsVisible(false);
+        setAllResonanceVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       });
       document.addEventListener("scroll", () => {
-        hoverItemId = "";
+        hoverCandidateId = "";
         setAttributeGainsVisible(false);
+        setAllResonanceVisible(false);
         $("hover-card").classList.add("hidden");
         $("hover-card").setAttribute("aria-hidden", "true");
       }, { passive: true });
       document.addEventListener("keydown", (event) => { if (event.key === "Shift") { attributeGainKeyHeld = true; setAttributeGainsVisible(true); } });
       document.addEventListener("keyup", (event) => { if (event.key === "Shift") { attributeGainKeyHeld = false; setAttributeGainsVisible(false); } });
-      window.addEventListener("blur", () => { attributeGainKeyHeld = false; setAttributeGainsVisible(false); });
+      document.addEventListener("keydown", (event) => { if (event.key.toLowerCase() === "r") { resonanceKeyHeld = true; setAllResonanceVisible(true); } });
+      document.addEventListener("keyup", (event) => { if (event.key.toLowerCase() === "r") { resonanceKeyHeld = false; setAllResonanceVisible(false); } });
+      window.addEventListener("blur", () => { attributeGainKeyHeld = false; resonanceKeyHeld = false; setAttributeGainsVisible(false); setAllResonanceVisible(false); });
     }
 
     let lastStats = [];
@@ -759,10 +1148,12 @@
         state.sortDir = "desc";
       }
       scoreRows(rows, filtered);
+      const bestSlots = bestCandidateSlots(filtered);
       const visible = state.columns.length
-        ? filtered.filter((row) => row.isPinned || row.score > 0 || state.sortKey !== "score")
-        : filtered;
+        ? bestSlots.filter((row) => row.isPinned || row.score > 0 || state.sortKey !== "score")
+        : bestSlots;
       sortRows(visible);
+      lastRows = visible;
       renderHead();
       renderBody(visible);
       renderColumnMenu(lastStats);
@@ -781,7 +1172,15 @@
       const pinnedCount = visible.filter((row) => row.isPinned).length;
       const pinnedLabel = pinnedCount ? ` · ${pinnedCount} equipped item${pinnedCount > 1 ? "s" : ""} pinned` : "";
       const setLabel = state.mode !== "bare" && state.includeSetEffects ? " · set effects included" : "";
-      $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${setLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+      const itemPotentialLabel = " · Item Potentials excluded";
+      const scenarioLabel = activeScenario() ? ` · scenario at ${state.scenarioDistance}m${state.scenarioTime === "unspecified" ? "" : `, ${state.scenarioTime}`}${scenarioResourceLabel()}, ${formatSourceMotion(sourceMotionFromControls(scenarioMotionControls()))}, ${formatSourceEventHistory(sourceEventHistoryFromControls(scenarioEventControls()), (weapon) => core.label(weapon))}, ${scenarioSocialLabel()}` : "";
+      const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
+      if (calculationBlock) {
+        const count = calculationBlock.blockingIssues?.length ?? 0;
+        $("status").innerHTML = `<span class="error">${esc(core.label(calculationBlock.state))} build: ${count} calculation issue${count === 1 ? "" : "s"} must be resolved before build-aware gear ranking.</span>`;
+      } else {
+        $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${itemPotentialLabel}${scenarioLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
+      }
       writeHash();
     }
 
@@ -792,7 +1191,17 @@
       if (state.protected.length) params.set("protect", state.protected.join(","));
       if (state.protected.length && state.protectTolerancePct !== 1) params.set("loss", String(state.protectTolerancePct));
       if (!state.keepHeroic) params.set("heroic", "0");
-      if (state.includeSetEffects) params.set("sets", "1");
+      if (state.heroicPotential) params.set("heroicPotential", "1");
+      if (!state.includeSetEffects) params.set("sets", "0");
+      if (state.scenarioEnabled) {
+        params.set("distance", String(state.scenarioDistance));
+        if (state.scenarioTime !== "unspecified") params.set("time", state.scenarioTime);
+        if (state.scenarioHealthBps !== null) params.set("hpBps", String(state.scenarioHealthBps));
+        if (state.scenarioManaBps !== null) params.set("mpBps", String(state.scenarioManaBps));
+        params.set("motion", encodeSourceMotionControls(scenarioMotionControls()));
+        params.set("event", encodeSourceEventControls(scenarioEventControls()));
+        params.set("social", encodeSourceSocialControls(scenarioSocialControls()));
+      }
       if (state.category !== "all") params.set("cat", state.category);
       if (state.type !== "all") params.set("type", state.type);
       if (state.grade !== "all") params.set("grade", state.grade);
@@ -808,7 +1217,52 @@
       if (params.get("protect")) state.protected = params.get("protect").split(",").filter(Boolean);
       if (params.has("loss")) state.protectTolerancePct = Math.max(0, Math.min(5, Number(params.get("loss")) || 0));
       if (params.get("heroic") === "0") state.keepHeroic = false;
-      if (params.get("sets") === "1") state.includeSetEffects = true;
+      if (params.get("heroicPotential") === "1") state.heroicPotential = true;
+      if (params.get("sets") === "0") state.includeSetEffects = false;
+      if (params.has("distance")) {
+        const distance = Number(params.get("distance"));
+        if (Number.isFinite(distance) && distance >= 0) {
+          state.scenarioEnabled = true;
+          state.scenarioDistance = distance;
+        }
+      }
+      if (["day", "night"].includes(params.get("time"))) state.scenarioTime = params.get("time");
+      if (params.has("hpBps")) {
+        const hpBps = normalizeScenarioBps(params.get("hpBps"));
+        if (hpBps !== null) {
+          state.scenarioEnabled = true;
+          state.scenarioHealthBps = hpBps;
+        }
+      }
+      if (params.has("mpBps")) {
+        const mpBps = normalizeScenarioBps(params.get("mpBps"));
+        if (mpBps !== null) {
+          state.scenarioEnabled = true;
+          state.scenarioManaBps = mpBps;
+        }
+      }
+      if (params.has("motion")) {
+        const motion = decodeSourceMotionControls(params.get("motion"));
+        state.scenarioMotionMode = motion.mode;
+        state.scenarioStationaryBand = motion.stationaryBand;
+        state.scenarioMovingBand = motion.movingBand;
+        state.scenarioPriorStationaryBand = motion.priorStationaryBand;
+        state.scenarioEnabled = true;
+      }
+      if (params.has("event")) {
+        const event = decodeSourceEventControls(params.get("event"));
+        state.scenarioEventMode = event.mode;
+        state.scenarioEventWeapon = event.weaponType;
+        state.scenarioEnabled = true;
+      }
+      if (params.has("social")) {
+        const social = decodeSourceSocialControls(params.get("social"));
+        state.scenarioPartyTotal = social.totalPartyMembersIncludingSelf;
+        state.scenarioPartyWithin4 = social.otherPartyPlayersWithin4m;
+        state.scenarioPartyAdditional4To16 = social.additionalOtherPartyPlayersAbove4mThrough16m;
+        state.scenarioAlliedNonpartyWithin4 = social.alliedNonpartyPlayersWithin4m;
+        state.scenarioEnabled = true;
+      }
       if (params.get("cat")) state.category = params.get("cat");
       if (params.get("type")) state.type = params.get("type");
       if (params.get("grade")) state.grade = params.get("grade");
@@ -827,7 +1281,7 @@
       try {
         await core.initCore("./data/app-data.json");
       } catch (error) {
-        $("status").innerHTML = `<span class="error">Failed to load game data: ${error.message}</span>`;
+        $("status").innerHTML = `<span class="error">Failed to load game data: ${esc(error.message)}</span>`;
         return;
       }
       $("game-build").textContent = core.data.gameBuild ?? "Unknown";
@@ -851,7 +1305,8 @@
       }
 
       // Precedence: valid hash -> saved defaults -> product defaults.
-      const PREFS_KEY = "tlhelper-gear-viewer-prefs-v1";
+      // v2 resets the old product default that silently persisted set-aware Fit as disabled.
+      const PREFS_KEY = "tlhelper-gear-viewer-prefs-v2";
       if (location.hash.length > 1) {
         readHash();
       } else {
@@ -862,7 +1317,32 @@
             if (Array.isArray(prefs.protected)) state.protected = prefs.protected;
             if (Number.isFinite(prefs.protectTolerancePct)) state.protectTolerancePct = Math.max(0, Math.min(5, prefs.protectTolerancePct));
             if (typeof prefs.keepHeroic === "boolean") state.keepHeroic = prefs.keepHeroic;
+            if (typeof prefs.heroicPotential === "boolean") state.heroicPotential = prefs.heroicPotential;
             if (typeof prefs.includeSetEffects === "boolean") state.includeSetEffects = prefs.includeSetEffects;
+            if (typeof prefs.scenarioEnabled === "boolean") state.scenarioEnabled = prefs.scenarioEnabled;
+            if (Number.isFinite(prefs.scenarioDistance) && prefs.scenarioDistance >= 0) state.scenarioDistance = prefs.scenarioDistance;
+            if (["unspecified", "day", "night"].includes(prefs.scenarioTime)) state.scenarioTime = prefs.scenarioTime;
+            if (Object.hasOwn(prefs, "scenarioHealthBps")) state.scenarioHealthBps = normalizeScenarioBps(prefs.scenarioHealthBps);
+            if (Object.hasOwn(prefs, "scenarioManaBps")) state.scenarioManaBps = normalizeScenarioBps(prefs.scenarioManaBps);
+            if (typeof prefs.scenarioMotion === "string") {
+              const motion = decodeSourceMotionControls(prefs.scenarioMotion);
+              state.scenarioMotionMode = motion.mode;
+              state.scenarioStationaryBand = motion.stationaryBand;
+              state.scenarioMovingBand = motion.movingBand;
+              state.scenarioPriorStationaryBand = motion.priorStationaryBand;
+            }
+            if (typeof prefs.scenarioEvent === "string") {
+              const event = decodeSourceEventControls(prefs.scenarioEvent);
+              state.scenarioEventMode = event.mode;
+              state.scenarioEventWeapon = event.weaponType;
+            }
+            if (typeof prefs.scenarioSocial === "string") {
+              const social = decodeSourceSocialControls(prefs.scenarioSocial);
+              state.scenarioPartyTotal = social.totalPartyMembersIncludingSelf;
+              state.scenarioPartyWithin4 = social.otherPartyPlayersWithin4m;
+              state.scenarioPartyAdditional4To16 = social.additionalOtherPartyPlayersAbove4mThrough16m;
+              state.scenarioAlliedNonpartyWithin4 = social.alliedNonpartyPlayersWithin4m;
+            }
             if (prefs.category) state.category = prefs.category;
             if (prefs.itemLevel) state.itemLevel = prefs.itemLevel;
             if (prefs.mode === "build") state.mode = "build"; // questlog needs a fresh import
@@ -870,7 +1350,7 @@
         } catch {}
       }
       window.addEventListener("pagehide", () => {
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, includeSetEffects: state.includeSetEffects, category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify({ columns: state.columns, protected: state.protected, protectTolerancePct: state.protectTolerancePct, keepHeroic: state.keepHeroic, heroicPotential: state.heroicPotential, includeSetEffects: state.includeSetEffects, scenarioEnabled: state.scenarioEnabled, scenarioDistance: state.scenarioDistance, scenarioTime: state.scenarioTime, scenarioHealthBps: state.scenarioHealthBps, scenarioManaBps: state.scenarioManaBps, scenarioMotion: encodeSourceMotionControls(scenarioMotionControls()), scenarioEvent: encodeSourceEventControls(scenarioEventControls()), scenarioSocial: encodeSourceSocialControls(scenarioSocialControls()), category: state.category, itemLevel: state.itemLevel, mode: state.mode })); } catch {}
       });
 
       // saved Armory build
@@ -900,22 +1380,82 @@
       $("mode-select").value = state.mode;
       $("protect-tolerance").value = String(state.protectTolerancePct);
       $("heroic-toggle").checked = state.keepHeroic;
+      $("heroic-potential-toggle").checked = state.heroicPotential;
       $("set-fit-toggle").checked = state.includeSetEffects;
       $("set-fit-toggle").disabled = state.mode === "bare";
+      $("scenario-fit-toggle").checked = state.scenarioEnabled;
+      $("scenario-distance").value = String(state.scenarioDistance);
+      $("scenario-time").value = state.scenarioTime;
+      $("scenario-health-percent").value = scenarioBpsToPercent(state.scenarioHealthBps);
+      $("scenario-mana-percent").value = scenarioBpsToPercent(state.scenarioManaBps);
+      $("scenario-motion-mode").value = state.scenarioMotionMode;
+      $("scenario-stationary-band").value = state.scenarioStationaryBand;
+      $("scenario-moving-band").value = state.scenarioMovingBand;
+      $("scenario-prior-stationary-band").value = state.scenarioPriorStationaryBand;
+      $("scenario-event-mode").value = state.scenarioEventMode;
+      $("scenario-party-total").value = state.scenarioPartyTotal;
+      $("scenario-party-within4").value = state.scenarioPartyWithin4;
+      $("scenario-party-additional-4to16").value = state.scenarioPartyAdditional4To16;
+      $("scenario-allied-nonparty-within4").value = state.scenarioAlliedNonpartyWithin4;
+      syncScenarioControls();
 
       let searchTimer = 0;
       $("search").addEventListener("input", () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => { state.search = $("search").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); }, 120);
       });
-      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; $("set-fit-toggle").disabled = state.mode === "bare"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
+      $("mode-select").addEventListener("change", () => { state.mode = $("mode-select").value; $("set-fit-toggle").disabled = state.mode === "bare"; syncScenarioControls(); renderTypeOptions(); state.limit = ROW_LIMIT; refresh(); });
       $("category-select").addEventListener("change", () => { state.category = $("category-select").value; state.type = "all"; renderTypeOptions(); state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("type-select").addEventListener("change", () => { state.type = $("type-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("grade-select").addEventListener("change", () => { state.grade = $("grade-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("level-select").addEventListener("change", () => { state.itemLevel = $("level-select").value; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
       $("traits-toggle").addEventListener("change", () => { state.withTraits = $("traits-toggle").checked; refresh(); });
       $("heroic-toggle").addEventListener("change", () => { state.keepHeroic = $("heroic-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
+      $("heroic-potential-toggle").addEventListener("change", () => { state.heroicPotential = $("heroic-potential-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
       $("set-fit-toggle").addEventListener("change", () => { state.includeSetEffects = $("set-fit-toggle").checked; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-fit-toggle").addEventListener("change", () => { state.scenarioEnabled = $("scenario-fit-toggle").checked; syncScenarioControls(); state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-distance").addEventListener("change", () => {
+        state.scenarioDistance = normalizeScenarioDistance($("scenario-distance").value, state.scenarioDistance);
+        $("scenario-distance").value = String(state.scenarioDistance);
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-time").addEventListener("change", () => {
+        state.scenarioTime = ["day", "night"].includes($("scenario-time").value) ? $("scenario-time").value : "unspecified";
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-health-percent").addEventListener("change", () => {
+        state.scenarioHealthBps = scenarioPercentToBps($("scenario-health-percent").value, state.scenarioHealthBps);
+        $("scenario-health-percent").value = scenarioBpsToPercent(state.scenarioHealthBps);
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-mana-percent").addEventListener("change", () => {
+        state.scenarioManaBps = scenarioPercentToBps($("scenario-mana-percent").value, state.scenarioManaBps);
+        $("scenario-mana-percent").value = scenarioBpsToPercent(state.scenarioManaBps);
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-motion-mode").addEventListener("change", () => {
+        state.scenarioMotionMode = $("scenario-motion-mode").value;
+        syncScenarioControls();
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-stationary-band").addEventListener("change", () => { state.scenarioStationaryBand = $("scenario-stationary-band").value; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-moving-band").addEventListener("change", () => { state.scenarioMovingBand = $("scenario-moving-band").value; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-prior-stationary-band").addEventListener("change", () => { state.scenarioPriorStationaryBand = $("scenario-prior-stationary-band").value; state.limit = ROW_LIMIT; refresh(); });
+      $("scenario-event-mode").addEventListener("change", () => {
+        state.scenarioEventMode = $("scenario-event-mode").value;
+        syncScenarioControls();
+        state.limit = ROW_LIMIT;
+        refresh();
+      });
+      $("scenario-event-weapon").addEventListener("change", () => { state.scenarioEventWeapon = $("scenario-event-weapon").value; state.limit = ROW_LIMIT; refresh(); });
+      for (const [id, key] of [["scenario-party-total", "scenarioPartyTotal"], ["scenario-party-within4", "scenarioPartyWithin4"], ["scenario-party-additional-4to16", "scenarioPartyAdditional4To16"], ["scenario-allied-nonparty-within4", "scenarioAlliedNonpartyWithin4"]]) {
+        $(id).addEventListener("change", () => { state[key] = $(id).value.trim(); state.limit = ROW_LIMIT; refresh(); });
+      }
       $("fav-toggle").addEventListener("change", () => { state.favoritesOnly = $("fav-toggle").checked; state.limit = ROW_LIMIT; refresh({ recompute: false }); });
 
       // column picker dropdown
@@ -943,9 +1483,13 @@
         button.textContent = "Importing…";
         try {
           const response = await fetch(`/api/questlog/character?url=${encodeURIComponent($("ql-url").value.trim())}`, { cache: "no-store" });
+          if (!response.ok) {
+            let detail = "";
+            try { detail = (await response.json())?.error ?? ""; } catch { /* non-JSON error body */ }
+            throw new Error(detail || `Questlog import failed (HTTP ${response.status}). Check the link and try again.`);
+          }
           const payload = await response.json();
-          if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
-          const requested = payload.buildId === null ? null : String(payload.buildId);
+          const requested = payload.buildId == null ? null : String(payload.buildId);
           const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
           if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
           const sourceBuild = {
@@ -968,6 +1512,7 @@
           $("mode-select").value = "questlog";
           state.mode = "questlog";
           $("set-fit-toggle").disabled = false;
+          syncScenarioControls();
           renderTypeOptions();
           await refresh();
         } catch (error) {
@@ -999,5 +1544,6 @@
 
     boot();
   </script>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>

@@ -12,8 +12,11 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 const BUILD = process.env.TL_STEAM_BUILD ?? "24118850";
 const DATA_ROOT = process.env.TL_DATA_ROOT ?? "D:\\TL_Data";
 const EXTRACT_ROOT = process.env.TL_EXTRACT_ROOT ?? path.join(DATA_ROOT, "raw", BUILD, "extracted");
+const QUESTLOG_ROOT = process.env.TL_QUESTLOG_ROOT
+  ? path.resolve(process.env.TL_QUESTLOG_ROOT)
+  : path.join(REPO_ROOT, "out", "questlog-public");
 const formulaFile = path.join(DATA_ROOT, "decoded", BUILD, "tables", "TLFormulaParameterNew.json");
-const skillSetFile = path.join(REPO_ROOT, "out", "questlog-public", "skillBuilder.getSkillSets.json");
+const skillSetFile = path.join(QUESTLOG_ROOT, "skillBuilder.getSkillSets.json");
 const localizationFile = path.join(EXTRACT_ROOT, "localization", "csv", "en.csv");
 const outputFile = path.join(DATA_ROOT, "reports", BUILD, "skill-formula-map.json");
 

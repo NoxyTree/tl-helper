@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy and Data Use | TL Helper</title>
+  <title>Privacy | TL Helper</title>
   <meta name="description" content="How TL Helper stores local build data, handles optional Questlog imports, and uses third-party services.">
-  <meta name="theme-color" content="#0b0906"><link rel="canonical" href="https://tlhelper.org/privacy"><link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <meta property="og:type" content="website"><meta property="og:title" content="Privacy and Data Use | TL Helper"><meta property="og:description" content="How TL Helper handles your data."><meta property="og:url" content="https://tlhelper.org/privacy"><meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/privacy"><link rel="icon" href="./tl-logo.png" type="image/png">
+  <meta property="og:type" content="website"><meta property="og:title" content="Privacy | TL Helper"><meta property="og:description" content="How TL Helper handles your data."><meta property="og:url" content="https://tlhelper.org/privacy"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
   <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./tl-shell.css">
+  <link rel="stylesheet" href="./tl-shell.css?v=20260713">
   <style>
     *,*::before,*::after{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0b0906;color:#d8c8aa;font:15px/1.65 "Instrument Sans",sans-serif}.page{max-width:880px;margin:0 auto;padding:48px 24px 80px}h1,h2{color:#f6d391;font-family:Marcellus,serif;font-weight:400}h1{font-size:36px}h2{margin-top:34px;font-size:22px}a{color:#d8b878}code{color:#dce9ff}li{margin:8px 0}.notice{padding:16px;border:1px solid rgba(212,166,94,.25);border-radius:10px;background:rgba(212,166,94,.06)}@media(max-width:620px){.page{padding:30px 18px 60px}h1{font-size:30px}}
   </style>
@@ -17,9 +17,9 @@
 <body>
   <a class="tl-skip-link" href="#main-content">Skip to privacy notice</a>
   <header class="tl-app-header">
-    <a class="tl-app-brand" href="./index.html"><span class="tl-app-brand-mark"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Privacy and data use</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><span class="tl-app-nav-item is-active" aria-current="page">Privacy</span></nav>
-    <div class="tl-app-header-end"></div>
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Privacy</span></span></a>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a><a class="tl-app-nav-item is-active" href="./privacy.html" aria-current="page">Privacy</a></nav>
+    <div class="tl-app-header-end"><div class="tl-app-status-group"><div class="tl-app-status"><span class="tl-app-status-label">Data storage</span><span class="tl-app-status-value tl-app-status-value-muted">On this device</span></div></div></div>
   </header>
   <main id="main-content" class="page">
     <h1>Privacy and data use</h1>
@@ -33,8 +33,9 @@
     <h2>Deleting your data</h2>
     <p>You can remove saved builds inside TL Helper or clear this site's browser storage through your browser settings. Because anonymous build data remains on your device, TL Helper cannot recover it after deletion.</p>
     <h2>Accounts</h2>
-    <p>Optional account sync is not active in the anonymous beta. This notice will be updated before cloud synchronization is enabled.</p>
+    <p>Signing in is optional. If you choose to sign in with Discord or Google, your saved builds and achievements sync to your account so they follow you across devices. This is local-first: your guest data stays on your device and is merged into your account when you sign in — signing in never overwrites your local builds. Everything continues to work fully as a guest, with no account and nothing stored off your device.</p>
     <p>Last updated: 12 July 2026.</p>
   </main>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ import test from "node:test";
 
 const armoryPath = new URL("../../web/index.html", import.meta.url);
 const markup = await readFile(armoryPath, "utf8");
+const shellCss = await readFile(new URL("../../web/tl-shell.css", import.meta.url), "utf8");
 
 function sectionBetween(start, end) {
   const startAt = markup.indexOf(start);
@@ -16,6 +17,15 @@ function sectionBetween(start, end) {
 test("mastery nodes bind a context-menu action", () => {
   const wheel = sectionBetween('list="{{ wheelNodes }}"', 'list="{{ laneLegend }}"');
   assert.match(wheel, /onContextMenu="{{ node\.onContextMenu }}"/);
+});
+
+test("Overall Mastery unlock level is an explicit editable build input", () => {
+  assert.match(markup, /aria-label="Overall Mastery Level"/);
+  assert.match(markup, /overallMasteryLevelValue: build\.overallMasteryLevel \?\? ""/);
+  assert.match(markup, /next\.overallMasteryLevel = value === "" \? null : Number\(value\)/);
+  assert.match(markup, /Potential affects persistent static totals/);
+  assert.match(markup, /Shielded by Unity/);
+  assert.doesNotMatch(markup, /Only Potential affects totals/);
 });
 
 test("skill budget summary declares columns for all four values", () => {
@@ -37,6 +47,11 @@ test("rune panel provides explicit item, effect, and selector empty states", () 
   assert.match(runes, /No rune effects yet\./);
   assert.match(runes, /<option value="">Empty<\/option>/);
   assert.match(runes, /<option value="">Choose stat<\/option>/);
+  assert.match(runes, /data-rune-synergy-guide/);
+  assert.match(runes, /Synergy Guide/);
+  assert.match(runes, /Sockets 1 → 2 → 3/);
+  assert.match(runes, /synergyGuideRows/);
+  assert.match(markup, /actual === expected \|\| actual === "chaos"/);
 });
 
 test("TL Helper creation and saving are primary while Questlog remains optional", () => {
@@ -44,6 +59,7 @@ test("TL Helper creation and saving are primary while Questlog remains optional"
   assert.match(header, />My builds \(\{\{ presetCount \}\}\)<\/button>/);
   assert.match(header, />New build<\/button>/);
   assert.match(header, />Import Questlog<\/button>/);
+  assert.doesNotMatch(header, /Auto-fill|onAutoFill/);
   assert.match(header, /aria-label="Character name"/);
   assert.match(header, /aria-label="Build role"/);
   assert.match(header, /aria-label="Server"/);
@@ -54,7 +70,35 @@ test("TL Helper creation and saving are primary while Questlog remains optional"
   assert.match(builds, />Save current build<\/button>/);
 });
 
+test("Questlog import accepts a character-builder link instead of raw JSON", () => {
+  const importer = sectionBetween('value="{{ importOpen }}"', 'value="{{ pickerOpen }}"');
+  assert.match(importer, /type="url"/);
+  assert.match(importer, /aria-label="Questlog character-builder link"/);
+  assert.match(importer, /questlog\.gg\/throne-and-liberty\/en\/character-builder/);
+  assert.doesNotMatch(importer, /Questlog build JSON|Paste a JSON object|<textarea/);
+  assert.match(markup, /fetch\(`\/api\/questlog\/character\?url=\$\{encodeURIComponent\(url\)\}`/);
+});
+
 test("a first visit starts with an editable empty TL Helper build", () => {
   assert.match(markup, /const build = saved\?\.build \?\? core\.createInitialBuild\(\)/);
   assert.doesNotMatch(markup, /const build = saved\?\.build \?\? core\.seedShowcaseBuild/);
+  assert.doesNotMatch(markup, /onAutoFill|seedShowcaseBuild\(/);
+});
+
+test("compact item editing flows from selection into per-item configuration", () => {
+  const picker = sectionBetween('value="{{ pickerOpen }}"', '</x-dc>');
+  assert.match(picker, /data-picker-view="{{ pickerView }}"/);
+  assert.match(picker, />1&nbsp; Choose item</);
+  assert.match(picker, />2&nbsp; Configure</);
+  assert.match(picker, /Runes \{\{ preview\.runeFilled \}\}\/3/);
+  assert.match(markup, /view: equipped \? "config" : "list"/);
+  assert.match(markup, /if \(isEquipped\) this\.setState\(\{ picker: \{ \.\.\.picker, view: "config" \}/);
+  assert.doesNotMatch(markup, /isEquipped \? "" : item\.id/);
+  assert.doesNotMatch(shellCss, /Item Picker[^\n]+last-child[^\n]+display:\s*none/);
+});
+
+test("item Heroic effects use one consistent stacked column", () => {
+  const picker = sectionBetween('value="{{ pickerOpen }}"', '</x-dc>');
+  assert.match(picker, /data-item-heroic-effects[^>]+grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.doesNotMatch(picker, /heroicEffectRows[\s\S]{0,800}repeat\(auto-fit/);
 });

@@ -329,7 +329,33 @@
     onfocus: "onFocus",
     onblur: "onBlur",
     ondoubleclick: "onDoubleClick",
-    oncontextmenu: "onContextMenu"
+    oncontextmenu: "onContextMenu",
+    onmousemove: "onMouseMove",
+    onmouseover: "onMouseOver",
+    onmouseout: "onMouseOut",
+    onpointerdown: "onPointerDown",
+    onpointerup: "onPointerUp",
+    onpointermove: "onPointerMove",
+    onpointerenter: "onPointerEnter",
+    onpointerleave: "onPointerLeave",
+    onpointercancel: "onPointerCancel",
+    onpointerover: "onPointerOver",
+    onpointerout: "onPointerOut",
+    ongotpointercapture: "onGotPointerCapture",
+    onlostpointercapture: "onLostPointerCapture",
+    ontouchstart: "onTouchStart",
+    ontouchend: "onTouchEnd",
+    ontouchmove: "onTouchMove",
+    ontouchcancel: "onTouchCancel",
+    ondragstart: "onDragStart",
+    ondragend: "onDragEnd",
+    ondragenter: "onDragEnter",
+    ondragleave: "onDragLeave",
+    ondragover: "onDragOver",
+    onanimationstart: "onAnimationStart",
+    onanimationend: "onAnimationEnd",
+    onanimationiteration: "onAnimationIteration",
+    ontransitionend: "onTransitionEnd"
   };
   var ATTRS = `(?:[^>"']|"[^"]*"|'[^']*')*`;
   var IMPORT_SELF_CLOSE_RE = new RegExp(
@@ -337,6 +363,12 @@
     "gi"
   );
   var CAMEL_ATTR_RE = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
+  function encodeCamelAttrs(html) {
+    return html.replace(
+      CAMEL_ATTR_RE,
+      (_, sp, name, eq) => sp + CAMEL_ATTR + name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + eq
+    );
+  }
   function encodeCase(html) {
     html = html.replace(
       IMPORT_SELF_CLOSE_RE,
@@ -344,10 +376,7 @@
     );
     html = html.replace(/<helmet(\s|>)/gi, "<sc-helmet$1");
     html = html.replace(/<\/helmet\s*>/gi, "</sc-helmet>");
-    html = html.replace(
-      CAMEL_ATTR_RE,
-      (_, sp, name, eq) => sp + CAMEL_ATTR + name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + eq
-    );
+    html = encodeCamelAttrs(html);
     for (const [real, alias] of Object.entries(RAW_WRAP)) {
       html = html.replace(
         new RegExp("(</?)" + real + "(?=[\\s>])", "gi"),
@@ -1033,17 +1062,37 @@
     };
   }
 
+  // src/bundled.ts
+  function bundledBlob(url) {
+    const blobs = window.__resourceBlobs;
+    const b = blobs ? blobs[url.split("#")[0]] : void 0;
+    return b instanceof Blob ? b : null;
+  }
+
   // src/cdn.ts
   var REACT_URL = "https://unpkg.com/react@18.3.1/umd/react.production.min.js";
   var REACT_SRI = "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z";
+  var REACT_VENDOR_URL = "./vendor/react/react.production.min.js";
   var REACT_DOM_URL = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js";
   var REACT_DOM_SRI = "sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1";
+  var REACT_DOM_VENDOR_URL = "./vendor/react/react-dom.production.min.js";
   var BABEL_URL = "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js";
   var BABEL_SRI = "sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y";
-  function cdnScriptFor(url, sri) {
+  var BABEL_VENDOR_URL = "./vendor/babel/babel.min.js";
+  /** Same-origin vendored copy first, then the pinned CDN URL (with SRI) as a
+   *  fallback; a host-provided `window.__resources` override wins outright. */
+  function scriptSourcesFor(vendorUrl, url, sri) {
     const res = window.__resources;
     const v = res ? res[url] : void 0;
-    return typeof v === "string" && v ? { src: v } : { src: url, integrity: sri };
+    if (typeof v === "string" && v) return [{ src: v }];
+    return [{ src: vendorUrl }, { src: url, integrity: sri }];
+  }
+  function loadScriptWithFallback(sources) {
+    let p = loadScript(sources[0].src, sources[0].integrity);
+    for (const next of sources.slice(1)) {
+      p = p.catch(() => loadScript(next.src, next.integrity));
+    }
+    return p;
   }
 
   // src/external.ts
@@ -1070,18 +1119,9 @@
     function ensureBabel() {
       if (window.Babel) return Promise.resolve();
       if (babelLoading) return babelLoading;
-      const babel = cdnScriptFor(BABEL_URL, BABEL_SRI);
-      babelLoading = new Promise((res, rej) => {
-        const s = document.createElement("script");
-        s.src = babel.src;
-        if (babel.integrity) {
-          s.integrity = babel.integrity;
-          s.crossOrigin = "anonymous";
-        }
-        s.onload = () => res();
-        s.onerror = rej;
-        document.head.appendChild(s);
-      });
+      babelLoading = loadScriptWithFallback(
+        scriptSourcesFor(BABEL_VENDOR_URL, BABEL_URL, BABEL_SRI)
+      );
       return babelLoading;
     }
     const pending = /* @__PURE__ */ new Map();
@@ -1094,9 +1134,13 @@
         kind === "jsx" ? ensureBabel() : Promise.resolve(),
         after ?? Promise.resolve()
       ]);
-      const p = ready.then(() => fetch(url)).then((r) => {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.text();
+      const p = ready.then(() => {
+        const pre = bundledBlob(url);
+        if (pre) return pre.text();
+        return fetch(url).then((r) => {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.text();
+        });
       }).then((src) => {
         const code = kind === "jsx" ? window.Babel.transform(src, {
           filename: url,
@@ -1274,7 +1318,7 @@
     function postDesignMode(mode) {
       if (window.parent === window) return;
       try {
-        window.parent.postMessage({ type: "__dc_design_mode", mode }, "*");
+        window.parent.postMessage({ type: "__dc_design_mode", mode }, location.origin);
       } catch {
       }
     }
@@ -1295,6 +1339,7 @@
       }
     }
     window.addEventListener("message", (e) => {
+      if (e.origin !== location.origin) return;
       const type = e.data && e.data.type;
       if (type === "__dc_theme") {
         const t = e.data.theme;
@@ -1339,6 +1384,28 @@
             const key = tag + "|" + (child.getAttribute("href") || child.getAttribute("src") || child.outerHTML);
             if (mounted.has(key)) continue;
             mounted.add(key);
+            if (tag === "LINK") {
+              const rel = (child.getAttribute("rel") || "").toLowerCase().split(/\s+/);
+              const href = (child.getAttribute("href") || "").trim();
+              const res = window.__resources;
+              const pre = res && rel.includes("stylesheet") && !rel.includes("alternate") ? res[href] : void 0;
+              const blob = typeof pre === "string" && pre ? bundledBlob(pre) : null;
+              if (blob) {
+                const el = doc.createElement("style");
+                if (child.hasAttribute("disabled")) {
+                  el.setAttribute("media", "not all");
+                } else if (child.getAttribute("media")) {
+                  el.setAttribute("media", child.getAttribute("media"));
+                }
+                if (child.getAttribute("title"))
+                  el.setAttribute("title", child.getAttribute("title"));
+                void blob.text().then((css) => {
+                  el.textContent = css;
+                });
+                doc.head.appendChild(el);
+                continue;
+              }
+            }
             doc.head.appendChild(child.cloneNode(true));
           } else {
             const key = name + "|" + i;
@@ -1439,24 +1506,28 @@
       if (r.fetched) return;
       r.fetched = true;
       const url = COMPONENT_DIR + "/" + encodeURIComponent(name) + ".dc.html";
-      fetch(url).then((res) => {
-        if (!res.ok) {
+      const res = window.__resources;
+      const pre = res ? res[url] : void 0;
+      const target = typeof pre === "string" && pre ? pre : url;
+      const blob = bundledBlob(target);
+      (blob ? blob.text() : fetch(target).then((res2) => {
+        if (!res2.ok) {
           console.error(
-            "[dc-runtime] sibling fetch for <" + name + "/> failed:",
+            '[dc-runtime] sibling fetch for "' + name + '" failed:',
             url,
             "returned",
-            res.status,
+            res2.status,
             "\u2014 the reference renders as an empty placeholder."
           );
           return "";
         }
-        return res.text();
-      }).then((t) => {
+        return res2.text();
+      })).then((t) => {
         if (!t) return;
         const parsed = parseDcText(t);
         if (!parsed) {
           console.error(
-            "[dc-runtime] sibling fetch for <" + name + "/>:",
+            '[dc-runtime] sibling fetch for "' + name + '":',
             url,
             "has no <x-dc> block \u2014 not a Design Component."
           );
@@ -1468,7 +1539,7 @@
         if (parsed.js && !r.Logic) updateJs(name, parsed.js);
       }).catch(
         (e) => console.error(
-          "[dc-runtime] sibling fetch for <" + name + "/> threw:",
+          '[dc-runtime] sibling fetch for "' + name + '" threw:',
           url,
           e
         )
@@ -1629,12 +1700,34 @@
   function loadReactUmd() {
     const w = window;
     if (w.React && w.ReactDOM) return Promise.resolve();
-    const react = cdnScriptFor(REACT_URL, REACT_SRI);
-    const reactDom = cdnScriptFor(REACT_DOM_URL, REACT_DOM_SRI);
-    return Promise.all([
-      loadScript(react.src, react.integrity),
-      loadScript(reactDom.src, reactDom.integrity)
-    ]).then(() => void 0);
+    return loadScriptWithFallback(
+      scriptSourcesFor(REACT_VENDOR_URL, REACT_URL, REACT_SRI)
+    ).then(
+      () => loadScriptWithFallback(
+        scriptSourcesFor(REACT_DOM_VENDOR_URL, REACT_DOM_URL, REACT_DOM_SRI)
+      )
+    ).then(() => void 0);
+  }
+  /** Last-resort boot failure UI — the raw template is already hidden by
+   *  hideRawTemplate, so without this the page would stay silently blank. */
+  function renderBootFailure() {
+    const show = () => {
+      if (document.getElementById("__dc-boot-error")) return;
+      const el = document.createElement("div");
+      el.id = "__dc-boot-error";
+      el.setAttribute("role", "alert");
+      el.style.cssText = "min-height:60vh;display:grid;place-items:center;align-content:center;gap:10px;padding:32px 20px;text-align:center;font-family:ui-sans-serif,system-ui,sans-serif;position:relative;z-index:1";
+      const title = document.createElement("div");
+      title.style.cssText = "font-size:15px;color:#e56a6a";
+      title.textContent = "TL Helper failed to load its UI runtime — refresh to retry.";
+      const hint = document.createElement("div");
+      hint.style.cssText = "font-size:12px;color:#8a795f";
+      hint.textContent = "If this keeps happening, check your connection or content blocker and reload the page.";
+      el.append(title, hint);
+      (document.body || document.documentElement).appendChild(el);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", show);
+    else show();
   }
   function init() {
     const runtime = createRuntime(document);
@@ -1653,7 +1746,7 @@
             propsMeta: r && r.propsMeta || null,
             preview: r && r.preview || null
           },
-          "*"
+          location.origin
         );
       } catch {
       }
@@ -1673,8 +1766,8 @@
       /** Editor bridge — the encoded, `data-dc-tpl`-annotated template source.
        *  The host editor parses this into its own template DOM so it can map a
        *  rendered node (carrying the same `data-dc-tpl`) back to the source
-       *  node that emitted it. Returns the encoded form (`<sc-comp>`,
-       *  `sc-camel-*` attrs); the editor decodes on serialize. */
+       *  node that emitted it. Returns the encoded form (`sc-camel-*` attrs,
+       *  `<sc-raw-*>`/`<sc-helmet>` tags); the editor decodes on serialize. */
       __dcAnnotatedTemplate: (name) => runtime.annotatedTemplate(name),
       /** Editor bridge — the *original* (decoded) template source. */
       __dcTemplateSource: (name) => runtime.templateSource(name),
@@ -1697,6 +1790,7 @@
   hideRawTemplate();
   loadReactUmd().then(init).catch((err) => {
     console.error("[dc] failed to load React or boot:", err);
+    renderBootFailure();
     throw err;
   });
 })();

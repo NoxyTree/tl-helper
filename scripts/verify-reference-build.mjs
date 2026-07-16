@@ -1,10 +1,12 @@
-// Regression test for calculator/Questlog parity.
+// Regression test for calculator reference totals.
 //
 // Hermetic by default: loads every fixture in scripts/reference-builds/,
 // reads its committed preset file (build + attributes), runs calculateBuild
 // offline, and asserts the fixture's hand-transcribed expected totals (the
-// numbers come from Questlog's rendered stats panel — they are not available
-// from the API, so they must be transcribed when a fixture is added).
+// numbers initially come from Questlog's rendered stats panel because they are
+// not available from the API. A fixture may intentionally diverge where
+// decoded game evidence proves Questlog wrong; such fixtures must record an
+// `expectationSource` note beside their expected table.
 //
 // TL_VERIFY_LIVE=1 refetches each fixture's build from questlog.gg tRPC and
 // rewrites the preset file before verifying, so drifted gear/skill data is

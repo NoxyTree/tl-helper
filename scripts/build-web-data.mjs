@@ -3,10 +3,14 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { STAT_UNIT_MODIFIERS } from "../web/tl-questlog-rules.js";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "out");
 const webDataDir = path.join(root, "web", "data");
-const publicDir = path.join(outDir, "questlog-public");
+const publicDir = process.env.TL_QUESTLOG_PUBLIC_DIR
+  ? path.resolve(process.env.TL_QUESTLOG_PUBLIC_DIR)
+  : path.join(outDir, "questlog-public");
 
 // Icons resolve to locally mirrored files under web/assets/icons/ (see
 // scripts/mirror-icons.mjs, which fetches any missing files from the
@@ -263,6 +267,43 @@ const [
   readTrpcRecords("skillBuilder.getSkillTraits.json"),
 ]);
 
+function normalizeItemPotential(itemPotential) {
+  if (!itemPotential) return null;
+  return {
+    groupId: itemPotential.group_id ?? itemPotential.groupId ?? "",
+    stats: values(itemPotential.stats).map((row) => ({
+      statId: row.stat_id ?? row.statId,
+      value: row.value,
+      probability: row.probability,
+    })),
+    skills: values(itemPotential.skills).map((row) => ({
+      id: row.id,
+      name: row.name,
+      description: plainText(row.description),
+      probability: row.probability ?? 0,
+      imageUrl: imageUrl(row.icon),
+    })),
+  };
+}
+
+// Potential tables repeat verbatim across many items. Keep one copy of each
+// normalized table in the projection and restore item.itemPotential in
+// tl-core.initCore. Integer references keep the wire representation compact.
+const itemPotentialPool = [];
+const itemPotentialRefs = new Map();
+function internItemPotential(itemPotential) {
+  const normalized = normalizeItemPotential(itemPotential);
+  if (!normalized) return null;
+  const fingerprint = JSON.stringify(normalized);
+  let ref = itemPotentialRefs.get(fingerprint);
+  if (ref === undefined) {
+    ref = itemPotentialPool.length;
+    itemPotentialPool.push(normalized);
+    itemPotentialRefs.set(fingerprint, ref);
+  }
+  return ref;
+}
+
 const items = values(equipmentItemsRaw).map((item) => ({
   id: item.id,
   name: item.name,
@@ -294,30 +335,41 @@ const items = values(equipmentItemsRaw).map((item) => ({
       imageUrl: imageUrl(perk.passive.icon),
     } : null,
   })),
-  itemPotential: item.itemPotential ? {
-    groupId: item.itemPotential.group_id ?? item.itemPotential.groupId ?? "",
-    stats: values(item.itemPotential.stats).map((row) => ({
-      statId: row.stat_id ?? row.statId,
-      value: row.value,
-      probability: row.probability,
-    })),
-    skills: values(item.itemPotential.skills).map((row) => ({
-      id: row.id,
-      name: row.name,
-      description: plainText(row.description),
-      probability: row.probability ?? 0,
-      imageUrl: imageUrl(row.icon),
-    })),
-  } : null,
+  ...(item.itemPotential
+    ? { itemPotentialRef: internItemPotential(item.itemPotential) }
+    : { itemPotential: null }),
   itemStats: item.itemStats ?? {},
 }));
+
+// Questlog's localized set projection has a small number of known text/join
+// errors. Keep these corrections at projection assembly so every consumer,
+// including inactive hover states, sees the decoded-confirmed description.
+const SET_PASSIVE_TEXT_OVERRIDES = Object.freeze({
+  "set_aa_t4_fabric_001:2": "Skill Healing +20%\nSkill Healing over Time +20%",
+  "set_aa_t4_fabric_001:4": "Max Health +2200\nOn recovery skill use, Damage Reduction +35 and all Debuff Resistance +150 for 1.5s",
+  "set_a_Magic_Nudge_001:3": "When attacking enemies with less than 50% Health, for 3s, Critical Hit Chance +140",
+  "set_a_Melee_Nudge_001:3": "When attacking enemies with less than 50% Health, for 3s, Critical Hit Chance +140",
+  "set_a_Range_Nudge_001:3": "When attacking enemies with less than 50% Health, for 3s, Critical Hit Chance +140",
+});
+
+function correctedSetBonuses(set) {
+  return values(set.itemSetBonus).map((bonus) => {
+    const key = `${set.id}:${Number(bonus.set_count ?? bonus.setCount ?? 0)}`;
+    const text = SET_PASSIVE_TEXT_OVERRIDES[key];
+    if (!text) return bonus;
+    return {
+      ...bonus,
+      bonus_passive: values(bonus.bonus_passive ?? bonus.bonusPassive).map((passive) => ({ ...passive, text })),
+    };
+  });
+}
 
 const itemSets = values(itemSetsRaw).map((set) => ({
   id: set.id,
   name: set.name,
   grade: set.grade,
   itemSetMadeOfItems: set.itemSetMadeOfItems ?? [],
-  itemSetBonus: set.itemSetBonus ?? [],
+  itemSetBonus: correctedSetBonuses(set),
 }));
 
 function titleCaseIfShouty(name) {
@@ -454,6 +506,7 @@ for (const source of [
   collectStatIdsFromValue(source, statIds);
 }
 for (const id of [
+  ...Object.keys(STAT_UNIT_MODIFIERS),
   "str",
   "dex",
   "int",
@@ -470,10 +523,12 @@ for (const id of [
 const gameBuild = String(process.env.TL_STEAM_BUILD ?? "").trim();
 assert(/^\d+$/.test(gameBuild), "TL_STEAM_BUILD must be a numeric Steam build. Run through update-tl-helper.mjs or set it explicitly.");
 
-const generatedAtUtc = new Date().toISOString();
+const generatedAtUtc = process.env.TL_GENERATED_AT_UTC?.trim() || new Date().toISOString();
 const appData = {
   schema: "tl-helper.web-data",
-  schemaVersion: 1,
+  // Version 2 interns repeated itemPotential tables in the equipment wire
+  // projection. tl-core restores the version 1 runtime item API at startup.
+  schemaVersion: 2,
   gameBuild,
   generatedAtUtc,
   sources: {
@@ -514,6 +569,8 @@ assert(artifactSets.length >= 1, `Expected at least 1 artifact set, got ${artifa
 assertImageUrls(skills, "skills");
 assertImageUrls(skillTraits, "skillTraits");
 assert(items.every((item) => item.grade !== undefined && item.grade !== null), "Every item must have an explicit grade");
+assert(items.every((item) => item.itemPotentialRef === undefined
+  || (Number.isInteger(item.itemPotentialRef) && itemPotentialPool[item.itemPotentialRef])), "Every itemPotentialRef must resolve within itemPotentialPool");
 {
   const danglingSpecIds = skills.flatMap((skill) => skill.specializationIds.filter((id) => !skill.specializations.some((spec) => spec.id === id)));
   assert(!danglingSpecIds.length, `Dangling specializationIds: ${danglingSpecIds.slice(0, 3).join(", ")}`);
@@ -521,7 +578,7 @@ assert(items.every((item) => item.grade !== undefined && item.grade !== null), "
 
 await mkdir(webDataDir, { recursive: true });
 const projectionGroups = [
-  ["equipment", { items, itemSets, artifactSets, slotDefinitions }],
+  ["equipment", { items, itemSets, artifactSets, slotDefinitions, itemPotentialPool }],
   ["runes", { runes, runeSynergies }],
   ["progression", { attributeStats: attributeStatsRaw, masteries }],
   ["skills", { skills, skillTraits, traitsBySkillId, skillsByWeapon }],

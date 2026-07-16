@@ -37,3 +37,13 @@ test("PvP Matchup provides two Questlog imports and visible fighter cards", () =
   assert.match(html, /id="player-image-input"[^>]*accept="image\/\*"/);
   assert.match(html, /assets\/portraits\/shadow-opponent\.webp/);
 });
+
+test("PvP Matchup exposes an evidence-scoped expected-damage comparison", () => {
+  assert.match(html, /id="comparison-build"/);
+  assert.match(html, /id="expected-ability"/);
+  assert.match(html, /id="expected-weapon"/);
+  assert.match(html, /id="expected-level"/);
+  assert.match(html, /id="expected-damage-results"/);
+  assert.match(html, /expected damage per component, not whole-skill damage or DPS/i);
+  assert.match(html, /Before Defense/);
+});

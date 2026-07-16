@@ -36,7 +36,9 @@ test("Combat Calculator explains reviewed ability coverage and attacker build wo
 
 test("build-aware weapon ranking stays within the equipped weapon families and matching slots", () => {
   assert.match(html, /function equippedWeaponSlots\(build = scoringContext\(\)\.build\)/);
-  assert.match(html, /return matching\[0\]\?\.slotId \?\? TYPE_SLOT\[item\.equipmentType\]/);
+  assert.match(html, /function candidateSlotsFor\(item, build\)/);
+  assert.match(html, /return matching\.length \? matching\.map\(\(row\) => row\.slotId\)/);
+  assert.match(html, /for \(const slotId of candidateSlotsFor\(item, build\)\)/);
   assert.match(html, /equippedWeaponTypes\.has\(row\.item\.equipmentType\)/);
 });
 
@@ -57,13 +59,15 @@ test("hover cards show inherent stats separately and gear can filter exact item 
   assert.match(html, /String\(row\.level\) === state\.itemLevel/);
   assert.match(html, /if \(model\.hasStats\).*Stats.*statRows\(model\.stats\)/);
   assert.match(core, /name: statName\(statId\), formattedValue: formatStat\(statId, value\)/);
+  assert.match(core, /filled: true/);
+  assert.match(hoverCard, /value="\{\{ rune\.filled \}\}"/);
   assert.match(html, /grid-template-columns: 12px minmax\(0, 1fr\) auto/);
 });
 
 test("equipped labels do not interrupt item names and attribute effects nest beneath their parent", async () => {
   const core = await readFile(new URL("../../web/tl-core.js", import.meta.url), "utf8");
-  assert.match(html, /<span class="name" style="color:\$\{color\}">\$\{row\.item\.name\}<\/span>/);
-  assert.match(html, /<span class="sub"><span>\$\{core\.label\(row\.item\.equipmentType\)\}<\/span>/);
+  assert.match(html, /<span class="name" style="color:\$\{color\}">\$\{esc\(row\.item\.name\)\}<\/span>/);
+  assert.match(html, /<span class="sub"><span>\$\{esc\(core\.label\(row\.item\.equipmentType\)\)\}<\/span>/);
   assert.match(core, /\["attribute_bonus", "attribute_bracket"\]/);
   assert.match(core, /options\.preferredStatIds/);
   assert.match(core, /return \{ \.\.\.row, children, hasChildren: children\.length > 0 \}/);
@@ -78,12 +82,17 @@ test("hover cards omit skill-core potentials and present set effects clearly", a
   assert.doesNotMatch(core, /cores, hasCores|coreMoreLabel/);
   assert.match(html, />Set Effects</);
   assert.match(hoverCard, />Set Effects</);
-  assert.match(core, /mark: active \? "✓" : "○"/);
+  assert.match(core, /mark: fullySuppressed \? "✕" : unsupported \? "!" : active \? "✓" : "○"/);
+});
+
+test("Heroic comparison never stacks duplicate effects", () => {
+  assert.match(html, /allowDuplicateEffects: false/);
 });
 
 test("the currently equipped item is pinned above ranked candidates", () => {
-  assert.match(html, /row\.isPinned = Boolean\(contextBuild/);
-  assert.match(html, /row\.isPinned \|\| ordinaryMatch/);
+  assert.match(html, /row\.isEquippedItem = Boolean\(contextBuild/);
+  assert.match(html, /row\.isPinned = Boolean\(row\.isEquippedItem && row\.isExactCurrent\)/);
+  assert.match(html, /row\.isEquippedItem \|\| ordinaryMatch/);
   assert.match(html, /Number\(b\.isPinned\) - Number\(a\.isPinned\)/);
   assert.match(html, /row\.isPinned \|\| row\.score > 0/);
   assert.match(html, /class="pinned-mark">● Currently equipped/);

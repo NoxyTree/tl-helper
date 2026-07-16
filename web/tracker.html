@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Progress Tracker | TL Helper</title>
+<title>Tracker | TL Helper</title>
 <meta name="description" content="Track your Throne and Liberty character progression, equipment, upgrades, and goals in one private browser workspace.">
-<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/tracker"><link rel="icon" href="./icon.svg" type="image/svg+xml">
-<meta property="og:type" content="website"><meta property="og:title" content="Progress Tracker | TL Helper"><meta property="og:description" content="Track your Throne and Liberty character progression."><meta property="og:url" content="https://tlhelper.org/tracker"><meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/tracker"><link rel="icon" href="./tl-logo.png" type="image/png">
+<meta property="og:type" content="website"><meta property="og:title" content="Tracker | TL Helper"><meta property="og:description" content="Track your Throne and Liberty character progression."><meta property="og:url" content="https://tlhelper.org/tracker"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
-<script src="./support.js"></script>
+<script src="./support.js?v=20260713"></script>
 </head>
 <body>
 <a class="tl-skip-link" href="#main-content">Skip to progress tracker</a>
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./tl-shell.css">
+  <link rel="stylesheet" href="./tl-shell.css?v=20260713">
   <style>
     html, body { margin: 0; padding: 0; min-height: 100vh; }
     body {
@@ -62,22 +62,23 @@
 
   <!-- top bar -->
   <header class="tl-app-header">
-    <div class="tl-app-brand">
+    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
       <div class="tl-app-brand-mark" aria-hidden="true">
         <span>T</span>
       </div>
       <div class="tl-app-brand-copy">
         <div class="tl-app-brand-title">TL HELPER</div>
-        <div class="tl-app-brand-subtitle">Progress Tracker</div>
+        <div class="tl-app-brand-subtitle">Tracker</div>
       </div>
-    </div>
+    </a>
 
     <nav class="tl-app-nav" aria-label="Primary navigation">
       <a class="tl-app-nav-item" href="./index.html">Armory</a>
-      <span class="tl-app-nav-item is-active" aria-current="page">Tracker</span>
+      <a class="tl-app-nav-item is-active" href="./tracker.html" aria-current="page">Tracker</a>
       <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
       <a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a>
       <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
+      <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
       <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
     </nav>
 
@@ -94,6 +95,8 @@
       </div>
     </div>
   </header>
+
+  <p role="note" style="margin:0;padding:8px 28px;border-bottom:1px solid rgba(114,169,255,.14);background:rgba(114,169,255,.04);color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Stored selections are preserved.</p>
 
   <main id="main-content" style="flex: 1; width: 100%; padding: 24px 28px 40px; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; align-items: start; animation: tlFadeUp 0.35s ease;">
     <h1 class="tl-visually-hidden">TL Helper progress tracker</h1>
@@ -129,6 +132,7 @@
               <div style="position: absolute; left: 0; right: 0; bottom: 5px; padding: 30px 14px 10px; background: linear-gradient(180deg, transparent, rgba(8, 6, 4, 0.88)); pointer-events: none; border-radius: 0 0 5px 5px;">
                 <div style="font-family: Marcellus, serif; font-size: 19px; color: #f6d391; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);">{{ charName }}</div>
                 <div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #cbb185;">{{ portraitSubtitle }}</div>
+                <div style="margin-top: 4px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: {{ calculationStatusColor }};">{{ calculationStatusLabel }}</div>
               </div>
             </div>
 
@@ -202,6 +206,11 @@
         <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 40px 20px; text-align: center; color: #8a795f; font-size: 12px; line-height: 1.6;">
           Loading your character…<br>
           <a href="./index.html">Open the Armory</a> to set up a build.
+        </div>
+      </sc-if>
+      <sc-if value="{{ charError }}" hint-placeholder-val="{{ false }}">
+        <div style="border: 1px solid rgba(229, 106, 106, 0.3); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 40px 20px; text-align: center; color: #e56a6a; font-size: 12px; line-height: 1.6;">
+          Character panel failed to load — tracker tasks still work.
         </div>
       </sc-if>
     </aside>
@@ -460,11 +469,18 @@ class Component extends DCLogic {
     charHoverSlot: "",
     charHoverX: 0,
     charHoverY: 0,
+    resonanceKeyHeld: false,
   };
 
   BUILD_KEY = "tlhelper-builder-state-v2";
 
   componentDidMount() {
+    this._resonanceKeyDown = (event) => { if (event.key?.toLowerCase() === "r" && !event.repeat) this.setState({ resonanceKeyHeld: true }); };
+    this._resonanceKeyUp = (event) => { if (event.key?.toLowerCase() === "r") this.setState({ resonanceKeyHeld: false }); };
+    this._resonanceBlur = () => this.setState({ resonanceKeyHeld: false });
+    document.addEventListener("keydown", this._resonanceKeyDown);
+    document.addEventListener("keyup", this._resonanceKeyUp);
+    window.addEventListener("blur", this._resonanceBlur);
     this.load();
     this.checkRollover(true);
     this._timer = setInterval(() => {
@@ -505,7 +521,11 @@ class Component extends DCLogic {
       } catch {}
       if (!build) build = core.seedShowcaseBuild(`${profile.name}'s Build`);
       this.setState({ charReady: true, build, profile, attributes });
-    } catch (e) { /* character panel is optional flourish */ }
+    } catch (e) {
+      // The character panel is an optional flourish — tracker tasks keep working without it.
+      console.error("TL-Helper tracker character panel:", e);
+      this.setState({ charError: true });
+    }
   }
 
   slotMini(slotId) {
@@ -529,7 +549,9 @@ class Component extends DCLogic {
   }
 
   characterVals() {
-    if (!this.state.charReady || !this.core || !this.buildSnapshots) return { charReady: false, charLoading: true };
+    if (!this.state.charReady || !this.core || !this.buildSnapshots) {
+      return { charReady: false, charLoading: !this.state.charError, charError: Boolean(this.state.charError) };
+    }
     const core = this.core, build = this.state.build;
     const calc = this.buildSnapshots.resolveBuildSnapshot({
       build,
@@ -557,6 +579,8 @@ class Component extends DCLogic {
       charLoading: false,
       charName: this.state.profile.name,
       portraitSubtitle: `${this.state.profile.role} · ${weaponPairLabel}`,
+      calculationStatusLabel: calc.status?.state === "legal" ? "Calculated static totals · Item Potentials excluded" : `${core.label(calc.status?.state ?? "provisional")} static totals · Item Potentials excluded`,
+      calculationStatusColor: calc.status?.state === "invalid" ? "#e58b84" : calc.status?.state === "provisional" ? "#e5a06a" : "#7ee0a6",
       leftSlots: leftIds.map((id) => this.slotMini(id)),
       rightSlots: rightIds.map((id) => this.slotMini(id)),
       weaponCards,
@@ -580,12 +604,15 @@ class Component extends DCLogic {
     const flip = typeof window !== "undefined" && y > window.innerHeight * 0.5;
     return {
       hasCharHover: true,
-      charHover: { ...model, x: this.state.charHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
+      charHover: { ...model, visibleResonance: this.state.resonanceKeyHeld ? model.resonanceOptions : model.resonance, resonanceTitle: this.state.resonanceKeyHeld ? "Possible Trait Resonances" : "Trait Resonance", showResonanceHint: model.resonanceOptions.length > model.resonance.length && !this.state.resonanceKeyHeld, x: this.state.charHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
     };
   }
 
   componentWillUnmount() {
     if (this._timer) clearInterval(this._timer);
+    document.removeEventListener("keydown", this._resonanceKeyDown);
+    document.removeEventListener("keyup", this._resonanceKeyUp);
+    window.removeEventListener("blur", this._resonanceBlur);
   }
 
   load() {
@@ -861,5 +888,6 @@ class Component extends DCLogic {
   }
 }
 </script>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>

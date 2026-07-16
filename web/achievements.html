@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Achievements | TL Helper</title>
 <meta name="description" content="Track Throne and Liberty achievement progress, stages, categories, and remaining rewards locally in your browser.">
-<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/achievements"><link rel="icon" href="./icon.svg" type="image/svg+xml">
-<meta property="og:type" content="website"><meta property="og:title" content="Achievements | TL Helper"><meta property="og:description" content="Track your Throne and Liberty achievements."><meta property="og:url" content="https://tlhelper.org/achievements"><meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/achievements"><link rel="icon" href="./tl-logo.png" type="image/png">
+<meta property="og:type" content="website"><meta property="og:title" content="Achievements | TL Helper"><meta property="og:description" content="Track your Throne and Liberty achievements."><meta property="og:url" content="https://tlhelper.org/achievements"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
-<script src="./support.js"></script>
+<script src="./support.js?v=20260713"></script>
 </head>
 <body>
 <a class="tl-skip-link" href="#main-content">Skip to achievements</a>
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./tl-shell.css">
+  <link rel="stylesheet" href="./tl-shell.css?v=20260713">
   <style>
     html, body { margin: 0; padding: 0; min-height: 100vh; }
     body {
@@ -67,7 +67,7 @@
       <span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span>
       <span class="tl-app-brand-copy">
         <span class="tl-app-brand-title">TL HELPER</span>
-        <span class="tl-app-brand-subtitle">Achievement Chronicle</span>
+        <span class="tl-app-brand-subtitle">Achievements</span>
       </span>
     </a>
 
@@ -77,6 +77,7 @@
       <a class="tl-app-nav-item is-active" href="./achievements.html" aria-current="page">Achievements</a>
       <a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a>
       <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
+      <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
       <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
     </nav>
 
@@ -235,6 +236,13 @@
     <sc-if value="{{ achLoading }}" hint-placeholder-val="{{ true }}">
       <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 60px 20px; text-align: center; color: #8a795f; font-size: 12px;">Loading the achievement chronicle…</div>
     </sc-if>
+
+    <sc-if value="{{ achHasError }}" hint-placeholder-val="{{ false }}">
+      <div style="border: 1px solid rgba(229, 106, 106, 0.3); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 60px 20px; text-align: center; font-size: 12px; line-height: 1.6;">
+        <div style="color: #e56a6a;">Failed to load the achievement list: {{ achError }}</div>
+        <div style="margin-top: 6px; color: #8a795f;">Refresh the page to try again.</div>
+      </div>
+    </sc-if>
   </main>
 </div>
 
@@ -308,6 +316,7 @@ class Component extends DCLogic {
     achPage: 1,
     achPageSize: 50,
     achDetailId: null,
+    achError: "",
     toastMsg: "",
   };
 
@@ -328,7 +337,10 @@ class Component extends DCLogic {
       let progress = {};
       try { progress = JSON.parse(localStorage.getItem(this.ACH_KEY) || "null") || {}; } catch {}
       this.setState({ achList: mod.TL_ACHIEVEMENTS || [], achLoaded: true, achProgress: progress });
-    } catch (e) { /* stays on loading state */ }
+    } catch (e) {
+      console.error("TL-Helper achievements:", e);
+      this.setState({ achError: String(e?.message ?? e) });
+    }
   }
 
   saveAchProgress() {
@@ -416,7 +428,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const base = { toastVisible: Boolean(s.toastMsg), toastMsg: s.toastMsg, achDetailOpen: false };
-    if (!s.achLoaded) return { ...base, achLoading: true, achLoaded: false, headerCompletion: "—" };
+    if (!s.achLoaded) return { ...base, achLoading: !s.achError, achHasError: Boolean(s.achError), achError: s.achError, achLoaded: false, headerCompletion: "—" };
 
     const all = s.achList;
     const doneCount = all.filter((a) => this.achDone(a)).length;
@@ -564,5 +576,6 @@ class Component extends DCLogic {
   }
 }
 </script>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>

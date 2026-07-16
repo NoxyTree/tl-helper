@@ -34,7 +34,9 @@ const EXTRACT_ROOT =
   (process.env.TL_DATA_ROOT
     ? path.join(process.env.TL_DATA_ROOT, "raw", STEAM_BUILD, "extracted")
     : "D:\\TL_Extracted");
-const questlogDir = path.join(root, "out", "questlog-public");
+const questlogDir = process.env.TL_QUESTLOG_ROOT
+  ? path.resolve(process.env.TL_QUESTLOG_ROOT)
+  : path.join(root, "out", "questlog-public");
 const appDataPath = path.join(root, "web", "data", "app-data.json");
 const texturesRoot = path.join(EXTRACT_ROOT, "textures", "TL", "Content");
 const texturesIndexCsv = path.join(EXTRACT_ROOT, "indexes", "textures.csv");
@@ -390,7 +392,7 @@ for (const item of [...qItems].sort((a, b) => String(a.id).localeCompare(String(
     itemId: item.id,
     name: item.name ?? "",
     evidence: "questlog:characterBuilder.getEquipmentItems",
-    sourcePath: "out/questlog-public/characterBuilder.getEquipmentItems.json",
+    sourcePath: path.join(questlogDir, "characterBuilder.getEquipmentItems.json"),
     matchMethod: "id_absent_locally",
     possibleQuestlogIds: "",
     confidence: "low",
@@ -466,7 +468,7 @@ for (const id of [...qSkillSetAndSpecIds].sort()) {
     name: "",
     weaponCode: id.startsWith("WP_") ? id.split("_")[1] : "",
     evidence: "questlog:skillBuilder",
-    sourcePath: "out/questlog-public/skillBuilder.getSkillSets.json",
+    sourcePath: path.join(questlogDir, "skillBuilder.getSkillSets.json"),
     matchMethod: "id_absent_locally",
     confidence: "low",
     classification: "unmatched-locally (identifier extraction may be incomplete)",

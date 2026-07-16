@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Build Planner | TL Helper</title>
+<title>Armory | TL Helper</title>
 <meta name="description" content="Create, compare, and save Throne and Liberty builds with equipment, skills, masteries, runes, artifacts, and combat stats.">
 <meta name="theme-color" content="#0c0a07">
 <link rel="canonical" href="https://tlhelper.org/">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
-<meta property="og:type" content="website"><meta property="og:title" content="Build Planner | TL Helper"><meta property="og:description" content="Build and save your Throne and Liberty loadout."><meta property="og:url" content="https://tlhelper.org/">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Build Planner | TL Helper"><meta name="twitter:description" content="Build and save your Throne and Liberty loadout.">
+<link rel="icon" href="./tl-logo.png" type="image/png">
+<meta property="og:type" content="website"><meta property="og:title" content="Armory | TL Helper"><meta property="og:description" content="Build and save your Throne and Liberty loadout."><meta property="og:url" content="https://tlhelper.org/"><meta property="og:image" content="https://tlhelper.org/tl-logo.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Armory | TL Helper"><meta name="twitter:description" content="Build and save your Throne and Liberty loadout."><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
-<script src="./support.js"></script>
+<script src="./support.js?v=20260713"></script>
 </head>
 <body>
 <a class="tl-skip-link" href="#main-content">Skip to build editor</a>
@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
-  <link href="./tl-shell.css" rel="stylesheet">
+  <link href="./tl-shell.css?v=20260713" rel="stylesheet">
   <style>
     html, body { margin: 0; padding: 0; min-height: 100vh; }
     body {
@@ -65,12 +65,28 @@
       [data-screen-label="Workspace"] { width: 100%; }
       [data-screen-label="Workspace"] > nav { overflow-x: auto; }
       [data-screen-label="Workspace"] > div { grid-template-columns: minmax(0, 1fr) !important; }
+      .tl-item-picker-overlay { padding: 0 !important; }
+      .tl-item-picker-dialog { width: 100% !important; height: 100% !important; border-radius: 0 !important; }
+      .tl-picker-body { display: block !important; }
+      .tl-picker-list-pane, .tl-picker-config-pane { width: 100%; height: 100%; border-right: 0 !important; }
+      .tl-picker-compact-nav { display: grid !important; }
+      .tl-picker-body[data-picker-view="list"] .tl-picker-config-pane { display: none !important; }
+      .tl-picker-body[data-picker-view="config"] .tl-picker-list-pane { display: none !important; }
     }
     @media (max-width: 620px) {
       [data-screen-label="Header Actions"] { justify-content: flex-start !important; }
       #main-content { padding: 12px !important; gap: 16px !important; }
       [data-screen-label="Character Doll"] > div { padding: 13px 9px !important; }
       [data-screen-label="Workspace"] > nav button { padding-left: 12px !important; padding-right: 12px !important; }
+      .tl-item-picker-header { padding: 11px 12px !important; gap: 9px !important; }
+      .tl-item-picker-header h2 { font-size: 18px !important; }
+      .tl-item-picker-clear { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 10px !important; }
+      .tl-picker-filters { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(112px, .45fr); }
+      .tl-picker-filters input { grid-column: 1 / -1; }
+      .tl-picker-config-pane { padding: 10px !important; }
+      .tl-picker-config-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      .tl-picker-level-row { flex-wrap: wrap; }
+      .tl-picker-level-row input[type="range"] { min-width: 150px !important; }
     }
     @keyframes tlEmber {
       0%, 100% { opacity: 0.55; }
@@ -98,25 +114,27 @@
 
     <!-- ======================= TOP BAR ======================= -->
     <header class="tl-app-header tl-armory-header">
-      <div class="tl-app-brand">
-        <div class="tl-app-brand-mark"><span>T</span></div>
-        <div class="tl-app-brand-copy"><div class="tl-app-brand-title">TL HELPER</div><div class="tl-app-brand-subtitle">Build Planner</div></div>
-      </div>
+      <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
+        <span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span>
+        <span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Armory</span></span>
+      </a>
       <nav class="tl-app-nav" aria-label="Primary navigation">
-        <span class="tl-app-nav-item is-active" aria-current="page">Armory</span>
+        <a class="tl-app-nav-item is-active" href="./index.html" aria-current="page">Armory</a>
         <a class="tl-app-nav-item" href="./tracker.html">Tracker</a>
         <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
         <a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a>
         <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
+        <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
         <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
       </nav>
-      <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
+      <div class="tl-armory-identity">
         <input value="{{ charName }}" onChange="{{ onNameChange }}" aria-label="Character name" placeholder="Character name" spellcheck="false"
           style="min-width:110px;width:clamp(110px,13vw,190px);padding:6px 9px;border:1px solid rgba(212,166,94,.2);border-radius:7px;background:rgba(8,6,4,.46);color:#f3e9d4;font-family:Marcellus,serif;">
         <input value="{{ charRole }}" onChange="{{ onRoleChange }}" aria-label="Build role" placeholder="Build role" spellcheck="false"
           style="min-width:84px;width:clamp(84px,9vw,130px);padding:6px 9px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(8,6,4,.36);color:#cbb185;font-size:11px;">
         <input value="{{ charServer }}" onChange="{{ onServerChange }}" aria-label="Server" placeholder="Server" spellcheck="false"
           style="min-width:72px;width:clamp(72px,8vw,110px);padding:6px 9px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(8,6,4,.36);color:#9d8a68;font-size:11px;">
+        <span data-tl-account-slot style="display:inline-flex;align-items:center;"></span>
       </div>
       <div class="tl-app-header-end tl-toolbar-actions" data-screen-label="Header Actions">
         <button type="button" onClick="{{ openPresets }}" title="Save, load, rename, reorder, or remove your TL Helper builds"
@@ -124,12 +142,9 @@
           style-hover="color: #fff2ce; border-color: rgba(232, 184, 106, 0.72); background: rgba(212, 166, 94, 0.18);">My builds ({{ presetCount }})</button>
         <button type="button" onClick="{{ onNewBuild }}" title="Start a new build directly in TL Helper"
           style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #dce9ff; background: rgba(114, 169, 255, 0.1); border: 1px solid rgba(114, 169, 255, 0.42); border-radius: 999px; padding: 6px 14px; cursor: pointer;">New build</button>
-        <button type="button" onClick="{{ openImport }}" title="Import a Questlog character build JSON package"
+        <button type="button" onClick="{{ openImport }}" title="Import from a Questlog character-builder link"
           style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #cbb185; background: rgba(114, 169, 255, 0.08); border: 1px solid rgba(114, 169, 255, 0.32); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
           style-hover="color: #dce9ff; border-color: rgba(114, 169, 255, 0.65); background: rgba(114, 169, 255, 0.14);">Import Questlog</button>
-        <button type="button" onClick="{{ onAutoFill }}" title="Fill the build with showcase gear"
-          style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #cbb185; background: rgba(212, 166, 94, 0.1); border: 1px solid rgba(212, 166, 94, 0.3); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
-          style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.6); background: rgba(212, 166, 94, 0.16);">Auto-fill</button>
       </div>
     </header>
 
@@ -144,6 +159,7 @@
     </div>
 
     <!-- ======================= MAIN ======================= -->
+    <p role="note" style="margin:0;padding:8px 28px;border-bottom:1px solid rgba(114,169,255,.14);background:rgba(114,169,255,.04);color:#8fa5c2;font-size:10px;line-height:1.45;">Item Potentials are excluded from calculations and recommendations in this release. Stored selections are preserved.</p>
     <main id="main-content" style="flex: 1; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 26px; padding: 24px 28px 40px; align-items: start;">
       <h1 class="tl-visually-hidden">TL Helper build planner</h1>
 
@@ -286,36 +302,30 @@
 
         <!-- ============ STATS TAB ============ -->
         <sc-if value="{{ tabStats }}" hint-placeholder-val="{{ true }}">
-          <div style="display: grid; grid-template-columns: minmax(300px, 1fr) 390px; gap: 20px; align-items: start; animation: tlFadeUp 0.3s ease;">
+          <div style="display: grid; grid-template-columns: minmax(480px, 1fr) 330px; gap: 20px; align-items: start; animation: tlFadeUp 0.3s ease;">
             <!-- attributes -->
-            <aside style="display: grid; gap: 16px; align-self: start;">
-              <section style="position: relative; overflow: hidden; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 12px; background: linear-gradient(145deg, rgba(38, 28, 16, 0.72), rgba(14, 11, 7, 0.7)); padding: 18px;">
-                <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(420px 160px at 80% 0%, rgba(232, 184, 106, 0.11), transparent 70%);"></div>
-                <div style="position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
-                  <div>
-                    <div style="font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f;">Build Overview</div>
-                    <h2 style="margin: 5px 0 0; font-family: Marcellus, serif; font-size: 22px; font-weight: 400; color: #f6d391;">{{ weaponPairLabel }}</h2>
-                    <div style="font-size: 11px; color: #9d8a68; margin-top: 3px;">{{ artifactSetSummary }}</div>
-                  </div>
-                  <div style="text-align: right;"><div style="font-family: Marcellus, serif; font-size: 24px; color: {{ overviewStatusColor }}; line-height: 1;">{{ overviewStatus }}</div><div style="font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; margin-top: 4px;">Build health</div></div>
-                </div>
-                <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px;">
-                  <sc-for list="{{ overviewRows }}" as="row" hint-placeholder-count="6">
-                    <div style="padding: 10px; border-radius: 8px; border: 1px solid rgba(212, 166, 94, 0.12); background: rgba(8, 6, 4, 0.42);"><div style="font-size: 9px; letter-spacing: 0.13em; text-transform: uppercase; color: #8a795f;">{{ row.label }}</div><div style="margin-top: 3px; font-size: 14px; font-weight: 650; color: {{ row.color }}; font-variant-numeric: tabular-nums;">{{ row.value }}</div></div>
-                  </sc-for>
+            <aside style="display: grid; gap: 16px; align-self: start; order: 2; position: sticky; top: 20px;">
+              <section data-testid="stat-breakdown-panel" style="order: 2; position: relative; overflow: hidden; border: 1px solid rgba(232, 184, 106, 0.34); border-radius: 12px; background: linear-gradient(145deg, rgba(38, 28, 16, 0.78), rgba(12, 9, 6, 0.86)); padding: 18px; box-shadow: 0 18px 48px rgba(0,0,0,0.2);">
+                <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(360px 180px at 80% 0%, rgba(232, 184, 106, 0.12), transparent 72%);"></div>
+                <div style="position: relative;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;"><span style="font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase; color: #a38c67;">Stat breakdown</span><button type="button" onClick="{{ selectedStat.onFavorite }}" aria-label="{{ selectedStat.favoriteLabel }}" title="{{ selectedStat.favoriteLabel }}" style="width: 30px; height: 30px; border: 1px solid rgba(232, 184, 106, 0.2); border-radius: 7px; background: rgba(8,6,4,0.4); color: {{ selectedStat.favoriteColor }}; cursor: pointer; font-size: 15px;">{{ selectedStat.favoriteGlyph }}</button></div>
+                  <h2 style="margin: 12px 0 0; font-family: Marcellus, serif; font-size: 21px; font-weight: 400; color: #f6d391; line-height: 1.15;">{{ selectedStat.name }}</h2>
+                  <div style="display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,166,94,0.14);"><div><div style="font-family: Marcellus, serif; font-size: 34px; line-height: 1; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ selectedStat.value }}</div><div style="margin-top: 5px; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: {{ selectedStat.color }};">{{ selectedStat.page }}</div></div><span style="font-size: 10px; color: #8a795f;">{{ selectedStat.sourceLabel }}</span></div>
+                  <div style="display: grid; gap: 11px; margin-top: 15px; max-height: {{ selectedStat.sourceListMaxHeight }}; overflow-y: {{ selectedStat.sourceListOverflow }}; padding-right: 3px;"><sc-for list="{{ selectedStat.sources }}" as="src" hint-placeholder-count="4"><div><div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: baseline;"><span style="font-size: 11px; color: #c4ae89; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ src.label }}</span><strong style="font-size: 11px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ src.value }}</strong></div><div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;"><span style="font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #75654d;">{{ src.type }}</span><span style="flex: 1; height: 2px; border-radius: 2px; background: rgba(212,166,94,.1); overflow: hidden;"><span style="display: block; width: {{ src.pct }}; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b87b32, #f0c473);"></span></span></div></div></sc-for></div>
+                  <sc-if value="{{ selectedStat.hasMoreSources }}" hint-placeholder-val="false"><button type="button" onClick="{{ selectedStat.onToggleSources }}" style="width: 100%; margin-top: 13px; padding: 8px 10px; border: 1px solid rgba(232,184,106,.18); border-radius: 7px; background: rgba(232,184,106,.05); color: #cbb185; cursor: pointer; font-size: 10px; letter-spacing: .04em;">{{ selectedStat.sourcesToggleLabel }}</button></sc-if>
+                  <sc-if value="{{ selectedStat.noSources }}" hint-placeholder-val="false"><p style="margin: 14px 0 0; color: #7d6c52; font-size: 11px; line-height: 1.5;">This total has no separate contribution rows in the current build snapshot.</p></sc-if>
                 </div>
               </section>
-
-              <section data-testid="favorite-stats-panel" style="border: 1px solid rgba(232, 184, 106, 0.22); border-radius: 12px; background: linear-gradient(145deg, rgba(28, 21, 12, 0.62), rgba(14, 11, 7, 0.55)); padding: 16px;">
+              <section data-testid="favorite-stats-panel" style="order: 3; display: {{ favoritePanelDisplay }}; border: 1px solid rgba(232, 184, 106, 0.22); border-radius: 12px; background: linear-gradient(145deg, rgba(28, 21, 12, 0.62), rgba(14, 11, 7, 0.55)); padding: 12px;">
                 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
-                  <div><h2 style="margin: 0; font-family: Marcellus, serif; font-size: 16px; font-weight: 400; color: #f6d391;">Favourite Stats</h2><p style="margin: 3px 0 0; font-size: 10px; color: #8a795f;">Star any effect in the detail panel to keep it here.</p></div>
+                  <div><h2 style="margin: 0; font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f6d391;">Favourite Stats</h2><p style="margin: 2px 0 0; font-size: 9px; color: #8a795f;">Pinned for quick comparison.</p></div>
                   <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ favoriteStatCount }}</span>
                 </div>
                 <sc-if value="{{ hasFavoriteStats }}" hint-placeholder-val="{{ false }}">
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px;">
+                  <div style="display: grid; gap: 5px;">
                     <sc-for list="{{ favoriteStatRows }}" as="row" hint-placeholder-count="4">
-                      <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border: 1px solid rgba(232, 184, 106, 0.2); border-radius: 9px; background: rgba(8, 6, 4, 0.48); overflow: hidden;">
-                        <button type="button" onClick="{{ row.onOpen }}" aria-label="Open {{ row.name }} details" style="min-width: 0; padding: 10px 11px; text-align: left; border: none; background: transparent; cursor: pointer;"><span style="display: block; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: {{ row.color }};">{{ row.page }}</span><span style="display: block; margin-top: 2px; font-size: 11px; color: #c4ae89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><span style="display: block; margin-top: 3px; font-family: Marcellus, serif; font-size: 18px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</span></button>
+                      <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border: 1px solid rgba(232, 184, 106, 0.16); border-radius: 7px; background: rgba(8, 6, 4, 0.42); overflow: hidden;">
+                        <button type="button" onClick="{{ row.onOpen }}" aria-label="Open {{ row.name }} details" style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 8px 9px; text-align: left; border: none; background: transparent; cursor: pointer;"><span style="font-size: 10.5px; color: #c4ae89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><strong style="font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</strong></button>
                         <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove {{ row.name }} from favourites" title="Remove from favourites" style="width: 34px; border: none; border-left: 1px solid rgba(232, 184, 106, 0.12); background: rgba(232, 184, 106, 0.04); color: #f6d391; cursor: pointer; font-size: 15px;">★</button>
                       </div>
                     </sc-for>
@@ -326,7 +336,7 @@
                 </sc-if>
               </section>
 
-              <section style="border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 10px; background: rgba(18, 14, 9, 0.55); padding: 16px;">
+              <section data-testid="attributes-panel" style="order: 1; border: 1px solid rgba(212, 166, 94, 0.18); border-radius: 10px; background: rgba(18, 14, 9, 0.55); padding: 16px;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;">
                 <h2 style="margin: 0; font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f6d391; letter-spacing: 0.06em;">Attributes</h2>
                 <span style="font-size: 10px; color: #8a795f; letter-spacing: 0.1em; text-transform: uppercase;">{{ attrTotal }} pts</span>
@@ -352,7 +362,11 @@
             </aside>
 
             <!-- stat pages -->
-            <div style="min-width: 0; position: sticky; top: 20px; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(14, 11, 7, 0.58); padding: 14px;">
+            <div style="min-width: 0; order: 1; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(14, 11, 7, 0.58); padding: 16px;">
+              <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; margin-bottom: 13px;">
+                <label style="position: relative; display: block;"><span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8a795f; font-size: 13px;">⌕</span><input type="search" value="{{ statSearch }}" onInput="{{ onStatSearch }}" placeholder="Search effects" aria-label="Search effects" style="width: 100%; min-height: 38px; padding: 9px 12px 9px 34px; border: 1px solid rgba(212,166,94,.2); border-radius: 8px; background: rgba(8,6,4,.58); color: #f3e9d4; font-size: 12px; outline: none;"></label>
+                <span style="font-size: 10px; color: #8a795f; white-space: nowrap;">Click a stat to inspect its sources</span>
+              </div>
               <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px;">
                 <sc-for list="{{ statPages }}" as="page" hint-placeholder-count="8">
                   <button type="button" onClick="{{ page.onClick }}"
@@ -367,32 +381,28 @@
                 </div>
                 <span style="font-size: 11px; color: #8a795f; white-space: nowrap;">{{ statRowCount }} totals</span>
               </div>
-              <div style="border: 1px solid rgba(212, 166, 94, 0.14); border-radius: 10px; overflow-y: auto; max-height: calc(100vh - 255px); background: rgba(14, 11, 7, 0.45);">
-                <sc-for list="{{ statRows }}" as="row" hint-placeholder-count="10">
-                  <div style="border-bottom: 1px solid rgba(212, 166, 94, 0.08);">
-                    <div style="display: flex; align-items: stretch; background: {{ row.bg }}; transition: background 0.12s ease;">
-                      <button type="button" onClick="{{ row.onFavorite }}" aria-label="{{ row.favoriteLabel }}" title="{{ row.favoriteLabel }}" style="flex: none; width: 34px; border: none; border-right: 1px solid rgba(212, 166, 94, 0.08); background: transparent; color: {{ row.favoriteColor }}; cursor: pointer; font-size: 14px;">{{ row.favoriteGlyph }}</button>
-                      <button type="button" onClick="{{ row.onToggle }}"
-                      style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 9px 12px; background: transparent; border: none; cursor: pointer; text-align: left; transition: background 0.12s ease;"
-                      style-hover="background: rgba(212, 166, 94, 0.07);">
-                      <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ row.dot }}; flex: none;"></span>
-                      <span style="flex: 1; font-size: 12.5px; color: #d9c8a5;">{{ row.name }}</span>
-                      <span style="font-size: 13.5px; font-weight: 650; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</span>
-                      <span style="font-size: 9px; color: #8a795f; width: 10px; text-align: center;">{{ row.chevron }}</span>
-                      </button>
+              <div style="animation: tlFadeUp 0.3s ease;">
+                <sc-for list="{{ statGroups }}" as="group" hint-placeholder-count="2">
+                  <div style="margin-bottom: 17px;">
+                    <div style="display: flex; align-items: center; gap: 11px; margin: 0 2px 7px;">
+                      <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(232, 184, 106, 0.42));"></span>
+                      <span style="font-family: Marcellus, serif; font-size: 12.5px; letter-spacing: 0.12em; color: #e8c78c;">{{ group.label }}</span>
+                      <span style="font-size: 8.5px; color: #75654d; font-variant-numeric: tabular-nums;">{{ group.count }}</span>
+                      <span style="flex: 1; height: 1px; background: linear-gradient(90deg, rgba(232, 184, 106, 0.42), transparent);"></span>
                     </div>
-                    <sc-if value="{{ row.expanded }}" hint-placeholder-val="{{ false }}">
-                      <div style="padding: 4px 16px 12px 31px; display: grid; gap: 4px; animation: tlFadeIn 0.2s ease;">
-                        <sc-for list="{{ row.sources }}" as="src" hint-placeholder-count="3">
-                          <div style="display: flex; align-items: baseline; gap: 8px; font-size: 11px;">
-                            <span style="color: #a4906d;">{{ src.label }}</span>
-                            <span style="font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #6e5f49; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 4px; padding: 0 5px;">{{ src.type }}</span>
-                            <span style="flex: 1; border-bottom: 1px dotted rgba(212, 166, 94, 0.15); transform: translateY(-3px);"></span>
-                            <span style="color: #d9c8a5; font-variant-numeric: tabular-nums;">{{ src.value }}</span>
-                          </div>
-                        </sc-for>
-                      </div>
-                    </sc-if>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px;">
+                      <sc-for list="{{ group.rows }}" as="row" hint-placeholder-count="6">
+                        <div style="display: flex; align-items: center; border-radius: 6px; background: {{ row.bg }}; border-left: 2px solid {{ row.activeBorder }}; transition: background 0.12s ease, border-color 0.12s ease;" style-hover="background: rgba(212, 166, 94, 0.08);">
+                          <button type="button" onClick="{{ row.onFavorite }}" aria-label="{{ row.favoriteLabel }}" title="{{ row.favoriteLabel }}" style="flex: none; width: 20px; border: none; background: transparent; color: {{ row.favoriteColor }}; cursor: pointer; font-size: 10px; opacity: {{ row.favoriteOpacity }}; transition: opacity 0.12s ease;">{{ row.favoriteGlyph }}</button>
+                          <button type="button" onClick="{{ row.onToggle }}" title="{{ row.name }}" aria-label="Inspect {{ row.name }}" style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0; padding: 6px 8px 6px 2px; min-height: 30px; background: transparent; border: none; cursor: pointer; text-align: left;">
+                            <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ row.dot }}; flex: none; align-self: center;"></span>
+                            <span style="flex: none; max-width: 62%; font-size: 12px; color: {{ row.nameColor }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span>
+                            <span style="flex: 1; min-width: 6px; border-bottom: 1px dotted rgba(212, 166, 94, 0.2); transform: translateY(-3px);"></span>
+                            <span style="font-size: 12.5px; font-weight: 650; color: {{ row.valueColor }}; font-variant-numeric: tabular-nums; white-space: nowrap;">{{ row.value }}</span>
+                          </button>
+                        </div>
+                      </sc-for>
+                    </div>
                   </div>
                 </sc-for>
                 <sc-if value="{{ statRowsEmpty }}" hint-placeholder-val="{{ false }}">
@@ -709,7 +719,8 @@
               </div>
             </sc-if>
           </div></sc-if>
-        <sc-if value="{{ tabMastery }}" hint-placeholder-val="{{ false }}"><div style="animation: tlFadeUp 0.3s ease;">
+        <sc-if value="{{ tabMastery }}" hint-placeholder-val="{{ false }}"><dc-import name="MasteryWheel" data="{{ masteryPanel }}" hint-size="1200px,1000px"></dc-import></sc-if>
+        <sc-if value="{{ false }}" hint-placeholder-val="{{ false }}"><div style="animation: tlFadeUp 0.3s ease;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
               <sc-for list="{{ masteryWeaponChips }}" as="chip" hint-placeholder-count="2">
                 <button type="button" onClick="{{ chip.onClick }}"
@@ -916,12 +927,17 @@
             </div>
 
             <div style="margin-top: 20px; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 10px; background: rgba(14, 11, 7, 0.5); padding: 16px;">
-              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                 <div>
                   <h3 style="margin: 0; font-family: Marcellus, serif; font-size: 16px; font-weight: 400; color: #f3e9d4;">Unified Mastery</h3>
-                  <div style="font-size: 11px; color: #8a795f; margin-top: 2px;">Shared across weapons. Only Potential affects totals — the rest are conditional combat passives Questlog also excludes.</div>
+                  <div style="font-size: 11px; color: #8a795f; margin-top: 2px;">Shared across weapons. Potential affects persistent static totals. Supported conditional nodes, currently Shielded by Unity, apply only through a matching combat scenario; unsupported nodes receive no invented value.</div>
                 </div>
-                <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">{{ unifiedSelectedLabel }}</span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a795f;white-space:nowrap;">Overall level
+                    <input type="number" min="0" max="1560" value="{{ overallMasteryLevelValue }}" onChange="{{ onOverallMasteryLevelChange }}" aria-label="Overall Mastery Level" placeholder="Required" style="width:88px;padding:6px 8px;border:1px solid rgba(212,166,94,.22);border-radius:6px;background:rgba(10,8,5,.7);color:#f3e9d4;font-size:11px;text-align:right;">
+                  </label>
+                  <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">{{ unifiedSelectedLabel }}</span>
+                </div>
               </div>
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 8px;">
                 <sc-for list="{{ unifiedMasteryRows }}" as="node" hint-placeholder-count="8">
@@ -1011,6 +1027,25 @@
                 <sc-if value="{{ noSynergy }}" hint-placeholder-val="{{ true }}">
                   <p style="margin: 8px 0 0; font-size: 12px; line-height: 1.55; color: #8a795f;">No three-rune synergy is active on this slot. Socket three compatible rune types to unlock a cached synergy bonus.</p>
                 </sc-if>
+                <section data-rune-synergy-guide style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(212,166,94,.12);">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+                    <div><div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#f6d391;">Synergy Guide</div><p style="margin:5px 0 0;color:#8a795f;font-size:10.5px;line-height:1.5;">Choose a bonus, then match its socket recipe from left to right. Your current runes update the match markers live.</p></div>
+                    <span style="flex:none;padding:4px 7px;border:1px solid rgba(114,169,255,.25);border-radius:999px;color:#9fc3ff;background:rgba(114,169,255,.08);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">{{ synergyGuideCategory }}</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:8px;margin-top:11px;">
+                    <sc-for list="{{ synergyGuideRows }}" as="guide" hint-placeholder-count="6">
+                      <article style="min-width:0;padding:10px;border:1px solid {{ guide.border }};border-radius:9px;background:{{ guide.bg }};box-shadow:{{ guide.shadow }};">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="color:#d9c8a5;font-size:10.5px;font-weight:650;">Sockets 1 → 2 → 3</span><span style="color:{{ guide.statusColor }};font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">{{ guide.statusLabel }}</span></div>
+                        <div style="display:flex;align-items:center;gap:5px;margin-top:7px;">
+                          <sc-for list="{{ guide.steps }}" as="step" hint-placeholder-count="3"><span title="{{ step.title }}" style="display:flex;align-items:center;gap:5px;min-width:0;padding:4px 7px;border:1px solid {{ step.border }};border-radius:999px;background:{{ step.bg }};color:{{ step.color }};font-size:9px;font-weight:700;"><i style="width:5px;height:5px;flex:none;border-radius:999px;background:{{ step.dot }};box-shadow:0 0 5px {{ step.dot }};"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ step.label }}</span></span></sc-for>
+                        </div>
+                        <div style="display:grid;gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(212,166,94,.09);">
+                          <sc-for list="{{ guide.bonuses }}" as="bonus" hint-placeholder-count="2"><div style="display:flex;align-items:baseline;gap:7px;font-size:10.5px;"><span style="color:#9d8a68;">{{ bonus.name }}</span><span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.14);transform:translateY(-3px);"></span><b style="color:#f3e9d4;font-weight:650;">{{ bonus.value }}</b></div></sc-for>
+                        </div>
+                      </article>
+                    </sc-for>
+                  </div>
+                </section>
                 <p style="margin: 16px 0 0; padding-top: 12px; border-top: 1px solid rgba(212, 166, 94, 0.12); font-size: 10.5px; line-height: 1.55; color: #8a795f;">Socket order matters. A Chaos rune can stand in for Attack, Defense, or Support when resolving a synergy, but each item may contain only one Chaos rune.</p>
               </aside>
             </div>
@@ -1136,29 +1171,29 @@
       <div data-screen-label="Questlog Import" style="position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; padding: 32px; background: rgba(5, 4, 3, 0.82); backdrop-filter: blur(8px);">
         <div style="width: min(760px, 92vw); border: 1px solid rgba(114, 169, 255, 0.38); border-radius: 14px; background: linear-gradient(180deg, #17130d, #0e0b07); padding: 22px; box-shadow: 0 28px 80px rgba(0,0,0,0.65);">
           <div style="font-family: Marcellus, serif; font-size: 21px; color: #f6d391;">Import Questlog Build</div>
-          <p style="margin: 7px 0 14px; color: #9d8a68; font-size: 11px; line-height: 1.55;">Paste a JSON object containing <b style="color:#cbb185;">characterData</b>, <b style="color:#cbb185;">build</b>, <b style="color:#cbb185;">skillBuild</b>, and <b style="color:#cbb185;">masteryBuild</b>. The imported build replaces the current local build only after you confirm.</p>
-          <textarea value="{{ importText }}" onChange="{{ onImportText }}" aria-label="Questlog build JSON" spellcheck="false" placeholder="Paste Questlog build JSON here"
-            style="width: 100%; min-height: 310px; resize: vertical; border-radius: 9px; border: 1px solid rgba(212, 166, 94, 0.22); background: rgba(7,5,3,0.8); color: #e6d6b4; padding: 12px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.45;"></textarea>
+          <p style="margin: 7px 0 14px; color: #9d8a68; font-size: 11px; line-height: 1.55;">Paste a Questlog character-builder link. If the link includes a build ID, that build is imported. Otherwise, TL Helper imports the first build on the character.</p>
+          <input type="url" value="{{ importText }}" onInput="{{ onImportText }}" aria-label="Questlog character-builder link" spellcheck="false" placeholder="https://questlog.gg/throne-and-liberty/en/character-builder/..."
+            style="width: 100%; min-height: 46px; border-radius: 9px; border: 1px solid rgba(212, 166, 94, 0.22); background: rgba(7,5,3,0.8); color: #e6d6b4; padding: 12px; font-size: 12px; line-height: 1.45;">
           <sc-if value="{{ hasImportError }}" hint-placeholder-val="{{ false }}"><div style="margin-top: 10px; color: #e56a6a; font-size: 11px;">{{ importError }}</div></sc-if>
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
             <button type="button" onClick="{{ closeImport }}" style="padding:8px 15px; border-radius:8px; border:1px solid rgba(212,166,94,0.2); background:transparent; color:#9d8a68; cursor:pointer;">Cancel</button>
-            <button type="button" onClick="{{ applyImport }}" style="padding:8px 15px; border-radius:8px; border:1px solid rgba(114,169,255,0.58); background:rgba(114,169,255,0.14); color:#dce9ff; cursor:pointer;">Import Build</button>
+            <button type="button" onClick="{{ applyImport }}" disabled="{{ importLoading }}" style="padding:8px 15px; border-radius:8px; border:1px solid rgba(114,169,255,0.58); background:rgba(114,169,255,0.14); color:#dce9ff; cursor:pointer; opacity:{{ importButtonOpacity }};">{{ importButtonLabel }}</button>
           </div>
         </div>
       </div>
     </sc-if>
 
-    <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Item Picker" onClick="{{ closePicker }}"
+    <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}"><div class="tl-item-picker-overlay" data-screen-label="Item Picker" onClick="{{ closePicker }}"
         style="position: fixed; inset: 0; z-index: 50; background: rgba(5, 4, 2, 0.72); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 30px; animation: tlFadeIn 0.2s ease;">
-        <div onClick="{{ stopClose }}" role="dialog" aria-label="Edit slot"
+        <div class="tl-item-picker-dialog" onClick="{{ stopClose }}" role="dialog" aria-label="Edit slot"
           style="width: min(1380px, 100%); height: min(880px, 100%); display: flex; flex-direction: column; border: 1px solid rgba(212, 166, 94, 0.32); border-radius: 12px; background: linear-gradient(180deg, rgba(26, 20, 12, 0.98), rgba(13, 10, 7, 0.99)); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(246, 211, 145, 0.08); animation: tlSlideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden;">
 
-          <header style="display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: rgba(20, 15, 9, 0.5);">
+          <header class="tl-item-picker-header" style="display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid rgba(212, 166, 94, 0.18); background: rgba(20, 15, 9, 0.5);">
             <div style="flex: 1;">
               <div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #8a795f;">Edit Slot</div>
               <h2 style="margin: 1px 0 0; font-family: Marcellus, serif; font-size: 20px; font-weight: 400; color: #f6d391;">{{ pickerSlotLabel }}</h2>
             </div>
-            <button type="button" onClick="{{ onPickerClear }}"
+            <button class="tl-item-picker-clear" type="button" onClick="{{ onPickerClear }}"
               style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9d8a68; background: none; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
               style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.5);">{{ pickerClearLabel }}</button>
             <button type="button" onClick="{{ closePicker }}" aria-label="Close"
@@ -1166,11 +1201,16 @@
               style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.6);">✕</button>
           </header>
 
-          <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 480px;">
+          <nav class="tl-picker-compact-nav" aria-label="Item editor steps" style="display:none;grid-template-columns:1fr 1fr;gap:7px;padding:8px 10px;border-bottom:1px solid rgba(212,166,94,.14);background:rgba(10,8,5,.7);">
+            <button type="button" onClick="{{ showPickerList }}" aria-current="{{ pickerListCurrent }}" style="min-height:38px;border:1px solid {{ pickerListBorder }};border-radius:8px;background:{{ pickerListBg }};color:{{ pickerListColor }};font-size:11px;font-weight:650;cursor:pointer;">1&nbsp; Choose item</button>
+            <button type="button" onClick="{{ showPickerConfig }}" disabled="{{ pickerConfigDisabled }}" aria-current="{{ pickerConfigCurrent }}" style="min-height:38px;border:1px solid {{ pickerConfigBorder }};border-radius:8px;background:{{ pickerConfigBg }};color:{{ pickerConfigColor }};font-size:11px;font-weight:650;cursor:{{ pickerConfigCursor }};opacity:{{ pickerConfigOpacity }};">2&nbsp; Configure</button>
+          </nav>
+
+          <div class="tl-picker-body" data-picker-view="{{ pickerView }}" style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 480px;">
             <!-- list side -->
-            <div style="display: flex; flex-direction: column; min-height: 0; border-right: 1px solid rgba(212, 166, 94, 0.14);">
+            <div class="tl-picker-list-pane" style="display: flex; flex-direction: column; min-height: 0; border-right: 1px solid rgba(212, 166, 94, 0.14);">
               <div style="padding: 12px 16px 10px; display: grid; gap: 8px;">
-                <div style="display: flex; gap: 8px;">
+                <div class="tl-picker-filters" style="display: flex; gap: 8px;">
                   <input value="{{ pickerSearch }}" onInput="{{ onPickerSearch }}" placeholder="Search items, grades, stats, sources…" spellcheck="false"
                     style="flex: 1; font-size: 13px; color: #f3e9d4; background: rgba(8, 6, 4, 0.65); border: 1px solid rgba(212, 166, 94, 0.24); border-radius: 8px; padding: 9px 13px;"
                     style-focus="border-color: rgba(232, 184, 106, 0.65); outline: none;">
@@ -1230,7 +1270,7 @@
             </div>
 
             <!-- preview / config side -->
-            <div style="min-height: 0; overflow-y: auto; padding: 16px; background: rgba(10, 8, 5, 0.35);">
+            <div class="tl-picker-config-pane" style="min-height: 0; overflow-y: auto; padding: 16px; background: rgba(10, 8, 5, 0.35);">
               <sc-if value="{{ hasPreview }}" hint-placeholder-val="{{ false }}">
                 <div style="border: 1px solid rgba(212, 166, 94, 0.22); border-radius: 10px; overflow: hidden; background: rgba(13, 10, 7, 0.85);">
                   <!-- tooltip head -->
@@ -1247,8 +1287,14 @@
                     <span style="flex: none; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: {{ preview.equipTagColor }}; border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px;">{{ preview.equipTag }}</span>
                   </div>
 
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid rgba(212,166,94,.08);border-bottom:1px solid rgba(212,166,94,.1);background:rgba(8,6,4,.5);">
+                    <button type="button" onClick="{{ showPickerList }}" style="font-size:10px;letter-spacing:.05em;color:#cbb185;background:transparent;border:1px solid rgba(212,166,94,.24);border-radius:7px;padding:7px 10px;cursor:pointer;">Change item</button>
+                    <span style="flex:1;min-width:0;color:#6e5f49;font-size:9.5px;text-align:right;">Level, traits and resonance</span>
+                    <sc-if value="{{ preview.canConfigureRunes }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ preview.openRunes }}" style="white-space:nowrap;font-size:10px;letter-spacing:.05em;color:#dce9ff;background:rgba(114,169,255,.12);border:1px solid rgba(114,169,255,.48);border-radius:7px;padding:7px 10px;cursor:pointer;">Runes {{ preview.runeFilled }}/3</button></sc-if>
+                  </div>
+
                   <!-- level -->
-                  <div style="display: flex; align-items: center; gap: 12px; padding: 10px 17px; border-bottom: 1px solid rgba(212, 166, 94, 0.1);">
+                  <div class="tl-picker-level-row" style="display: flex; align-items: center; gap: 12px; padding: 10px 17px; border-bottom: 1px solid rgba(212, 166, 94, 0.1);">
                     <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">Item Level</span>
                     <sc-if value="{{ preview.levelEditable }}" hint-placeholder-val="{{ false }}">
                       <button type="button" onClick="{{ preview.onLevelDec }}" aria-label="Lower level" style="flex: none; width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">−</button>
@@ -1268,7 +1314,7 @@
                   </div>
 
                   <!-- headline stats -->
-                  <div style="padding: 11px 17px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 22px;">
+                  <div class="tl-picker-config-grid" style="padding: 11px 17px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 22px;">
                     <sc-for list="{{ preview.headline }}" as="row" hint-placeholder-count="3">
                       <div style="display: flex; align-items: baseline; gap: 8px;">
                         <span style="font-size: 12px; color: #d9c8a5;">{{ row.label }}</span>
@@ -1288,7 +1334,7 @@
                   </div>
 
                   <sc-if value="{{ preview.hasExtra }}" hint-placeholder-val="{{ false }}">
-                    <div style="padding: 9px 17px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 22px;">
+                    <div class="tl-picker-config-grid" style="padding: 9px 17px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 22px;">
                       <sc-for list="{{ preview.extra }}" as="row" hint-placeholder-count="3">
                         <div style="display: flex; align-items: baseline; gap: 8px;">
                           <span style="font-size: 11.5px; color: #a4906d;">{{ row.label }}</span>
@@ -1313,14 +1359,19 @@
 
                   <sc-if value="{{ preview.hasPotentialStats }}" hint-placeholder-val="{{ false }}">
                     <div style="padding: 11px 15px 13px; border-top: 1px solid rgba(114,169,255,0.18); background: rgba(114,169,255,0.035);">
-                      <label style="display:grid;gap:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9fc3ff;">Item Potential
+                      <label style="display:grid;gap:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9fc3ff;">Item Potential (excluded)
                         <select value="{{ preview.potentialStatValue }}" onChange="{{ preview.onPotentialStat }}" disabled="{{ preview.potentialStatDisabled }}" style="width:100%;color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(114,169,255,.3);border-radius:6px;padding:7px 8px;font-size:11px;text-transform:none;letter-spacing:0;">
-                          <option value="">No stat potential</option>
+                          <option value="">Not included in calculations</option>
                           <sc-for list="{{ preview.potentialStatOptions }}" as="option" hint-placeholder-count="4"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
                         </select>
                       </label>
+                      <div style="margin-top:6px;font-size:9px;line-height:1.45;color:#8fa5c2;">Item Potential selections are preserved when imported, but all stat and skill outcomes are excluded from totals and recommendations in this release.</div>
+                      <sc-if value="{{ preview.hasStoredPotential }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin-top:7px;padding:6px 8px;border:1px solid rgba(114,169,255,.18);border-radius:6px;background:rgba(10,8,5,.42);color:#a9bdd8;font-size:9.5px;line-height:1.4;">Stored: {{ preview.storedPotentialLabel }}</div>
+                        <button type="button" onClick="{{ preview.onClearPotential }}" style="margin-top:7px;padding:5px 8px;border:1px solid rgba(114,169,255,.28);border-radius:6px;background:rgba(10,8,5,.58);color:#a9bdd8;font-size:9.5px;cursor:pointer;">Clear stored Item Potential</button>
+                      </sc-if>
                       <sc-if value="{{ preview.hasPotentialSkills }}" hint-placeholder-val="{{ false }}">
-                        <div style="margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9fc3ff;">Enchant Effects (proc)</div>
+                        <div style="margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9fc3ff;">Possible Skill Outcomes</div>
                         <div style="display: grid; gap: 6px; margin-top: 6px;">
                           <sc-for list="{{ preview.potentialSkills }}" as="proc" hint-placeholder-count="2">
                             <div style="display: flex; gap: 9px; align-items: flex-start; padding: 7px 9px; border-radius: 7px; border: 1px solid rgba(114,169,255,0.18); background: rgba(10,8,5,0.45);">
@@ -1334,7 +1385,7 @@
                             </div>
                           </sc-for>
                         </div>
-                        <div style="margin-top: 6px; font-size: 9px; color: #6e7f99;">Proc effects are informational — they are not part of stat totals.</div>
+                        <div style="margin-top: 6px; font-size: 9px; color: #6e7f99;">These outcomes are informational and are not part of totals or recommendations.</div>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -1357,7 +1408,7 @@
                         <span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #ffb765;">Heroic Effects</span>
                         <span style="font-size: 9px; color: #8a795f;">{{ preview.heroicEffectCount }}/{{ preview.heroicEffectTotal }} selected</span>
                       </div>
-                      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 9px; margin-top: 8px;">
+                      <div data-item-heroic-effects style="display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; margin-top: 8px;">
                         <sc-for list="{{ preview.heroicEffectRows }}" as="effect" hint-placeholder-count="2">
                           <label style="display: grid; gap: 4px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f;">
                             Effect {{ effect.n }}
@@ -1378,7 +1429,7 @@
                         <span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185;">Traits</span>
                         <span style="font-size: 9px; color: #6e5f49;">{{ preview.traitHint }}</span>
                       </div>
-                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
+                      <div class="tl-picker-config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
                         <sc-for list="{{ preview.traitRows }}" as="trait" hint-placeholder-count="3">
                           <div>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -1387,7 +1438,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-left: 12px;">
                               <sc-for list="{{ trait.tiers }}" as="tier" hint-placeholder-count="3">
-                                <button type="button" onClick="{{ tier.onClick }}"
+                                <button type="button" onClick="{{ tier.onClick }}" aria-label="{{ trait.name }} {{ tier.label }}" aria-pressed="{{ tier.active }}"
                                   style="font-size: 10.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid {{ tier.border }}; background: {{ tier.bg }}; color: {{ tier.color }}; cursor: {{ tier.cursor }}; font-variant-numeric: tabular-nums;"
                                   style-hover="border-color: rgba(126, 224, 166, 0.55);">{{ tier.label }}</button>
                               </sc-for>
@@ -1411,7 +1462,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-left: 12px;">
                               <sc-for list="{{ trait.tiers }}" as="tier" hint-placeholder-count="3">
-                                <button type="button" onClick="{{ tier.onClick }}"
+                                <button type="button" onClick="{{ tier.onClick }}" aria-label="{{ trait.name }} {{ tier.label }}" aria-pressed="{{ tier.active }}"
                                   style="font-size: 10.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid {{ tier.border }}; background: {{ tier.bg }}; color: {{ tier.color }}; cursor: {{ tier.cursor }}; font-variant-numeric: tabular-nums;"
                                   style-hover="border-color: rgba(255, 183, 101, 0.55);">{{ tier.label }}</button>
                               </sc-for>
@@ -1429,7 +1480,7 @@
                         <span style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #cf9dff;">Trait Resonance</span>
                         <span style="font-size: 9px; color: #6e5f49;">Pick one</span>
                       </div>
-                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
+                      <div class="tl-picker-config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; margin-top: 8px;">
                         <sc-for list="{{ preview.resonanceRows }}" as="trait" hint-placeholder-count="2">
                           <div>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -1439,7 +1490,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-left: 12px;">
                               <sc-for list="{{ trait.tiers }}" as="tier" hint-placeholder-count="3">
-                                <button type="button" onClick="{{ tier.onClick }}"
+                                <button type="button" onClick="{{ tier.onClick }}" aria-label="{{ trait.name }} {{ tier.label }}" aria-pressed="{{ tier.active }}"
                                   style="font-size: 10.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid {{ tier.border }}; background: {{ tier.bg }}; color: {{ tier.color }}; cursor: {{ tier.cursor }}; font-variant-numeric: tabular-nums;"
                                   style-hover="border-color: rgba(207, 157, 255, 0.55);">{{ tier.label }}</button>
                               </sc-for>
@@ -1479,11 +1530,18 @@
                           <span style="font-size: 10px; color: {{ member.color }}; border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 5px; padding: 2px 7px; background: rgba(8, 6, 4, 0.5);">{{ member.name }}</span>
                         </sc-for>
                       </div>
+                      <div style="display:grid;gap:4px;margin-top:8px;">
+                        <sc-for list="{{ preview.setInfo.bonuses }}" as="bonus" hint-placeholder-count="2">
+                          <div style="display:flex;gap:7px;font-size:10px;line-height:1.45;color:{{ bonus.color }};">
+                            <strong style="flex:none;">{{ bonus.required }}</strong>
+                            <span><span style="color:#8a795f;">{{ bonus.confidence }}:</span> {{ bonus.text }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
                     </div>
                   </sc-if>
 
-                  <div style="padding: 10px 15px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-                    <sc-if value="{{ preview.canConfigureRunes }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ preview.openRunes }}" style="font-size: 10.5px; letter-spacing: 0.08em; color: #f6d391; background: rgba(212, 166, 94, 0.1); border: 1px solid rgba(232, 184, 106, 0.4); border-radius: 6px; padding: 5px 9px; cursor: pointer;">Configure Runes</button></sc-if>
+                  <div style="padding: 10px 15px; border-top: 1px solid rgba(212, 166, 94, 0.1); display: flex; flex-wrap:wrap; align-items: center; justify-content: flex-end; gap: 8px 12px;">
                     <a href="{{ preview.dbUrl }}" target="_blank" rel="noreferrer" style="font-size: 10.5px; letter-spacing: 0.08em;">View in database ↗</a>
                   </div>
                 </div>
@@ -1510,7 +1568,9 @@ class Component extends DCLogic {
     build: null,
     tab: "stats",
     statPage: "combat",
+    statSearch: "",
     expandedStatId: "",
+    statSourcesExpanded: false,
     favoriteStatIds: [],
     skillFocusId: "",
     skillHoverId: "",
@@ -1519,6 +1579,7 @@ class Component extends DCLogic {
     dollHoverSlot: "",
     dollHoverX: 0,
     dollHoverY: 0,
+    resonanceKeyHeld: false,
     masteryWeapon: "",
     masterySearch: "",
     masteryFocusId: "",
@@ -1528,6 +1589,7 @@ class Component extends DCLogic {
     pickerHoverId: "",
     importOpen: false,
     importText: "",
+    importLoading: false,
     importError: "",
     presetsOpen: false,
     presets: [],
@@ -1579,6 +1641,12 @@ class Component extends DCLogic {
   PRESET_KEY = "tlhelper-builder-presets-v1";
 
   componentDidMount() {
+    this._resonanceKeyDown = (event) => { if (event.key?.toLowerCase() === "r" && !event.repeat) this.setState({ resonanceKeyHeld: true }); };
+    this._resonanceKeyUp = (event) => { if (event.key?.toLowerCase() === "r") this.setState({ resonanceKeyHeld: false }); };
+    this._resonanceBlur = () => this.setState({ resonanceKeyHeld: false });
+    document.addEventListener("keydown", this._resonanceKeyDown);
+    document.addEventListener("keyup", this._resonanceKeyUp);
+    window.addEventListener("blur", this._resonanceBlur);
     Promise.all([import("./tl-core.js"), import("./tl-build-snapshot.js"), import("./tl-persistence.js")])
       .then(async ([core, buildSnapshots, persistence]) => {
         this.core = core;
@@ -1794,12 +1862,34 @@ class Component extends DCLogic {
   }
 
   closeImport() {
-    this.setState({ importOpen: false, importError: "" });
+    this.setState({ importOpen: false, importError: "", importLoading: false });
   }
 
-  applyImport() {
+  async applyImport() {
+    const url = String(this.state.importText ?? "").trim();
+    if (!url) {
+      this.setState({ importError: "Paste a Questlog character-builder link first." });
+      return;
+    }
+    this.setState({ importLoading: true, importError: "" });
     try {
-      const imported = this.core.importQuestlogBuild(JSON.parse(this.state.importText));
+      const response = await fetch(`/api/questlog/character?url=${encodeURIComponent(url)}`, { cache: "no-store" });
+      if (!response.ok) {
+        let detail = "";
+        try { detail = (await response.json())?.error ?? ""; } catch { /* non-JSON error body */ }
+        throw new Error(detail || `Questlog import failed (HTTP ${response.status}). Check the link and try again.`);
+      }
+      const payload = await response.json();
+      const requested = payload.buildId == null ? null : String(payload.buildId);
+      const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
+      if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
+      const sourceBuild = {
+        ...rawBuild,
+        equipment: Object.fromEntries(Object.entries(rawBuild.equipment ?? {}).map(([slot, row]) => [slot, row ? { ...row, itemLevel: row.itemLevel ?? row.enhLvl } : row])),
+      };
+      const skillBuild = payload.skillData?.builds?.find((row) => String(row.id) === String(sourceBuild.skillBuildId));
+      const masteryBuild = payload.masteryData?.builds?.find((row) => String(row.id) === String(sourceBuild.weaponSpecializationBuildId));
+      const imported = this.core.importQuestlogBuild({ characterData: payload.characterData, build: sourceBuild, skillBuild, masteryBuild });
       imported.build.skills = this.core.normalizeSkillSelections(imported.build.skills);
       imported.build.masteries = this.core.normalizeMasterySelections(imported.build.masteries);
       this.setState({
@@ -1809,10 +1899,11 @@ class Component extends DCLogic {
         masteryWeapon: this.core.currentWeaponTypes(imported.build)[0] ?? "sword",
         importOpen: false,
         importText: "",
+        importLoading: false,
         importError: "",
       }, () => this.save());
     } catch (error) {
-      this.setState({ importError: String(error?.message ?? error) });
+      this.setState({ importError: String(error?.message ?? error), importLoading: false });
     }
   }
 
@@ -1837,7 +1928,7 @@ class Component extends DCLogic {
     let type = "all";
     const equipped = core.slotItem(slotId, this.state.build);
     if (options.length > 1 && equipped && options.includes(equipped.equipmentType)) type = equipped.equipmentType;
-    this.setState({ picker: { slot: slotId, search: "", type, grade: "all", sort: "level_desc" }, pickerHoverId: "" });
+    this.setState({ picker: { slot: slotId, search: "", type, grade: "all", sort: "level_desc", view: equipped ? "config" : "list" }, pickerHoverId: "" });
   }
 
   closePicker() {
@@ -1855,6 +1946,9 @@ class Component extends DCLogic {
         level: item ? core.getItemLevels(item).at(-1) ?? 0 : 0,
       };
     });
+    if (this.state.picker?.slot === slotId) {
+      this.setState({ picker: { ...this.state.picker, view: itemId ? "config" : "list" }, pickerHoverId: "" });
+    }
     this.flashSlot(slotId);
   }
 
@@ -2223,7 +2317,7 @@ class Component extends DCLogic {
     const flip = typeof window !== "undefined" && y > window.innerHeight * 0.5;
     return {
       hasDollHover: true,
-      dollHover: { ...model, x: this.state.dollHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
+      dollHover: { ...model, visibleResonance: this.state.resonanceKeyHeld ? model.resonanceOptions : model.resonance, resonanceTitle: this.state.resonanceKeyHeld ? "Possible Trait Resonances" : "Trait Resonance", showResonanceHint: model.resonanceOptions.length > model.resonance.length && !this.state.resonanceKeyHeld, x: this.state.dollHoverX || 0, y, transform: flip ? "translate(20px, -100%)" : "translate(20px, 0)" },
     };
   }
 
@@ -2314,7 +2408,8 @@ class Component extends DCLogic {
     const masteryCount = Object.keys(build.masteries ?? {}).length;
     const supportCount = core.SUPPORT_SLOTS.filter((slot) => build.supportSlots?.[slot.id]?.itemId).length;
     const attributeSpent = Object.values(this.state.attributes).reduce((total, value) => total + Number(value || 0), 0);
-    const validationIssueCount = calc.validation?.issues?.length ?? 0;
+    const calculationState = calc.status?.state ?? "provisional";
+    const validationIssueCount = calc.status?.blockingIssues?.length ?? calc.validation?.issues?.length ?? 0;
     const effectCount = core.statPageRows(calc, "all", build).length;
     const overviewRows = [
       { label: "Attributes", value: `${attributeSpent}/59`, color: attributeSpent === 59 ? "#7ee0a6" : "#f3e9d4" },
@@ -2324,8 +2419,10 @@ class Component extends DCLogic {
       { label: "Artifacts", value: `${artifactCount}/${artifactTotal}`, color: artifactCount === artifactTotal ? "#7ee0a6" : "#f3e9d4" },
       { label: "Support", value: `${supportCount}/${core.SUPPORT_SLOTS.length}`, color: supportCount === core.SUPPORT_SLOTS.length ? "#7ee0a6" : "#f3e9d4" },
     ];
-    const overviewStatus = validationIssueCount ? `${validationIssueCount} ${validationIssueCount === 1 ? "issue" : "issues"}` : "No issues";
-    const overviewStatusColor = validationIssueCount ? "#e5a06a" : "#7ee0a6";
+    const overviewStatus = calculationState === "legal"
+      ? "Calculated static totals · Item Potentials excluded"
+      : `${core.label(calculationState)} · ${validationIssueCount} calculation ${validationIssueCount === 1 ? "issue" : "issues"}`;
+    const overviewStatusColor = calculationState === "invalid" ? "#e58b84" : calculationState === "provisional" ? "#e5a06a" : "#7ee0a6";
     const tabDefs = [
       ["stats", "Effects", `${effectCount}`],
       ["skills", "Skills", `${skillRowsAll.length}`],
@@ -2367,11 +2464,13 @@ class Component extends DCLogic {
         border: active ? "rgba(232, 184, 106, 0.65)" : "rgba(212, 166, 94, 0.2)",
         bg: active ? "rgba(212, 166, 94, 0.14)" : "transparent",
         color: active ? "#f6d391" : "#9d8a68",
-        onClick: () => this.setState({ statPage: id, expandedStatId: "" }),
+        onClick: () => this.setState({ statPage: id, expandedStatId: "", statSourcesExpanded: false }),
       };
     });
     const pageDef = core.STAT_PAGE_DEFINITIONS.find(([id]) => id === this.state.statPage) ?? core.STAT_PAGE_DEFINITIONS[0];
-    const pageRows = core.statPageRows(calc, this.state.statPage, build);
+    const statSearch = String(this.state.statSearch ?? "").trim().toLowerCase();
+    const pageRows = core.statPageRows(calc, this.state.statPage, build)
+      .filter((row) => !statSearch || core.statName(row.id).toLowerCase().includes(statSearch) || row.sources.some((source) => String(source.sourceLabel ?? "").toLowerCase().includes(statSearch)));
     const dotColors = { combat: "#e8b86a", utility: "#72a9ff", control: "#b873ff", species: "#55d58a", directional: "#e5a06a", boss: "#e56a6a", pvp: "#d977b8" };
     const favoriteIds = new Set(this.state.favoriteStatIds ?? []);
     const statRows = pageRows.map((row) => {
@@ -2382,11 +2481,18 @@ class Component extends DCLogic {
         name: core.statName(row.id),
         value: core.formatStat(row.id, row.total),
         dot: dotColors[core.statPageFor(row.id)] ?? "#8a795f",
-        bg: expanded ? "rgba(212, 166, 94, 0.06)" : "transparent",
+        bg: expanded ? "linear-gradient(90deg, rgba(212,166,94,.11), rgba(212,166,94,.025))" : "transparent",
+        activeBorder: expanded ? "#e8b86a" : "transparent",
+        chevronColor: expanded ? "#f6d391" : "#75654d",
+        sourceCount: core.formatNumber(row.sources.length),
+        sourceLabel: `${core.formatNumber(row.sources.length)} ${row.sources.length === 1 ? "source" : "sources"}`,
         chevron: expanded ? "▾" : "▸",
         favoriteGlyph: favorite ? "★" : "☆",
         favoriteColor: favorite ? "#f6d391" : "#6e5f49",
         favoriteLabel: `${favorite ? "Remove" : "Add"} ${core.statName(row.id)} ${favorite ? "from" : "to"} favourites`,
+        favoriteOpacity: favorite ? 1 : (expanded ? 0.9 : 0.3),
+        nameColor: expanded ? "#f6d391" : "#d0bf9d",
+        valueColor: expanded ? "#f6d391" : "#f3e9d4",
         expanded,
         sources: expanded
           ? row.sources.map((source) => ({
@@ -2395,11 +2501,72 @@ class Component extends DCLogic {
               value: core.formatSigned(source.value, row.id),
             }))
           : [],
-        onToggle: () => this.setState({ expandedStatId: expanded ? "" : row.id }),
+        onToggle: () => this.setState({ expandedStatId: row.id, statSourcesExpanded: false }),
         onFavorite: () => this.toggleFavoriteStat(row.id),
       };
     });
+    const STAT_GROUP_DEFS = [["attack", "Attack"], ["protection", "Protection"], ["utility", "Recovery & Utility"], ["other", "Other"]];
+    const statGroupFor = (name) => {
+      const n = String(name).toLowerCase();
+      if (/(defen|evasion|endurance|resist|reduction|block|absorb|tenacity)/.test(n)) return "protection";
+      if (/(regen|cooldown|mov|mana|speed|range|buff|potion|heal|recover|duration|stamina|gather|luck|efficien)/.test(n)) return "utility";
+      if (/(hit|critical|heavy|attack|damage|power|rating|penetration|bonus|boost|threat|aggro)/.test(n)) return "attack";
+      return "other";
+    };
+    const statGroupBuckets = { attack: [], protection: [], utility: [], other: [] };
+    statRows.forEach((r) => { statGroupBuckets[statGroupFor(r.name)].push(r); });
+    const statGroups = STAT_GROUP_DEFS.map(([key, label]) => ({ key, label, count: statGroupBuckets[key].length, rows: statGroupBuckets[key] })).filter((g) => g.rows.length);
     const statPageNames = Object.fromEntries(core.STAT_PAGE_DEFINITIONS.map(([id, name]) => [id, name]));
+    const selectedSourceRow = pageRows.find((row) => row.id === this.state.expandedStatId) ?? pageRows[0] ?? null;
+    const selectedSourceMax = Math.max(1, ...(selectedSourceRow?.sources ?? []).map((source) => Math.abs(Number(source.value) || 0)));
+    const selectedFavorite = selectedSourceRow ? favoriteIds.has(selectedSourceRow.id) : false;
+    const selectedPage = selectedSourceRow ? core.statPageFor(selectedSourceRow.id) : this.state.statPage;
+    const selectedSources = [...(selectedSourceRow?.sources ?? [])]
+      .sort((a, b) => Math.abs(Number(b.value) || 0) - Math.abs(Number(a.value) || 0))
+      .map((source) => ({
+        label: source.sourceLabel || "Source",
+        type: core.sourceTypeLabel(source.type),
+        value: core.formatSigned(source.value, selectedSourceRow.id),
+        pct: `${Math.max(3, Math.abs(Number(source.value) || 0) / selectedSourceMax * 100)}%`,
+      }));
+    const visibleSelectedSources = this.state.statSourcesExpanded ? selectedSources : selectedSources.slice(0, 5);
+    const selectedStat = selectedSourceRow ? {
+      name: core.statName(selectedSourceRow.id),
+      value: core.formatStat(selectedSourceRow.id, selectedSourceRow.total),
+      page: statPageNames[selectedPage] ?? "Effects",
+      color: dotColors[selectedPage] ?? "#cbb185",
+      sourceCount: core.formatNumber(selectedSourceRow.sources.length),
+      sourceLabel: `${core.formatNumber(selectedSourceRow.sources.length)} ${selectedSourceRow.sources.length === 1 ? "source" : "sources"}`,
+      sources: visibleSelectedSources,
+      sourceListMaxHeight: this.state.statSourcesExpanded ? "360px" : "none",
+      sourceListOverflow: this.state.statSourcesExpanded ? "auto" : "visible",
+      hasMoreSources: selectedSources.length > 5,
+      sourcesToggleLabel: this.state.statSourcesExpanded ? "Show fewer" : `Show all ${selectedSources.length} sources`,
+      onToggleSources: () => this.setState({ statSourcesExpanded: !this.state.statSourcesExpanded }),
+      noSources: selectedSourceRow.sources.length === 0,
+      favoriteGlyph: selectedFavorite ? "★" : "☆",
+      favoriteColor: selectedFavorite ? "#f6d391" : "#6e5f49",
+      favoriteLabel: `${selectedFavorite ? "Remove" : "Add"} ${core.statName(selectedSourceRow.id)} ${selectedFavorite ? "from" : "to"} favourites`,
+      onFavorite: () => this.toggleFavoriteStat(selectedSourceRow.id),
+    } : {
+      name: "No matching stat",
+      value: "None",
+      page: statPageNames[this.state.statPage] ?? "Effects",
+      color: "#8a795f",
+      sourceCount: "0",
+      sourceLabel: "0 sources",
+      sources: [],
+      sourceListMaxHeight: "none",
+      sourceListOverflow: "visible",
+      hasMoreSources: false,
+      sourcesToggleLabel: "",
+      onToggleSources: () => {},
+      noSources: true,
+      favoriteGlyph: "☆",
+      favoriteColor: "#6e5f49",
+      favoriteLabel: "No stat selected",
+      onFavorite: () => {},
+    };
     const favoriteStatRows = [...favoriteIds].map((id) => {
       const page = core.statPageFor(id);
       return {
@@ -2408,7 +2575,7 @@ class Component extends DCLogic {
         value: core.formatStat(id, core.statTotal(calc, id)),
         page: statPageNames[page] ?? "Effects",
         color: dotColors[page] ?? "#cbb185",
-        onOpen: () => this.setState({ statPage: page, expandedStatId: id }),
+        onOpen: () => this.setState({ statPage: page, expandedStatId: id, statSourcesExpanded: false }),
         onRemove: () => this.toggleFavoriteStat(id),
       };
     });
@@ -2477,14 +2644,13 @@ class Component extends DCLogic {
       importOpen: this.state.importOpen,
       importText: this.state.importText,
       onImportText: (event) => this.setState({ importText: event.target.value, importError: "" }),
+      importLoading: this.state.importLoading,
+      importButtonLabel: this.state.importLoading ? "Importing..." : "Import Build",
+      importButtonOpacity: this.state.importLoading ? "0.55" : "1",
       importError: this.state.importError,
       hasImportError: Boolean(this.state.importError),
       closeImport: () => this.closeImport(),
       applyImport: () => this.applyImport(),
-      onAutoFill: () => {
-        const seeded = core.seedShowcaseBuild(`${this.state.profile.name}'s Build`);
-        this.setState({ build: seeded, masteryWeapon: core.currentWeaponTypes(seeded)[0], skillFocusId: "", masteryFocusId: "" }, () => this.save());
-      },
       onClearBuild: () => {
         const cleared = core.createInitialBuild();
         this.setState({ build: cleared, skillFocusId: "", masteryFocusId: "" }, () => this.save());
@@ -2514,12 +2680,17 @@ class Component extends DCLogic {
       attrRows,
       attrTotal,
       statPages,
+      statSearch: this.state.statSearch,
+      onStatSearch: (event) => this.setState({ statSearch: event.target.value, expandedStatId: "", statSourcesExpanded: false }),
       statPageTitle: pageDef[1],
       statPageDesc: pageDef[2],
       statRowCount: core.formatNumber(pageRows.length),
       statRows,
+      statGroups,
       statRowsEmpty: pageRows.length === 0,
+      selectedStat,
       favoriteStatRows,
+      favoritePanelDisplay: favoriteStatRows.length ? "block" : "none",
       favoriteStatCount: core.formatNumber(favoriteStatRows.length),
       hasFavoriteStats: favoriteStatRows.length > 0,
       noFavoriteStats: favoriteStatRows.length === 0,
@@ -2530,7 +2701,7 @@ class Component extends DCLogic {
       ...this.skillsVals(calc, weapons),
       ...this.masteryVals(weapons),
       ...this.runesVals(calc),
-      ...this.artifactsVals(),
+      ...this.artifactsVals(calc),
       ...this.pickerVals(calc),
       ...this.dollHoverVals(calc),
     };
@@ -2922,6 +3093,7 @@ class Component extends DCLogic {
         bg: selected ? `radial-gradient(circle at 35% 30%, ${p.color}40, rgba(16, 12, 7, 0.95))` : categoryFallback ? `radial-gradient(circle at 35% 30%, ${p.color}32, rgba(12, 10, 8, 0.97))` : "radial-gradient(circle at 35% 30%, #221a10, #0f0b06)",
         shadow: focused ? "0 0 0 4px rgba(246, 211, 145, 0.16), 0 0 18px rgba(246, 211, 145, 0.35)" : selected ? `0 0 14px ${p.color}66` : categoryFallback ? `0 0 16px ${p.color}44, inset 0 0 12px rgba(0, 0, 0, 0.72)` : "inset 0 0 8px rgba(0, 0, 0, 0.7)",
         glyphColor: selected ? "#f3e9d4" : categoryFallback ? p.color : "#7a6b52",
+        glyph: iconLane === "attack" ? "×" : iconLane === "defense" ? "○" : iconLane === "tactic" ? "△" : iconLane === "util" ? "□" : "●",
         iconSize: Math.round(size * (p.kind === "capstone" ? 0.52 : 0.46)),
         icon: p.m.imageUrl ?? "",
         hasIcon: Boolean(p.m.imageUrl),
@@ -3065,7 +3237,7 @@ class Component extends DCLogic {
     const wheelStageOffset = Math.max(140, Math.round(180 * responsiveScale));
     const wheelSurfaceSize = wheelCanvasSize + wheelStageOffset * 2;
 
-    return {
+    const masteryPanel = {
       masteryLoaded: true,
       masteryWeaponChips: weapons.map((weapon) => ({
         id: weapon,
@@ -3085,6 +3257,7 @@ class Component extends DCLogic {
       centerIcon: centerItem?.imageUrl ?? "",
       centerIconEmpty: !centerItem?.imageUrl,
       laneLegend,
+      interactionHint: "Drag empty space to pan · wheel to zoom · click nodes to edit their level",
       wheelCenterLabel: core.label(selectedWeapon),
       wheelCombinedScale,
       wheelCanvasSize,
@@ -3116,6 +3289,7 @@ class Component extends DCLogic {
       hasMasteryError: Boolean(this.state.masteryError),
       ...this.unifiedMasteryVals(build),
     };
+    return { ...masteryPanel, masteryPanel };
   }
 
   unifiedMasteryVals(build) {
@@ -3132,7 +3306,7 @@ class Component extends DCLogic {
         icon: node.imageUrl ?? "",
         hasIcon: Boolean(node.imageUrl),
         desc: core.plainInline(core.values(node.passives)[0] ?? node.description ?? ""),
-        meta: counted ? "Counted in totals" : "No stat effect (Questlog parity)",
+        meta: `Overall Lv ${node.requiredLevel ?? 0} | ${counted ? "Counted in totals" : "Conditional effect"}`,
         border: selected ? "rgba(232, 184, 106, 0.65)" : "rgba(212, 166, 94, 0.16)",
         bg: selected ? "rgba(212, 166, 94, 0.12)" : "rgba(10, 8, 5, 0.45)",
         opacity: capped ? "0.45" : "1",
@@ -3145,7 +3319,12 @@ class Component extends DCLogic {
     });
     return {
       unifiedMasteryRows: rows,
-      unifiedSelectedLabel: `${selectedIds.length}/${core.UNIFIED_MASTERY_CAP} active (assumed cap)`,
+      unifiedSelectedLabel: `${selectedIds.length}/${core.UNIFIED_MASTERY_CAP} active`,
+      overallMasteryLevelValue: build.overallMasteryLevel ?? "",
+      onOverallMasteryLevelChange: (event) => {
+        const value = String(event.target.value ?? "").trim();
+        this.mutate((next) => { next.overallMasteryLevel = value === "" ? null : Number(value); });
+      },
     };
   }
 
@@ -3213,6 +3392,41 @@ class Component extends DCLogic {
     const runeEffectRows = runeRows
       .filter((row) => row.hasRune && row.contribution !== "—")
       .map((row) => ({ name: `Socket ${row.n}`, value: row.contribution }));
+    const selectedTypes = rows.map((row) => core.indexes.runeById[row.runeId]?.runeType ?? "");
+    const synergyGuideRows = core.data.runeSynergies
+      .filter((row) => row.equipmentCategory === category)
+      .sort((a, b) => a.combination.join("|").localeCompare(b.combination.join("|")))
+      .map((guide) => {
+        const steps = guide.combination.map((expected, index) => {
+          const actual = selectedTypes[index];
+          const matches = actual === expected || actual === "chaos";
+          const conflicts = Boolean(actual) && !matches;
+          const typeColor = typeColors[expected] ?? "#cbb185";
+          return {
+            label: core.runeTypeLabel(expected),
+            title: actual === "chaos" ? `Socket ${index + 1}: Chaos stands in for ${core.runeTypeLabel(expected)}` : `Socket ${index + 1}: ${core.runeTypeLabel(expected)}`,
+            border: matches ? "rgba(126,224,166,.58)" : conflicts ? "rgba(229,106,106,.55)" : `${typeColor}66`,
+            bg: matches ? "rgba(85,213,138,.12)" : conflicts ? "rgba(229,106,106,.09)" : `${typeColor}12`,
+            color: matches ? "#9aefb9" : conflicts ? "#ee9992" : typeColor,
+            dot: matches ? "#55d58a" : conflicts ? "#e56a6a" : typeColor,
+            matches,
+            conflicts,
+          };
+        });
+        const matched = steps.filter((step) => step.matches).length;
+        const conflicts = steps.some((step) => step.conflicts);
+        const active = synergy?.id === guide.id;
+        return {
+          id: guide.id,
+          steps,
+          bonuses: Object.entries(guide.stats ?? {}).map(([id, value]) => ({ name: core.statName(id), value: core.formatSigned(value, id) })),
+          statusLabel: active ? "Active" : conflicts ? "Different recipe" : matched ? `${matched}/3 matched` : "Available",
+          statusColor: active ? "#7ee0a6" : conflicts ? "#e58b84" : matched ? "#f6d391" : "#6e7f99",
+          border: active ? "rgba(85,213,138,.55)" : matched && !conflicts ? "rgba(246,211,145,.34)" : "rgba(212,166,94,.14)",
+          bg: active ? "rgba(85,213,138,.08)" : matched && !conflicts ? "rgba(212,166,94,.06)" : "rgba(10,8,5,.38)",
+          shadow: active ? "0 0 18px rgba(85,213,138,.08)" : "none",
+        };
+      });
 
     return {
       runesLoaded: true,
@@ -3236,10 +3450,12 @@ class Component extends DCLogic {
             value: core.formatSigned(value, id),
           }))
         : [],
+      synergyGuideCategory: `${core.label(category)} recipes`,
+      synergyGuideRows,
     };
   }
 
-  artifactsVals() {
+  artifactsVals(calc) {
     const core = this.core;
     const build = this.state.build;
     if (this.state.tab !== "artifacts") return { artifactsLoaded: false };
@@ -3255,16 +3471,21 @@ class Component extends DCLogic {
     });
     const setRows = core.data.artifactSets.map((set) => {
       const count = set.memberItemIds.filter((id) => equippedIds.has(id)).length;
+      const calculatedSet = calc?.setEffects?.sets?.find((row) => row.setId === set.id);
       const bonuses = core.values(set.bonuses).map((bonus) => {
         const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
-        const active = count >= required;
+        const calculated = calculatedSet?.breakpoints?.find((row) => row.required === required);
+        const active = calculated?.active ?? count >= required;
         const statRows = core.values(bonus.bonus_stat ?? bonus.bonusStat).map((row) => `${core.statName(row.type)} ${core.formatStat(row.type, row.value)}`);
         const passiveRows = core.values(bonus.bonus_passive ?? bonus.bonusPassive).map((passive) => core.plainInline(passive.name || passive.text));
+        const confidenceId = calculated?.provenance?.application === "modeled" ? "modeled" : calculated?.confidence;
+        const confidence = confidenceId === "exact" ? "Data-backed" : confidenceId ? core.label(confidenceId) : "";
+        const calculatedText = calculated && active ? core.setEffectBreakpointSummary(calculated) : "";
         return {
           required,
           active,
-          color: active ? "#55d58a" : "#6e5f49",
-          text: [...statRows, ...passiveRows].filter(Boolean).join(", ") || "No structured bonus text",
+          color: calculated?.status === "unsupported" || calculated?.status === "suppressed" ? "#c9955a" : active ? "#55d58a" : "#6e5f49",
+          text: calculatedText ? `${confidence}: ${calculatedText}` : [...statRows, ...passiveRows].filter(Boolean).join(", ") || "No structured bonus text",
         };
       });
       return {
@@ -3326,7 +3547,11 @@ class Component extends DCLogic {
         footerColor: disabled ? "#e56a6a" : isEquipped ? "#55d58a" : "#6e5f49",
         opacity: disabled ? "0.45" : "1",
         cursor: disabled ? "not-allowed" : "pointer",
-        onClick: () => !disabled && this.equipItem(slot.id, isEquipped ? "" : item.id),
+        onClick: () => {
+          if (disabled) return;
+          if (isEquipped) this.setState({ picker: { ...picker, view: "config" }, pickerHoverId: "" });
+          else this.equipItem(slot.id, item.id);
+        },
         onHover: () => this.setState({ pickerHoverId: item.id }),
         onLeave: () => this.setState({ pickerHoverId: "" }),
       };
@@ -3462,8 +3687,13 @@ class Component extends DCLogic {
         icon: row.imageUrl ?? "",
         hasIcon: Boolean(row.imageUrl),
       }));
+      const storedPotential = isEquippedPreview ? core.itemPotentialOutcome(previewItem, selection.potentialId) : null;
+      const storedPotentialLabel = !selection.potentialId ? ""
+        : storedPotential?.kind === "stat" ? `${core.statName(storedPotential.id)} stat outcome (excluded)`
+          : storedPotential?.kind === "skill" ? `${storedPotential.row.name ?? storedPotential.id} skill outcome (excluded)`
+            : `${selection.potentialId} (unknown and excluded)`;
 
-      const effects = core.itemTooltipEffects(previewItem).map((effect) => ({
+      const effects = core.itemTooltipEffects(previewItem, isEquippedPreview ? selection : null).map((effect) => ({
         label: effect.label,
         name: effect.name,
         text: core.plainInline(effect.text),
@@ -3475,9 +3705,15 @@ class Component extends DCLogic {
       if (previewItem.setId) {
         const set = core.indexes.itemSetById[previewItem.setId];
         if (set) {
+          const previewBuild = isEquippedPreview ? build : core.deepClone(build);
+          if (!isEquippedPreview) core.slotCollectionForSlot(previewBuild, slot.id)[slot.id] = {
+            ...core.emptyEquipmentSelection(), itemId: previewItem.id, level,
+          };
+          const previewCalc = isEquippedPreview ? calc : core.calculateBuild(previewBuild, this.state.attributes, { includeSetEffects: true });
+          const calculatedSet = previewCalc?.setEffects?.sets?.find((row) => row.setId === set.id);
           const equippedSetIds = new Set([
-            ...Object.values(build.equipment).map((row) => row.itemId).filter(Boolean),
-            ...Object.values(build.artifacts ?? {}).map((row) => row.itemId).filter(Boolean),
+            ...Object.values(previewBuild.equipment).map((row) => row.itemId).filter(Boolean),
+            ...Object.values(previewBuild.artifacts ?? {}).map((row) => row.itemId).filter(Boolean),
           ]);
           const members = core.values(set.itemSetMadeOfItems).map((member) => ({
             name: member.name,
@@ -3488,6 +3724,12 @@ class Component extends DCLogic {
             name: set.name,
             count: `${members.filter((member) => member.equipped).length}/${members.length}`,
             members,
+            bonuses: (calculatedSet?.breakpoints ?? []).map((breakpoint) => ({
+              required: `${breakpoint.required} pc`,
+              text: core.setEffectBreakpointSummary(breakpoint),
+              confidence: breakpoint.provenance?.application === "modeled" ? "Modeled" : breakpoint.confidence === "exact" ? "Data-backed" : core.label(breakpoint.confidence),
+              color: breakpoint.status === "unsupported" || breakpoint.status === "suppressed" ? "#c9955a" : breakpoint.active ? "#7ee0a6" : "#6e5f49",
+            })),
           };
         }
       }
@@ -3535,13 +3777,16 @@ class Component extends DCLogic {
         artifactStatValue: isEquippedPreview ? selection.artifactStatId ?? "" : "",
         artifactStatDisabled: !isEquippedPreview,
         onArtifactStat: (event) => isEquippedPreview && this.setArtifactStat(slot.id, event.target.value),
-        hasPotentialStats: potentialStatOptions.length > 0 || potentialSkills.length > 0,
+        hasPotentialStats: potentialStatOptions.length > 0 || potentialSkills.length > 0 || (isEquippedPreview && Boolean(selection.potentialId)),
         potentialStatOptions,
         potentialSkills,
         hasPotentialSkills: potentialSkills.length > 0,
         potentialStatValue: isEquippedPreview ? selection.potentialId ?? "" : "",
-        potentialStatDisabled: !isEquippedPreview,
+        potentialStatDisabled: true,
         onPotentialStat: (event) => isEquippedPreview && this.setPotentialStat(slot.id, event.target.value),
+        hasStoredPotential: isEquippedPreview && Boolean(selection.potentialId),
+        storedPotentialLabel,
+        onClearPotential: () => isEquippedPreview && this.setPotentialStat(slot.id, ""),
         hasPerks: perkOptions.length > 0,
         perkOptions,
         perkValue: isEquippedPreview ? selection.perkId ?? "" : "",
@@ -3556,6 +3801,7 @@ class Component extends DCLogic {
         canConfigureRunes: isEquippedPreview
           && core.EQUIPMENT_SLOTS.some((entry) => entry.id === slot.id)
           && core.runeChoicesForCategory(core.runeCategoryForSlot(slot.id)).length > 0,
+        runeFilled: core.normalizeRuneRows(selection.runes).filter((row) => row.runeId).length,
         openRunes: () => this.setState({ tab: "runes", runeSlot: slot.id, picker: null, pickerHoverId: "" }),
         dbUrl: core.itemDatabaseUrl(previewItem),
         traitHint: isEquippedPreview ? "Click a tier to select — up to 3 traits" : "Traits are editable once equipped",
@@ -3564,6 +3810,20 @@ class Component extends DCLogic {
 
     return {
       pickerOpen: true,
+      pickerView: picker.view === "config" && equippedItem ? "config" : "list",
+      showPickerList: () => setPicker({ view: "list" }),
+      showPickerConfig: () => equippedItem && setPicker({ view: "config" }),
+      pickerConfigDisabled: !equippedItem,
+      pickerConfigCursor: equippedItem ? "pointer" : "not-allowed",
+      pickerConfigOpacity: equippedItem ? "1" : ".45",
+      pickerListCurrent: picker.view !== "config" || !equippedItem ? "step" : "false",
+      pickerConfigCurrent: picker.view === "config" && equippedItem ? "step" : "false",
+      pickerListBorder: picker.view !== "config" || !equippedItem ? "rgba(232,184,106,.65)" : "rgba(212,166,94,.18)",
+      pickerListBg: picker.view !== "config" || !equippedItem ? "rgba(212,166,94,.14)" : "rgba(10,8,5,.45)",
+      pickerListColor: picker.view !== "config" || !equippedItem ? "#f6d391" : "#8a795f",
+      pickerConfigBorder: picker.view === "config" && equippedItem ? "rgba(114,169,255,.62)" : "rgba(212,166,94,.18)",
+      pickerConfigBg: picker.view === "config" && equippedItem ? "rgba(114,169,255,.14)" : "rgba(10,8,5,.45)",
+      pickerConfigColor: picker.view === "config" && equippedItem ? "#dce9ff" : "#8a795f",
       pickerSlotLabel: slot.label,
       pickerSearch: picker.search,
       onPickerSearch: (event) => setPicker({ search: event.target.value }),
@@ -3596,5 +3856,6 @@ class Component extends DCLogic {
   }
 }
 </script>
+  <script type="module" src="./tl-account-menu.js"></script>
 </body>
 </html>

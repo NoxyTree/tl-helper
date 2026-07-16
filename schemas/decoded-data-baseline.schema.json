@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tlhelper.org/schemas/decoded-data-baseline.schema.json",
+  "title": "TL Helper reviewed decoded data baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "gameBuild",
+    "tableCount",
+    "rowCount",
+    "decoderVersions",
+    "sourceSetSha256",
+    "artifactSetSha256",
+    "reviewedAtUtc",
+    "reviewNote"
+  ],
+  "properties": {
+    "schema": { "const": "tl-helper.decoded-data-baseline" },
+    "schemaVersion": { "const": 1 },
+    "gameBuild": { "type": "string", "pattern": "^[0-9]+$" },
+    "tableCount": { "type": "integer", "minimum": 1 },
+    "rowCount": { "type": "integer", "minimum": 0 },
+    "decoderVersions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "sourceSetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifactSetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reviewedAtUtc": { "type": "string", "format": "date-time" },
+    "reviewNote": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TL Helper Local Adviser</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090704;--panel:#151008;--line:#493619;--gold:#e8b86a;--text:#f1e7d2;--muted:#a58e68;--blue:#9fc5ff;--red:#ee8c8c;--green:#83d6a0}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#1c1208 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}.shell{width:min(1180px,calc(100% - 28px));margin:24px auto;display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px}.panel{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#181108,#0f0c08);box-shadow:0 20px 50px #0008}.sidebar{padding:20px;align-self:start;position:sticky;top:18px}h1,h2{font-family:Georgia,serif;font-weight:400;color:#f7d89e}h1{font-size:26px;margin:0 0 4px}h2{font-size:18px;margin:22px 0 8px}.lede,.hint{color:var(--muted);font-size:13px}.status{display:grid;gap:8px;margin:18px 0}.status-row{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid #342713;border-radius:9px;background:#0b0906}.status-row span:last-child{text-align:right;color:var(--blue);overflow-wrap:anywhere}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:#777}.dot.on{background:var(--green);box-shadow:0 0 10px #83d6a088}.dot.off{background:var(--red)}button,.file-label{border:1px solid #785522;border-radius:9px;background:#211608;color:#f3d59d;padding:10px 13px;cursor:pointer;font:inherit}button:hover,.file-label:hover{border-color:var(--gold);background:#2b1c09}button.secondary{background:transparent;color:var(--muted);border-color:#3b2d1a}textarea{width:100%;min-height:130px;resize:vertical;background:#090806;color:var(--text);border:1px solid #3d2d18;border-radius:9px;padding:10px;font:12px/1.4 ui-monospace,monospace}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.file-label input{display:none}.build-card{margin-top:12px;padding:10px;border-radius:9px;border:1px solid #2f2518;background:#0b0906;color:var(--muted);font-size:12px;white-space:pre-wrap}.chat{min-height:calc(100vh - 48px);display:grid;grid-template-rows:auto 1fr auto}.chat-head{padding:18px 22px;border-bottom:1px solid #342713;display:flex;justify-content:space-between;gap:16px;align-items:center}.messages{padding:22px;overflow:auto;display:flex;flex-direction:column;gap:14px;min-height:480px;max-height:calc(100vh - 230px)}.message{max-width:86%;padding:12px 14px;border-radius:13px;white-space:pre-wrap;overflow-wrap:anywhere}.message.user{align-self:flex-end;background:#2b1d0c;border:1px solid #6b4b20}.message.assistant{align-self:flex-start;background:#12141a;border:1px solid #2e405c}.message.error{align-self:center;color:var(--red);border:1px solid #6b2c2c;background:#210d0d}.trace{margin-top:8px;color:#8494aa;font-size:11px}.composer{padding:16px;border-top:1px solid #342713;display:grid;grid-template-columns:1fr auto;gap:10px}.composer textarea{min-height:64px;max-height:180px;font:14px/1.45 system-ui,sans-serif}.composer button{min-width:100px}.busy{opacity:.6;pointer-events:none}.privacy{color:var(--green);font-size:12px}@media(max-width:800px){.shell{grid-template-columns:1fr}.sidebar{position:static}.chat{min-height:700px}.messages{max-height:none}.composer{grid-template-columns:1fr}.message{max-width:96%}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="panel sidebar">
+      <h1>Local Build Adviser</h1>
+      <p class="lede">Private questions, database-backed facts, deterministic TL Helper calculations.</p>
+      <div class="status" id="status"><div class="status-row"><span>Starting</span><span>Checking services...</span></div></div>
+      <p class="privacy">Bound to this computer only. No cloud inference.</p>
+      <h2>Your build</h2>
+      <p class="hint">Paste a TL Helper Armory export, a saved-state document, or a raw build JSON object.</p>
+      <textarea id="build-json" placeholder="Paste build JSON here"></textarea>
+      <div class="actions"><button id="load-build">Load build</button><label class="file-label">Choose JSON<input id="build-file" type="file" accept="application/json,.json"></label><button class="secondary" id="clear-build">Clear</button></div>
+      <div class="build-card" id="build-card">No build loaded. General game-data questions still work.</div>
+      <h2>Good first questions</h2>
+      <p class="hint">“What set effects are active?”<br>“Where is my Critical Hit Chance coming from?”<br>“Compare my head piece with Calanthia’s Visage.”<br>“Which equipment sources provide Melee Endurance?”</p>
+    </aside>
+    <section class="panel chat">
+      <header class="chat-head"><div><h1 style="font-size:21px;margin:0">Ask about your build</h1><div class="hint">The model calls TL Helper tools before making numeric claims.</div></div><button class="secondary" id="clear-chat">Clear chat</button></header>
+      <div class="messages" id="messages"><div class="message assistant">I’m ready. Load a build for personal recommendations, or ask me a general item, set, stat, skill, or mastery question.</div></div>
+      <form class="composer" id="composer"><textarea id="message" placeholder="Ask a build question..." required></textarea><button type="submit">Ask adviser</button></form>
+    </section>
+  </main>
+  <script>
+    const $=id=>document.getElementById(id);let history=[];let busy=false;
+    async function request(url,options={}){const response=await fetch(url,{...options,headers:{"content-type":"application/json",...(options.headers||{})}});const data=await response.json();if(!response.ok)throw new Error(data.error||`HTTP ${response.status}`);return data}
+    function addMessage(role,content,trace=[]){const node=document.createElement("div");node.className=`message ${role}`;node.textContent=content;if(trace.length){const t=document.createElement("div");t.className="trace";t.textContent=`Checked: ${trace.map(x=>x.name).join(", ")}`;node.appendChild(t)}$("messages").appendChild(node);node.scrollIntoView({behavior:"smooth",block:"end"})}
+    function setBusy(value){busy=value;document.body.classList.toggle("busy",value)}
+    async function refresh(){try{const s=await request("/api/status");$("status").innerHTML=`<div class="status-row"><span><i class="dot ${s.ollama.online&&s.ollama.installed?'on':'off'}"></i>Model</span><span>${s.ollama.model}${s.ollama.installed?' ready':' unavailable'}</span></div><div class="status-row"><span>Game build</span><span>${s.warehouse.gameBuild}</span></div><div class="status-row"><span>Warehouse</span><span>${s.warehouse.gameVersion}</span></div><div class="status-row"><span>Potentials</span><span>Excluded</span></div>`}catch(error){$("status").innerHTML=`<div class="status-row"><span><i class="dot off"></i>Status</span><span>${error.message}</span></div>`}}
+    async function loadBuild(value){setBusy(true);try{const parsed=typeof value==="string"?JSON.parse(value):value;const result=await request("/api/build",{method:"POST",body:JSON.stringify({build:parsed})});const s=result.summary;$("build-card").textContent=`${s.name||"Unnamed build"}\n${s.weapons.join(" + ")||"No weapons"}\n${s.equipped.length} equipped slots\n${s.calculationStatus?.label||s.calculationStatus?.state||"Calculated"}`;addMessage("assistant",`Build loaded: ${s.name||"Unnamed build"}. I can now calculate its selected equipment, set effects, passives, and mastery selections.`);await refresh()}catch(error){addMessage("error",`Build could not be loaded: ${error.message}`)}finally{setBusy(false)}}
+    $("load-build").onclick=()=>loadBuild($("build-json").value);$("build-file").onchange=async e=>{const file=e.target.files[0];if(file){const text=await file.text();$("build-json").value=text;await loadBuild(text)}};$("clear-build").onclick=async()=>{await request("/api/build",{method:"DELETE"});$("build-json").value="";$("build-card").textContent="No build loaded. General game-data questions still work.";await refresh()};
+    $("clear-chat").onclick=()=>{history=[];$("messages").innerHTML="";addMessage("assistant","Chat cleared. Your loaded build is unchanged.")};
+    $("composer").onsubmit=async e=>{e.preventDefault();if(busy)return;const content=$("message").value.trim();if(!content)return;$("message").value="";addMessage("user",content);setBusy(true);try{const result=await request("/api/chat",{method:"POST",body:JSON.stringify({message:content,history})});addMessage("assistant",result.answer,result.toolTrace);history.push({role:"user",content},{role:"assistant",content:result.answer});history=history.slice(-20)}catch(error){addMessage("error",error.message)}finally{setBusy(false)}};
+    $("message").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("composer").requestSubmit()}};refresh();
+  </script>
+</body>
+</html>

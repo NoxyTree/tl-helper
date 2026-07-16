@@ -3,6 +3,7 @@
 
 export const WEB_DATA_SCHEMA = "tl-helper.web-data";
 export const WEB_DATA_MANIFEST_SCHEMA = "tl-helper.web-data-manifest";
+export const SUPPORTED_WEB_DATA_SCHEMA_VERSIONS = new Set([1, 2]);
 
 function assert(condition, message) {
   if (!condition) throw new Error(`Invalid TL-Helper web data: ${message}`);
@@ -18,6 +19,7 @@ function validateProvenance(value, expected) {
 export async function assembleWebDataManifest(manifest, loadProjection) {
   assert(manifest?.schema === WEB_DATA_MANIFEST_SCHEMA, `manifest schema is ${manifest?.schema ?? "missing"}`);
   assert(Number.isInteger(manifest.schemaVersion), "manifest schemaVersion is missing");
+  assert(SUPPORTED_WEB_DATA_SCHEMA_VERSIONS.has(manifest.dataSchemaVersion), `dataSchemaVersion ${manifest.dataSchemaVersion ?? "missing"} is unsupported`);
   assert(/^\d+$/.test(String(manifest.gameBuild ?? "")), "manifest gameBuild is not numeric");
   assert(Array.isArray(manifest.projections) && manifest.projections.length, "manifest has no projections");
   const expected = { schemaVersion: manifest.dataSchemaVersion, gameBuild: manifest.gameBuild, generatedAtUtc: manifest.generatedAtUtc };
@@ -56,8 +58,9 @@ export async function loadWebData(source, options = {}) {
   }
   assert(manifest?.schema === WEB_DATA_MANIFEST_SCHEMA, "manifest schema is missing");
   return assembleWebDataManifest(manifest, async (descriptor) => {
-    const url = new URL(descriptor.file, new URL(baseUrl, globalThis.location?.href ?? "http://localhost/")).href;
-    const response = await fetchImpl(url, { cache: "no-store" });
+    const url = new URL(descriptor.file, new URL(baseUrl, globalThis.location?.href ?? "http://localhost/"));
+    if (descriptor.sha256) url.searchParams.set("v", descriptor.sha256);
+    const response = await fetchImpl(url.href);
     if (!response.ok) throw new Error(`Failed to load projection ${descriptor.id}: ${response.status}`);
     return response.json();
   });

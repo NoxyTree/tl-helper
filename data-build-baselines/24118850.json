@@ -1,0 +1,15 @@
+{
+  "schema": "tl-helper.decoded-data-baseline",
+  "schemaVersion": 1,
+  "gameBuild": "24118850",
+  "tableCount": 55,
+  "rowCount": 159448,
+  "decoderVersions": [
+    "0.1.0",
+    "0.2.0"
+  ],
+  "sourceSetSha256": "8ac42fc1a3089c703ff84903394098fcf31c9b432c6dc061bdae89eaaf36ea0e",
+  "artifactSetSha256": "bb0787a2eb8e39673700e20aaa2418f575ed0f0f02643d90198a2c6fd458a8a2",
+  "reviewedAtUtc": "2026-07-14T05:40:00.000Z",
+  "reviewNote": "Reviewed complete decoded source set before the first atomic warehouse and inventory rebuild. Any change requires a new evidence review."
+}

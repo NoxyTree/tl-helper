@@ -1,0 +1,52 @@
+{
+  "gameBuild": "24118850",
+  "sources": [
+    "TLItemSetBonus",
+    "TLFormulaParameterNew",
+    "TLAbnormalState_Item",
+    "TLPcDynamicStat",
+    "Game.locres"
+  ],
+  "breakpoints": {
+    "set_aa_t4_fabric_001:2": {
+      "passiveId": "Item_Passive_Set_fabric_aa_T4_001_1_Passive",
+      "stats": { "heal_modifier": 2000, "continuous_heal_modifier": 2000 }
+    },
+    "set_aa_t4_fabric_001:4": {
+      "passiveId": "Item_Passive_Set_fabric_aa_T4_001_2_Passive",
+      "stats": { "hp_max": 2200 }
+    },
+    "set_aa_t4_Plate_002:2": {
+      "passiveId": "Item_Passive_Set_Plate_aa_T4_002_1_Passive",
+      "stats": {
+        "all_critical_defense": 1000,
+        "all_double_defense": 1000,
+        "melee_damage_dealt_modifier": 300
+      }
+    },
+    "set_aa_PartyDungeon_Ring_001:2": {
+      "provenance": "localized literal plus persistent Adjust_Stat",
+      "stats": { "stamina_regen": -10000 }
+    }
+  },
+  "dynamicAttributeCaps": {
+    "set_aa_T2_plate_005:2": 99,
+    "set_aa_leather_003:4": 99,
+    "set_aa_t3_plate_002:2": 99,
+    "set_aa_t4_fabric_004:2": 130,
+    "set_aa_t4_leather_003:2": 130,
+    "set_aa_t4_leather_005:2": 130,
+    "set_aa_t4_Plate_004:2": 130
+  },
+  "exclusivityPriorities": {
+    "set_aa_T2_fabric_002:2": 2,
+    "set_aa_T2_fabric_004:2": 1,
+    "set_aa_T2_leather_004:2": 2,
+    "set_aa_t3_lether_003:2": 1,
+    "set_aa_T2_leather_006:2": 2,
+    "set_aa_T2_leather_007:2": 2,
+    "set_aa_leather_002:2": 3,
+    "set_aa_t3_leather_004:2": 1
+  },
+  "exclusivityWinnerDirection": "lower_wins"
+}

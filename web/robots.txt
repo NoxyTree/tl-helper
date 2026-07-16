@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /ItemHoverCard.dc.html
+Disallow: /ItemHoverCard.dc
+Disallow: /MasteryWheel.dc.html
+Disallow: /MasteryWheel.dc
 Disallow: /api/
 
 Sitemap: https://tlhelper.org/sitemap.xml

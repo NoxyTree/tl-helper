@@ -46,6 +46,43 @@ export {
   serializeCalibrationObservation,
   validateCalibrationObservation,
 } from "./calibration-observation.mjs";
+export {
+  COMBAT_SCENARIO_SCHEMA,
+  COMBAT_SCENARIO_SCHEMA_VERSION,
+  SCENARIO_RESOURCE,
+  SCENARIO_RESOURCE_BPS_SCALE,
+  SCENARIO_MOTION_STATE,
+  SCENARIO_STATIONARY_BAND,
+  SCENARIO_MOVEMENT_KIND,
+  SCENARIO_MOVING_BAND,
+  SCENARIO_EVENT_HISTORY_STATE,
+  SCENARIO_RECENT_EVENT_KIND,
+  SCENARIO_RECENT_EVENT_OUTCOME,
+  SCENARIO_ABILITY_CATEGORY,
+  SCENARIO_PARTY_STATE,
+  SCENARIO_PROXIMITY_STATE,
+  SCENARIO_PROXIMITY_COHORT,
+  SCENARIO_PROXIMITY_COMPARATOR,
+  SCENARIO_TIME_OF_DAY,
+  SCENARIO_WEATHER,
+  SCENARIO_PARTICIPANT_RELATIONSHIP,
+  SCENARIO_RNG_ALGORITHM,
+  createCombatScenario,
+  normalizeCombatScenario,
+  validateCombatScenario,
+} from "./combat-scenario.mjs";
+export {
+  COMBAT_EFFECT_DEFINITION_SCHEMA,
+  COMBAT_EFFECT_DEFINITION_SCHEMA_VERSION,
+  EFFECT_EXECUTION_STATUS,
+  EFFECT_SOURCE_KIND,
+  EFFECT_TRIGGER_KIND,
+  EFFECT_CONDITION_KIND,
+  createCombatEffectDefinition,
+  normalizeCombatEffectDefinition,
+  validateCombatEffectDefinition,
+  assertCombatEffectMatchesScenario,
+} from "./combat-effect-definition.mjs";
 export { runSimulation, serializeSimulation } from "./simulation.mjs";
 export {
   PVP_MODEL_VERSION,
@@ -62,3 +99,11 @@ export {
   modelGlanceChance,
   modelHeavyAttackChance,
 } from "./pvp-models.mjs";
+export {
+  EXPECTED_DAMAGE_MODEL_VERSION,
+  TRADE_VERDICT_BANDS,
+  modelExpectedPvpDamage,
+  compareModeledExpectedDamage,
+  modelPvpTradeVerdict,
+} from "./expected-damage.mjs";
+export { KIT_ROTATION_MODEL_VERSION, modelKitRotationPacket } from "./kit-rotation.mjs";

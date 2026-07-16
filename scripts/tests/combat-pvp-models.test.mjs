@@ -64,8 +64,10 @@ test("critical damage resistance cannot reduce below base critical damage", () =
 });
 
 test("Heavy bonus is reduced point-for-point with a 150 percent floor", () => {
-  assert.equal(modelHeavyDamageMultiplier({ heavyDamageBonus: "128.4", resistance: "20" }).value, "2.084");
-  assert.equal(modelHeavyDamageMultiplier({ heavyDamageBonus: "60", resistance: "40" }).value, "1.5");
+  assert.equal(modelHeavyDamageMultiplier({ heavyDamageBonus: "128.4", resistance: "20" }).value, "3.084");
+  assert.equal(modelHeavyDamageMultiplier({ heavyDamageBonus: "60", resistance: "40" }).value, "2.2");
+  assert.equal(modelHeavyDamageMultiplier({ heavyDamageBonus: "0", resistance: "40" }).value, "1.6");
+  assert.equal(modelHeavyDamageMultiplier({ heavyDamageBonus: "0", resistance: "100" }).value, "1.5");
 });
 
 test("glancing is a positive Endurance difference probability", () => {

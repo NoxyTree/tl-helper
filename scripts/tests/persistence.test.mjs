@@ -81,6 +81,30 @@ test("current Armory document preserves nested rune and mastery selections", () 
   assert.deepEqual(result.data.build.unifiedMasteries, state.build.unifiedMasteries);
 });
 
+test("current Armory documents preserve stat and skill potentials plus raw Ascended skill level", () => {
+  const state = structuredClone(legacy);
+  state.build.equipment.main_hand.potentialId = "all_critical_attack";
+  state.build.equipment.head = {
+    itemId: "potential-armor",
+    potentialId: "SkillSet_WP_ST_S_MainAttack",
+  };
+  state.build.skills = [{
+    skillId: "SkillSet_WP_ST_S_MainAttack",
+    level: 21,
+    loadoutType: "active",
+    specializationIds: [],
+  }];
+
+  const json = serializeArmoryState(state, { gameBuild: "24118850" });
+  const result = parseArmoryState(json, { currentGameBuild: "24118850" });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.data.build.equipment.main_hand.potentialId, "all_critical_attack");
+  assert.equal(result.data.build.equipment.head.potentialId, "SkillSet_WP_ST_S_MainAttack");
+  assert.equal(result.data.build.skills[0].level, 21);
+  assert.deepEqual(result.data, state);
+});
+
 test("preset export and import validates and preserves entries", () => {
   const preset = { ...legacy, id: "preset-1", name: "Saved build" };
   const json = serializeArmoryPresets([preset], { gameBuild: "24118850" });

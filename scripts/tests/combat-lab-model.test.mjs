@@ -4,11 +4,16 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
+  COMBAT_LAB_MANUAL_SKILL_LEVEL_MAX,
   loadCombatLabData,
   mapDisplayedLevel,
   projectAbilityRange,
+  resolveCombatLabBuildContext,
   resolveCombatLabHealing,
+  resolveCustomExpectedPvpDamage,
+  resolveExpectedPvpDamage,
   resolvePvpMatchup,
+  TIER_MAPPINGS,
 } from "../../web/combat-lab-model.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -19,6 +24,32 @@ test("Combat Lab maps only the observed rarity windows", () => {
   assert.equal(mapDisplayedLevel("epic", 1).globalSkillLevel, 11);
   assert.equal(mapDisplayedLevel("heroic", 5).globalSkillLevel, 20);
   assert.throws(() => mapDisplayedLevel("rare", 1), /Unsupported or uncalibrated/);
+});
+
+test("Combat Lab manual release levels stop at 20 while decoded level 21 remains projectable", () => {
+  const globalTier = TIER_MAPPINGS.find(({ id }) => id === "global");
+  assert.equal(COMBAT_LAB_MANUAL_SKILL_LEVEL_MAX, 20);
+  assert.equal(globalTier.maximum, 20);
+  assert.equal(mapDisplayedLevel("global", 20).globalSkillLevel, 20);
+  assert.equal(mapDisplayedLevel("global", 21).globalSkillLevel, 21);
+  const ability = data.abilities.find(({ id }) => id === "judgment-lightning");
+  const ascendedProjection = projectAbilityRange({
+    ability,
+    componentId: "first-cast-per-hit-damage",
+    globalLevel: 21,
+    minimum: "399",
+    maximum: "640",
+    outcomeId: "coefficient_only",
+  });
+  assert.equal(ascendedProjection.globalLevel, 21);
+});
+
+test("Combat Lab accepts only the explicit Item Potential exclusion context", () => {
+  const context = resolveCombatLabBuildContext({ calculationContext: { itemPotentials: "excluded" } });
+  assert.deepEqual(context, { itemPotentials: "excluded" });
+  assert.ok(Object.isFrozen(context));
+  assert.throws(() => resolveCombatLabBuildContext({ calculationContext: {} }), /explicitly excludes Item Potentials/);
+  assert.throws(() => resolveCombatLabBuildContext({ calculationContext: { itemPotentials: "included" } }), /explicitly excludes Item Potentials/);
 });
 
 test("Combat Lab resolves a capped PvP matchup without claiming final damage", () => {
@@ -59,6 +90,49 @@ test("Combat Lab projects a saved-build Base Damage range without resolving outc
   assert.equal(heavy.completeness.isFinalCombatOutcome, false);
   assert.equal(heavy.precision.coefficientBasis, "verified_exact");
   assert.equal(heavy.traces.length, 2);
+});
+
+test("Combat Lab composes a reviewed damage component into a modeled pre-Defense expectation", () => {
+  const ability = data.abilities.find(({ id }) => id === "judgment-lightning");
+  const result = resolveExpectedPvpDamage({
+    ability,
+    componentId: "first-cast-per-hit-damage",
+    globalLevel: 11,
+    minimum: "399",
+    maximum: "640",
+    pvpMode: "general",
+    attackType: "magic",
+    hit: "1500",
+    evasion: "1000",
+    criticalHit: "1500",
+    endurance: "1000",
+    heavyAttackChance: "800",
+    heavyAttackEvasion: "300",
+    skillDamageBoost: "500",
+    skillDamageResistance: "200",
+    criticalDamage: "40",
+    criticalDamageResistance: "10",
+    heavyDamage: "30",
+    heavyDamageResistance: "10",
+  });
+  assert.equal(result.status, "modeled");
+  assert.equal(result.abilityProjection.result.minimum, "3692.6");
+  assert.equal(result.completeness.isFinalCombatOutcome, false);
+  assert.ok(Number(result.expectedDamage) > 0);
+  assert.ok(Number(result.sensitivityInterval.maximum) >= Number(result.sensitivityInterval.minimum));
+});
+
+test("Combat Lab supports a provenance-labeled generic 100 percent weapon packet", () => {
+  const result = resolveCustomExpectedPvpDamage({
+    minimum: "400", maximum: "700", pvpMode: "general", attackType: "melee",
+    hit: "1200", evasion: "1000", criticalHit: "1500", endurance: "1000",
+    heavyAttackChance: "700", heavyAttackEvasion: "300", skillDamageBoost: "500",
+    skillDamageResistance: "200", criticalDamage: "35", criticalDamageResistance: "10",
+    heavyDamage: "25", heavyDamageResistance: "10",
+  });
+  assert.equal(result.preResolutionRange.minimum, "400");
+  assert.equal(result.precision.coefficientRange, "modeled_user_input_100_percent_weapon_packet");
+  assert.equal(result.completeness.isFinalCombatOutcome, false);
 });
 
 test("Combat Lab keeps Distortion Veil shield magnitude explicitly non-final", () => {
