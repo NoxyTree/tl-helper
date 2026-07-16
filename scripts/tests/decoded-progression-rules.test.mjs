@@ -40,6 +40,9 @@ test("decoded directional, off-hand, and Base Damage unit mappings are exact", (
   for (const family of ["accuracy", "critical_attack", "critical_defense", "double_attack", "double_defense", "evasion"]) {
     for (const type of ["melee", "range", "magic"]) assert.equal(STAT_UNIT_MODIFIERS[`pvp_${type}_${family}`], 0.1, `${type} ${family}`);
   }
+  for (const id of ["pvp_all_evasion", "boss_all_evasion", "boss_melee_evasion", "boss_range_evasion", "boss_magic_evasion", "front_all_evasion", "rear_all_evasion", "side_all_evasion"]) {
+    assert.equal(STAT_UNIT_MODIFIERS[id], 0.1, id);
+  }
   assert.equal(statRawValue("rear_all_accuracy", 120), 1200);
   assert.equal(statRawValue("attack_power_modifier", -16), -1600);
 });

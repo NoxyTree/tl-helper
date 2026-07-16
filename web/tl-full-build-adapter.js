@@ -329,7 +329,7 @@ function satisfiesProtectedStats(stats, protectedStats) {
   });
 }
 
-export function optimizeAttributeAllocation({ core, build, budget, rankedGoals, baseline, scales, includeSetEffects = true, minimums = {}, scenario = null }) {
+export function optimizeAttributeAllocation({ core, build, budget, rankedGoals, baseline, scales, includeSetEffects = true, minimums = {}, scenario = null, constraintGoals = null }) {
   if (!Number.isInteger(budget) || budget < 0) throw new RangeError("attributePointBudget must be a nonnegative integer.");
   const zero = Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, 0]));
   const zeroCalc = core.calculateBuild(build, zero, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
@@ -367,7 +367,7 @@ export function optimizeAttributeAllocation({ core, build, budget, rankedGoals, 
   }
   const evaluate = (attributes) => {
     const calc = core.calculateBuild(build, attributes, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
-    const stats = withCompositeTotals(totalMap(calc), rankedGoals);
+    const stats = withCompositeTotals(totalMap(calc), constraintGoals ?? rankedGoals);
     const violations = Object.entries(minimums).reduce((sum, [id, minimum]) => sum + Math.max(0, Number(minimum) - Number(stats[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum))), 0);
     return { attributes, calc, stats, violations, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), key: allocationKey(attributes) };
   };
@@ -460,14 +460,14 @@ function structuralFinalistCoverage(rows, setRoutes, structuralStateKeys) {
 
 export function refineRuneConfiguration({
   core, build, attributes, budget, rankedGoals, baseline, scales, minimums = {}, includeSetEffects = true,
-  runeCandidatesByCategory, lockedSlotIds = new Set(), optimizeAttributes = optimizeAttributeAllocation, rounds = 2, scenario = null,
+  runeCandidatesByCategory, lockedSlotIds = new Set(), optimizeAttributes = optimizeAttributeAllocation, rounds = 2, scenario = null, constraintGoals = null,
 }) {
   let workingBuild = clone(build);
   let workingAttributes = clone(attributes ?? {});
   const rowsFor = (category) => runeCandidatesByCategory instanceof Map ? runeCandidatesByCategory.get(category) : runeCandidatesByCategory?.[category];
   const evaluateFixed = (candidateBuild, candidateAttributes) => {
     const calc = core.calculateBuild(candidateBuild, candidateAttributes, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
-    const stats = withCompositeTotals(totalMap(calc), rankedGoals);
+    const stats = withCompositeTotals(totalMap(calc), constraintGoals ?? rankedGoals);
     return { calc, stats, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), violations: minimumViolation(stats, minimums, scales) };
   };
   let current = evaluateFixed(workingBuild, workingAttributes);
@@ -495,7 +495,7 @@ export function refineRuneConfiguration({
       }
     }
     if (!changed) break;
-    const optimized = optimizeAttributes({ core, build: workingBuild, budget, rankedGoals, baseline, scales, includeSetEffects, minimums, scenario });
+    const optimized = optimizeAttributes({ core, build: workingBuild, budget, rankedGoals, baseline, scales, includeSetEffects, minimums, scenario, constraintGoals });
     workingAttributes = clone(optimized.attributes);
     current = { ...optimized, violations: minimumViolation(optimized.stats, minimums, scales) };
   }
@@ -522,7 +522,7 @@ export function evaluateOptimizerBuildTask(core, payload, context) {
     includeSetEffects: context.includeSetEffects !== false,
     ...(scenario == null ? {} : { scenario }),
   });
-  const stats = withCompositeTotals(totalMap(calc), context.rankedGoals);
+  const stats = withCompositeTotals(totalMap(calc), context.constraintGoals ?? context.rankedGoals);
   const blockingIssues = blockingCalculationIssues(core, calc);
   return {
     score: scoreRankedGoals(stats, context.objectiveBaseline, context.objectiveScales, context.rankedGoals),
@@ -547,6 +547,7 @@ export function optimizeAttributeFinalistTask(core, payload, context) {
     includeSetEffects: context.includeSetEffects !== false,
     minimums: context.minimums,
     scenario,
+    constraintGoals: context.constraintGoals ?? null,
   });
   const calculation = core.calculateBuild(payload.build, optimized.attributes, {
     includeSetEffects: context.includeSetEffects !== false,
@@ -576,6 +577,7 @@ export function refineRuneFinalistTask(core, payload, context) {
     runeCandidatesByCategory: context.runeCandidatesByCategory,
     lockedSlotIds: new Set(context.lockedSlotIds ?? []),
     scenario,
+    constraintGoals: context.constraintGoals ?? null,
   });
   const finalScenario = taskScenarioForBuild(core, context.scenario, refined.build);
   const calculation = core.calculateBuild(refined.build, refined.attributes, {
@@ -605,7 +607,7 @@ export function optimizeProgressionFinalistTask(core, payload, context, progress
       includeSetEffects: context.includeSetEffects !== false,
       ...(scenario == null ? {} : { scenario }),
       ...(progressionWeaponTypes?.length ? { progressionWeaponTypes } : {}),
-    })), context.rankedGoals);
+    })), context.constraintGoals ?? context.rankedGoals);
   };
   const progression = progressionOptimizer({
     core,
@@ -620,7 +622,7 @@ export function optimizeProgressionFinalistTask(core, payload, context, progress
     includeSetEffects: context.includeSetEffects !== false,
     ...(scenario == null ? {} : { scenario }),
   });
-  const stats = withCompositeTotals(totalMap(calculation), context.rankedGoals);
+  const stats = withCompositeTotals(totalMap(calculation), context.constraintGoals ?? context.rankedGoals);
   const blockingIssues = blockingCalculationIssues(core, calculation);
   return {
     score: scoreRankedGoals(stats, context.baseline, context.scales, context.rankedGoals),
@@ -919,6 +921,13 @@ export async function createOptimizerAdapter(deps = {}) {
       const goals = request.goals ?? { increase: [], protect: [] };
       const rankedGoals = expandCompositeGoals(normalizeRankedGoals(goals));
       assertKnownOptimizerStatIds(core, rankedGoals, protectedStatIds(goals));
+      // Protected composite stats need their synthesized totals in every stats
+      // and baseline map used for constraint checks, or "keep at current value"
+      // silently compares 0 >= 0 for ids that exist only in goals.protect.
+      // scoreRankedGoals iterates rankedGoals alone, so these extra entries
+      // never influence objective scoring.
+      const protectedGoals = expandCompositeGoals(normalizeRankedGoals({ increase: goals.protect ?? [] }));
+      const constraintGoals = [...rankedGoals, ...protectedGoals.filter((goal) => !rankedGoals.some((ranked) => ranked.id === goal.id))];
       const requestedWeaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
       const weaponTypeConstraints = { ...requestedWeaponTypeConstraints };
       if (!scratch) {
@@ -943,7 +952,7 @@ export async function createOptimizerAdapter(deps = {}) {
           throw new Error(`The source build cannot be calculated for optimization yet: ${blockingIssues.map((issue) => issue.message).join(" ")}`);
         }
       }
-      let baseline = withCompositeTotals(totalMap(sourceCalculation), rankedGoals);
+      let baseline = withCompositeTotals(totalMap(sourceCalculation), constraintGoals);
       let progression = null;
       if (scratch && request.progression?.enabled === true) {
         const initialScales = deriveObjectiveScales(core, rankedGoals, baseline);
@@ -953,7 +962,7 @@ export async function createOptimizerAdapter(deps = {}) {
             includeSetEffects: rules.includeSetEffects !== false,
             ...scenarioOptionsForBuild(build, progressionWeaponTypes),
             ...(progressionWeaponTypes ? { progressionWeaponTypes } : {}),
-          })), rankedGoals);
+          })), constraintGoals);
         };
         const score = (stats) => scoreRankedGoals(withCompositeTotals(stats, rankedGoals), {}, initialScales, rankedGoals);
         progression = runProgressionOptimizer({
@@ -965,7 +974,7 @@ export async function createOptimizerAdapter(deps = {}) {
           score,
         });
         source.build = progression.build;
-        baseline = withCompositeTotals(totalMap(calculate(source, rules.includeSetEffects !== false, scenario)), rankedGoals);
+        baseline = withCompositeTotals(totalMap(calculate(source, rules.includeSetEffects !== false, scenario)), constraintGoals);
       }
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
       const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
@@ -1087,8 +1096,7 @@ export async function createOptimizerAdapter(deps = {}) {
       // beam improves ordinary set ordering while dedicated structural routes
       // preserve relevant reachable breakpoints through exact evaluation.
       const completionHints = applySetCompletionHints({ core, candidatesBySlot, rankedGoals, scales: objectiveScales, baseline, includeSetEffects: rules.includeSetEffects !== false, scenario });
-      const protectedRouteGoals = expandCompositeGoals(normalizeRankedGoals({ increase: goals.protect ?? [] }));
-      const relevantRouteStatIds = [...new Set([...rankedGoals, ...protectedRouteGoals].flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
+      const relevantRouteStatIds = [...new Set([...rankedGoals, ...protectedGoals].flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
       const setRoutes = deriveRelevantSetRoutes({ core, candidatesBySlot, completionHints, attributePointBudget, baseline, relevantStatIds: relevantRouteStatIds, includeSetEffects: rules.includeSetEffects !== false });
       const structuralStateKeys = (candidatesBySlot.artifact_bundle ?? [])
         .filter((candidate) => String(candidate.id).startsWith("set:"))
@@ -1110,7 +1118,11 @@ export async function createOptimizerAdapter(deps = {}) {
       const progressionPoolSize = profile.progressionPoolSize;
       const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
       const beamWeights = Object.fromEntries(componentWeightMap(rankedGoals, objectiveScales));
-      const beamGoalStats = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
+      // Protect components must be pareto dimensions too: approximate beam
+      // stats never contain a synthesized composite id, so without them a
+      // higher-scoring build that drops a protected composite would dominate
+      // and prune every protect-satisfying state before exact evaluation.
+      const beamGoalStats = [...new Set([...rankedGoals, ...protectedGoals].flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
       const beamStatCaps = objectiveStatCaps(rankedGoals);
       const buildEvaluationContext = {
         sourceBuild: source.build,
@@ -1118,6 +1130,7 @@ export async function createOptimizerAdapter(deps = {}) {
         includeSetEffects: rules.includeSetEffects !== false,
         scenario,
         rankedGoals,
+        constraintGoals,
         objectiveBaseline,
         objectiveScales,
       };
@@ -1152,6 +1165,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const attributeTaskContext = {
           budget: attributePointBudget,
           rankedGoals,
+          constraintGoals,
           baseline: objectiveBaseline,
           scales: objectiveScales,
           includeSetEffects: rules.includeSetEffects !== false,
@@ -1161,7 +1175,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const localAttributeTask = (payload, context) => {
           if (canonicalAttributeOptimizer) return optimizeAttributeFinalistTask(core, payload, context);
           const candidateScenario = scenarioForBuild(payload.build);
-          const optimized = runAttributeOptimizer({ core, build: payload.build, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, includeSetEffects: context.includeSetEffects, minimums: context.minimums, scenario: candidateScenario });
+          const optimized = runAttributeOptimizer({ core, build: payload.build, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, includeSetEffects: context.includeSetEffects, minimums: context.minimums, scenario: candidateScenario, constraintGoals: context.constraintGoals ?? null });
           const calculation = core.calculateBuild(payload.build, optimized.attributes, { includeSetEffects: context.includeSetEffects, ...(candidateScenario == null ? {} : { scenario: candidateScenario }) });
           return { score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, blockingIssues: blockingCalculationIssues(core, calculation) };
         };
@@ -1197,6 +1211,7 @@ export async function createOptimizerAdapter(deps = {}) {
           const runeTaskContext = {
             budget: attributePointBudget,
             rankedGoals,
+            constraintGoals,
             baseline: objectiveBaseline,
             scales: objectiveScales,
             minimums: attributeMinimums,
@@ -1208,7 +1223,7 @@ export async function createOptimizerAdapter(deps = {}) {
           const localRuneTask = (payload, context) => {
             if (canonicalAttributeOptimizer) return refineRuneFinalistTask(core, payload, context);
             const candidateScenario = scenarioForBuild(payload.build);
-            const refined = refineRuneConfiguration({ core, build: payload.build, attributes: payload.attributes, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, minimums: context.minimums, includeSetEffects: context.includeSetEffects, runeCandidatesByCategory: context.runeCandidatesByCategory, lockedSlotIds: new Set(context.lockedSlotIds), optimizeAttributes: runAttributeOptimizer, scenario: candidateScenario });
+            const refined = refineRuneConfiguration({ core, build: payload.build, attributes: payload.attributes, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, minimums: context.minimums, includeSetEffects: context.includeSetEffects, runeCandidatesByCategory: context.runeCandidatesByCategory, lockedSlotIds: new Set(context.lockedSlotIds), optimizeAttributes: runAttributeOptimizer, scenario: candidateScenario, constraintGoals: context.constraintGoals ?? null });
             const refinedScenario = scenarioForBuild(refined.build);
             const calculation = core.calculateBuild(refined.build, refined.attributes, { includeSetEffects: context.includeSetEffects, ...(refinedScenario == null ? {} : { scenario: refinedScenario }) });
             return { score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights, blockingIssues: blockingCalculationIssues(core, calculation) };
@@ -1340,6 +1355,7 @@ export async function createOptimizerAdapter(deps = {}) {
           weapons: Object.values(weaponTypeConstraints),
           settings: request.progression,
           rankedGoals,
+          constraintGoals,
           baseline: objectiveBaseline,
           scales: objectiveScales,
           includeSetEffects: rules.includeSetEffects !== false,

@@ -23,6 +23,11 @@ Object.assign(STAT_UNIT_MODIFIERS,{
 for(const family of ["accuracy","critical_attack","critical_defense","double_attack","double_defense","evasion"]){
   for(const type of ["melee","range","magic"]) STAT_UNIT_MODIFIERS[`pvp_${type}_${family}`]=.1;
 }
+// Composite and directional evasion ratings share their typed components'
+// 0.1 raw-to-sheet scale. tl-core's formatStat contest-rating regex covers
+// the accuracy/critical/double families but not evasion, so every evasion
+// id must be listed here explicitly or its value displays raw (10x sheet).
+for(const id of ["pvp_all_evasion","boss_all_evasion","boss_melee_evasion","boss_range_evasion","boss_magic_evasion","front_all_evasion","rear_all_evasion","side_all_evasion"]) STAT_UNIT_MODIFIERS[id]=.1;
 // Absolute effective-value caps from official global patch notes. Update 2.22.0
 // introduced the three speed/duration limits; Update 4.0.0 raised attributes
 // to 130 and capped Range increase at 100%. PvP contest difference caps are
