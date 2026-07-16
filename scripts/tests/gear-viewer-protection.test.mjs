@@ -30,8 +30,7 @@ test("Gear Viewer is public and linked from the primary product pages", async ()
 test("Combat Calculator explains reviewed ability coverage and attacker build wording", async () => {
   const source = await readFile(new URL("../../web/combat-lab.html", import.meta.url), "utf8");
   assert.match(source, /<label>Calculate using<select id="source-build">/);
-  assert.match(source, /only three abilities have formulas reviewed closely enough to publish/);
-  assert.match(source, /This is a secondary research tool/);
+  assert.match(source, /Three abilities are available because only reviewed, build-scoped formulas are shown/);
 });
 
 test("build-aware weapon ranking stays within the equipped weapon families and matching slots", () => {

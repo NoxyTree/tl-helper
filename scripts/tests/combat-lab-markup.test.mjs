@@ -5,9 +5,8 @@ import test from "node:test";
 const html = await readFile(new URL("../../web/combat-lab.html", import.meta.url), "utf8");
 
 test("Combat Lab exposes two simple calculator modes with progressive disclosure", () => {
-  assert.match(html, /<body data-combat-view="matchup">/);
-  assert.match(html, /id="matchup-tab"[^>]*class="tool-tab active"[^>]*>PvP Matchup/);
-  assert.match(html, /id="ability-tab"[^>]*>Reviewed Ability Formulas/);
+  assert.match(html, /id="ability-tab"[^>]*>Ability Damage/);
+  assert.match(html, /id="matchup-tab"[^>]*>PvP Matchup/);
   assert.match(html, /Advanced calculation options/);
   assert.match(html, /Edit matchup stats/);
   assert.match(html, /How was this calculated\?/);

@@ -12,12 +12,6 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8792", "--directory", "web"],
       "port": 8792
-    },
-    {
-      "name": "tl-pages-dev",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["wrangler", "pages", "dev", "web", "--port", "8793"],
-      "port": 8793
     }
   ]
 }
