@@ -56,6 +56,19 @@
       0% { box-shadow: 0 0 0 0 rgba(246, 211, 145, 0.55); }
       100% { box-shadow: 0 0 0 18px rgba(246, 211, 145, 0); }
     }
+    /* Stat delta flash: keyframes only pin the 0% color, so each value decays
+       back to its own inline at-rest color. Elements carry tabular-nums already,
+       so the rolling number cannot change the box width. */
+    .tl-stat-flash-up { animation: tlStatFlashUp 0.7s ease-out; }
+    .tl-stat-flash-down { animation: tlStatFlashDown 0.7s ease-out; }
+    @keyframes tlStatFlashUp {
+      0% { color: var(--tl-shell-good, #7ee0a6); text-shadow: 0 0 9px rgba(126, 224, 166, 0.45); }
+      100% { text-shadow: 0 0 0 rgba(126, 224, 166, 0); }
+    }
+    @keyframes tlStatFlashDown {
+      0% { color: var(--tl-shell-bad, #ff9d84); text-shadow: 0 0 9px rgba(255, 157, 132, 0.4); }
+      100% { text-shadow: 0 0 0 rgba(255, 157, 132, 0); }
+    }
     @media (max-width: 1100px) {
       [data-screen-label="Armory Builder"] { min-width: 0 !important; }
       [data-screen-label="Hero Stats"] { overflow-x: auto; padding: 11px 14px !important; }
@@ -153,7 +166,7 @@
       <sc-for list="{{ heroChips }}" as="chip" hint-placeholder-count="8">
         <div style="flex: 1; min-width: 0; padding: 2px 18px; border-left: 1px solid rgba(212, 166, 94, 0.12);">
           <div style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a795f; white-space: nowrap;">{{ chip.label }}</div>
-          <div style="margin-top: 3px; font-family: Marcellus, serif; font-size: 21px; color: {{ chip.color }}; white-space: nowrap; font-variant-numeric: tabular-nums;">{{ chip.value }}</div>
+          <div data-stat-flash="hero:{{ chip.label }}" data-stat-flash-value="{{ chip.value }}" style="margin-top: 3px; font-family: Marcellus, serif; font-size: 21px; color: {{ chip.color }}; white-space: nowrap; font-variant-numeric: tabular-nums;">{{ chip.value }}</div>
         </div>
       </sc-for>
     </div>
@@ -310,8 +323,8 @@
                 <div style="position: relative;">
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;"><span style="font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase; color: #a38c67;">Stat breakdown</span><button type="button" onClick="{{ selectedStat.onFavorite }}" aria-label="{{ selectedStat.favoriteLabel }}" title="{{ selectedStat.favoriteLabel }}" style="width: 30px; height: 30px; border: 1px solid rgba(232, 184, 106, 0.2); border-radius: 7px; background: rgba(8,6,4,0.4); color: {{ selectedStat.favoriteColor }}; cursor: pointer; font-size: 15px;">{{ selectedStat.favoriteGlyph }}</button></div>
                   <h2 style="margin: 12px 0 0; font-family: Marcellus, serif; font-size: 21px; font-weight: 400; color: #f6d391; line-height: 1.15;">{{ selectedStat.name }}</h2>
-                  <div style="display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,166,94,0.14);"><div><div style="font-family: Marcellus, serif; font-size: 34px; line-height: 1; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ selectedStat.value }}</div><div style="margin-top: 5px; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: {{ selectedStat.color }};">{{ selectedStat.page }}</div></div><span style="font-size: 10px; color: #8a795f;">{{ selectedStat.sourceLabel }}</span></div>
-                  <div style="display: grid; gap: 11px; margin-top: 15px; max-height: {{ selectedStat.sourceListMaxHeight }}; overflow-y: {{ selectedStat.sourceListOverflow }}; padding-right: 3px;"><sc-for list="{{ selectedStat.sources }}" as="src" hint-placeholder-count="4"><div><div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: baseline;"><span style="font-size: 11px; color: #c4ae89; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ src.label }}</span><strong style="font-size: 11px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ src.value }}</strong></div><div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;"><span style="font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #75654d;">{{ src.type }}</span><span style="flex: 1; height: 2px; border-radius: 2px; background: rgba(212,166,94,.1); overflow: hidden;"><span style="display: block; width: {{ src.pct }}; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b87b32, #f0c473);"></span></span></div></div></sc-for></div>
+                  <div style="display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,166,94,0.14);"><div><div data-stat-flash="{{ selectedStat.flashId }}" data-stat-flash-value="{{ selectedStat.value }}" style="font-family: Marcellus, serif; font-size: 34px; line-height: 1; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ selectedStat.value }}</div><div style="margin-top: 5px; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: {{ selectedStat.color }};">{{ selectedStat.page }}</div></div><span style="font-size: 10px; color: #8a795f;">{{ selectedStat.sourceLabel }}</span></div>
+                  <div style="display: grid; gap: 11px; margin-top: 15px; max-height: {{ selectedStat.sourceListMaxHeight }}; overflow-y: {{ selectedStat.sourceListOverflow }}; padding-right: 3px;"><sc-for list="{{ selectedStat.sources }}" as="src" hint-placeholder-count="4"><div><div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: baseline;"><span style="font-size: 11px; color: #c4ae89; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ src.label }}</span><strong data-stat-flash="{{ src.flashId }}" data-stat-flash-value="{{ src.value }}" style="font-size: 11px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ src.value }}</strong></div><div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;"><span style="font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #75654d;">{{ src.type }}</span><span style="flex: 1; height: 2px; border-radius: 2px; background: rgba(212,166,94,.1); overflow: hidden;"><span style="display: block; width: {{ src.pct }}; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b87b32, #f0c473);"></span></span></div></div></sc-for></div>
                   <sc-if value="{{ selectedStat.hasMoreSources }}" hint-placeholder-val="false"><button type="button" onClick="{{ selectedStat.onToggleSources }}" style="width: 100%; margin-top: 13px; padding: 8px 10px; border: 1px solid rgba(232,184,106,.18); border-radius: 7px; background: rgba(232,184,106,.05); color: #cbb185; cursor: pointer; font-size: 10px; letter-spacing: .04em;">{{ selectedStat.sourcesToggleLabel }}</button></sc-if>
                   <sc-if value="{{ selectedStat.noSources }}" hint-placeholder-val="false"><p style="margin: 14px 0 0; color: #7d6c52; font-size: 11px; line-height: 1.5;">This total has no separate contribution rows in the current build snapshot.</p></sc-if>
                 </div>
@@ -325,7 +338,7 @@
                   <div style="display: grid; gap: 5px;">
                     <sc-for list="{{ favoriteStatRows }}" as="row" hint-placeholder-count="4">
                       <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border: 1px solid rgba(232, 184, 106, 0.16); border-radius: 7px; background: rgba(8, 6, 4, 0.42); overflow: hidden;">
-                        <button type="button" onClick="{{ row.onOpen }}" aria-label="Open {{ row.name }} details" style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 8px 9px; text-align: left; border: none; background: transparent; cursor: pointer;"><span style="font-size: 10.5px; color: #c4ae89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><strong style="font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</strong></button>
+                        <button type="button" onClick="{{ row.onOpen }}" aria-label="Open {{ row.name }} details" style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 8px 9px; text-align: left; border: none; background: transparent; cursor: pointer;"><span style="font-size: 10.5px; color: #c4ae89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span><strong data-stat-flash="stat-fav:{{ row.id }}" data-stat-flash-value="{{ row.value }}" style="font-family: Marcellus, serif; font-size: 15px; font-weight: 400; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ row.value }}</strong></button>
                         <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove {{ row.name }} from favourites" title="Remove from favourites" style="width: 34px; border: none; border-left: 1px solid rgba(232, 184, 106, 0.12); background: rgba(232, 184, 106, 0.04); color: #f6d391; cursor: pointer; font-size: 15px;">★</button>
                       </div>
                     </sc-for>
@@ -398,7 +411,7 @@
                             <span style="width: 5px; height: 5px; border-radius: 999px; background: {{ row.dot }}; flex: none; align-self: center;"></span>
                             <span style="flex: none; max-width: 62%; font-size: 12px; color: {{ row.nameColor }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span>
                             <span style="flex: 1; min-width: 6px; border-bottom: 1px dotted rgba(212, 166, 94, 0.2); transform: translateY(-3px);"></span>
-                            <span style="font-size: 12.5px; font-weight: 650; color: {{ row.valueColor }}; font-variant-numeric: tabular-nums; white-space: nowrap;">{{ row.value }}</span>
+                            <span data-stat-flash="stat-total:{{ row.id }}" data-stat-flash-value="{{ row.value }}" style="font-size: 12.5px; font-weight: 650; color: {{ row.valueColor }}; font-variant-numeric: tabular-nums; white-space: nowrap;">{{ row.value }}</span>
                           </button>
                         </div>
                       </sc-for>
@@ -1603,6 +1616,7 @@ class Component extends DCLogic {
   componentDidUpdate() {
     this.syncWheelObserver();
     this.syncMasteryPanCenter();
+    this.syncStatDeltaFlash();
   }
 
   syncWheelObserver() {
@@ -1635,6 +1649,130 @@ class Component extends DCLogic {
       viewport.scrollLeft = Math.max(0, (viewport.scrollWidth - viewport.clientWidth) / 2);
       viewport.scrollTop = Math.max(0, (viewport.scrollHeight - viewport.clientHeight) / 2);
     });
+  }
+
+  // --- Stat delta flash -----------------------------------------------------
+  // Purely presentational: after each commit, diff the values that React just
+  // rendered into [data-stat-flash] nodes (truth lives in data-stat-flash-value,
+  // which React keeps in sync) against the previous pass. On change, tween the
+  // displayed text toward the true value and flash it good/bad. The tween only
+  // mutates the text node's nodeValue between commits; every pass re-reads the
+  // attribute, so a re-render mid-tween always wins and no stale number can
+  // survive. First observation of a key never animates.
+  syncStatDeltaFlash() {
+    const prevVals = this._statFlashPrev ?? (this._statFlashPrev = new Map());
+    const tweens = this._statFlashTweens ?? (this._statFlashTweens = new Map());
+    const seen = new Set();
+    for (const el of document.querySelectorAll("[data-stat-flash]")) {
+      const key = el.getAttribute("data-stat-flash");
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      const next = el.getAttribute("data-stat-flash-value");
+      if (next == null) continue;
+      const prev = prevVals.get(key);
+      prevVals.set(key, next);
+      const tween = tweens.get(key);
+      if (prev === undefined || prev === next) {
+        if (tween && (tween.el !== el || !tween.el.isConnected)) this.cancelStatTween(key);
+        continue;
+      }
+      const fromText = tween && tween.el === el ? tween.currentText : prev;
+      if (tween) this.cancelStatTween(key);
+      this.startStatTween(key, el, fromText, next, prev);
+    }
+    for (const key of [...tweens.keys()]) {
+      if (!seen.has(key) || !tweens.get(key).el.isConnected) this.cancelStatTween(key);
+    }
+  }
+
+  cancelStatTween(key) {
+    const tween = this._statFlashTweens.get(key);
+    if (!tween) return;
+    cancelAnimationFrame(tween.raf);
+    this._statFlashTweens.delete(key);
+  }
+
+  statFlashSplit(text) {
+    const numbers = [];
+    const gaps = [];
+    const re = /-?\d[\d,]*(?:\.\d+)?/g;
+    let last = 0;
+    let match;
+    while ((match = re.exec(text))) {
+      gaps.push(text.slice(last, match.index));
+      numbers.push(match[0]);
+      last = match.index + match[0].length;
+    }
+    gaps.push(text.slice(last));
+    return { numbers, gaps };
+  }
+
+  statFlashFormat(value, template) {
+    const decimals = (template.split(".")[1] ?? "").length;
+    if (template.includes(",")) return value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return value.toFixed(decimals);
+  }
+
+  startStatTween(key, el, fromText, toText, prevText) {
+    const toNum = (token) => Number(token.replace(/,/g, ""));
+    const to = this.statFlashSplit(String(toText));
+    const prevParts = this.statFlashSplit(String(prevText));
+    let direction = 0;
+    if (prevParts.numbers.length === to.numbers.length) {
+      for (let i = 0; i < to.numbers.length && !direction; i += 1) {
+        const delta = toNum(to.numbers[i]) - toNum(prevParts.numbers[i]);
+        if (delta) direction = delta > 0 ? 1 : -1;
+      }
+    }
+    this.flashStatColor(el, direction);
+    const reduceMotion = (this._statFlashMotionMq ?? (this._statFlashMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)"))).matches;
+    if (reduceMotion) return; // React already rendered the true value instantly.
+    const from = this.statFlashSplit(String(fromText));
+    if (!to.numbers.length || from.numbers.length !== to.numbers.length || from.gaps.join("\u0000") !== to.gaps.join("\u0000")) return;
+    let textNode = el;
+    while (textNode && textNode.nodeType === 1 && textNode.childNodes.length === 1) textNode = textNode.firstChild;
+    if (!textNode || textNode.nodeType !== 3) return; // e.g. the runtime's sc-interp wrapper span
+    const startNums = from.numbers.map(toNum);
+    const endNums = to.numbers.map(toNum);
+    if (startNums.some((n) => !Number.isFinite(n)) || endNums.some((n) => !Number.isFinite(n))) return;
+    const startedAt = performance.now();
+    const duration = 500;
+    const tween = { el, currentText: String(fromText), raf: 0 };
+    const step = (now) => {
+      const t = Math.min(1, (now - startedAt) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      let text = String(toText);
+      if (t < 1) {
+        text = "";
+        for (let i = 0; i < endNums.length; i += 1) {
+          text += to.gaps[i] + this.statFlashFormat(startNums[i] + (endNums[i] - startNums[i]) * eased, to.numbers[i]);
+        }
+        text += to.gaps[endNums.length];
+      }
+      tween.currentText = text;
+      textNode.nodeValue = text;
+      if (t >= 1) this._statFlashTweens.delete(key);
+      else tween.raf = requestAnimationFrame(step);
+    };
+    tween.currentText = String(fromText);
+    textNode.nodeValue = tween.currentText;
+    tween.raf = requestAnimationFrame(step);
+    this._statFlashTweens.set(key, tween);
+  }
+
+  flashStatColor(el, direction) {
+    if (!direction) return;
+    el.classList.remove("tl-stat-flash-up", "tl-stat-flash-down");
+    void el.offsetWidth; // restart the animation when values change back-to-back
+    el.classList.add(direction > 0 ? "tl-stat-flash-up" : "tl-stat-flash-down");
+    if (!this._statFlashEndBound) {
+      this._statFlashEndBound = true;
+      document.addEventListener("animationend", (event) => {
+        if (event.animationName === "tlStatFlashUp" || event.animationName === "tlStatFlashDown") {
+          event.target.classList.remove("tl-stat-flash-up", "tl-stat-flash-down");
+        }
+      });
+    }
   }
 
   STORAGE_KEY = "tlhelper-builder-state-v2";
@@ -2528,11 +2666,13 @@ class Component extends DCLogic {
         type: core.sourceTypeLabel(source.type),
         value: core.formatSigned(source.value, selectedSourceRow.id),
         pct: `${Math.max(3, Math.abs(Number(source.value) || 0) / selectedSourceMax * 100)}%`,
+        flashId: `stat-src:${selectedSourceRow.id}:${core.sourceTypeLabel(source.type)}:${source.sourceLabel || "Source"}`,
       }));
     const visibleSelectedSources = this.state.statSourcesExpanded ? selectedSources : selectedSources.slice(0, 5);
     const selectedStat = selectedSourceRow ? {
       name: core.statName(selectedSourceRow.id),
       value: core.formatStat(selectedSourceRow.id, selectedSourceRow.total),
+      flashId: `stat-inspect:${selectedSourceRow.id}`,
       page: statPageNames[selectedPage] ?? "Effects",
       color: dotColors[selectedPage] ?? "#cbb185",
       sourceCount: core.formatNumber(selectedSourceRow.sources.length),
@@ -2551,6 +2691,7 @@ class Component extends DCLogic {
     } : {
       name: "No matching stat",
       value: "None",
+      flashId: "",
       page: statPageNames[this.state.statPage] ?? "Effects",
       color: "#8a795f",
       sourceCount: "0",

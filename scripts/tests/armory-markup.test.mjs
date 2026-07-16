@@ -102,3 +102,23 @@ test("item Heroic effects use one consistent stacked column", () => {
   assert.match(picker, /data-item-heroic-effects[^>]+grid-template-columns:\s*minmax\(0,1fr\)/);
   assert.doesNotMatch(picker, /heroicEffectRows[\s\S]{0,800}repeat\(auto-fit/);
 });
+
+test("stat totals carry delta-flash hooks that tween without touching at-rest values", () => {
+  // Every animated surface tags its value node with a stable key plus the
+  // React-managed truth attribute the tween reconciles against.
+  assert.match(markup, /data-stat-flash="stat-total:\{\{ row\.id \}\}" data-stat-flash-value="\{\{ row\.value \}\}"/);
+  assert.match(markup, /data-stat-flash="\{\{ selectedStat\.flashId \}\}" data-stat-flash-value="\{\{ selectedStat\.value \}\}"/);
+  assert.match(markup, /data-stat-flash="\{\{ src\.flashId \}\}" data-stat-flash-value="\{\{ src\.value \}\}"/);
+  assert.match(markup, /data-stat-flash="stat-fav:\{\{ row\.id \}\}" data-stat-flash-value="\{\{ row\.value \}\}"/);
+  assert.match(markup, /data-stat-flash="hero:\{\{ chip\.label \}\}" data-stat-flash-value="\{\{ chip\.value \}\}"/);
+  // The diff pass runs after every commit and skips keys seen for the first time.
+  assert.match(markup, /this\.syncStatDeltaFlash\(\);/);
+  assert.match(markup, /if \(prev === undefined \|\| prev === next\)/);
+  // Flash colors consume the shell's good/bad tokens with hex fallbacks.
+  assert.match(markup, /var\(--tl-shell-good, #7ee0a6\)/);
+  assert.match(markup, /var\(--tl-shell-bad, #ff9d84\)/);
+  assert.match(markup, /@keyframes tlStatFlashUp/);
+  assert.match(markup, /@keyframes tlStatFlashDown/);
+  // Reduced motion falls back to the instant value React already rendered.
+  assert.match(markup, /prefers-reduced-motion: reduce[\s\S]{0,200}matches/);
+});

@@ -127,6 +127,50 @@ input[type="checkbox"] { width:auto; accent-color:var(--gold); } input:focus,sel
 .trade-verdict.even strong { color:var(--gold); }
 .trade-verdict.pending { border-style:dashed; opacity:.85; }
 .trade-verdict-kit { color:#8a795f; font-size:10px; letter-spacing:.02em; }
+
+/* --- Combat Lab motion ------------------------------------------------------
+   Decorative game-feel only: transforms, opacity, and filter. The verdict text
+   and numbers are complete in the DOM before any of this runs, and the
+   prefers-reduced-motion block at the end collapses everything to its final
+   state. Page-local motion tokens live here; palette comes from tl-shell. */
+:root { --cl-ease-out:cubic-bezier(.22,.61,.36,1); }
+.visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip-path:inset(50%); overflow:hidden; white-space:nowrap; }
+.verdict-advantage-count { font-variant-numeric:tabular-nums; }
+.trade-verdict.verdict-reveal { animation:verdict-reveal .25s var(--cl-ease-out) both; }
+@keyframes verdict-reveal { from { opacity:0; transform:translateY(12px); } }
+/* TTK race: two lanes filling toward the kill marker on the right. Fills are
+   compositor-friendly scaleX transitions kicked off by the .is-run class. */
+.ttk-race { display:grid; gap:7px; margin-top:4px; padding:10px 12px; border:1px solid rgba(212,166,94,.16); border-radius:9px; background:rgba(0,0,0,.18); }
+.ttk-lane { display:grid; grid-template-columns:minmax(64px,150px) 1fr 44px; gap:10px; align-items:center; min-width:0; }
+.ttk-lane-name { color:#8a795f; font-size:8px; letter-spacing:.1em; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ttk-winner .ttk-lane-name { color:#e6cf9a; }
+.ttk-track { position:relative; display:block; height:6px; border-radius:999px; background:rgba(255,235,190,.07); }
+.ttk-track::after { content:""; position:absolute; right:-1px; top:-3px; bottom:-3px; width:2px; border-radius:2px; background:var(--gold); opacity:.75; }
+.ttk-fill { position:absolute; inset:0; border-radius:999px; transform:scaleX(0); transform-origin:left center; transition:transform 1.5s var(--cl-ease-out); }
+.ttk-winner .ttk-fill { background:linear-gradient(90deg,var(--gold-2),var(--gold)); box-shadow:0 0 8px rgba(242,199,119,.28); }
+.ttk-loser .ttk-fill { background:linear-gradient(90deg,rgba(160,140,109,.45),rgba(160,140,109,.7)); }
+.ttk-race.is-run .ttk-fill { transform:scaleX(var(--race-fill,1)); }
+.ttk-lane-time { color:#8a795f; font-size:9px; text-align:right; font-variant-numeric:tabular-nums; }
+/* Winner glows gold (a few slow pulses, then a settled static glow); the loser
+   desaturates slightly. Both reset on even, pending, or cleared verdicts. */
+.fighter-card { transition:filter .4s var(--cl-ease-out); }
+.fighter-card.card-defeated { filter:saturate(.75); }
+.fighter-card.card-victor { border-color:rgba(242,199,119,.55); box-shadow:0 18px 55px rgba(0,0,0,.2),0 0 18px rgba(242,199,119,.14),inset 0 0 22px rgba(242,199,119,.05); animation:victor-pulse 2.4s ease-in-out 3; }
+@keyframes victor-pulse {
+  0%,100% { box-shadow:0 18px 55px rgba(0,0,0,.2),0 0 18px rgba(242,199,119,.14),inset 0 0 22px rgba(242,199,119,.05); }
+  45% { box-shadow:0 18px 55px rgba(0,0,0,.2),0 0 30px rgba(242,199,119,.32),inset 0 0 30px rgba(242,199,119,.1); }
+}
+/* Fighter entrance: cards slide in from their own side and the VS mark pops. */
+.fighter-card.fighter-enter-left { animation:fighter-enter-left .3s var(--cl-ease-out) both; }
+.fighter-card.fighter-enter-right { animation:fighter-enter-right .3s var(--cl-ease-out) both; }
+@keyframes fighter-enter-left { from { opacity:0; transform:translateX(-20px); } }
+@keyframes fighter-enter-right { from { opacity:0; transform:translateX(20px); } }
+.versus-mark.vs-pop { animation:vs-pop .35s var(--cl-ease-out); }
+@keyframes vs-pop { 0%,100% { transform:scale(1); } 45% { transform:scale(1.15); } }
+/* The animation shorthand would otherwise let one class clobber the other when
+   an entrance and the victor pulse land on the same card. */
+.fighter-card.fighter-enter-left.card-victor { animation:fighter-enter-left .3s var(--cl-ease-out) both,victor-pulse 2.4s ease-in-out 3; }
+.fighter-card.fighter-enter-right.card-victor { animation:fighter-enter-right .3s var(--cl-ease-out) both,victor-pulse 2.4s ease-in-out 3; }
 @media(max-width:1050px){ .topbar{padding:12px 18px}.brand{min-width:auto}.build-stamp{display:none} main{padding:20px 18px 55px}.hero{align-items:start;flex-direction:column;gap:8px}.build-picker,body[data-combat-view="ability"] .build-picker{grid-template-columns:1fr 1fr}.build-picker-title{grid-column:1/-1}.versus-stage{grid-template-columns:1fr}.versus-mark{width:48px;height:48px;margin:-4px auto;z-index:1}.workspace{grid-template-columns:1fr}.control-stack,.result-stack{display:contents}.quick-panel{order:1}.result-card{order:2}.advanced-panel{order:3}.result-stack>.panel{order:4} }
 @media(max-width:560px){ .topbar{align-items:flex-start;flex-wrap:wrap}.topbar nav{display:flex;order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.topbar nav a,.topbar nav span{flex:0 0 auto;min-height:40px;display:inline-flex;align-items:center}.build-picker,.two-column,.matchup-inputs,.healing-results,body[data-combat-view="ability"] .build-picker{grid-template-columns:1fr}.tool-tabs{grid-template-columns:1fr 1fr}.tool-tab{display:block;padding:12px;font-size:14px}.tool-tab span{display:none}.build-picker-title{grid-column:auto}.hero h1{font-size:32px}.hero>p{font-size:12px}.ability-preview,#level-note,.calculation-note{display:none}.fighter-card{padding:11px}.fighter-label strong{font-size:15px}.character-loadout{grid-template-columns:46px minmax(0,1fr) 46px;gap:4px;height:330px}.character-stage{height:330px}.gear-orb{width:39px;height:39px}.gear-orb img{width:33px;height:33px}.gear-node small{display:none}.weapon-strip{grid-template-columns:38px 1fr auto}.weapon-strip img{width:38px;height:38px}.fighter-stat-strip strong{font-size:10px}.range{gap:8px}.range-bound{padding:13px 10px}.range-bound strong{font-size:36px}.range-divider{height:60px}.result-card{padding:20px}.trace-row{grid-template-columns:22px 70px 1fr}.trace-row output{grid-column:3} }
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important} .ttk-fill{transition:none!important;transform:scaleX(var(--race-fill,1))!important} .fighter-card.card-victor,.fighter-card.fighter-enter-left,.fighter-card.fighter-enter-right,.versus-mark.vs-pop,.trade-verdict.verdict-reveal{animation:none!important} .fighter-card{transition:none!important}}
