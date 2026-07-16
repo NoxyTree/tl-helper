@@ -345,6 +345,128 @@ function swapBuilds() {
 function renderFighters() {
   renderFighter("source", selectedBuild(ui["source-build"].value));
   renderFighter("target", selectedBuild(ui["target-build"].value));
+  playFighterEntrance();
+}
+
+// ---------------------------------------------------------------------------
+// Motion helpers. Purely decorative: every animated value is also present in
+// the DOM immediately (visually-hidden or as the final markup), and all of it
+// collapses to the final state under prefers-reduced-motion. Transforms,
+// opacity, and filter only — nothing here animates layout.
+const MOTION = { countUpFrame: 0, lastVerdictKey: "" };
+
+function prefersReducedMotion() {
+  return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+}
+
+// Removing and re-adding an animation class in the same style flush does not
+// restart the animation, so a reflow is forced between the two steps.
+function replayClass(element, className) {
+  if (!element) return;
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+}
+
+// Left card slides in from the left, right card from the right, and the VS
+// mark does a quick scale pop whenever either fighter selection re-renders.
+function playFighterEntrance() {
+  if (prefersReducedMotion()) return;
+  replayClass(document.querySelector(".player-card"), "fighter-enter-left");
+  replayClass(document.querySelector(".enemy-card"), "fighter-enter-right");
+  replayClass(ui["swap-builds"], "vs-pop");
+}
+
+function revealVerdict(banner) {
+  if (prefersReducedMotion()) {
+    banner.classList.remove("verdict-reveal");
+    return;
+  }
+  replayClass(banner, "verdict-reveal");
+}
+
+// Counts the visible advantage number up from 0 with an ease-out curve. The
+// aria-hidden counter starts and ends at the exact engine-provided string, and
+// a visually-hidden sibling carries the true value from the first paint.
+function animateAdvantageCount(banner, finalText) {
+  const counter = banner.querySelector(".verdict-advantage-count");
+  if (!counter) return;
+  cancelAnimationFrame(MOTION.countUpFrame);
+  const finalValue = Number(finalText);
+  if (prefersReducedMotion() || !Number.isFinite(finalValue)) {
+    counter.textContent = String(finalText);
+    return;
+  }
+  const duration = 900;
+  const start = performance.now();
+  const step = (now) => {
+    const progress = Math.min(1, (now - start) / duration);
+    if (progress >= 1) {
+      // The last frame writes the exact engine string, not a re-formatted one.
+      counter.textContent = String(finalText);
+      return;
+    }
+    const eased = 1 - Math.pow(1 - progress, 3);
+    counter.textContent = (finalValue * eased).toFixed(1);
+    MOTION.countUpFrame = requestAnimationFrame(step);
+  };
+  counter.textContent = "0.0";
+  MOTION.countUpFrame = requestAnimationFrame(step);
+}
+
+// Builds the TTK race visualization for rotation-mode verdicts. Both lanes
+// fill toward the kill marker on the right; the winner reaches 100% while the
+// loser stops at winnerTTK/loserTTK. Omitted entirely when either time to
+// kill is non-finite or over the 999s display cap, matching the verdict copy.
+// Labels must already be HTML-escaped by the caller.
+function raceBarMarkup(escapedSourceLabel, escapedTargetLabel, verdict) {
+  const seconds = (pressurePercent) => 100 / Number(pressurePercent);
+  const sourceSeconds = seconds(verdict.pressures.source.perSwingPercentOfOpponentHp);
+  const targetSeconds = seconds(verdict.pressures.target.perSwingPercentOfOpponentHp);
+  if (![sourceSeconds, targetSeconds].every((value) => Number.isFinite(value) && value > 0 && value < 999)) return "";
+  const lane = (label, ownSeconds, otherSeconds) => {
+    const wins = ownSeconds <= otherSeconds;
+    const fill = wins ? 1 : Math.max(0.04, Math.min(1, otherSeconds / ownSeconds));
+    return `<div class="ttk-lane ${wins ? "ttk-winner" : "ttk-loser"}"><small class="ttk-lane-name">${label}</small><span class="ttk-track"><i class="ttk-fill" style="--race-fill:${fill.toFixed(4)}"></i></span><small class="ttk-lane-time">~${Math.round(ownSeconds)}s</small></div>`;
+  };
+  return `<div class="ttk-race" aria-hidden="true">${lane(escapedSourceLabel, sourceSeconds, targetSeconds)}${lane(escapedTargetLabel, targetSeconds, sourceSeconds)}</div>`;
+}
+
+// The fills transition transform: scaleX, so the run class is applied one
+// double-rAF after the markup lands to guarantee the start state is painted
+// first. Reduced motion applies the class synchronously (no transition runs).
+function startRaceBars(banner) {
+  const race = banner.querySelector(".ttk-race");
+  if (!race) return;
+  if (prefersReducedMotion()) {
+    race.classList.add("is-run");
+    return;
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => race.classList.add("is-run")));
+}
+
+// Winner card pulses gold then settles on a static glow; loser desaturates.
+// Even, pending, and error verdicts reset both cards. The pulse only replays
+// when the verdict identity (winner + pairing) changes, so editing matchup
+// stats does not restart a pulse that already settled.
+function applyCardVerdictMotion(winner) {
+  const decided = winner === "source" || winner === "target";
+  const verdictKey = decided ? `${winner}|${ui["source-build"].value}|${ui["target-build"].value}` : "";
+  const isNewVerdict = verdictKey !== MOTION.lastVerdictKey;
+  MOTION.lastVerdictKey = verdictKey;
+  for (const [side, selector] of [["source", ".player-card"], ["target", ".enemy-card"]]) {
+    const card = document.querySelector(selector);
+    if (!card) continue;
+    const victor = winner === side;
+    card.classList.toggle("card-defeated", decided && !victor);
+    if (!victor) {
+      card.classList.remove("card-victor");
+    } else if (isNewVerdict && !prefersReducedMotion()) {
+      replayClass(card, "card-victor");
+    } else {
+      card.classList.add("card-victor");
+    }
+  }
 }
 
 function renderFighter(side, candidate) {
@@ -673,6 +795,7 @@ function renderTradeVerdict() {
   if (!source || !target) {
     banner.className = "trade-verdict pending";
     banner.innerHTML = `<strong>Pick both fighters to get a verdict.</strong><span>The verdict projects the full damage race between the two builds — chance, damage multipliers, and health pools together.</span>`;
+    applyCardVerdictMotion(null);
     return;
   }
   try {
@@ -743,9 +866,10 @@ function renderTradeVerdict() {
       ? `Kit basis: ${sourceLabel} ${sourceKit.included.length}/${sourceKit.totalActives} damage skills modeled, ${targetLabel} ${targetKit.included.length}/${targetKit.totalActives} · base cooldowns, Cooldown Speed not applied.`
       : "Generic weapon-swing basis — one or both builds carry no modelable skill kit.";
     const badge = rotationMode ? "Modeled · full skill kit · before Defense" : "Modeled · one swing each · before Defense";
+    const raceBar = rotationMode ? raceBarMarkup(sourceLabel, targetLabel, verdict) : "";
     if (verdict.winner === "even") {
       banner.className = "trade-verdict even";
-      banner.innerHTML = `<strong>Dead even — this one comes down to the pilot.</strong><span>${race}. ${escapeHtml(stability)}</span><span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
+      banner.innerHTML = `<strong>Dead even — this one comes down to the pilot.</strong><span>${race}. ${escapeHtml(stability)}</span>${raceBar}<span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
     } else {
       const winnerIsSource = verdict.winner === "source";
       banner.className = `trade-verdict ${winnerIsSource ? "win" : "lose"}`;
@@ -754,14 +878,22 @@ function renderTradeVerdict() {
         : `${targetLabel} ${verdict.verdictBand === "decisive" ? "wins this matchup" : "is favored"}`;
       // advantagePercent is null when the loser applies no modeled pressure at
       // all (an unbounded ratio), so the headline must work without a number.
+      // The visible number span is decorative (counted up by rAF) and is
+      // aria-hidden; the visually-hidden twin carries the true value from the
+      // first paint so screen readers and DOM tests never see a partial value.
       const advantageCopy = verdict.advantagePercent == null
         ? "the opponent applies no modeled damage pressure back"
-        : `projected +${escapeHtml(verdict.advantagePercent)}% in the damage race`;
-      banner.innerHTML = `<strong>⚔ ${headline} — ${advantageCopy}.</strong><span>${race}. ${escapeHtml(stability)}</span><span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
+        : `projected +<span class="verdict-advantage-count" aria-hidden="true">${escapeHtml(verdict.advantagePercent)}</span><span class="visually-hidden">${escapeHtml(verdict.advantagePercent)}</span>% in the damage race`;
+      banner.innerHTML = `<strong>⚔ ${headline} — ${advantageCopy}.</strong><span>${race}. ${escapeHtml(stability)}</span>${raceBar}<span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
+      animateAdvantageCount(banner, verdict.advantagePercent ?? "");
     }
+    revealVerdict(banner);
+    startRaceBars(banner);
+    applyCardVerdictMotion(verdict.winner);
   } catch (error) {
     banner.className = "trade-verdict pending";
     banner.innerHTML = `<strong>No verdict for this pairing.</strong><span>${escapeHtml(String(error?.message ?? error))}</span>`;
+    applyCardVerdictMotion(null);
   }
 }
 
