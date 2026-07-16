@@ -333,6 +333,37 @@ test("stable slot locks preserve complete selections and a fixed objective basel
   }), /No build satisfies/);
 });
 
+test("a composite-only protected stat blocks builds that drop its components", async () => {
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const statsFor = (itemId) => itemId === "warden"
+    ? { attack: 10, pvp_melee_evasion: 50, pvp_range_evasion: 50, pvp_magic_evasion: 50 }
+    : itemId === "glass"
+      ? { attack: 100, pvp_melee_evasion: 0, pvp_range_evasion: 0, pvp_magic_evasion: 0 }
+      : { attack: 0, pvp_melee_evasion: 0, pvp_range_evasion: 0, pvp_magic_evasion: 0 };
+  const makeCore = (items) => ({
+    data: { gameBuild: "test", statLabels: { attack: "Attack", pvp_all_evasion: "PvP Evasion" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} }, EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) { return { stats: Object.entries(statsFor(build.equipment.head?.itemId)).map(([id, total]) => ({ id, total })) }; },
+    slotSelectionContribution(_slot, selection) { return statsFor(selection?.itemId); },
+    slotItems: () => Object.values(items), slotById: () => ({ id: "head", types: ["head"] }), emptyEquipmentSelection: empty,
+    itemMaxLevel: () => 80, heroicSlotGroupForSlot: () => "", statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff",
+  });
+  const warden = { id: "warden", name: "Warden", grade: 41, equipmentType: "head" };
+  const glass = { id: "glass", name: "Glass", grade: 41, equipmentType: "head" };
+  const source = () => ({ build: { equipment: { head: { ...empty(), itemId: "warden", level: 80 } }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" });
+  const request = { sourceKind: "scratch", goals: { increase: ["attack"], protect: ["pvp_all_evasion"] }, rules: {} };
+
+  // pvp_all_evasion is only in goals.protect, never a ranked goal, so its
+  // synthesized min-of-components total must still reach every constraint check.
+  const bothAdapter = await createOptimizerAdapter({ core: makeCore({ warden, glass }), storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const kept = await bothAdapter.optimize({ build: source(), ...request });
+  assert.equal(kept.build.equipment.head.itemId, "warden");
+  assert.deepEqual(kept.statDeltas.find((row) => row.id === "pvp_all_evasion"), { id: "pvp_all_evasion", name: "pvp_all_evasion", delta: 0, formattedDelta: "0" });
+
+  const glassAdapter = await createOptimizerAdapter({ core: makeCore({ glass }), storage: {}, loadArmoryState: () => ({ ok: false }) });
+  await assert.rejects(() => glassAdapter.optimize({ build: source(), ...request }), /No build satisfies the protected or minimum stat constraints/);
+});
+
 test("minimum item level excludes progression gear from scratch candidates", async () => {
   const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
   const items = {
