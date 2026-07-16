@@ -1,10 +1,10 @@
-{
+﻿{
   "name": "@tl-helper/combat-engine",
   "version": "0.0.0-milestone.2",
   "private": true,
   "type": "module",
   "exports": "./src/index.mjs",
   "scripts": {
-    "test": "node --test ../../scripts/tests/combat-engine.test.mjs ../../scripts/tests/combat-engine-formulas.test.mjs ../../scripts/tests/combat-engine-synthetic-branches.test.mjs ../../scripts/tests/combat-ability-definition.test.mjs ../../scripts/tests/combat-ability-data-loader.test.mjs ../../scripts/tests/combat-ability-magnitude.test.mjs ../../scripts/tests/combat-healing-resolver.test.mjs ../../scripts/tests/combat-calibration-observation.test.mjs ../../scripts/tests/combat-pvp-models.test.mjs ../../scripts/tests/expected-pvp-damage.test.mjs ../../scripts/tests/combat-scenario-contract.test.mjs"
+    "test": "node --test ../../scripts/tests/combat-engine.test.mjs ../../scripts/tests/combat-engine-formulas.test.mjs ../../scripts/tests/combat-engine-synthetic-branches.test.mjs ../../scripts/tests/combat-ability-definition.test.mjs ../../scripts/tests/combat-ability-data-loader.test.mjs ../../scripts/tests/combat-ability-magnitude.test.mjs ../../scripts/tests/combat-healing-resolver.test.mjs ../../scripts/tests/combat-calibration-observation.test.mjs ../../scripts/tests/combat-pvp-models.test.mjs ../../scripts/tests/expected-pvp-damage.test.mjs ../../scripts/tests/pvp-trade-verdict.test.mjs ../../scripts/tests/kit-rotation.test.mjs ../../scripts/tests/combat-scenario-contract.test.mjs"
   }
 }

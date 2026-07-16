@@ -1,6 +1,6 @@
 import { ARTIFACT_SLOTS, EQUIPMENT_SLOTS, data as coreData, importQuestlogBuild, indexes, initCore } from "./tl-core.js";
 import { resolveBuildSnapshot, snapshotStat } from "./tl-build-snapshot.js";
-import { inferBuildAttackType, isLegalBuildSnapshot, resolveVisibleMatchupInputs, selectAbilityWeaponHand } from "./combat-lab-build-inputs.js";
+import { inferBuildAttackType, resolveVisibleMatchupInputs, selectAbilityWeaponHand } from "./combat-lab-build-inputs.js";
 import { loadArmoryPresets, loadArmoryState } from "./tl-persistence.js";
 import {
   compareExpectedPvpDamage,
@@ -15,13 +15,15 @@ import {
   resolveCombatLabHealing,
   resolveCustomExpectedPvpDamage,
   resolveExpectedPvpDamage,
+  resolveKitRotationPacket,
   resolvePvpMatchup,
+  resolvePvpTradeVerdict,
   TIER_MAPPINGS,
 } from "./combat-lab-model.js";
 
 const byId = (id) => document.getElementById(id);
-const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","comparison-build","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","pvp-critical-damage","pvp-critical-resistance","pvp-heavy-damage","pvp-heavy-resistance","matchup-title","matchup-context","matchup-results","matchup-note","expected-ability","expected-weapon","expected-level-field","expected-level","expected-damage-results","expected-damage-verdict","expected-damage-limits","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-source-note","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
-const state = { data: null, builds: [], excludedBuilds: [] };
+const ui = Object.fromEntries(["game-build","fatal-error","ability-tab","matchup-tab","ability-view","matchup-view","build-picker-heading","ability-icon","ability-name","ability-kind","source-build","source-summary","target-build","target-summary","comparison-build","source-questlog-url","source-questlog-import","source-import-error","target-questlog-url","target-questlog-import","target-import-error","source-fighter-name","source-fighter-weapons","source-fighter-cp","source-weapons","source-gear","target-fighter-name","target-fighter-weapons","target-fighter-cp","target-weapons","target-gear","swap-builds","pvp-mode","attack-type","pvp-hit","pvp-evasion","pvp-critical","pvp-endurance","pvp-heavy","pvp-heavy-evasion","pvp-sdb","pvp-sdr","pvp-critical-damage","pvp-critical-resistance","pvp-heavy-damage","pvp-heavy-resistance","matchup-title","matchup-context","matchup-results","matchup-note","trade-verdict","expected-ability","expected-weapon","expected-level-field","expected-level","expected-damage-results","expected-damage-verdict","expected-damage-limits","ability","component","cast-field","cast","tier","level","level-note","outcome","outcome-note","damage-source","damage-source-note","damage-min","damage-max","healing-inputs","healing","healing-received","skill-damage-boost","allow-modeled","modeled-note","result-title","result-range","expression","healing-results","result-minimum","result-maximum","result-expected","total-applications","overall-badge","precision-grid","warnings","trace","provenance"].map((id) => [id, byId(id)]));
+const state = { data: null, builds: [], excludedBuilds: [], kitPackets: null };
 const ABILITY_ART = Object.freeze({
   "judgment-lightning": "./assets/icons/Game/Image/Skill/Active/S_WP_ST_PowerAttack.webp",
   "swift-healing": "./assets/icons/Game/Image/Skill/Active/S_WP_WA_GR_S_Heal_AA.webp",
@@ -31,20 +33,31 @@ const ABILITY_ART = Object.freeze({
 boot().catch(showFatal);
 
 async function boot() {
-  const [abilityResponse, referenceResponse] = await Promise.all([
+  const [abilityResponse, referenceResponse, opponentsResponse] = await Promise.all([
     fetch("./data/combat-abilities.json"),
     fetch("./data/reference-build.json"),
+    fetch("./data/opponents.json"),
     initCore("./data/app-data.json"),
   ]);
   if (!abilityResponse.ok) throw new Error(`Combat ability data failed to load (${abilityResponse.status}). Run the combat ability data build first.`);
+  try {
+    const kitResponse = await fetch("./data/kit-packets.json");
+    if (kitResponse.ok) {
+      const kitPackets = await kitResponse.json();
+      if (String(kitPackets.gameBuild) === String(coreData?.gameBuild)) state.kitPackets = kitPackets;
+    }
+  } catch { /* kit packets are optional; the verdict falls back to a generic swing */ }
   state.data = loadCombatLabData(await abilityResponse.json());
   if (String(state.data.gameBuild) !== String(coreData?.gameBuild)) {
     throw new Error(`Combat ability data build ${state.data.gameBuild} does not match static calculator build ${coreData?.gameBuild ?? "unknown"}.`);
   }
   ui["game-build"].textContent = state.data.gameBuild;
   const reference = referenceResponse.ok ? await referenceResponse.json() : null;
-  state.builds = collectBuilds(reference);
+  const opponents = opponentsResponse.ok ? await opponentsResponse.json() : [];
+  state.builds = collectBuilds(reference, opponents);
   populateBuilds();
+  ui["source-build"].value = defaultSourceId();
+  ui["target-build"].value = defaultTargetId(ui["source-build"].value);
   populateStaticOptions();
   syncCustomExpectedWeapon();
   updateExpectedAbilityControls();
@@ -60,23 +73,31 @@ async function boot() {
   prefillDamage();
   prefillHealing();
   renderFighters();
-  render();
+  selectView("matchup");
 }
 
-function collectBuilds(reference) {
+function collectBuilds(reference, opponents) {
   const candidates = [];
   state.excludedBuilds = [];
   const current = loadArmoryState(localStorage, { currentGameBuild: state.data.gameBuild });
   if (current.ok) candidates.push({ id: "current", label: current.data.build?.name || "Current Armory build", state: current.data });
   const presets = loadArmoryPresets(localStorage, { currentGameBuild: state.data.gameBuild });
   if (presets.ok) presets.data.forEach((preset, index) => candidates.push({ id: `preset:${preset.id ?? index}`, label: preset.name || preset.build?.name || `Saved preset ${index + 1}`, state: preset }));
-  if (reference) candidates.push({ id: `reference:${reference.id ?? "default"}`, label: reference.name || reference.build?.name || "Reference build", state: reference });
+  if (reference) candidates.push({ id: `reference:${reference.id ?? "default"}`, label: reference.name || reference.build?.name || "Reference build", state: reference, profile: reference.profile });
+  for (const opponent of opponents ?? []) {
+    candidates.push({ id: opponent.id ?? `opponent:${opponent.name}`, label: opponent.name || "Practice opponent", state: opponent, profile: opponent.profile, blurb: opponent.blurb, isPracticeOpponent: true });
+  }
   const seen = new Set();
   return candidates.filter((candidate) => {
     try {
       candidate.snapshot = resolveBuildSnapshot({ build: candidate.state.build, attributes: candidate.state.attributes, metadata: { gameDataBuild: state.data.gameBuild } });
     } catch { return false; }
-    if (!isLegalBuildSnapshot(candidate.snapshot)) {
+    // The matchup and modeled comparison are evidence-scoped, so a provisional
+    // snapshot is allowed in with a visible badge rather than silently dropped;
+    // only genuinely invalid builds are excluded.
+    candidate.legality = candidate.snapshot.resolved.status?.state ?? "invalid";
+    candidate.statusIssues = candidate.snapshot.resolved.status?.blockingIssues ?? [];
+    if (candidate.legality !== "legal" && candidate.legality !== "provisional") {
       state.excludedBuilds.push({ label: candidate.label, status: candidate.snapshot.resolved.status });
       return false;
     }
@@ -87,16 +108,48 @@ function collectBuilds(reference) {
   });
 }
 
+function buildHasWeapon(candidate) {
+  return ["main_hand", "off_hand"].some((slotId) => itemFor(candidate?.state?.build, slotId).item);
+}
+
+// Prefer a real geared attacker (the player's own build in production, the rich
+// bundled reference in a fresh browser) over the empty starter build so the VS
+// screen never lands on a blank fighter card. Practice opponents are never the
+// default attacker.
+function defaultSourceId() {
+  const playerBuilds = state.builds.filter((build) => !build.isPracticeOpponent);
+  return (playerBuilds.find(buildHasWeapon) ?? playerBuilds[0] ?? state.builds[0])?.id ?? "";
+}
+
+// Default the opponent to a bundled practice archetype so the matchup is never
+// self-vs-self; fall back to any other build when none are available.
+function defaultTargetId(sourceId) {
+  const opponent = state.builds.find((build) => build.isPracticeOpponent && build.id !== sourceId);
+  if (opponent) return opponent.id;
+  return (state.builds.find((build) => build.id !== sourceId) ?? state.builds[0])?.id ?? "";
+}
+
 function populateBuilds() {
+  const playerBuilds = state.builds.filter((build) => !build.isPracticeOpponent);
+  const opponents = state.builds.filter((build) => build.isPracticeOpponent);
   ui["source-build"].innerHTML = "";
   ui["target-build"].innerHTML = '<option value="">Choose an opponent</option>';
   ui["comparison-build"].innerHTML = '<option value="">No comparison build</option>';
-  for (const build of state.builds) {
+  // Practice archetypes are opponents only, so they stay out of the attacker list.
+  for (const build of playerBuilds) {
     ui["source-build"].add(new Option(build.label, build.id));
     ui["target-build"].add(new Option(build.label, build.id));
     ui["comparison-build"].add(new Option(build.label, build.id));
   }
-  if (!state.builds.length) {
+  if (opponents.length) {
+    for (const select of [ui["target-build"], ui["comparison-build"]]) {
+      const group = document.createElement("optgroup");
+      group.label = "Practice opponents";
+      opponents.forEach((opponent) => group.appendChild(new Option(opponent.label, opponent.id)));
+      select.appendChild(group);
+    }
+  }
+  if (!playerBuilds.length) {
     ui["source-build"].add(new Option("Manual inputs only", ""));
     ui["damage-source"].value = "manual";
   }
@@ -247,13 +300,14 @@ function questlogCandidate(payload, rawBuild) {
   const id = `questlog:${payload.characterSlug}:${sourceBuild.id}`;
   const label = `${imported.profile.name} · ${sourceBuild.name ?? `Build ${sourceBuild.id}`}`;
   const snapshot = resolveBuildSnapshot({ build: imported.build, attributes: imported.attributes, metadata: { gameDataBuild: state.data.gameBuild } });
-  if (!isLegalBuildSnapshot(snapshot)) {
-    const count = snapshot.resolved.status?.blockingIssues?.length ?? 0;
-    throw new Error(`Imported build is ${snapshot.resolved.status?.state ?? "provisional"} with ${count} calculation issue${count === 1 ? "" : "s"}; Combat Lab requires a legal static snapshot.`);
+  const legality = snapshot.resolved.status?.state ?? "invalid";
+  if (legality !== "legal" && legality !== "provisional") {
+    const count = snapshot.resolved.status?.invalidIssues?.length ?? snapshot.resolved.status?.blockingIssues?.length ?? 0;
+    throw new Error(`Imported build is invalid with ${count} blocking issue${count === 1 ? "" : "s"} and cannot be resolved into a static snapshot.`);
   }
   return {
     id, label, state: imported, profile: imported.profile, source: "questlog", sourceUrl: payload.sourceUrl,
-    snapshot,
+    snapshot, legality, statusIssues: snapshot.resolved.status?.blockingIssues ?? [],
   };
 }
 
@@ -280,6 +334,7 @@ function renderFighter(side, candidate) {
   const build = candidate?.state?.build;
   const snapshot = candidate?.snapshot;
   ui[`${side}-fighter-name`].textContent = candidate?.label ?? (side === "source" ? "Choose your build" : "Choose an opponent");
+  renderLegalityBadge(byId(`${side}-legality`), candidate);
   const weaponItems = ["main_hand", "off_hand"].map((slotId) => itemFor(build, slotId)).filter(({ item }) => item);
   const weaponPair = weaponItems.map(({ item }) => title(item.equipmentType ?? item.mainCategory ?? "Weapon")).join(" / ") || "No weapons resolved";
   byId(`${side}-portrait-name`).textContent = candidate?.profile?.name ?? candidate?.state?.build?.name ?? candidate?.label ?? (side === "source" ? "Your character" : "Unknown challenger");
@@ -289,6 +344,19 @@ function renderFighter(side, candidate) {
   byId(`${side}-gear-right`).innerHTML = ["necklace","bracelet","belt","ring_1","ring_2","brooch","earring"].map((id) => renderGearNode(EQUIPMENT_SLOTS.find((slot) => slot.id === id), itemFor(build, id))).join("");
   byId(`${side}-combat-stats`).innerHTML = renderCombatStatStrip(snapshot);
   byId(`${side}-artifacts`).innerHTML = renderArtifacts(build);
+}
+
+// Provisional builds are allowed into the matchup, but their status is surfaced
+// here so the evidence scope stays honest rather than hidden.
+function renderLegalityBadge(element, candidate) {
+  if (!element) return;
+  if (candidate?.legality !== "provisional") { element.hidden = true; element.textContent = ""; return; }
+  const issues = candidate.statusIssues ?? [];
+  const count = issues.length;
+  element.textContent = count ? `Provisional · ${count} caveat${count === 1 ? "" : "s"}` : "Provisional";
+  element.className = "legality-badge provisional";
+  element.title = count ? issues.map((issue) => `• ${issue.message}`).join("\n") : "Some inputs could not be fully verified; matchup stages remain evidence-scoped.";
+  element.hidden = false;
 }
 
 function itemFor(build, slotId) {
@@ -421,8 +489,10 @@ function updateExpectedAbilityControls() {
 
 function buildSummary(snapshot) {
   const stellarite = snapshot.loadout.supportSlots?.stellarite?.itemId;
+  // Also enforces that the snapshot was resolved with Item Potentials excluded,
+  // and surfaces that context to the reader in plain language.
   const calculationContext = resolveCombatLabBuildContext(snapshot);
-  return `Combat Power <strong>${formatNumber(snapshot.resolved.combatPower)}</strong><br>Main-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_max"))}<br>Off-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_max"))}<br>Healing +${displayStat(snapshot,"heal_modifier",0.01)}% · Healing Received +${displayStat(snapshot,"skill_heal_taken_modifier",0.01)}%<br>Skill Damage Boost ${displayStat(snapshot,"skill_power_amplification",0.1)}<br>Stellarite <strong>${stellarite ? "included in Base Damage" : "not equipped"}</strong><br>Calculation context <strong>itemPotentials:'${escapeHtml(calculationContext.itemPotentials)}'</strong>`;
+  return `Combat Power <strong>${formatNumber(snapshot.resolved.combatPower)}</strong><br>Main-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_main_hand_max"))}<br>Off-hand Base Damage ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_min"))} to ${formatNumber(snapshotStat(snapshot,"attack_power_off_hand_max"))}<br>Healing +${displayStat(snapshot,"heal_modifier",0.01)}% · Healing Received +${displayStat(snapshot,"skill_heal_taken_modifier",0.01)}%<br>Skill Damage Boost ${displayStat(snapshot,"skill_power_amplification",0.1)}<br>Stellarite <strong>${stellarite ? "included in Base Damage" : "not equipped"}</strong><br>Item Potentials <strong>${escapeHtml(calculationContext.itemPotentials)}</strong>`;
 }
 
 function prefillDamage() {
@@ -538,18 +608,28 @@ function render() {
 }
 
 function renderMatchup() {
-  const result = resolvePvpMatchup({
-    pvpMode: ui["pvp-mode"].value,
-    attackType: ui["attack-type"].value,
-    hit: ui["pvp-hit"].value,
-    evasion: ui["pvp-evasion"].value,
-    criticalHit: ui["pvp-critical"].value,
-    endurance: ui["pvp-endurance"].value,
-    heavyAttackChance: ui["pvp-heavy"].value,
-    heavyAttackEvasion: ui["pvp-heavy-evasion"].value,
-    skillDamageBoost: ui["pvp-sdb"].value,
-    skillDamageResistance: ui["pvp-sdr"].value,
-  });
+  let result;
+  try {
+    result = resolvePvpMatchup({
+      pvpMode: ui["pvp-mode"].value,
+      attackType: ui["attack-type"].value,
+      hit: ui["pvp-hit"].value,
+      evasion: ui["pvp-evasion"].value,
+      criticalHit: ui["pvp-critical"].value,
+      endurance: ui["pvp-endurance"].value,
+      heavyAttackChance: ui["pvp-heavy"].value,
+      heavyAttackEvasion: ui["pvp-heavy-evasion"].value,
+      skillDamageBoost: ui["pvp-sdb"].value,
+      skillDamageResistance: ui["pvp-sdr"].value,
+    });
+  } catch (error) {
+    ui["matchup-context"].textContent = "";
+    ui["matchup-results"].innerHTML = `<div class="matchup-message">${escapeHtml(String(error?.message ?? error))} Every Hit, Critical, Heavy, and SDB rating must be zero or higher.</div>`;
+    ui["matchup-note"].textContent = "";
+    renderExpectedDamageComparison();
+    renderTradeVerdict();
+    return;
+  }
   ui["matchup-title"].textContent = `${title(result.pvpMode)} PvP · ${title(result.attackType)}`;
   const source = selectedBuild(ui["source-build"].value);
   const target = selectedBuild(ui["target-build"].value);
@@ -564,6 +644,99 @@ function renderMatchup() {
   ui["matchup-results"].innerHTML = rows.map(([label,value,note], index) => `<div style="--meter:${matchupMeter(result,index)}"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><span>${escapeHtml(note)}</span></div>`).join("");
   ui["matchup-note"].textContent = "Hit uses the established one-sided Evasion rule. Heavy and glancing remain evidence-scoped models. Final damage, block, Defense, modifier order, and rounding are not applied here.";
   renderExpectedDamageComparison();
+  renderTradeVerdict();
+}
+
+function renderTradeVerdict() {
+  const banner = ui["trade-verdict"];
+  if (!banner) return;
+  const source = selectedBuild(ui["source-build"].value);
+  const target = selectedBuild(ui["target-build"].value);
+  banner.hidden = false;
+  if (!source || !target) {
+    banner.className = "trade-verdict pending";
+    banner.innerHTML = `<strong>Pick both fighters to get a verdict.</strong><span>The verdict projects the full damage race between the two builds — chance, damage multipliers, and health pools together.</span>`;
+    return;
+  }
+  try {
+    const resolveItemType = (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "";
+    const kitFor = (candidate) => {
+      const actives = (candidate.state.build.skills ?? []).filter((row) => row.loadoutType === "active");
+      const included = [];
+      for (const row of actives) {
+        const packet = state.kitPackets?.skills?.[row.skillId];
+        if (!packet) continue;
+        const available = Object.keys(packet.levels).map(Number).sort((a, b) => a - b);
+        const level = available.filter((value) => value <= Number(row.level)).pop() ?? available[0];
+        const entry = packet.levels[String(level)];
+        included.push({ skillSetId: row.skillId, name: packet.name, coefficient: entry.coefficient, flatAdd: entry.flatAdd, cooldown: entry.cooldown, mappingClass: packet.mappingClass });
+      }
+      return { included, totalActives: actives.length };
+    };
+    const sourceKit = kitFor(source);
+    const targetKit = kitFor(target);
+    const rotationMode = sourceKit.included.length > 0 && targetKit.included.length > 0;
+    const expectedFor = (attacker, defender, kit) => {
+      const inferred = inferBuildAttackType(attacker.state.build, resolveItemType);
+      if (!inferred) throw new Error(`${attacker.label} has no equipped weapon to model.`);
+      const prefix = inferred.slotId === "off_hand" ? "attack_power_off_hand" : "attack_power_main_hand";
+      const weaponDamage = {
+        minimum: snapshotStat(attacker.snapshot, `${prefix}_min`),
+        maximum: snapshotStat(attacker.snapshot, `${prefix}_max`),
+      };
+      const basis = rotationMode
+        ? (() => { const packet = resolveKitRotationPacket({ skills: kit.included, weaponDamage }); return { minimum: packet.perSecond.minimum, maximum: packet.perSecond.maximum }; })()
+        : weaponDamage;
+      const contest = resolveVisibleMatchupInputs({ sourceSnapshot: attacker.snapshot, targetSnapshot: defender.snapshot, attackType: inferred.attackType, readStat: snapshotStat });
+      return resolveCustomExpectedPvpDamage({
+        minimum: basis.minimum,
+        maximum: basis.maximum,
+        pvpMode: ui["pvp-mode"].value,
+        attackType: inferred.attackType,
+        ...contest,
+        criticalDamage: displayStat(attacker.snapshot, "critical_damage_dealt_modifier", 0.01),
+        criticalDamageResistance: displayStat(defender.snapshot, "critical_damage_taken_modifier", 0.01),
+        heavyDamage: displayStat(attacker.snapshot, "double_damage_dealt_modifier", 0.01),
+        heavyDamageResistance: displayStat(defender.snapshot, "double_damage_taken_modifier", 0.01),
+      });
+    };
+    const sourceHp = Number(snapshotStat(source.snapshot, "hp_max"));
+    const targetHp = Number(snapshotStat(target.snapshot, "hp_max"));
+    const verdict = resolvePvpTradeVerdict({
+      source: { expected: expectedFor(source, target, sourceKit), maxHp: sourceHp },
+      target: { expected: expectedFor(target, source, targetKit), maxHp: targetHp },
+    });
+    const sourceLabel = escapeHtml(source.label);
+    const targetLabel = escapeHtml(target.label);
+    const ttk = (pressurePercent) => {
+      const seconds = 100 / Number(pressurePercent);
+      return Number.isFinite(seconds) && seconds < 999 ? `~${Math.round(seconds)}s` : "over 999s";
+    };
+    const race = rotationMode
+      ? `Running their full skill kits, ${sourceLabel} lands the kill in ${ttk(verdict.pressures.source.perSwingPercentOfOpponentHp)}; ${targetLabel} needs ${ttk(verdict.pressures.target.perSwingPercentOfOpponentHp)}`
+      : `${sourceLabel} removes ${escapeHtml(verdict.pressures.source.perSwingPercentOfOpponentHp)}% of ${targetLabel}'s health per swing; ${targetLabel} removes ${escapeHtml(verdict.pressures.target.perSwingPercentOfOpponentHp)}% back`;
+    const stability = verdict.stableWithinModeledSensitivity
+      ? "Stable across the model's sensitivity range."
+      : "Close enough that model uncertainty could flip it.";
+    const kitNote = rotationMode
+      ? `Kit basis: ${sourceLabel} ${sourceKit.included.length}/${sourceKit.totalActives} damage skills modeled, ${targetLabel} ${targetKit.included.length}/${targetKit.totalActives} · base cooldowns, Cooldown Speed not applied.`
+      : "Generic weapon-swing basis — one or both builds carry no modelable skill kit.";
+    const badge = rotationMode ? "Modeled · full skill kit · before Defense" : "Modeled · one swing each · before Defense";
+    if (verdict.winner === "even") {
+      banner.className = "trade-verdict even";
+      banner.innerHTML = `<strong>Dead even — this one comes down to the pilot.</strong><span>${race}. ${escapeHtml(stability)}</span><span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
+    } else {
+      const winnerIsSource = verdict.winner === "source";
+      banner.className = `trade-verdict ${winnerIsSource ? "win" : "lose"}`;
+      const headline = winnerIsSource
+        ? `${sourceLabel} ${verdict.verdictBand === "decisive" ? "wins this matchup" : "is favored"}`
+        : `${targetLabel} ${verdict.verdictBand === "decisive" ? "wins this matchup" : "is favored"}`;
+      banner.innerHTML = `<strong>⚔ ${headline} — projected +${escapeHtml(verdict.advantagePercent)}% in the damage race.</strong><span>${race}. ${escapeHtml(stability)}</span><span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
+    }
+  } catch (error) {
+    banner.className = "trade-verdict pending";
+    banner.innerHTML = `<strong>No verdict for this pairing.</strong><span>${escapeHtml(String(error?.message ?? error))}</span>`;
+  }
 }
 
 function renderExpectedDamageComparison() {

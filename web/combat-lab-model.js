@@ -16,7 +16,8 @@ import {
   modelHitChance,
   modelSkillDamageMultiplier,
 } from "./vendor/combat-engine/pvp-models.mjs";
-import { compareModeledExpectedDamage, modelExpectedPvpDamage } from "./vendor/combat-engine/expected-damage.mjs";
+import { compareModeledExpectedDamage, modelExpectedPvpDamage, modelPvpTradeVerdict } from "./vendor/combat-engine/expected-damage.mjs";
+import { modelKitRotationPacket } from "./vendor/combat-engine/kit-rotation.mjs";
 
 export const HEALING_OUTCOMES = Object.freeze([
   { id: "normal", label: "Forced normal" },
@@ -116,6 +117,14 @@ export function resolveCustomExpectedPvpDamage(input) {
 
 export function compareExpectedPvpDamage(left, right) {
   return compareModeledExpectedDamage(left, right);
+}
+
+export function resolvePvpTradeVerdict(input) {
+  return modelPvpTradeVerdict(input);
+}
+
+export function resolveKitRotationPacket(input) {
+  return modelKitRotationPacket(input);
 }
 
 export function projectAbilityRange({ ability, componentId, globalLevel, minimum, maximum, outcomeId }) {

@@ -101,6 +101,9 @@ export {
 } from "./pvp-models.mjs";
 export {
   EXPECTED_DAMAGE_MODEL_VERSION,
+  TRADE_VERDICT_BANDS,
   modelExpectedPvpDamage,
   compareModeledExpectedDamage,
+  modelPvpTradeVerdict,
 } from "./expected-damage.mjs";
+export { KIT_ROTATION_MODEL_VERSION, modelKitRotationPacket } from "./kit-rotation.mjs";

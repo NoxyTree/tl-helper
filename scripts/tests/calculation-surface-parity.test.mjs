@@ -192,7 +192,7 @@ test("all public calculation surfaces use the shared set-aware engine and data m
   assert.match(files["gear-viewer.html"], /slotReplacementDelta/);
   assert.doesNotMatch(files["full-build-optimizer.html"], /id="include-sets"/);
   assert.match(files["full-build-optimizer.html"], /includeSetEffects:true/);
-  assert.match(files["build-from-scratch.html"], /rules: \{ endgame: true, heroic: false, traits: true, sets: true/);
+  assert.match(files["build-from-scratch.html"], /rules: \{ endgame: true, heroic: true, traits: true, sets: true/);
   assert.match(files["build-from-scratch.html"], /calculateBuild\(result\.build,result\.optimizedAttributes\|\|\{\},\{includeSetEffects:this\.state\.rules\.sets/);
   assert.match(files["build-from-scratch.html"], /resultCalc\?\.setEffects\?\.sets/);
   assert.match(files["build-from-scratch.html"], /setEffectBreakpointSummary\(breakpoint\)/);

@@ -246,6 +246,7 @@
         </div></section>
 
         <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
+          <div class="goal-block"><div class="goal-title"><span>Start from a preset</span><span>Fills both lists · tune anything after</span></div><div id="goal-presets" class="picker-categories" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>
           <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Ranked priorities · drag to reorder</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
           <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
           <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
@@ -342,14 +343,14 @@
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const [module,core,rulesData,persistence,handoff] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-optimizer-result-handoff.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff;
+        const [module,core,rulesData,persistence,handoff,presets] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-optimizer-result-handoff.js"),import("./tl-optimizer-presets.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff; state.presets=presets;
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
         for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","currentStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
         $("engine-status").textContent="Ready"; setView("setup");
-        setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); await loadArmory();
+        setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); renderGoalPresets(); await loadArmory();
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
     }
     async function refreshCurrentStats() {
@@ -488,6 +489,20 @@
       renderPickerOptions(root,key); updateReady();
     }
     function updateReady(){ const scenarioValid=!$("enable-distance-scenario").checked||Boolean(activeScenario()); $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length && scenarioValid && !state.scenarioError); }
+    function buildMainHandFamily(){ const itemId=state.build?.equipment?.main_hand?.itemId; const type=state.core?.indexes?.itemById?.[itemId]?.equipmentType; return state.presets?.weaponStatFamily?.(type) ?? "all"; }
+    function applyGoalPreset(presetId){
+      if(!state.presets) return;
+      const preset=state.presets.resolveOptimizerPreset(presetId,{family:buildMainHandFamily()});
+      const known=new Set(state.statOptions.map(row=>row.id));
+      state.increase=preset.maximize.filter(id=>known.has(id));
+      state.protect=preset.floors.map(floor=>floor.id).filter(id=>known.has(id)&&!state.increase.includes(id));
+      renderPicker($("increase-picker"),"increase"); renderPicker($("protect-picker"),"protect");
+    }
+    function renderGoalPresets(){
+      const root=$("goal-presets"); if(!root||!state.presets) return;
+      root.innerHTML=state.presets.OPTIMIZER_PRESETS.map(preset=>`<button type="button" class="picker-category" data-preset="${esc(preset.id)}" title="${esc(preset.tagline)}">${esc(preset.label)}</button>`).join("");
+      root.onclick=event=>{ const button=event.target.closest("button[data-preset]"); if(button) applyGoalPreset(button.dataset.preset); };
+    }
     function request() { const lockHeroics=$("lock-heroics").checked; return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:lockHeroics, reconsiderHeroics:!lockHeroics, includeSetEffects:true, optimizeThreeTraits:true, bestHeroicConfiguration:true, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:"refine" }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Checking complete equipment combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     function openSharedResult(result) {

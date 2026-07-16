@@ -163,6 +163,69 @@ export function compareModeledExpectedDamage(left, right) {
   });
 }
 
+export const TRADE_VERDICT_BANDS = Object.freeze({ decisive: 1.15, favored: 1.05 });
+
+/**
+ * Head-to-head trade verdict between two builds. Each side's modeled expected
+ * damage per swing is normalized by the opponent's Max Health so the verdict
+ * reflects the damage race rather than raw packet size. Assumes equal swing
+ * cadence and inherits every pre-Defense limitation of the underlying model.
+ */
+export function modelPvpTradeVerdict({ source, target } = {}) {
+  for (const [name, side] of [["source", source], ["target", target]]) {
+    if (!side?.expected?.sensitivityInterval) throw new TypeError(`${name}.expected must be a modeled expected-damage result.`);
+    if (!(Number(side.maxHp) > 0)) throw new TypeError(`${name}.maxHp must be a positive number.`);
+  }
+  const pressure = (attacker, defender) => ({
+    central: Number(attacker.expected.expectedDamage) / Number(defender.maxHp),
+    minimum: Number(attacker.expected.sensitivityInterval.minimum) / Number(defender.maxHp),
+    maximum: Number(attacker.expected.sensitivityInterval.maximum) / Number(defender.maxHp),
+  });
+  const sourcePressure = pressure(source, target);
+  const targetPressure = pressure(target, source);
+  if (![sourcePressure, targetPressure].every((p) => [p.central, p.minimum, p.maximum].every(Number.isFinite))) {
+    throw new TypeError("Both sides require finite expected-damage values.");
+  }
+  const ratio = targetPressure.central > 0 ? sourcePressure.central / targetPressure.central : Infinity;
+  const worstCaseRatio = targetPressure.maximum > 0 ? sourcePressure.minimum / targetPressure.maximum : Infinity;
+  const bestCaseRatio = targetPressure.minimum > 0 ? sourcePressure.maximum / targetPressure.minimum : Infinity;
+  const band = (value) => value >= TRADE_VERDICT_BANDS.decisive || value <= 1 / TRADE_VERDICT_BANDS.decisive ? "decisive"
+    : value >= TRADE_VERDICT_BANDS.favored || value <= 1 / TRADE_VERDICT_BANDS.favored ? "favored"
+    : "even";
+  const verdictBand = band(ratio);
+  const winner = verdictBand === "even" ? "even" : ratio > 1 ? "source" : "target";
+  const stableWithinModeledSensitivity = winner === "source" ? worstCaseRatio > 1
+    : winner === "target" ? bestCaseRatio < 1
+    : worstCaseRatio > 1 === bestCaseRatio > 1;
+  const advantage = winner === "target" ? (1 / ratio - 1) * 100 : (ratio - 1) * 100;
+  const guaranteed = winner === "source" && worstCaseRatio > 1 ? (worstCaseRatio - 1) * 100
+    : winner === "target" && bestCaseRatio < 1 ? (1 / bestCaseRatio - 1) * 100
+    : null;
+  return deepFreeze({
+    schema: "tl-helper.pvp-trade-verdict",
+    schemaVersion: 1,
+    modelVersion: EXPECTED_DAMAGE_MODEL_VERSION,
+    status: "modeled",
+    winner,
+    verdictBand,
+    stableWithinModeledSensitivity,
+    advantagePercent: Number.isFinite(advantage) ? advantage.toFixed(1) : null,
+    guaranteedAdvantagePercent: guaranteed === null || !Number.isFinite(guaranteed) ? null : guaranteed.toFixed(1),
+    tradeRatio: Number.isFinite(ratio) ? ratio.toFixed(4) : null,
+    pressures: {
+      source: { perSwingPercentOfOpponentHp: (sourcePressure.central * 100).toFixed(2), maxHp: String(source.maxHp) },
+      target: { perSwingPercentOfOpponentHp: (targetPressure.central * 100).toFixed(2), maxHp: String(target.maxHp) },
+    },
+    assumptions: [
+      "Both sides swing at the same cadence; cast time, cooldowns, and rotations are not modeled.",
+      "Max Health comes from the resolved character sheet; shields, healing, and sustain are not modeled.",
+      "Each side's expected damage inherits every assumption and unsupported stage of the pre-Defense expected-damage model.",
+    ],
+    unsupportedStages: [...new Set([...(source.expected.unsupportedStages ?? []), ...(target.expected.unsupportedStages ?? [])])],
+    completeness: { damageRaceModeled: true, isFinalCombatOutcome: false },
+  });
+}
+
 function branch(id, probability, damage, fixed, precision = "modeled") {
   return Object.freeze({ id, probability: fixed.format(probability), damage: fixed.format(damage), precision });
 }

@@ -156,6 +156,17 @@
           <span style="margin-left:auto;color:#6f5f49;font-size:10px;letter-spacing:.06em;text-transform:uppercase;">Drag to reorder</span>
         </div>
         <p style="margin:0 0 14px;color:#8a795f;font-size:11.5px;line-height:1.5;">The optimizer weights these in order. Priority 1 is protected hardest. These become your <strong style="color:#e5c88f;">favourite stats</strong> on the result screen.</p>
+        <div style="margin:0 0 14px;padding:11px 12px;border:1px solid rgba(185,140,240,.22);border-radius:11px;background:rgba(185,140,240,.05);">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+            <span style="color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Start from a preset</span>
+            <span style="color:#75664f;font-size:9.5px;">Replaces the list below. Floors keep the baseline meta builds never give up — tune anything after.</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <sc-for list="{{ presetChips }}" as="chip" hint-placeholder-count="4">
+              <button onClick="{{ chip.select }}" title="{{ chip.tagline }}" style="padding:7px 11px;border:1px solid rgba(185,140,240,.35);border-radius:8px;background:rgba(185,140,240,.08);color:#d9c9ea;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(185,140,240,.7);color:#efe4fb;">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+        </div>
         <div style="display:grid;gap:8px;">
           <sc-for list="{{ rankedList }}" as="p" hint-placeholder-count="5">
             <div draggable="true" tabindex="0" onDragStart="{{ p.dragStart }}" onDragEnd="{{ endPriorityDrag }}" onDragOver="{{ p.dragOver }}" onDrop="{{ p.drop }}" onKeyDown="{{ p.reorderKey }}" aria-label="Drag to reorder {{ p.name }}. Use arrow keys for keyboard reordering." style="position:relative;display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid {{ p.border }};border-radius:11px;background:{{ p.bg }};opacity:{{ p.opacity }};cursor:grab;transition:border-color .12s ease,background .12s ease,opacity .12s ease;">
@@ -456,7 +467,7 @@
             <div style="color:#f6d391;font:400 17px Marcellus,serif;">Own any Heroic gear?</div>
             <p style="margin:7px auto 14px;max-width:290px;color:#a4906d;font-size:11.5px;line-height:1.55;">Heroics are expensive and hard to replace. Lock your exact rolls so the optimizer builds around them instead of guessing.</p>
             <button onClick="{{ engageHeroics }}" style="width:100%;min-height:48px;border:1px solid rgba(255,183,101,.6);border-radius:12px;background:linear-gradient(135deg, rgba(150,86,24,.5), rgba(56,38,16,.7));color:#ffe6ac;cursor:pointer;font:400 16px Marcellus,serif;" style-hover="border-color:#ffcf8c;color:#fff2d4;">＋ Configure my Heroics</button>
-            <button onClick="{{ noHeroics }}" style="margin-top:8px;width:100%;min-height:36px;border:1px solid rgba(212,166,94,.18);border-radius:10px;background:transparent;color:#8a795f;cursor:pointer;font:600 11px 'Instrument Sans';letter-spacing:.04em;" style-hover="color:#c1af8c;border-color:rgba(212,166,94,.4);">I don't own any Heroics</button>
+            <button onClick="{{ noHeroics }}" style="margin-top:8px;width:100%;min-height:36px;border:1px solid rgba(212,166,94,.18);border-radius:10px;background:transparent;color:#8a795f;cursor:pointer;font:600 11px 'Instrument Sans';letter-spacing:.04em;" style-hover="color:#c1af8c;border-color:rgba(212,166,94,.4);">I don't own any — recommend the best Heroics</button>
           </div>
         </sc-if>
 
@@ -1232,10 +1243,10 @@ class Component extends DCLogic {
     engineReady: false,
     engineError: '',
     progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
-    rules: { endgame: true, heroic: false, traits: true, sets: true, runes: true, artifacts: true },
+    rules: { endgame: true, heroic: true, traits: true, sets: true, runes: true, artifacts: true },
     openTip: null,
     heroicsEngaged: false,
-    heroicMode: 'owned',
+    heroicMode: 'theoretical',
     heroics: { weapon: null, armor: null, accessory: null },
     chaosOwned: 2,
     drawer: null,
@@ -1246,7 +1257,7 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects]) => {
+    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets]) => {
       this.core = core;
       this.rulesData = rulesData;
       this.tuner = tuner;
@@ -1255,6 +1266,7 @@ class Component extends DCLogic {
       this.eventControls = eventControls;
       this.socialControls = socialControls;
       this.scenarioEffects = scenarioEffects;
+      this.presets = presets;
       const factory = adapterModule.createOptimizerAdapter || adapterModule.default;
       this.adapter = await factory();
       const source = await this.adapter.createScratchBuild();
@@ -1624,7 +1636,7 @@ class Component extends DCLogic {
   emptyDraft(group) { return { group, itemId:null, level:null, traits:[], uniqueTrait:null, heroicEffects:[], resonance:null,
     runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] }; }
   engageHeroics = () => this.setState({ heroicsEngaged:true, heroicMode: this.state.heroicMode==='none' ? 'owned' : this.state.heroicMode });
-  noHeroics = () => {this.persistHeroics(this.state.heroics,'none');this.setState({ heroicsEngaged:true, heroicMode:'none',rules:{...this.state.rules,heroic:false} });};
+  noHeroics = () => {this.persistHeroics(this.state.heroics,'theoretical');this.setState({ heroicsEngaged:true, heroicMode:'theoretical',rules:{...this.state.rules,heroic:true} });};
   persistHeroics(heroics=this.state.heroics,heroicMode=this.state.heroicMode){localStorage.setItem('tlhelper.builder.heroics.v1',JSON.stringify({heroics,heroicMode}));}
   setHeroicMode(m) { this.persistHeroics(this.state.heroics,m);this.setState({ heroicMode:m, rules:{...this.state.rules,heroic:m==='theoretical'} }); }
   addHeroic(group) { this.setState({ drawer:{ group, step:1, search:'', draft:this.emptyDraft(group) } }); }
@@ -1904,6 +1916,21 @@ class Component extends DCLogic {
   }
   removePriority(id) { this.setState({ priorities: this.state.priorities.filter(p => p !== id) }); }
   addPriority(id) { if (!this.state.priorities.includes(id)) this.setState({ priorities: [...this.state.priorities, id] }); }
+  applyPreset(presetId) {
+    if (!this.presets) return;
+    const family = this.presets.weaponStatFamily(this.state.weaponTypes.main);
+    const preset = this.presets.resolveOptimizerPreset(presetId, { family });
+    const known = new Set(this.state.statOptions.map(option => option.id));
+    const priorities = [...preset.maximize, ...preset.floors.map(floor => floor.id)].filter(id => known.has(id));
+    const goalModes = {};
+    const goalValues = {};
+    for (const floor of preset.floors) {
+      if (!known.has(floor.id)) continue;
+      goalModes[floor.id] = 'at_least';
+      goalValues[floor.id] = floor.display;
+    }
+    this.setState({ priorities, goalModes, goalValues, priorityPickerOpen: false });
+  }
   togglePriorityPicker = () => this.setState({ priorityPickerOpen: !this.state.priorityPickerOpen });
   closePriorityPicker = () => this.setState({ priorityPickerOpen:false, prioritySearch:'' });
   setPrioritySearch = (event) => this.setState({ prioritySearch:event.target.value });
@@ -2594,6 +2621,7 @@ class Component extends DCLogic {
       toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
       rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
+      presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>({label:preset.label,tagline:preset.tagline,select:()=>this.applyPreset(preset.id)})),
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
       priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',

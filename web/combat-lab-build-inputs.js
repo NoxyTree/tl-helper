@@ -36,7 +36,11 @@ export function isLegalBuildSnapshot(snapshot) {
 export function resolveVisibleMatchupInputs({ sourceSnapshot, targetSnapshot, attackType, readStat }) {
   if (!["melee", "range", "magic"].includes(attackType)) throw new RangeError(`Unsupported attack type: ${attackType}`);
   if (typeof readStat !== "function") throw new TypeError("readStat is required.");
-  const point = (snapshot, statId) => snapshot ? Number((Number(readStat(snapshot, statId)) * 0.1).toFixed(1)) : 0;
+  // The contest models treat every rating as a non-negative magnitude and reject
+  // negatives outright, so a snapshot stat that resolves below zero (e.g. a
+  // debuffed Heavy Attack rating) is floored to a zero contribution here rather
+  // than crashing the matchup.
+  const point = (snapshot, statId) => snapshot ? Math.max(0, Number((Number(readStat(snapshot, statId)) * 0.1).toFixed(1))) : 0;
   return Object.freeze({
     hit: point(sourceSnapshot, `pvp_${attackType}_accuracy`),
     evasion: point(targetSnapshot, `pvp_${attackType}_evasion`),

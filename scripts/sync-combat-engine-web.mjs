@@ -15,6 +15,7 @@ export const COMBAT_ENGINE_WEB_MODULES = [
   "healing-resolver.mjs",
   "pvp-models.mjs",
   "expected-damage.mjs",
+  "kit-rotation.mjs",
   "fixed-point.mjs",
   "trace.mjs",
 ];

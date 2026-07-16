@@ -1,0 +1,487 @@
+{
+  "schema": "tl-helper.questlog-skill-kits",
+  "schemaVersion": 1,
+  "source": "top-rated public Questlog builds, fetched 2026-07-16",
+  "kits": [
+    {
+      "id": "sword2h-spear-pvp",
+      "sourceBuild": "mour4sb 8166680",
+      "mainHand": "sword2h",
+      "offHand": "spear",
+      "active": [
+        {
+          "skillId": "SkillSet_WP_SP_S_AbnormalTolerance",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_ShieldBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_BloodAura",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_DashAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_UpperAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_PowerAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_GaiaCrash",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_LeapAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_RapidThrust",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_RapidAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_SpearThrower",
+          "level": 12
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_DropAttack",
+          "level": 15
+        }
+      ],
+      "passive": [
+        {
+          "skillId": "SkillSet_WP_SW2_S_MaxHPUp",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_Passive_WeakenkBonus",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_Passive_ComboBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_Passive_MoveBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_CurrentHpBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_StunMaster",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SP_S_Passive_LowHPAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_HittedBuff",
+          "level": 15
+        }
+      ],
+      "defensive": [
+        {
+          "skillId": "SkillSet_WP_SW2_S_CounterMove",
+          "level": 15
+        }
+      ]
+    },
+    {
+      "id": "dagger-crossbow-dps",
+      "sourceBuild": "daniiesc 8103716",
+      "mainHand": "crossbow",
+      "offHand": "dagger",
+      "active": [
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_LegAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_ArmorBreakShot",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_DelayDamage",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_PoisonDagger",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_DeadlyStrike",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_PoisonEnchant",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_S_GhostWalk",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_ShadowChaser",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_BloodToSoul",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_AddProjectile",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_D_WeakPointShot",
+          "level": 15
+        }
+      ],
+      "passive": [
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_PeaceTimeBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_S_OffHandMaxDmg",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_S_PoisonBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_WeakenAttackBonus",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_S_MeleeAccuracy",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_S_PoisonTargetOffHandAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_S_CriticalDamageUp",
+          "level": 15
+        }
+      ],
+      "defensive": [
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_CounterMove",
+          "level": 15
+        }
+      ]
+    },
+    {
+      "id": "wand-crossbow-dps",
+      "sourceBuild": "grobs 8238640",
+      "mainHand": "crossbow",
+      "offHand": "wand",
+      "active": [
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_RapidShot",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_ArmorBreakShot",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_S_GhostWalk",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_BloodToSoul",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_AddProjectile",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_D_WeakPointShot",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CurseBurst",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_Corruption",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CurseArea",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_Decay",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_DefenseUp",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_HealAll",
+          "level": 15
+        }
+      ],
+      "passive": [
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_DayHealNightCurse",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CurseKillBonus",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CurseDuration",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CurseAttackHeal",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_HealEfficiencyByMaxCost",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_S_WeakenAccuracy",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_WeakenAttackBonus",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_CR_CR_S_DistanceRangeAcc",
+          "level": 15
+        }
+      ],
+      "defensive": [
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CounterMove",
+          "level": 15
+        }
+      ]
+    },
+    {
+      "id": "orb-wand-healer",
+      "sourceBuild": "saphy 8261110",
+      "mainHand": "orb",
+      "offHand": "wand",
+      "active": [
+        {
+          "skillId": "SkillSet_WP_ORB_Active_OrbSummon",
+          "level": 1
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_OrbExplosion",
+          "level": 1
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_Phasing",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_Shield",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_OrbitSlash",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_Satellite",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_Restoration",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Active_PartyBarrier",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_HealAll",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_Decay",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_DefenseUp",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_MagicShield",
+          "level": 20
+        }
+      ],
+      "passive": [
+        {
+          "skillId": "SkillSet_WP_ORB_Passive_OrbControl",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Passive_ShieldUp",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Passive_SoulLink",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Passive_Circulation",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_DayHealNightCurse",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_HealEfficiencyByMaxCost",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_SupportAllyCostRegenUp",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_ORB_Passive_HpUp",
+          "level": 20
+        }
+      ],
+      "defensive": [
+        {
+          "skillId": "SkillSet_WP_WA_GR_S_CounterMove",
+          "level": 20
+        }
+      ]
+    },
+    {
+      "id": "sword2h-dagger-dps",
+      "sourceBuild": "revik 7795766",
+      "mainHand": "dagger",
+      "offHand": "sword2h",
+      "active": [
+        {
+          "skillId": "SkillSet_WP_SW2_S_MainAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_PoisonEnchant",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_BlinkStrike",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_UpperAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_PowerAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_StunAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_CounterAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_ShadowChaser",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_DashAttack",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_LegAttack",
+          "level": 21
+        },
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_Stealth",
+          "level": 15
+        }
+      ],
+      "passive": [
+        {
+          "skillId": "SkillSet_WP_SW2_S_StunMaster",
+          "level": 20
+        },
+        {
+          "skillId": "SkillSet_WP_DA_BA_S_KillMoveSpeed",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_S_CriticalDamageUp",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_DA_S_MeleeAccuracy",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_CurrentHpBuff",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_StunTargetCritical",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_MaxHPUp",
+          "level": 15
+        },
+        {
+          "skillId": "SkillSet_WP_SW2_S_StunBuff",
+          "level": 20
+        }
+      ],
+      "defensive": [
+        {
+          "skillId": "SkillSet_WP_DA_DA_S_CounterMove",
+          "level": 15
+        }
+      ]
+    }
+  ]
+}
