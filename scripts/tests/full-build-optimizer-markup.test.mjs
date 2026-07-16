@@ -3,6 +3,23 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const html = await readFile(new URL("../../web/full-build-optimizer.html", import.meta.url), "utf8");
+const scratchHtml = await readFile(new URL("../../web/build-from-scratch.html", import.meta.url), "utf8");
+
+test("both optimizer pages carry complete social sharing metadata", () => {
+  const expectations = [
+    [html, "Build Optimizer | TL Helper", "https://tlhelper.org/full-build-optimizer"],
+    [scratchHtml, "Build Optimizer: Build from Scratch | TL Helper", "https://tlhelper.org/build-from-scratch"],
+  ];
+  for (const [page, title, url] of expectations) {
+    assert.ok(page.includes('<meta property="og:type" content="website">'), `${url} og:type`);
+    assert.ok(page.includes(`<meta property="og:title" content="${title}">`), `${url} og:title`);
+    assert.match(page, /<meta property="og:description" content="[^"]+">/, `${url} og:description`);
+    assert.ok(page.includes(`<meta property="og:url" content="${url}">`), `${url} og:url`);
+    assert.ok(page.includes('<meta property="og:image" content="https://tlhelper.org/tl-logo.png">'), `${url} og:image`);
+    assert.ok(page.includes('<meta name="twitter:card" content="summary">'), `${url} twitter:card`);
+    assert.ok(page.includes('<meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">'), `${url} twitter:image`);
+  }
+});
 
 test("full-build optimizer is a standalone shared-shell page", () => {
   assert.match(html, /<link[^>]+tl-shell\.css/);
@@ -42,6 +59,22 @@ test("goal selection uses the structured Build from Scratch picker pattern", () 
   assert.match(html, /draggable="true"/);
   assert.match(html, /data-drag-handle/);
   assert.match(html, /goals:\{ priorities:state\.increase\.map/);
+});
+
+test("wanted stats support At least and Target minimums in display units", () => {
+  assert.match(html, /data-goal-mode/);
+  assert.match(html, /data-goal-value/);
+  assert.match(html, /\["at_least","At least"\]/);
+  assert.match(html, /\["target","Target"\]/);
+  assert.match(html, /statDisplayToRaw\(id,Number\(displayValue\)\)/);
+  assert.match(html, /minimum:mode==="at_least"\?value:null/);
+  assert.match(html, /target:mode==="target"\?value:null/);
+  assert.match(html, /Hard floor · still rewarded above it/);
+  assert.match(html, /Hard floor · stops rewarding once reached/);
+  assert.match(html, /or switch it back to Maximize/);
+  assert.match(html, /goalModes\[floor\.id\]="at_least"/);
+  assert.match(html, /goalValues\[floor\.id\]=floor\.display/);
+  assert.match(html, /id="run-hint"/);
 });
 
 test("protected goals show current calculated floors and widen the workspace", () => {

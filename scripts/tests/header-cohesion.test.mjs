@@ -61,6 +61,8 @@ test("every public page uses one cohesive branded application header", async () 
     assert.ok(html.includes(`<title>${title}</title>`), `${page} aligns its document title with the product navigation`);
     if (socialTitles.has(page)) {
       assert.ok(html.includes(`<meta property="og:title" content="${socialTitles.get(page)}">`), `${page} aligns its social title with the product navigation`);
+      assert.ok(html.includes('<meta property="og:image" content="https://tlhelper.org/tl-logo.png">'), `${page} publishes the shared Open Graph preview image`);
+      assert.ok(html.includes('<meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">'), `${page} publishes the shared Twitter preview image`);
     }
     assert.match(html, new RegExp(`<link\\b[^>]*href=["']\\./tl-shell\\.css\\?v=${assetVersion}["'][^>]*>`, "i"), `${page} uses the shared asset release version`);
   }
@@ -80,6 +82,22 @@ test("public pages use one generated design-component runtime", async () => {
   for (const page of ["index.html", "tracker.html", "achievements.html", "build-from-scratch.html"]) {
     assert.match(await load(page), /<script src="\.\/support\.js\?v=20260713"><\/script>/i, `${page} uses the canonical runtime`);
   }
+});
+
+test("design-component runtime prefers same-origin vendored React and falls back to the pinned CDN", async () => {
+  const runtime = await load("support.js");
+  for (const vendored of ["./vendor/react/react.production.min.js", "./vendor/react/react-dom.production.min.js", "./vendor/babel/babel.min.js"]) {
+    assert.ok(runtime.includes(`"${vendored}"`), `support.js loads the vendored ${vendored}`);
+    await access(new URL(`../../web/${vendored.slice(2)}`, import.meta.url));
+  }
+  const pinnedSri = [
+    "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z",
+    "sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1",
+    "sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y",
+  ];
+  for (const sri of pinnedSri) assert.ok(runtime.includes(sri), "pinned CDN fallbacks keep their SRI hashes");
+  assert.match(runtime, /unpkg\.com\/react@18\.3\.1/, "support.js keeps the pinned CDN fallback for React");
+  assert.match(runtime, /renderBootFailure/, "support.js surfaces a visible boot failure instead of a blank page");
 });
 
 test("shared shell owns the logo and responsive header behaviour", async () => {

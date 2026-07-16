@@ -67,6 +67,13 @@ the release complete.
 
 The Cloudflare mirror can be refreshed separately with
 `npm run deploy:production:cloudflare`; it does not update `tlhelper.org`.
+The mirror runs in guest-only mode (no account sign-in) unless
+`TL_SUPABASE_URL` and `TL_SUPABASE_ANON_KEY` are set in the Cloudflare Pages
+dashboard — the Vercel environment variables do not carry over.
+
+Recommended: add a Vercel WAF rate-limit rule for `/api/questlog/character`;
+the code-level same-origin gate (`Sec-Fetch-Site`) blocks browser-mediated
+cross-site abuse but is not a rate limit.
 
 ## Supabase follow-up
 

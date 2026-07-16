@@ -6,7 +6,7 @@
   <title>Gear Viewer | TL Helper</title>
   <meta name="description" content="Browse every item as a sortable table: pick stat columns, filter, and rank by a build-aware aggregate score.">
 <meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/gear-viewer"><link rel="icon" href="./tl-logo.png" type="image/png">
-  <meta property="og:type" content="website"><meta property="og:title" content="Gear Viewer | TL Helper"><meta property="og:description" content="Compare Throne and Liberty gear while increasing chosen stats and protecting the stats your build needs."><meta property="og:url" content="https://tlhelper.org/gear-viewer"><meta name="twitter:card" content="summary">
+  <meta property="og:type" content="website"><meta property="og:title" content="Gear Viewer | TL Helper"><meta property="og:description" content="Compare Throne and Liberty gear while increasing chosen stats and protecting the stats your build needs."><meta property="og:url" content="https://tlhelper.org/gear-viewer"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
   <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -868,7 +868,8 @@
       }
       const shown = rows.slice(0, state.limit);
       $("table-body").innerHTML = shown.map((row) => {
-        const color = core.gradeColor(row.item.grade) ?? "#d4a65e";
+        const gradeColor = core.gradeColor(row.item.grade) ?? "#d4a65e";
+        const color = /^#[0-9a-fA-F]{3,8}$|^[a-z-]+$/.test(gradeColor) ? gradeColor : "#d4a65e";
         const statCells = state.columns.map((statId) => {
           const value = row.contribution[statId] ?? 0;
           if (value > 0) return `<td>${core.formatStat(statId, value)}</td>`;
@@ -880,7 +881,7 @@
           .map((part) => `${core.statName(part.statId)}: ${Math.round(part.normalized * 100)}/100 (best in group: ${part.max > 0 ? core.formatStat(part.statId, part.max) : "n/a"})`)
           .join("\n");
         const scoreCell = state.columns.length
-          ? `<td class="score-cell" title="${breakdown ? `${breakdown}\nCompared with items for the same slot / weapon type.` : ""}"><span class="score-bar"><i style="width:${fit}%"></i><b>${fit}</b></span></td>`
+          ? `<td class="score-cell" title="${esc(breakdown ? `${breakdown}\nCompared with items for the same slot / weapon type.` : "")}"><span class="score-bar"><i style="width:${fit}%"></i><b>${fit}</b></span></td>`
           : "";
         const guardDetails = (row.protection ?? []).map((part) => `${core.statName(part.statId)}: ${core.formatStat(part.statId, part.delta)} (allowed loss ${core.formatStat(part.statId, part.allowedLoss)})`).join("\n");
         const guardCell = state.protected.length
@@ -888,15 +889,15 @@
             ? `<td class="zero" title="Choose My Armory build or import Questlog to compare protected stats">Needs build</td>`
             : `<td class="${row.protectionPass ? "guard-pass" : "guard-blocked"}" title="${esc(guardDetails)}">${row.protectionPass ? "Pass" : "Blocked"}</td>`
           : "";
-        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-candidate-id="${esc(row.candidateId)}" data-item-id="${row.item.id}" data-slot-id="${row.slotId}">
-          <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${row.item.id}" aria-label="Toggle favourite">★</button></td>
+        return `<tr class="${row.isPinned ? "equipped-row" : ""} ${row.protectionPass ? "" : "protection-blocked"}" data-candidate-id="${esc(row.candidateId)}" data-item-id="${esc(row.item.id)}" data-slot-id="${esc(row.slotId)}">
+          <td class="fav-cell"><button class="fav-btn ${favorites.has(row.item.id) ? "on" : ""}" data-fav="${esc(row.item.id)}" aria-label="Toggle favourite">★</button></td>
           <td class="item-cell-td"><span class="item-cell">
-            <img src="${row.item.imageUrl ?? ""}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <span><span class="name" style="color:${color}">${row.item.name}</span>
-            <span class="sub"><span>${core.label(row.item.equipmentType)}</span>${row.isPinned ? `<span class="pinned-mark">● Currently equipped</span>` : equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
+            <img src="${esc(row.item.imageUrl ?? "")}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span><span class="name" style="color:${color}">${esc(row.item.name)}</span>
+            <span class="sub"><span>${esc(core.label(row.item.equipmentType))}</span>${row.isPinned ? `<span class="pinned-mark">● Currently equipped</span>` : equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
           </span></td>
-          <td style="color:${color}">${core.gradeName(row.item.grade)}</td>
-          <td>${row.level}</td>
+          <td style="color:${color}">${esc(core.gradeName(row.item.grade))}</td>
+          <td>${esc(row.level)}</td>
           ${statCells}
           ${guardCell}
           ${scoreCell}
@@ -906,7 +907,7 @@
         button.addEventListener("click", () => {
           const id = button.dataset.fav;
           favorites.has(id) ? favorites.delete(id) : favorites.add(id);
-          localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+          try { localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites])); } catch { /* private mode — keep the in-memory toggle */ }
           button.classList.toggle("on", favorites.has(id));
           if (state.favoritesOnly) refresh({ recompute: false });
         });
@@ -1176,7 +1177,7 @@
       const potentialLabel = state.heroicPotential ? " · best Heroic configurations included" : "";
       if (calculationBlock) {
         const count = calculationBlock.blockingIssues?.length ?? 0;
-        $("status").innerHTML = `<span class="error">${core.label(calculationBlock.state)} build: ${count} calculation issue${count === 1 ? "" : "s"} must be resolved before build-aware gear ranking.</span>`;
+        $("status").innerHTML = `<span class="error">${esc(core.label(calculationBlock.state))} build: ${count} calculation issue${count === 1 ? "" : "s"} must be resolved before build-aware gear ranking.</span>`;
       } else {
         $("status").textContent = `${visible.length} items · scored as ${modeLabel}${state.columns.length ? ` · score = normalized average of ${state.columns.length} stat${state.columns.length > 1 ? "s" : ""}` : " · pick increase stats to score"}${potentialLabel}${setLabel}${itemPotentialLabel}${scenarioLabel}${guardLabel}${heroicLabel}${pinnedLabel}`;
       }
@@ -1280,7 +1281,7 @@
       try {
         await core.initCore("./data/app-data.json");
       } catch (error) {
-        $("status").innerHTML = `<span class="error">Failed to load game data: ${error.message}</span>`;
+        $("status").innerHTML = `<span class="error">Failed to load game data: ${esc(error.message)}</span>`;
         return;
       }
       $("game-build").textContent = core.data.gameBuild ?? "Unknown";
@@ -1482,9 +1483,13 @@
         button.textContent = "Importing…";
         try {
           const response = await fetch(`/api/questlog/character?url=${encodeURIComponent($("ql-url").value.trim())}`, { cache: "no-store" });
+          if (!response.ok) {
+            let detail = "";
+            try { detail = (await response.json())?.error ?? ""; } catch { /* non-JSON error body */ }
+            throw new Error(detail || `Questlog import failed (HTTP ${response.status}). Check the link and try again.`);
+          }
           const payload = await response.json();
-          if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
-          const requested = payload.buildId === null ? null : String(payload.buildId);
+          const requested = payload.buildId == null ? null : String(payload.buildId);
           const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
           if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
           const sourceBuild = {

@@ -6,7 +6,7 @@
 <title>Tracker | TL Helper</title>
 <meta name="description" content="Track your Throne and Liberty character progression, equipment, upgrades, and goals in one private browser workspace.">
 <meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/tracker"><link rel="icon" href="./tl-logo.png" type="image/png">
-<meta property="og:type" content="website"><meta property="og:title" content="Tracker | TL Helper"><meta property="og:description" content="Track your Throne and Liberty character progression."><meta property="og:url" content="https://tlhelper.org/tracker"><meta name="twitter:card" content="summary">
+<meta property="og:type" content="website"><meta property="og:title" content="Tracker | TL Helper"><meta property="og:description" content="Track your Throne and Liberty character progression."><meta property="og:url" content="https://tlhelper.org/tracker"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
 <script src="./support.js?v=20260713"></script>
 </head>
@@ -206,6 +206,11 @@
         <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 40px 20px; text-align: center; color: #8a795f; font-size: 12px; line-height: 1.6;">
           Loading your character…<br>
           <a href="./index.html">Open the Armory</a> to set up a build.
+        </div>
+      </sc-if>
+      <sc-if value="{{ charError }}" hint-placeholder-val="{{ false }}">
+        <div style="border: 1px solid rgba(229, 106, 106, 0.3); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 40px 20px; text-align: center; color: #e56a6a; font-size: 12px; line-height: 1.6;">
+          Character panel failed to load — tracker tasks still work.
         </div>
       </sc-if>
     </aside>
@@ -516,7 +521,11 @@ class Component extends DCLogic {
       } catch {}
       if (!build) build = core.seedShowcaseBuild(`${profile.name}'s Build`);
       this.setState({ charReady: true, build, profile, attributes });
-    } catch (e) { /* character panel is optional flourish */ }
+    } catch (e) {
+      // The character panel is an optional flourish — tracker tasks keep working without it.
+      console.error("TL-Helper tracker character panel:", e);
+      this.setState({ charError: true });
+    }
   }
 
   slotMini(slotId) {
@@ -540,7 +549,9 @@ class Component extends DCLogic {
   }
 
   characterVals() {
-    if (!this.state.charReady || !this.core || !this.buildSnapshots) return { charReady: false, charLoading: true };
+    if (!this.state.charReady || !this.core || !this.buildSnapshots) {
+      return { charReady: false, charLoading: !this.state.charError, charError: Boolean(this.state.charError) };
+    }
     const core = this.core, build = this.state.build;
     const calc = this.buildSnapshots.resolveBuildSnapshot({
       build,

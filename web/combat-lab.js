@@ -79,10 +79,16 @@ async function boot() {
 function collectBuilds(reference, opponents) {
   const candidates = [];
   state.excludedBuilds = [];
-  const current = loadArmoryState(localStorage, { currentGameBuild: state.data.gameBuild });
-  if (current.ok) candidates.push({ id: "current", label: current.data.build?.name || "Current Armory build", state: current.data });
-  const presets = loadArmoryPresets(localStorage, { currentGameBuild: state.data.gameBuild });
-  if (presets.ok) presets.data.forEach((preset, index) => candidates.push({ id: `preset:${preset.id ?? index}`, label: preset.name || preset.build?.name || `Saved preset ${index + 1}`, state: preset }));
+  try {
+    const current = loadArmoryState(localStorage, { currentGameBuild: state.data.gameBuild });
+    if (current.ok) candidates.push({ id: "current", label: current.data.build?.name || "Current Armory build", state: current.data });
+    const presets = loadArmoryPresets(localStorage, { currentGameBuild: state.data.gameBuild });
+    if (presets.ok) presets.data.forEach((preset, index) => candidates.push({ id: `preset:${preset.id ?? index}`, label: preset.name || preset.build?.name || `Saved preset ${index + 1}`, state: preset }));
+  } catch {
+    // localStorage itself can throw (blocked cookies, sandboxed frame). Saved
+    // builds are then unavailable; degrade to the bundled reference and
+    // practice opponents instead of failing the whole boot.
+  }
   if (reference) candidates.push({ id: `reference:${reference.id ?? "default"}`, label: reference.name || reference.build?.name || "Reference build", state: reference, profile: reference.profile });
   for (const opponent of opponents ?? []) {
     candidates.push({ id: opponent.id ?? `opponent:${opponent.name}`, label: opponent.name || "Practice opponent", state: opponent, profile: opponent.profile, blurb: opponent.blurb, isPracticeOpponent: true });
@@ -91,7 +97,13 @@ function collectBuilds(reference, opponents) {
   return candidates.filter((candidate) => {
     try {
       candidate.snapshot = resolveBuildSnapshot({ build: candidate.state.build, attributes: candidate.state.attributes, metadata: { gameDataBuild: state.data.gameBuild } });
-    } catch { return false; }
+    } catch (error) {
+      // A candidate that cannot even resolve into a snapshot is excluded for the
+      // same reason as an illegal one, so it is surfaced the same way instead of
+      // being silently dropped.
+      state.excludedBuilds.push({ label: candidate.label, status: { state: "invalid", blockingIssues: [{ message: String(error?.message ?? error) }] } });
+      return false;
+    }
     // The matchup and modeled comparison are evidence-scoped, so a provisional
     // snapshot is allowed in with a visible badge rather than silently dropped;
     // only genuinely invalid builds are excluded.
@@ -256,9 +268,14 @@ async function importQuestlog(side) {
   button.textContent = "Importing…";
   try {
     const response = await fetch(`/api/questlog/character?url=${encodeURIComponent(input.value.trim())}`, { cache: "no-store" });
+    if (!response.ok) {
+      // Non-OK responses are not guaranteed to carry JSON, so the body is read
+      // defensively to keep the friendly message instead of a SyntaxError.
+      const failure = await response.json().catch(() => null);
+      throw new Error(failure?.error ?? `Questlog import failed (${response.status}).`);
+    }
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
-    const requested = payload.buildId === null ? null : String(payload.buildId);
+    const requested = payload.buildId == null ? null : String(payload.buildId);
     const rows = (payload.characterData?.builds ?? []).filter((row) => requested === null || String(row.id) === requested);
     if (!rows.length) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
     const importedCandidates = rows.map((sourceBuild) => questlogCandidate(payload, sourceBuild));
@@ -667,7 +684,11 @@ function renderTradeVerdict() {
         const packet = state.kitPackets?.skills?.[row.skillId];
         if (!packet) continue;
         const available = Object.keys(packet.levels).map(Number).sort((a, b) => a - b);
-        const level = available.filter((value) => value <= Number(row.level)).pop() ?? available[0];
+        // A skill leveled below the lowest recorded packet level has no honest
+        // packet to use; substituting a higher-level packet would overstate its
+        // contribution, so the skill is left out of the modeled kit instead.
+        const level = available.filter((value) => value <= Number(row.level)).pop();
+        if (level === undefined) continue;
         const entry = packet.levels[String(level)];
         included.push({ skillSetId: row.skillId, name: packet.name, coefficient: entry.coefficient, flatAdd: entry.flatAdd, cooldown: entry.cooldown, mappingClass: packet.mappingClass });
       }
@@ -681,13 +702,13 @@ function renderTradeVerdict() {
       if (!inferred) throw new Error(`${attacker.label} has no equipped weapon to model.`);
       const prefix = inferred.slotId === "off_hand" ? "attack_power_off_hand" : "attack_power_main_hand";
       const weaponDamage = {
-        minimum: snapshotStat(attacker.snapshot, `${prefix}_min`),
-        maximum: snapshotStat(attacker.snapshot, `${prefix}_max`),
+        minimum: String(snapshotStat(attacker.snapshot, `${prefix}_min`)),
+        maximum: String(snapshotStat(attacker.snapshot, `${prefix}_max`)),
       };
       const basis = rotationMode
         ? (() => { const packet = resolveKitRotationPacket({ skills: kit.included, weaponDamage }); return { minimum: packet.perSecond.minimum, maximum: packet.perSecond.maximum }; })()
         : weaponDamage;
-      const contest = resolveVisibleMatchupInputs({ sourceSnapshot: attacker.snapshot, targetSnapshot: defender.snapshot, attackType: inferred.attackType, readStat: snapshotStat });
+      const contest = stringifyEngineInputs(resolveVisibleMatchupInputs({ sourceSnapshot: attacker.snapshot, targetSnapshot: defender.snapshot, attackType: inferred.attackType, readStat: snapshotStat }));
       return resolveCustomExpectedPvpDamage({
         minimum: basis.minimum,
         maximum: basis.maximum,
@@ -731,7 +752,12 @@ function renderTradeVerdict() {
       const headline = winnerIsSource
         ? `${sourceLabel} ${verdict.verdictBand === "decisive" ? "wins this matchup" : "is favored"}`
         : `${targetLabel} ${verdict.verdictBand === "decisive" ? "wins this matchup" : "is favored"}`;
-      banner.innerHTML = `<strong>⚔ ${headline} — projected +${escapeHtml(verdict.advantagePercent)}% in the damage race.</strong><span>${race}. ${escapeHtml(stability)}</span><span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
+      // advantagePercent is null when the loser applies no modeled pressure at
+      // all (an unbounded ratio), so the headline must work without a number.
+      const advantageCopy = verdict.advantagePercent == null
+        ? "the opponent applies no modeled damage pressure back"
+        : `projected +${escapeHtml(verdict.advantagePercent)}% in the damage race`;
+      banner.innerHTML = `<strong>⚔ ${headline} — ${advantageCopy}.</strong><span>${race}. ${escapeHtml(stability)}</span><span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
     }
   } catch (error) {
     banner.className = "trade-verdict pending";
@@ -763,7 +789,7 @@ function renderExpectedDamageComparison() {
       const hand = selectAbilityWeaponHand(build.state.build, requiredWeapon, (itemId) => indexes.itemById?.[itemId]?.equipmentType ?? "");
       if (!hand) throw new Error(`${build.label} does not equip the ${title(requiredWeapon)} required by ${packetName}.`);
       const prefix = hand.hand === "off" ? "attack_power_off_hand" : "attack_power_main_hand";
-      const automatic = resolveVisibleMatchupInputs({ sourceSnapshot: build.snapshot, targetSnapshot: target.snapshot, attackType, readStat: snapshotStat });
+      const automatic = stringifyEngineInputs(resolveVisibleMatchupInputs({ sourceSnapshot: build.snapshot, targetSnapshot: target.snapshot, attackType, readStat: snapshotStat }));
       const targetContest = {
         evasion: ui["pvp-evasion"].value,
         endurance: ui["pvp-endurance"].value,
@@ -778,8 +804,8 @@ function renderExpectedDamageComparison() {
         ...targetContest,
       } : { ...automatic, ...targetContest };
       const request = {
-        minimum: snapshotStat(build.snapshot, `${prefix}_min`),
-        maximum: snapshotStat(build.snapshot, `${prefix}_max`),
+        minimum: String(snapshotStat(build.snapshot, `${prefix}_min`)),
+        maximum: String(snapshotStat(build.snapshot, `${prefix}_max`)),
         pvpMode: ui["pvp-mode"].value,
         attackType,
         ...contest,
@@ -926,7 +952,7 @@ function renderWarnings(result) {
 }
 
 function renderTrace(result) {
-  ui.trace.innerHTML = result.traces.length ? result.traces.map((trace) => `<div class="trace-group"><h3>${escapeHtml(title(trace.bound))} bound · input ${escapeHtml(trace.inputs.baseDamage)} · output ${escapeHtml(trace.output)}</h3>${trace.stages.map((stage,index) => `<div class="trace-row"><span>${index+1}</span><b>${escapeHtml(stage.operation)}</b><code>${escapeHtml(stage.inputs.join(" × "))}<br>scale ${stage.scale}; ${stage.rounding}; remainder ${stage.discardedRemainder}</code><output>${escapeHtml(stage.output)}</output></div>`).join("")}</div>`).join("") : '<p class="field-note">No arithmetic trace was produced for this formula.</p>';
+  ui.trace.innerHTML = result.traces.length ? result.traces.map((trace) => `<div class="trace-group"><h3>${escapeHtml(title(trace.bound))} bound · input ${escapeHtml(trace.inputs.baseDamage)} · output ${escapeHtml(trace.output)}</h3>${trace.stages.map((stage,index) => `<div class="trace-row"><span>${index+1}</span><b>${escapeHtml(stage.operation)}</b><code>${escapeHtml(stage.inputs.join(" × "))}<br>scale ${escapeHtml(stage.scale)}; ${escapeHtml(stage.rounding)}; remainder ${escapeHtml(stage.discardedRemainder)}</code><output>${escapeHtml(stage.output)}</output></div>`).join("")}</div>`).join("") : '<p class="field-note">No arithmetic trace was produced for this formula.</p>';
 }
 
 function renderProvenance(result) {
@@ -934,7 +960,11 @@ function renderProvenance(result) {
   ui.provenance.innerHTML = `<dl><dt>Game build</dt><dd>${escapeHtml(state.data.gameBuild)}</dd><dt>Table</dt><dd>${escapeHtml(source.table ?? "Unknown")}</dd><dt>Row</dt><dd>${escapeHtml(source.rowId ?? "Unknown")}</dd><dt>Source hash</dt><dd>${escapeHtml(source.sourceSha256 ?? "Unknown")}</dd><dt>Coefficient</dt><dd>${escapeHtml(title(result.precision.coefficient))}</dd><dt>Provenance</dt><dd>${escapeHtml(title(result.precision.provenance))}</dd></dl>`;
 }
 
-function showFatal(error) { ui["fatal-error"].textContent = error.message; ui["fatal-error"].classList.remove("hidden"); }
+function showFatal(error) { ui["fatal-error"].textContent = String(error?.message ?? error); ui["fatal-error"].classList.remove("hidden"); }
+// The combat engine's fixed-point boundary accepts decimal strings but throws
+// on fractional JS Numbers, so numeric snapshot/contest values are stringified
+// before they cross into the engine.
+function stringifyEngineInputs(values) { return Object.fromEntries(Object.entries(values).map(([key, value]) => [key, String(value)])); }
 function stripEnum(value) { const text=String(value); return text.slice(text.lastIndexOf("::")+2); }
 function title(value) { return String(value ?? "").replace(/[_-]+/g," ").replace(/\b\w/g,(c)=>c.toUpperCase()); }
 function formatNumber(value) { return Number(value ?? 0).toLocaleString(undefined,{maximumFractionDigits:2}); }

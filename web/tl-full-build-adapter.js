@@ -165,6 +165,25 @@ function optimizerStatIds(core) {
     && !["earn_weapon_mastery_exp_modifier", "gathering_critical_chance", "spend_dungeon_point_modifier"].includes(id));
 }
 
+// Ranked-goal and protected-stat ids are scored as `stats[id] ?? 0`, so a
+// typo'd or stale id would silently contribute a constant 0 (and a protected
+// floor of 0 is trivially satisfied) while the optimizer maximizes the wrong
+// objective. Both UIs filter their pickers against listStats(), so any unknown
+// id that reaches the adapter is a real bug or stale stored data — fail loudly.
+// The catalogue is the stat-label table that listStats() itself filters from.
+function assertKnownOptimizerStatIds(core, rankedGoals, protectIds = []) {
+  const labels = core.data?.statLabels ?? {};
+  const known = new Set(["str", "dex", "int", "per", "con", ...Object.keys(labels)]);
+  const unknown = [...new Set([...rankedGoals.map((goal) => goal.id), ...protectIds])].filter((id) => !known.has(id));
+  if (unknown.length) throw new Error(`Unknown optimizer goal stat id(s): ${unknown.join(", ")}`);
+}
+
+function protectedStatIds(goals) {
+  return (goals.protect ?? [])
+    .map((row) => String(typeof row === "string" ? row : row?.id ?? row?.statId ?? "").trim())
+    .filter(Boolean);
+}
+
 function equippedChaosIds(build, runeById) {
   const ids = new Set();
   for (const group of [build.equipment, build.artifacts, build.supportSlots]) for (const row of Object.values(group ?? {})) {
@@ -825,8 +844,14 @@ export async function createOptimizerAdapter(deps = {}) {
     async importQuestlogBuild(url) {
       if (!fetcher) throw new Error("Questlog import requires fetch support.");
       const response = await fetcher(`/api/questlog/character?url=${encodeURIComponent(url)}`, { cache: "no-store" });
+      if (!response.ok) {
+        // Error bodies are not guaranteed to be JSON (proxies and edge
+        // failures return HTML), so parse best-effort instead of letting a
+        // SyntaxError surface as the user-facing message.
+        const failure = await response.json().catch(() => null);
+        throw new Error(failure?.error ?? `Questlog import failed (HTTP ${response.status}). Try again in a minute.`);
+      }
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
       const requested = payload.buildId == null ? null : String(payload.buildId);
       const raw = (payload.characterData?.builds ?? []).find((row) => requested == null || String(row.id) === requested);
       if (!raw) throw new Error("Questlog returned no matching build.");
@@ -893,6 +918,7 @@ export async function createOptimizerAdapter(deps = {}) {
       };
       const goals = request.goals ?? { increase: [], protect: [] };
       const rankedGoals = expandCompositeGoals(normalizeRankedGoals(goals));
+      assertKnownOptimizerStatIds(core, rankedGoals, protectedStatIds(goals));
       const requestedWeaponTypeConstraints = resolveWeaponTypeConstraints(core, request);
       const weaponTypeConstraints = { ...requestedWeaponTypeConstraints };
       if (!scratch) {

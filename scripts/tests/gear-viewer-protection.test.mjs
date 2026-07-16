@@ -65,8 +65,8 @@ test("hover cards show inherent stats separately and gear can filter exact item 
 
 test("equipped labels do not interrupt item names and attribute effects nest beneath their parent", async () => {
   const core = await readFile(new URL("../../web/tl-core.js", import.meta.url), "utf8");
-  assert.match(html, /<span class="name" style="color:\$\{color\}">\$\{row\.item\.name\}<\/span>/);
-  assert.match(html, /<span class="sub"><span>\$\{core\.label\(row\.item\.equipmentType\)\}<\/span>/);
+  assert.match(html, /<span class="name" style="color:\$\{color\}">\$\{esc\(row\.item\.name\)\}<\/span>/);
+  assert.match(html, /<span class="sub"><span>\$\{esc\(core\.label\(row\.item\.equipmentType\)\)\}<\/span>/);
   assert.match(core, /\["attribute_bonus", "attribute_bracket"\]/);
   assert.match(core, /options\.preferredStatIds/);
   assert.match(core, /return \{ \.\.\.row, children, hasChildren: children\.length > 0 \}/);

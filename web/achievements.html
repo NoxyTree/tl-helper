@@ -6,7 +6,7 @@
 <title>Achievements | TL Helper</title>
 <meta name="description" content="Track Throne and Liberty achievement progress, stages, categories, and remaining rewards locally in your browser.">
 <meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/achievements"><link rel="icon" href="./tl-logo.png" type="image/png">
-<meta property="og:type" content="website"><meta property="og:title" content="Achievements | TL Helper"><meta property="og:description" content="Track your Throne and Liberty achievements."><meta property="og:url" content="https://tlhelper.org/achievements"><meta name="twitter:card" content="summary">
+<meta property="og:type" content="website"><meta property="og:title" content="Achievements | TL Helper"><meta property="og:description" content="Track your Throne and Liberty achievements."><meta property="og:url" content="https://tlhelper.org/achievements"><meta property="og:image" content="https://tlhelper.org/tl-logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
 <script src="./support.js?v=20260713"></script>
 </head>
@@ -236,6 +236,13 @@
     <sc-if value="{{ achLoading }}" hint-placeholder-val="{{ true }}">
       <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 60px 20px; text-align: center; color: #8a795f; font-size: 12px;">Loading the achievement chronicle…</div>
     </sc-if>
+
+    <sc-if value="{{ achHasError }}" hint-placeholder-val="{{ false }}">
+      <div style="border: 1px solid rgba(229, 106, 106, 0.3); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 60px 20px; text-align: center; font-size: 12px; line-height: 1.6;">
+        <div style="color: #e56a6a;">Failed to load the achievement list: {{ achError }}</div>
+        <div style="margin-top: 6px; color: #8a795f;">Refresh the page to try again.</div>
+      </div>
+    </sc-if>
   </main>
 </div>
 
@@ -309,6 +316,7 @@ class Component extends DCLogic {
     achPage: 1,
     achPageSize: 50,
     achDetailId: null,
+    achError: "",
     toastMsg: "",
   };
 
@@ -329,7 +337,10 @@ class Component extends DCLogic {
       let progress = {};
       try { progress = JSON.parse(localStorage.getItem(this.ACH_KEY) || "null") || {}; } catch {}
       this.setState({ achList: mod.TL_ACHIEVEMENTS || [], achLoaded: true, achProgress: progress });
-    } catch (e) { /* stays on loading state */ }
+    } catch (e) {
+      console.error("TL-Helper achievements:", e);
+      this.setState({ achError: String(e?.message ?? e) });
+    }
   }
 
   saveAchProgress() {
@@ -417,7 +428,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const base = { toastVisible: Boolean(s.toastMsg), toastMsg: s.toastMsg, achDetailOpen: false };
-    if (!s.achLoaded) return { ...base, achLoading: true, achLoaded: false, headerCompletion: "—" };
+    if (!s.achLoaded) return { ...base, achLoading: !s.achError, achHasError: Boolean(s.achError), achError: s.achError, achLoaded: false, headerCompletion: "—" };
 
     const all = s.achList;
     const doneCount = all.filter((a) => this.achDone(a)).length;

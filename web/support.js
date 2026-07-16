@@ -1072,14 +1072,27 @@
   // src/cdn.ts
   var REACT_URL = "https://unpkg.com/react@18.3.1/umd/react.production.min.js";
   var REACT_SRI = "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z";
+  var REACT_VENDOR_URL = "./vendor/react/react.production.min.js";
   var REACT_DOM_URL = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js";
   var REACT_DOM_SRI = "sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1";
+  var REACT_DOM_VENDOR_URL = "./vendor/react/react-dom.production.min.js";
   var BABEL_URL = "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js";
   var BABEL_SRI = "sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y";
-  function cdnScriptFor(url, sri) {
+  var BABEL_VENDOR_URL = "./vendor/babel/babel.min.js";
+  /** Same-origin vendored copy first, then the pinned CDN URL (with SRI) as a
+   *  fallback; a host-provided `window.__resources` override wins outright. */
+  function scriptSourcesFor(vendorUrl, url, sri) {
     const res = window.__resources;
     const v = res ? res[url] : void 0;
-    return typeof v === "string" && v ? { src: v } : { src: url, integrity: sri };
+    if (typeof v === "string" && v) return [{ src: v }];
+    return [{ src: vendorUrl }, { src: url, integrity: sri }];
+  }
+  function loadScriptWithFallback(sources) {
+    let p = loadScript(sources[0].src, sources[0].integrity);
+    for (const next of sources.slice(1)) {
+      p = p.catch(() => loadScript(next.src, next.integrity));
+    }
+    return p;
   }
 
   // src/external.ts
@@ -1106,18 +1119,9 @@
     function ensureBabel() {
       if (window.Babel) return Promise.resolve();
       if (babelLoading) return babelLoading;
-      const babel = cdnScriptFor(BABEL_URL, BABEL_SRI);
-      babelLoading = new Promise((res, rej) => {
-        const s = document.createElement("script");
-        s.src = babel.src;
-        if (babel.integrity) {
-          s.integrity = babel.integrity;
-          s.crossOrigin = "anonymous";
-        }
-        s.onload = () => res();
-        s.onerror = rej;
-        document.head.appendChild(s);
-      });
+      babelLoading = loadScriptWithFallback(
+        scriptSourcesFor(BABEL_VENDOR_URL, BABEL_URL, BABEL_SRI)
+      );
       return babelLoading;
     }
     const pending = /* @__PURE__ */ new Map();
@@ -1314,7 +1318,7 @@
     function postDesignMode(mode) {
       if (window.parent === window) return;
       try {
-        window.parent.postMessage({ type: "__dc_design_mode", mode }, "*");
+        window.parent.postMessage({ type: "__dc_design_mode", mode }, location.origin);
       } catch {
       }
     }
@@ -1335,6 +1339,7 @@
       }
     }
     window.addEventListener("message", (e) => {
+      if (e.origin !== location.origin) return;
       const type = e.data && e.data.type;
       if (type === "__dc_theme") {
         const t = e.data.theme;
@@ -1695,12 +1700,34 @@
   function loadReactUmd() {
     const w = window;
     if (w.React && w.ReactDOM) return Promise.resolve();
-    const react = cdnScriptFor(REACT_URL, REACT_SRI);
-    const reactDom = cdnScriptFor(REACT_DOM_URL, REACT_DOM_SRI);
-    return Promise.all([
-      loadScript(react.src, react.integrity),
-      loadScript(reactDom.src, reactDom.integrity)
-    ]).then(() => void 0);
+    return loadScriptWithFallback(
+      scriptSourcesFor(REACT_VENDOR_URL, REACT_URL, REACT_SRI)
+    ).then(
+      () => loadScriptWithFallback(
+        scriptSourcesFor(REACT_DOM_VENDOR_URL, REACT_DOM_URL, REACT_DOM_SRI)
+      )
+    ).then(() => void 0);
+  }
+  /** Last-resort boot failure UI — the raw template is already hidden by
+   *  hideRawTemplate, so without this the page would stay silently blank. */
+  function renderBootFailure() {
+    const show = () => {
+      if (document.getElementById("__dc-boot-error")) return;
+      const el = document.createElement("div");
+      el.id = "__dc-boot-error";
+      el.setAttribute("role", "alert");
+      el.style.cssText = "min-height:60vh;display:grid;place-items:center;align-content:center;gap:10px;padding:32px 20px;text-align:center;font-family:ui-sans-serif,system-ui,sans-serif;position:relative;z-index:1";
+      const title = document.createElement("div");
+      title.style.cssText = "font-size:15px;color:#e56a6a";
+      title.textContent = "TL Helper failed to load its UI runtime — refresh to retry.";
+      const hint = document.createElement("div");
+      hint.style.cssText = "font-size:12px;color:#8a795f";
+      hint.textContent = "If this keeps happening, check your connection or content blocker and reload the page.";
+      el.append(title, hint);
+      (document.body || document.documentElement).appendChild(el);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", show);
+    else show();
   }
   function init() {
     const runtime = createRuntime(document);
@@ -1719,7 +1746,7 @@
             propsMeta: r && r.propsMeta || null,
             preview: r && r.preview || null
           },
-          "*"
+          location.origin
         );
       } catch {
       }
@@ -1763,6 +1790,7 @@
   hideRawTemplate();
   loadReactUmd().then(init).catch((err) => {
     console.error("[dc] failed to load React or boot:", err);
+    renderBootFailure();
     throw err;
   });
 })();

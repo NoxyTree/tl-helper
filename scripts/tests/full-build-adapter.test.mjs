@@ -267,6 +267,27 @@ test("optimizer stat catalog keeps source-backed combat goals and removes intern
   assert.deepEqual(ids.sort(), ["all_accuracy", "animal_damage_amplification", "melee_double_attack", "pvp_magic_evasion", "str"].sort());
 });
 
+test("optimize rejects unknown goal and protected stat ids instead of scoring them as 0", async () => {
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: [], runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: {}, statName: (id) => id,
+  };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const build = { build: { equipment: {}, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" };
+  await assert.rejects(
+    () => adapter.optimize({ build, sourceKind: "scratch", goals: { increase: ["attack", "skill_power_amp"] }, rules: {} }),
+    /Unknown optimizer goal stat id\(s\): skill_power_amp/,
+  );
+  await assert.rejects(
+    () => adapter.optimize({ build, sourceKind: "scratch", goals: { priorities: [{ id: "typo_stat", rank: 1 }, { id: "stale_stat", rank: 2 }] }, rules: {} }),
+    /Unknown optimizer goal stat id\(s\): typo_stat, stale_stat/,
+  );
+  await assert.rejects(
+    () => adapter.optimize({ build, sourceKind: "scratch", goals: { increase: ["attack"], protect: ["stale_guard_total"] }, rules: {} }),
+    /Unknown optimizer goal stat id\(s\): stale_guard_total/,
+  );
+});
+
 test("scratch builds start empty and are explicitly marked as scratch", async () => {
   const core = { data: { gameBuild: "test", statLabels: {} }, indexes: {}, createInitialBuild: () => ({ name: "Default Build", equipment: { head: { itemId: "" } }, artifacts: {}, supportSlots: {} }) };
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });

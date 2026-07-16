@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#0c0a07">
 <link rel="canonical" href="https://tlhelper.org/build-from-scratch">
 <link rel="icon" href="./tl-logo.png" type="image/png">
+<meta property="og:type" content="website"><meta property="og:title" content="Build Optimizer: Build from Scratch | TL Helper"><meta property="og:description" content="Forge a complete Throne and Liberty loadout around ranked stat goals, owned Heroics, sets, runes, artifacts, and attribute breakpoints."><meta property="og:url" content="https://tlhelper.org/build-from-scratch"><meta property="og:image" content="https://tlhelper.org/tl-logo.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Build Optimizer: Build from Scratch | TL Helper"><meta name="twitter:description" content="Forge a complete Throne and Liberty loadout around ranked stat goals, owned Heroics, sets, runes, artifacts, and attribute breakpoints."><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
 <link rel="stylesheet" href="./tl-shell.css?v=20260713">
 <script src="./support.js?v=20260713"></script>
@@ -1285,8 +1287,11 @@ class Component extends DCLogic {
         const itemType=slotId=>this.core.indexes.itemById[result.build?.equipment?.[slotId]?.itemId]?.equipmentType||'';
         const kept=Object.fromEntries(improved.keptSlotIds.map(id=>[id,true]));
         if(kept.main_hand)kept.main=true;if(kept.off_hand)kept.off=true;
+        // Stored priorities can outlive a game-data update; the adapter now rejects unknown goal ids, so drop stale ones before they reach state.
+        const knownStatIds=new Set(statOptions.map(row=>row.id));
+        const restoredPriorities=(improved.priorities||[]).filter(id=>knownStatIds.has(id));
         this.setState({source:{build:structuredClone(result.build),attributes:{...attributes},sourceKind:'existing',name:result.name},statOptions,engineReady:true,heroics,heroicMode,heroicsEngaged:Boolean(saved.heroics),
-          result,resultCalc,phase:'result',resultOrigin:'improved',resultReturnUrl:improved.returnUrl||'./full-build-optimizer.html',priorities:improved.priorities,kept,locked:{...kept},
+          result,resultCalc,phase:'result',resultOrigin:'improved',resultReturnUrl:improved.returnUrl||'./full-build-optimizer.html',priorities:restoredPriorities,kept,locked:{...kept},
           weaponTypes:{main:itemType('main_hand'),off:itemType('off_hand')},rules:{...this.state.rules,sets:improved.includeSetEffects},scenario:this.scenarioStateFromCanonical(result.scenario)});
         return;
       }
@@ -1637,7 +1642,7 @@ class Component extends DCLogic {
     runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] }; }
   engageHeroics = () => this.setState({ heroicsEngaged:true, heroicMode: this.state.heroicMode==='none' ? 'owned' : this.state.heroicMode });
   noHeroics = () => {this.persistHeroics(this.state.heroics,'theoretical');this.setState({ heroicsEngaged:true, heroicMode:'theoretical',rules:{...this.state.rules,heroic:true} });};
-  persistHeroics(heroics=this.state.heroics,heroicMode=this.state.heroicMode){localStorage.setItem('tlhelper.builder.heroics.v1',JSON.stringify({heroics,heroicMode}));}
+  persistHeroics(heroics=this.state.heroics,heroicMode=this.state.heroicMode){try{localStorage.setItem('tlhelper.builder.heroics.v1',JSON.stringify({heroics,heroicMode}))}catch{}}
   setHeroicMode(m) { this.persistHeroics(this.state.heroics,m);this.setState({ heroicMode:m, rules:{...this.state.rules,heroic:m==='theoretical'} }); }
   addHeroic(group) { this.setState({ drawer:{ group, step:1, search:'', draft:this.emptyDraft(group) } }); }
   editHeroic(group) { const cfg=this.state.heroics[group]; this.setState({ drawer:{ group, step:2, search:'', draft:{ ...cfg,

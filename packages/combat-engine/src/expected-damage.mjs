@@ -186,7 +186,11 @@ export function modelPvpTradeVerdict({ source, target } = {}) {
   if (![sourcePressure, targetPressure].every((p) => [p.central, p.minimum, p.maximum].every(Number.isFinite))) {
     throw new TypeError("Both sides require finite expected-damage values.");
   }
-  const ratio = targetPressure.central > 0 ? sourcePressure.central / targetPressure.central : Infinity;
+  // When neither side applies any modeled pressure (both expected damages are
+  // zero), the race has no leader: report a coherent even verdict instead of
+  // letting the 0/0 ratio collapse into a fake decisive Infinity for "source".
+  const bothPressureless = sourcePressure.central === 0 && targetPressure.central === 0;
+  const ratio = bothPressureless ? 1 : targetPressure.central > 0 ? sourcePressure.central / targetPressure.central : Infinity;
   const worstCaseRatio = targetPressure.maximum > 0 ? sourcePressure.minimum / targetPressure.maximum : Infinity;
   const bestCaseRatio = targetPressure.minimum > 0 ? sourcePressure.maximum / targetPressure.minimum : Infinity;
   const band = (value) => value >= TRADE_VERDICT_BANDS.decisive || value <= 1 / TRADE_VERDICT_BANDS.decisive ? "decisive"

@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#0c0a07">
 <link rel="canonical" href="https://tlhelper.org/">
 <link rel="icon" href="./tl-logo.png" type="image/png">
-<meta property="og:type" content="website"><meta property="og:title" content="Armory | TL Helper"><meta property="og:description" content="Build and save your Throne and Liberty loadout."><meta property="og:url" content="https://tlhelper.org/">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Armory | TL Helper"><meta name="twitter:description" content="Build and save your Throne and Liberty loadout.">
+<meta property="og:type" content="website"><meta property="og:title" content="Armory | TL Helper"><meta property="og:description" content="Build and save your Throne and Liberty loadout."><meta property="og:url" content="https://tlhelper.org/"><meta property="og:image" content="https://tlhelper.org/tl-logo.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Armory | TL Helper"><meta name="twitter:description" content="Build and save your Throne and Liberty loadout."><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
 <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
 <script src="./support.js?v=20260713"></script>
 </head>
@@ -1874,9 +1874,13 @@ class Component extends DCLogic {
     this.setState({ importLoading: true, importError: "" });
     try {
       const response = await fetch(`/api/questlog/character?url=${encodeURIComponent(url)}`, { cache: "no-store" });
+      if (!response.ok) {
+        let detail = "";
+        try { detail = (await response.json())?.error ?? ""; } catch { /* non-JSON error body */ }
+        throw new Error(detail || `Questlog import failed (HTTP ${response.status}). Check the link and try again.`);
+      }
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error ?? `Questlog import failed (${response.status}).`);
-      const requested = payload.buildId === null ? null : String(payload.buildId);
+      const requested = payload.buildId == null ? null : String(payload.buildId);
       const rawBuild = (payload.characterData?.builds ?? []).find((row) => requested === null || String(row.id) === requested);
       if (!rawBuild) throw new Error(requested ? `Questlog build ${requested} was not found.` : "Questlog returned no builds.");
       const sourceBuild = {

@@ -6,6 +6,8 @@
   <title>Build Optimizer | TL Helper</title>
   <meta name="description" content="Find a strong complete Throne and Liberty build while protecting the stats and equipment that matter to you.">
 <meta name="theme-color" content="#0c0a07"><link rel="canonical" href="https://tlhelper.org/full-build-optimizer"><link rel="icon" href="./tl-logo.png" type="image/png">
+<meta property="og:type" content="website"><meta property="og:title" content="Build Optimizer | TL Helper"><meta property="og:description" content="Find a strong complete Throne and Liberty build while protecting the stats and equipment that matter to you."><meta property="og:url" content="https://tlhelper.org/full-build-optimizer"><meta property="og:image" content="https://tlhelper.org/tl-logo.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Build Optimizer | TL Helper"><meta name="twitter:description" content="Find a strong complete Throne and Liberty build while protecting the stats and equipment that matter to you."><meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">
   <style>html{background:#0c0a07;color-scheme:dark}body{margin:0;background:#0c0a07}@view-transition{navigation:auto}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,6 +70,12 @@
     .goal-drag { flex:none; width:28px; height:28px; display:grid; place-items:center; border:1px solid rgba(212,166,94,.22); border-radius:7px; color:#9c835d; cursor:grab; user-select:none; }
     .goal-drag:active { cursor:grabbing; }
     .goal-chip.is-dragging { opacity:.45; }
+    .goal-mode-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px; }
+    .goal-mode-row select,.goal-mode-row input { min-height:26px; padding:3px 6px; border:1px solid rgba(212,166,94,.22); border-radius:7px; background:#0b0806; color:#e6d6b4; font-size:9.5px; }
+    .goal-mode-row input { width:88px; }
+    .goal-mode-row input[aria-invalid="true"] { border-color:rgba(224,129,104,.6); }
+    .goal-value { display:flex; align-items:center; gap:5px; color:#8a795f; font-size:9px; }
+    .goal-current { color:#75664f; font-size:8.5px; }
     .composite-badge { display:inline-block; margin-left:5px; padding:1px 5px; border:1px solid rgba(185,140,240,.32); border-radius:5px; color:#b98cf0; font-size:7px; letter-spacing:.08em; text-transform:uppercase; vertical-align:middle; }
     .goal-components { grid-column:2/-1; display:flex; flex-wrap:wrap; gap:4px 8px; color:#9f8cb8; font-size:8px; }
     .picker-trigger { width:100%; min-height:43px; display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid rgba(212,166,94,.28); border-radius:9px; background:#0b0806; color:#e6d6b4; cursor:pointer; text-align:left; }
@@ -246,10 +254,10 @@
         </div></section>
 
         <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
-          <div class="goal-block"><div class="goal-title"><span>Start from a preset</span><span>Fills both lists · tune anything after</span></div><div id="goal-presets" class="picker-categories" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>
+          <div class="goal-block"><div class="goal-title"><span>Start from a preset</span><span>Ranked goals with calibrated floors · tune anything after</span></div><div id="goal-presets" class="picker-categories" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>
           <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Ranked priorities · drag to reorder</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
           <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
-          <p class="hint">Protected stats are hard constraints. The engine will reject a loadout that reduces one.</p>
+          <p class="hint">Every wanted stat can also carry a minimum. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached. Values use the same units the game displays. Protected stats are hard constraints at their current value; the engine will reject a loadout that reduces one.</p>
         </div></section>
 
         <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">4. Optional choices</h2><span class="section-kicker">Defaults are recommended</span></div><div class="panel-body">
@@ -290,7 +298,7 @@
           <div class="lock-toolbar"><button id="lock-all-slots" type="button">Lock all equipped</button><button id="clear-slot-locks" type="button">Clear slot locks</button></div>
           <div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">Tick any additional item you do not want replaced.</p>
         </div></section>
-        <div class="actions setup-actions"><span class="hint" style="margin:auto 8px auto 0;">Choose at least one stat. The optimizer handles search quality and calculation rules automatically.</span><button id="run-optimizer" class="primary" type="button" disabled>Improve my build</button></div>
+        <div class="actions setup-actions"><span id="run-hint" class="hint" style="margin:auto 8px auto 0;">Choose at least one stat. The optimizer handles search quality and calculation rules automatically.</span><button id="run-optimizer" class="primary" type="button" disabled>Improve my build</button></div>
     </div>
     <section id="output" class="panel output-stage hidden" aria-live="polite">
       <div id="progress-state" class="progress-wrap hidden"><div class="progress-card"><div class="progress-sigil"><span>✦</span></div><div class="section-kicker">Improving your build</div><h2 id="progress-label">Preparing equipment</h2><p id="progress-detail">Checking compatible options for every slot.</p><div class="progress-head"><strong>Complete-build search</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><div class="progress-steps"><span class="progress-step active">Catalogue</span><span class="progress-step">Limits</span><span class="progress-step">Attributes</span><span class="progress-step">Assemble</span></div><button id="cancel-optimizer" class="secondary" type="button">Cancel and return</button></div></div>
@@ -304,7 +312,7 @@
     import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./full-build-optimizer.js";
 
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], goalModes:{}, goalValues:{}, currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
     function syncHeroicLocks() {
       const lockHeroics=$('lock-heroics').checked,heroicInputs=[...document.querySelectorAll('[data-heroic="true"]')];
@@ -480,22 +488,39 @@
       selected.ondrop=event=>{const target=event.target.closest("[data-priority]"),source=state.dragPriorityId||event.dataTransfer?.getData("text/plain");if(!target||!source||target.dataset.priority===source)return;event.preventDefault();const next=state.increase.filter(id=>id!==source),targetIndex=next.indexOf(target.dataset.priority),rect=target.getBoundingClientRect(),after=event.clientY>rect.top+rect.height/2;next.splice(targetIndex+(after?1:0),0,source);state.increase=next;state.dragPriorityId="";renderPicker($("increase-picker"),"increase");};
       selected.onkeydown=event=>{const handle=event.target.closest("[data-drag-handle]");if(!handle||!["ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();movePriority(handle.dataset.dragHandle,event.key==="ArrowUp"?-1:1);};
     }
+    function goalModeCopy(mode,index) { return mode==="at_least"?"Hard floor · still rewarded above it":mode==="target"?"Hard floor · stops rewarding once reached":index===0?"Protected hardest; drag to change priority":"Maximized after higher-ranked goals"; }
+    function goalModeRow(id,name,current) {
+      const mode=state.goalModes[id]??"maximize",value=state.goalValues[id];
+      const options=[["maximize","Maximize"],["at_least","At least"],["target","Target"]].map(([optionId,label])=>`<option value="${optionId}"${mode===optionId?" selected":""}>${label}</option>`).join("");
+      return `<span class="goal-mode-row"><select data-goal-mode="${esc(id)}" aria-label="Goal mode for ${esc(name)}">${options}</select>${mode!=="maximize"?`<label class="goal-value">${mode==="target"?"Reach":"Floor"} <input type="number" min="0" step="any" data-goal-value="${esc(id)}" value="${value==null?"":esc(value)}" aria-invalid="${String(!Number.isFinite(Number(value))||value==null||value==="")}" aria-label="${mode==="target"?"Target value":"Minimum value"} for ${esc(name)}"></label><span class="goal-current">Current ${esc(current?.formattedValue??"0")}</span>`:""}</span>`;
+    }
     function renderPicker(root,key) {
       const selected=root.querySelector(".goal-selected");
-      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id,current=state.currentStats[id],components=compositeComponents(id); return `<div class="goal-chip" ${key==="increase"?`data-priority="${esc(id)}" draggable="true"`:""}><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}${components.length>1?` <span class="composite-badge">Composite</span>`:""}</strong><small>${key==="increase"?(index===0?"Protected hardest; drag to change priority":"Maximized after higher-ranked goals"):"Protected at current value"}</small>${components.length>1?`<span class="goal-components">${components.map(component=>esc(component.name)).join(" · ")}</span>`:""}</span>${key==="protect"?`<strong class="goal-chip-value" title="Current protected floor">${esc(current?.formattedValue??"0")}</strong>`:""}${key==="increase"?`<span class="goal-drag" role="button" tabindex="0" data-drag-handle="${esc(id)}" aria-label="Drag to reorder ${esc(name)}. Use arrow keys for keyboard reordering." title="Drag to reorder">⋮⋮</span>`:""}<button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
-      selected.querySelectorAll("button[data-remove]").forEach(button=>button.onclick=()=>{ state[key]=state[key].filter(value=>value!==button.dataset.remove); renderPicker(root,key); });
+      selected.innerHTML=state[key].length?state[key].map((id,index)=>{ const row=state.statOptions.find(item=>item.id===id),name=row?.name??row?.label??id,current=state.currentStats[id],components=compositeComponents(id),mode=key==="increase"?state.goalModes[id]??"maximize":""; return `<div class="goal-chip" ${key==="increase"?`data-priority="${esc(id)}"`:""}><span class="goal-chip-mark">${key==="increase"?index+1:"◆"}</span><span class="goal-chip-copy"><strong>${esc(name)}${components.length>1?` <span class="composite-badge">Composite</span>`:""}</strong><small>${key==="increase"?goalModeCopy(mode,index):"Protected at current value"}</small>${components.length>1?`<span class="goal-components">${components.map(component=>esc(component.name)).join(" · ")}</span>`:""}${key==="increase"?goalModeRow(id,name,current):""}</span>${key==="protect"?`<strong class="goal-chip-value" title="Current protected floor">${esc(current?.formattedValue??"0")}</strong>`:""}${key==="increase"?`<span class="goal-drag" role="button" tabindex="0" draggable="true" data-drag-handle="${esc(id)}" aria-label="Drag to reorder ${esc(name)}. Use arrow keys for keyboard reordering." title="Drag to reorder">⋮⋮</span>`:""}<button type="button" data-remove="${esc(id)}" aria-label="Remove ${esc(name)}">×</button></div>`; }).join(""):`<div class="goal-empty">${esc(root.dataset.placeholder)}</div>`;
+      selected.querySelectorAll("button[data-remove]").forEach(button=>button.onclick=()=>{ state[key]=state[key].filter(value=>value!==button.dataset.remove); delete state.goalModes[button.dataset.remove]; delete state.goalValues[button.dataset.remove]; renderPicker(root,key); });
+      selected.querySelectorAll("select[data-goal-mode]").forEach(select=>select.onchange=()=>{ state.goalModes[select.dataset.goalMode]=select.value; renderPicker(root,key); });
+      selected.querySelectorAll("input[data-goal-value]").forEach(input=>input.oninput=()=>{ const raw=input.value.trim(); state.goalValues[input.dataset.goalValue]=raw===""?null:Number(raw); input.setAttribute("aria-invalid",String(raw===""||!Number.isFinite(Number(raw)))); updateReady(); });
       if(key==="increase") bindPriorityOrdering(selected);
       root.querySelector(".picker-trigger-count").textContent=`${availableStats(key).length} available`;
       renderPickerOptions(root,key); updateReady();
     }
-    function updateReady(){ const scenarioValid=!$("enable-distance-scenario").checked||Boolean(activeScenario()); $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length && scenarioValid && !state.scenarioError); }
+    function invalidGoalValueId(){ return state.increase.find(id=>{ if((state.goalModes[id]??"maximize")==="maximize") return false; const value=state.goalValues[id]; return value==null||value===""||!Number.isFinite(Number(value)); }) ?? ""; }
+    function updateReady(){
+      const scenarioValid=!$("enable-distance-scenario").checked||Boolean(activeScenario()), invalidGoal=invalidGoalValueId();
+      $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length && !invalidGoal && scenarioValid && !state.scenarioError);
+      const hint=$("run-hint"); if(hint) hint.textContent=invalidGoal?`Enter a ${(state.goalModes[invalidGoal]==="target")?"Target":"At least"} value for ${state.statOptions.find(row=>row.id===invalidGoal)?.name??invalidGoal}, or switch it back to Maximize.`:"Choose at least one stat. The optimizer handles search quality and calculation rules automatically.";
+    }
     function buildMainHandFamily(){ const itemId=state.build?.equipment?.main_hand?.itemId; const type=state.core?.indexes?.itemById?.[itemId]?.equipmentType; return state.presets?.weaponStatFamily?.(type) ?? "all"; }
     function applyGoalPreset(presetId){
       if(!state.presets) return;
       const preset=state.presets.resolveOptimizerPreset(presetId,{family:buildMainHandFamily()});
       const known=new Set(state.statOptions.map(row=>row.id));
-      state.increase=preset.maximize.filter(id=>known.has(id));
-      state.protect=preset.floors.map(floor=>floor.id).filter(id=>known.has(id)&&!state.increase.includes(id));
+      const maximize=preset.maximize.filter(id=>known.has(id));
+      const floors=preset.floors.filter(floor=>known.has(floor.id)&&!maximize.includes(floor.id));
+      state.increase=[...maximize,...floors.map(floor=>floor.id)];
+      state.goalModes={}; state.goalValues={};
+      for(const floor of floors){ state.goalModes[floor.id]="at_least"; state.goalValues[floor.id]=floor.display; }
+      state.protect=state.protect.filter(id=>!state.increase.includes(id));
       renderPicker($("increase-picker"),"increase"); renderPicker($("protect-picker"),"protect");
     }
     function renderGoalPresets(){
@@ -503,7 +528,7 @@
       root.innerHTML=state.presets.OPTIMIZER_PRESETS.map(preset=>`<button type="button" class="picker-category" data-preset="${esc(preset.id)}" title="${esc(preset.tagline)}">${esc(preset.label)}</button>`).join("");
       root.onclick=event=>{ const button=event.target.closest("button[data-preset]"); if(button) applyGoalPreset(button.dataset.preset); };
     }
-    function request() { const lockHeroics=$("lock-heroics").checked; return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:lockHeroics, reconsiderHeroics:!lockHeroics, includeSetEffects:true, optimizeThreeTraits:true, bestHeroicConfiguration:true, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:"refine" }; }
+    function request() { const lockHeroics=$("lock-heroics").checked; return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>{ const mode=state.goalModes[id]??"maximize",displayValue=state.goalValues[id]; if(mode!=="maximize"&&!Number.isFinite(Number(displayValue))) throw new Error(`Enter a value for ${state.statOptions.find(row=>row.id===id)?.name??id} or switch it back to Maximize.`); const value=mode==="maximize"?null:state.core.statDisplayToRaw(id,Number(displayValue)); return {id,rank:index+1,mode,minimum:mode==="at_least"?value:null,target:mode==="target"?value:null}; }), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:lockHeroics, reconsiderHeroics:!lockHeroics, includeSetEffects:true, optimizeThreeTraits:true, bestHeroicConfiguration:true, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:"refine" }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Checking complete equipment combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     function openSharedResult(result) {
       const scenario=result.scenario??activeScenario(),scenarioNote=scenario?`Scenario scoring used ${formatOptimizerScenario(scenario)}. Conditional overlays remain separate from persistent static totals.`:"",assumptions=[...(result.assumptions??[])];
@@ -558,11 +583,12 @@
       bindResultHover(result); $("engine-status").textContent="Complete"; setView("result");
     }
     $("run-optimizer").addEventListener("click",()=>{
+      let optimizeRequest; try { optimizeRequest=request(); } catch(error){ $("run-hint").textContent=error.message; return; }
       state.worker?.terminate(); $("run-optimizer").disabled=true; const scenario=activeScenario(); showProgress({percent:0,label:"Preparing your build",detail:scenario?`Starting scenario scoring: ${formatOptimizerScenario(scenario)}.`:"Starting the static optimizer worker."});
       const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
       worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;try{openSharedResult(message.result);}catch(error){setEngineError(`The result could not be opened. ${error.message}`);}updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
       worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
-      worker.postMessage({type:"optimize",request:request()});
+      worker.postMessage({type:"optimize",request:optimizeRequest});
     });
     $("cancel-optimizer").addEventListener("click",()=>{state.worker?.postMessage({type:"cancel"});state.worker?.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}); $("retry-engine").addEventListener("click",connectEngine);
     connectEngine();
