@@ -34,3 +34,5 @@ supabase/.branches/
 /zlib-ng2.dll
 
 .vercel
+
+.bench/

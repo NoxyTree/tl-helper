@@ -2542,16 +2542,17 @@ function cloneCalculationSourceMap(sourceMap) {
 // Final derived values and hard caps must run after scenario rows are added.
 // Keeping one finalizer for static and scenario states prevents an overlay on a
 // modifier such as Attack Speed from leaving its dependent weapon stat stale.
-function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) {
+function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = [], trackSources = true) {
   const totals = new Map(baseTotals);
-  const sourceMap = cloneCalculationSourceMap(baseSourceMap);
+  const sourceMap = trackSources ? cloneCalculationSourceMap(baseSourceMap) : null;
   const add = (statId, value, sourceLabel, sourceType = "source", grade = 0, icon = "", metadata = {}) => {
     const numeric = Number(value);
     if (!statId || !numeric || Number.isNaN(numeric)) return;
     for (const expandedId of STAT_EXPANSIONS[statId] ?? []) {
-      add(expandedId, numeric, sourceLabel, sourceType, grade, icon, { ...metadata, expandedFrom: statId });
+      add(expandedId, numeric, sourceLabel, sourceType, grade, icon, sourceMap ? { ...metadata, expandedFrom: statId } : metadata);
     }
     totals.set(statId, (totals.get(statId) ?? 0) + numeric);
+    if (!sourceMap) return;
     if (!sourceMap.has(statId)) sourceMap.set(statId, []);
     sourceMap.get(statId).push({ sourceLabel, name: sourceLabel, value: numeric, type: sourceType, grade, icon, ...metadata });
   };
@@ -2623,13 +2624,19 @@ function finalizeCalculationState(baseTotals, baseSourceMap, scenarioRows = []) 
     uncappedTotal: total + (capOverflow.get(id) ?? 0),
     overflow: capOverflow.get(id) ?? 0,
     hardCap: statHardCap(id),
-    sources: sourceMap.get(id) ?? [],
+    sources: sourceMap?.get(id) ?? [],
   }));
   return { totals, sourceMap, capOverflow, stats };
 }
 
 export function calculateBuild(build, attributes, options = {}) {
   const includeSetEffects = options.includeSetEffects !== false;
+  // totalsOnly skips every presentation-and-diagnostics product (per-stat
+  // source rows, set-effect trace, validation, status, rune synergies) while
+  // running the identical stat math. Optimizer inner loops consume only
+  // {id, total} rows; scripts/tests/calculate-build-totals-only.test.mjs pins
+  // total-for-total equality against the full path.
+  const totalsOnly = options.totalsOnly === true;
   const progression = effectiveProgression(build, { weaponTypes: options.progressionWeaponTypes });
   const totals = new Map();
   const sourceMap = new Map();
@@ -2637,9 +2644,10 @@ export function calculateBuild(build, attributes, options = {}) {
     const numeric = Number(value);
     if (!statId || !numeric || Number.isNaN(numeric)) return;
     for (const expandedId of STAT_EXPANSIONS[statId] ?? []) {
-      add(expandedId, numeric, sourceLabel, sourceType, grade, icon, { ...metadata, expandedFrom: statId });
+      add(expandedId, numeric, sourceLabel, sourceType, grade, icon, totalsOnly ? metadata : { ...metadata, expandedFrom: statId });
     }
     totals.set(statId, (totals.get(statId) ?? 0) + numeric);
+    if (totalsOnly) return;
     if (!sourceMap.has(statId)) sourceMap.set(statId, []);
     sourceMap.get(statId).push({ sourceLabel, name: sourceLabel, value: numeric, type: sourceType, grade, icon, ...metadata });
   };
@@ -2778,6 +2786,17 @@ export function calculateBuild(build, attributes, options = {}) {
   applyPhase(4);
   applyPhase(5);
   applyPhase(6);
+  if (totalsOnly) {
+    const stats = finalizeCalculationState(totals, sourceMap, [], false).stats;
+    const result = { stats, totalsOnly: true };
+    if (options.scenario != null) {
+      const evaluated = evaluateBuildScenario(build, options.scenario, progression, selections, { includeSetEffects });
+      result.scenarioStats = evaluated.errors.length === 0
+        ? finalizeCalculationState(totals, sourceMap, evaluated.overlayRows, false).stats
+        : stats;
+    }
+    return result;
+  }
   const persistentState = finalizeCalculationState(totals, sourceMap);
   const runeSynergies = calculateRuneSynergies(build);
   const validation = validateBuild(runeSynergies, build, progression, attributes);
@@ -3120,7 +3139,7 @@ function calculateRuneSynergies(build) {
 function addDerivedTotal(id, total, totals, sourceMap) {
   if (!total) return;
   totals.set(id, total);
-  sourceMap.set(id, [{ sourceLabel: "Calculated total", name: "Calculated total", value: total, type: "derived" }]);
+  if (sourceMap) sourceMap.set(id, [{ sourceLabel: "Calculated total", name: "Calculated total", value: total, type: "derived" }]);
 }
 
 // Combat power is a fitted heuristic (hardcoded tables + per-item bonus

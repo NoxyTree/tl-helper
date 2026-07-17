@@ -246,7 +246,7 @@ function diverseStates(states, statIds, limit, weights, statCaps) {
   return [...retained.values()].slice(0, limit);
 }
 
-function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps, setRoutes = [], futureSlots = [], candidatesBySlot = {}, searchOptions = {}, structuralKeys = [], remainingStructuralKeys = new Set() }) {
+function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps, setRoutes = [], futureSlots = [], candidatesBySlot = {}, searchOptions = {}, structuralKeys = [], remainingStructuralKeys = new Set(), minimumTargets = [] }) {
   const frontiers = new Map();
   for (const state of states) {
     state._signature = signature(state);
@@ -265,8 +265,13 @@ function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps,
     frontiers.set(sig, next.length > paretoWidth ? diverseStates(next, paretoStats, paretoWidth, weights, statCaps) : next);
   }
   const pooled = [...frontiers.values()].flat();
+  // Minimum-target reservation draws from the full expansion, not the pareto
+  // pool: a jointly-floor-covering state is often non-extreme in every single
+  // dimension, so the per-signature pareto width bound erases it before any
+  // downstream retention could see it.
   const reserved = [...reserveSetRouteStates(pooled, setRoutes, futureSlots, candidatesBySlot, searchOptions, weights, statCaps),
-    ...reserveStructuralStates(pooled, structuralKeys, remainingStructuralKeys, weights, statCaps)];
+    ...reserveStructuralStates(pooled, structuralKeys, remainingStructuralKeys, weights, statCaps),
+    ...reserveMinimumTargetStates(states, minimumTargets, paretoWidth)];
   const general = diverseStates(pooled, paretoStats, beamWidth, weights, statCaps);
   const retained = new Map(reserved.map((state) => [state.key, state]));
   for (const state of general) retained.set(state.key, state);
@@ -298,6 +303,44 @@ function addCandidate(state, slot, candidate) {
     neutralGrade: number(state.neutralGrade) + number(candidate.neutralGrade),
     key: `${state.key}|${slot}:${id}`,
   };
+}
+
+// Goal minimums ("at least" floors) in scratch mode cannot be judged during
+// the beam — attribute points that help satisfy them are allocated later — so
+// they are enforced only after attribute optimization. Retention must
+// therefore keep the states closest to jointly covering every floor alive
+// through pruning and into the frontier, or a scoring-dominant beam can erase
+// every floor-capable loadout and the run ends in "no build satisfies the
+// constraints" even though the floors are individually reachable (observed
+// with the PvP Evasion preset's accuracy + Heavy Attack floors, 2026-07-17).
+// Reserving states is purely additive: without minimum targets the search is
+// byte-identical to before.
+function normalizeMinimumTargets(targets) {
+  return (Array.isArray(targets) ? targets : [])
+    .map((row) => ({
+      id: String(row.id ?? ""),
+      components: [...new Set((row.components?.length ? row.components : [row.id]).map(String))],
+      minimum: number(row.minimum),
+    }))
+    .filter((row) => row.id && Number.isFinite(row.minimum) && row.minimum > 0);
+}
+
+function minimumShortfall(stats, targets) {
+  let shortfall = 0;
+  for (const target of targets) {
+    const value = Math.min(...target.components.map((id) => number(stats?.[id])));
+    shortfall += Math.max(0, target.minimum - value) / Math.max(1, target.minimum);
+  }
+  return shortfall;
+}
+
+function reserveMinimumTargetStates(pooled, targets, reserveWidth) {
+  if (!targets.length || !pooled.length) return [];
+  return pooled
+    .map((state) => ({ state, shortfall: minimumShortfall(state.stats, targets) }))
+    .sort((a, b) => a.shortfall - b.shortfall || b.state._heuristic - a.state._heuristic || a.state.key.localeCompare(b.state.key))
+    .slice(0, Math.max(1, reserveWidth))
+    .map(({ state }) => state);
 }
 
 function protectedLegal(evaluation, protectedStats) {
@@ -362,6 +405,7 @@ export async function optimizeFullBuild(options) {
   const weights = options.weights ?? {};
   const statCaps = options.statCaps ?? {};
   const paretoStats = [...new Set([...(options.paretoStats ?? Object.keys(weights)), ...Object.keys(options.protectedStats ?? {})])].sort();
+  const minimumTargets = normalizeMinimumTargets(options.minimumTargets);
   const setRoutes = normalizeSetRoutes(options.setRoutes);
   const structuralKeys = [...new Set(options.structuralStateKeys ?? [])].map(String).filter(Boolean).sort();
   const normalizedBySlot = Object.fromEntries(slots.map((slot) => [slot, normalizeCandidates(slot, options.candidatesBySlot[slot], locked[slot])]));
@@ -382,7 +426,7 @@ export async function optimizeFullBuild(options) {
         if (canAdd(state, candidate, options)) expanded.push(addCandidate(state, slot, candidate));
       }
     }
-    beam = prune(expanded, { beamWidth, paretoWidth, paretoStats, weights, statCaps, setRoutes, futureSlots, candidatesBySlot: normalizedBySlot, searchOptions: options, structuralKeys, remainingStructuralKeys });
+    beam = prune(expanded, { beamWidth, paretoWidth, paretoStats, weights, statCaps, setRoutes, futureSlots, candidatesBySlot: normalizedBySlot, searchOptions: options, structuralKeys, remainingStructuralKeys, minimumTargets });
     options.onProgress?.({ phase: "search", completedSlots: index + 1, totalSlots: slots.length, frontierSize: beam.length, searched });
     if (!beam.length) break;
     await Promise.resolve();
@@ -446,6 +490,17 @@ export async function optimizeFullBuild(options) {
   const frontier = new Map([...routeFinalists.values()].map((result) => [result.key, result]));
   for (const result of structuralFinalists.values()) frontier.set(result.key, result);
   for (const result of diverseResultFrontier(results, paretoStats, frontierCount, statCaps)) frontier.set(result.key, result);
+  // Floor-nearest finalists join the frontier so the attribute stage always
+  // receives loadouts it can push over the goal minimums; ranked on exact
+  // evaluated totals, unlike the beam reserve's additive approximations.
+  if (minimumTargets.length) {
+    const floorFinalists = [...results]
+      .map((result) => ({ result, shortfall: minimumShortfall(result.evaluation?.stats ?? {}, minimumTargets) }))
+      .sort((a, b) => a.shortfall - b.shortfall || number(b.result.evaluation?.score) - number(a.result.evaluation?.score) || a.result.key.localeCompare(b.result.key))
+      .slice(0, Math.min(16, paretoWidth))
+      .map(({ result }) => result);
+    for (const result of floorFinalists) frontier.set(result.key, result);
+  }
   return {
     best: alternatives[0] ?? null,
     alternatives,
