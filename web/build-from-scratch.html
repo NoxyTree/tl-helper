@@ -75,7 +75,7 @@
       <div class="tl-app-status-group">
         <div class="tl-app-status">
           <div class="tl-app-status-label">Weapon Set</div>
-          <div class="tl-app-status-value">{{ weaponSetLabel }}</div>
+          <div class="tl-app-status-value" style="display:flex;align-items:center;gap:6px;"><sc-for list="{{ weaponSetIcons }}" as="wi" hint-placeholder-count="2"><span aria-hidden="true" style="flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:1px solid rgba(242,199,119,.4);background:{{ wi.icon }};"></span></sc-for><span>{{ weaponSetLabel }}</span></div>
         </div>
         <div class="tl-app-status">
           <div class="tl-app-status-label">Combat Power</div>
@@ -165,7 +165,7 @@
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;">
             <sc-for list="{{ presetChips }}" as="chip" hint-placeholder-count="4">
-              <button onClick="{{ chip.select }}" title="{{ chip.tagline }}" style="padding:7px 11px;border:1px solid rgba(185,140,240,.35);border-radius:8px;background:rgba(185,140,240,.08);color:#d9c9ea;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(185,140,240,.7);color:#efe4fb;">{{ chip.label }}</button>
+              <button onClick="{{ chip.select }}" title="{{ chip.tagline }}" style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 7px;border:1px solid rgba(185,140,240,.35);border-radius:8px;background:rgba(185,140,240,.08);color:#d9c9ea;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(185,140,240,.7);color:#efe4fb;"><sc-if value="{{ chip.hasIcon }}"><span aria-hidden="true" style="pointer-events:none;flex:0 0 auto;width:20px;height:20px;border-radius:6px;border:1px solid rgba(185,140,240,.4);background:{{ chip.icon }};"></span></sc-if><span style="pointer-events:none;">{{ chip.label }}</span></button>
             </sc-for>
           </div>
         </div>
@@ -428,7 +428,7 @@
           </label>
           <sc-for list="{{ progressionWeapons }}" as="weapon" hint-placeholder-count="2">
             <label style="display:grid;gap:6px;padding:11px 12px;border:1px solid {{ weapon.border }};border-radius:10px;background:rgba(0,0,0,.22);">
-              <span style="display:flex;align-items:center;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><sc-if condition="{{ weapon.hasIcon }}"><span aria-hidden="true" style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(185,140,240,.32);background:{{ weapon.icon }};"></span></sc-if><span>{{ weapon.name }} Mastery</span><span style="margin-left:auto;color:#d8b8ff;">{{ weapon.value }}/220</span></span>
+              <span style="display:flex;align-items:center;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><sc-if value="{{ weapon.hasIcon }}"><span aria-hidden="true" style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(185,140,240,.32);background:{{ weapon.icon }};"></span></sc-if><span>{{ weapon.name }} Mastery</span><span style="margin-left:auto;color:#d8b8ff;">{{ weapon.value }}/220</span></span>
               <input type="number" min="0" max="220" step="1" value="{{ weapon.value }}" onInput="{{ weapon.change }}" disabled="{{ weapon.disabled }}" aria-label="Available {{ weapon.name }} Mastery points" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(185,140,240,.28);border-radius:7px;background:#0b080d;color:#eadcf2;font:600 12px 'Instrument Sans';">
               <span style="color:#75687e;font-size:9px;line-height:1.4;">The optimizer may spend up to this many available points on this weapon.</span>
             </label>
@@ -2642,7 +2642,9 @@ class Component extends DCLogic {
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
-      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
+      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
+      weaponSetIcons:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.weaponFamilyIcon(type)).filter(Boolean).map(icon=>({icon:`url(${icon}) center/82% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`})),
+      hasEngineError:!!s.engineError, engineError:s.engineError,
 
       weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,
       overallMasteryLevel:String(s.progression.overallMasteryLevel),overallMasteryLevelOptions,setOverallMasteryLevel:this.setOverallMasteryLevel,
@@ -2653,7 +2655,10 @@ class Component extends DCLogic {
       toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
       rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
-      presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>({label:preset.label,tagline:preset.tagline,select:()=>this.applyPreset(preset.id)})),
+      presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>{
+        const skillIcon=this.core?.indexes?.skillById?.[preset.iconSkillId]?.imageUrl||'';
+        return {label:preset.label,tagline:preset.tagline,hasIcon:Boolean(skillIcon),icon:skillIcon?`url(${skillIcon}) center/cover`:'',select:()=>this.applyPreset(preset.id)};
+      }),
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
       priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',

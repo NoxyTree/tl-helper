@@ -37,6 +37,9 @@ export const OPTIMIZER_PRESETS = [
     id: "boss-dps",
     label: "Boss DPS",
     tagline: "Heavy Attack and Critical pressure for world bosses and dungeons, with hit and cooldown floors.",
+    // Role glyph: an in-game skill icon shown on the preset chip. Purely
+    // cosmetic — chips render without an icon if the id leaves the catalogue.
+    iconSkillId: "SkillSet_WP_SW2_S_GaiaCrash",
     maximize: [
       "boss_{family}_double_attack",
       "boss_{family}_critical_attack",
@@ -53,6 +56,7 @@ export const OPTIMIZER_PRESETS = [
     id: "pvp-burst",
     label: "PvP Burst",
     tagline: "Critical and Heavy Attack burst for open-world PvP, with accuracy and survivability floors.",
+    iconSkillId: "SkillSet_WP_DA_DA_S_DeadlyStrike",
     maximize: [
       "pvp_{family}_critical_attack",
       "pvp_{family}_double_attack",
@@ -68,6 +72,7 @@ export const OPTIMIZER_PRESETS = [
     id: "pvp-evasion",
     label: "PvP Evasion",
     tagline: "Evasion, health, and critical defense, while keeping enough accuracy and Heavy Attack to threaten.",
+    iconSkillId: "SkillSet_WP_SW_SH_S_TheCloserEvasionUP",
     maximize: [
       "pvp_all_evasion",
       "hp_max",
@@ -83,6 +88,7 @@ export const OPTIMIZER_PRESETS = [
     id: "support",
     label: "Support / Healer",
     tagline: "Healing output, cooldown speed, and buff duration, with a health floor to stay standing.",
+    iconSkillId: "SkillSet_WP_WA_GR_S_Heal",
     maximize: [
       "heal_modifier",
       "skill_cooldown_modifier",
