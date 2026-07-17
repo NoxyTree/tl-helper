@@ -161,10 +161,10 @@ test("ranked goals use tied ranks, explicit modes, and scale normalization", () 
   const goals = normalizeRankedGoals({ priorities: [{ id: "endurance", rank: 1 }, { id: "health", rank: 2 }, { id: "evasion", rank: 2, mode: "at_least", minimum: 80 }] });
   assert.deepEqual(goals.map(({ id, rank, weight, mode, minimum, target }) => ({ id, rank, weight, mode, minimum, target })), [
     { id: "endurance", rank: 1, weight: 1, mode: "maximize", minimum: null, target: null },
-    { id: "evasion", rank: 2, weight: 0.05, mode: "at_least", minimum: 80, target: null },
-    { id: "health", rank: 2, weight: 0.05, mode: "maximize", minimum: null, target: null },
+    { id: "evasion", rank: 2, weight: 0.35, mode: "at_least", minimum: 80, target: null },
+    { id: "health", rank: 2, weight: 0.35, mode: "maximize", minimum: null, target: null },
   ]);
-  assert.equal(scoreRankedGoals({ endurance: 10, health: 1000 }, {}, { endurance: 10, health: 1000 }, goals), 1.05);
+  assert.equal(scoreRankedGoals({ endurance: 10, health: 1000 }, {}, { endurance: 10, health: 1000 }, goals), 1.35);
 });
 
 test("target goals enforce their value but stop rewarding excess", () => {
@@ -201,11 +201,23 @@ test("rune refinement values synergy attributes through their exact breakpoint e
   assert.match(result.runeInsights[0].text, /\+3 str toward attribute milestones/);
 });
 
-test("a meaningful gain in priority one outweighs a complete lower-priority objective", () => {
+test("rank weighting lets secondaries steer but never dethrone priority one", () => {
   const goals = normalizeRankedGoals({ priorities: [{ id: "endurance", rank: 1 }, { id: "hit", rank: 2 }] });
   const scales = { endurance: 100, hit: 100 };
-  assert.ok(scoreRankedGoals({ endurance: 10, hit: 0 }, {}, scales, goals)
+  // A rank-1 gain beyond the decay fraction still outweighs a complete
+  // lower-priority objective…
+  assert.ok(scoreRankedGoals({ endurance: 40, hit: 0 }, {}, scales, goals)
     > scoreRankedGoals({ endurance: 0, hit: 100 }, {}, scales, goals));
+  // …while a complete secondary now outweighs a marginal rank-1 gain — the
+  // 2026-07-17 calibration that broke degenerate single-stat builds.
+  assert.ok(scoreRankedGoals({ endurance: 0, hit: 100 }, {}, scales, goals)
+    > scoreRankedGoals({ endurance: 10, hit: 0 }, {}, scales, goals));
+  // The whole lower-priority tail combined can never outweigh a complete
+  // rank 1: geometric tail weight stays below 1 for any decay under 0.5.
+  const five = normalizeRankedGoals({ priorities: ["endurance", "hit", "health", "evasion", "mana"].map((id, index) => ({ id, rank: index + 1 })) });
+  const fiveScales = Object.fromEntries(five.map((goal) => [goal.id, 100]));
+  assert.ok(scoreRankedGoals({ endurance: 100 }, {}, fiveScales, five)
+    > scoreRankedGoals({ hit: 100, health: 100, evasion: 100, mana: 100 }, {}, fiveScales, five));
 });
 
 test("ranked objective scoring stops at official absolute stat caps", () => {
@@ -667,12 +679,17 @@ test("candidate generation excludes an unmapped persistent item before beam scor
 });
 
 function gearAwareProgressionFixture(itemCount = 9) {
+  // Attack spans 80% of its derived scale (100) while guard spans 100% of its
+  // scale (8), so the rank-1 attack step (0.1 normalized) outweighs the
+  // rank-2 guard step (RANK_DECAY / 8 normalized) and preliminary ranking
+  // stays descending by attack for any decay below 0.8 — the fixture's
+  // ordering does not silently flip when the production decay is tuned.
   const items = Array.from({ length: itemCount }, (_, index) => ({
     id: `item-${index}`,
     name: `Item ${index}`,
     grade: 41,
     equipmentType: "head",
-    attack: 100 - index,
+    attack: 100 - 10 * index,
     guard: index,
   }));
   const itemById = Object.fromEntries(items.map((item) => [item.id, item]));

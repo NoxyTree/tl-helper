@@ -274,3 +274,40 @@ test("neutral fallback conserves Heroics then prefers level, grade, and determin
   const runs = await Promise.all(Array.from({ length: 3 }, () => optimizeFullBuild({ candidatesBySlot, evaluate: () => ({ score: 0, stats: {} }) })));
   assert.deepEqual(runs.map((row) => row.best.selections.head.id), ["a-best", "a-best", "a-best"]);
 });
+
+test("goal-minimum targets reserve floor-capable states through beam pruning", async () => {
+  // One slot, four candidates: X dominates the maximize objective (attack),
+  // A and B are single-floor extremes, C alone covers both floors jointly.
+  // With beamWidth 1 the per-dimension diversity pass retains only X, so
+  // without minimum targets no frontier state can satisfy the floors -- the
+  // exact failure observed with the PvP Evasion preset. Minimum targets must
+  // reserve C (the lowest joint shortfall) into the beam and frontier.
+  const candidatesBySlot = { slot: [
+    { id: "x", selection: { id: "x", stats: { attack: 100 } }, stats: { attack: 100 } },
+    { id: "a", selection: { id: "a", stats: { acc: 100 } }, stats: { acc: 100 } },
+    { id: "b", selection: { id: "b", stats: { heavy: 100 } }, stats: { heavy: 100 } },
+    { id: "c", selection: { id: "c", stats: { acc: 60, heavy: 60 } }, stats: { acc: 60, heavy: 60 } },
+  ] };
+  const evaluate = (build) => {
+    const stats = Object.values(build).reduce((sum, entry) => {
+      for (const [id, value] of Object.entries(entry.stats ?? {})) sum[id] = (sum[id] ?? 0) + value;
+      return sum;
+    }, {});
+    return { score: stats.attack ?? 0, stats };
+  };
+  const base = {
+    candidatesBySlot, evaluate, weights: { attack: 1 },
+    paretoStats: ["attack", "acc", "heavy"], beamWidth: 1, paretoWidth: 3,
+  };
+  const meetsFloors = (result) => (result.evaluation.stats.acc ?? 0) >= 50 && (result.evaluation.stats.heavy ?? 0) >= 50;
+
+  const unaware = await optimizeFullBuild(base);
+  assert.equal(unaware.frontier.some(meetsFloors), false, "beamWidth 1 must prune the joint-floor state when no targets are declared");
+
+  const aware = await optimizeFullBuild({ ...base, minimumTargets: [
+    { id: "acc", components: ["acc"], minimum: 50 },
+    { id: "heavy", components: ["heavy"], minimum: 50 },
+  ] });
+  assert.equal(aware.frontier.some(meetsFloors), true, "minimum targets must carry a joint-floor state into the frontier");
+  assert.equal(aware.best.selections.slot.id, unaware.best.selections.slot.id, "reservation is additive and must not change the unconstrained best result");
+});

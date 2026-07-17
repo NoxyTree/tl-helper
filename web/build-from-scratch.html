@@ -1774,6 +1774,18 @@ class Component extends DCLogic {
     try{request=this.optimizerRequest();}catch(error){this.setState({engineError:error.message||String(error)});return;}
     this.setState({ phase:'forging', progress:0, candidates:0, stepIndex:0, engineError:'', masteryPending:false,
       progressPhase:this.FORGE_PHASES[0].title, progressMsg:'Starting the optimizer worker…' });
+    this.forgeWithPrecache(request);
+  };
+  // The optimizer is deterministic, so a precomputed result for this exact
+  // request is identical to what the worker would produce. Any miss or error
+  // falls through to the live worker path.
+  forgeWithPrecache = async (request) => {
+    try{
+      const precache=await import('./tl-optimizer-precache.js');
+      const cached=await precache.loadPrecachedResult(request,{gameBuild:this.core.data.gameBuild});
+      if(cached && this.state.phase==='forging'){this.applyForgeResult(structuredClone(cached),false);return;}
+    }catch{}
+    if(this.state.phase!=='forging')return;
     this._worker?.terminate();
     this._worker=new Worker('./tl-builder-worker.js',{type:'module'});
     this._worker.onmessage=(event)=>{

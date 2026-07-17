@@ -9,10 +9,17 @@ import { evaluateScenarioEffects } from "./tl-scenario-effects.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.scenarioStats ?? calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
-// Ranked goals are intentionally near-lexicographic. A lower-ranked objective
-// should refine a build, not erase the stat named as the player's first
-// priority during candidate pruning or final scoring.
-const RANK_DECAY = 0.05;
+// Geometric rank weighting. All lower-ranked goals combined carry
+// RANK_DECAY / (1 - RANK_DECAY) of rank 1's weight (0.54 at 0.35), so the
+// player's first priority always outweighs the rest of the list together —
+// but secondaries genuinely steer the build instead of acting as tie-breaks.
+// Calibrated 2026-07-17 against the meta audit: the previous 0.05 was
+// near-lexicographic and produced degenerate single-stat builds (all-in
+// attribute dumps, zero multiplier stats); at 0.35 the Boss DPS preset
+// concedes 1.2% of its rank-1 stat for +5.8% crit attack, +29% crit damage
+// and a realistic attribute spread, matching how hand-made meta builds
+// balance. See docs/optimizer-rank-decay-calibration-2026-07-17.md.
+const RANK_DECAY = 0.35;
 
 export const OPTIMIZER_SEARCH_PROFILES = Object.freeze({
   preview: Object.freeze({ id: "preview", directCandidateCap: 8, runeCandidateLimit: 6, artifactBundleLimit: 12, beamWidth: 160, paretoWidth: 12, attributePoolSize: 16, runeRefinementLimit: 6, progressionPoolSize: 2 }),
@@ -26,6 +33,9 @@ export function optimizerSearchProfile(depth) {
 }
 
 export function normalizeRankedGoals(goals = {}) {
+  // Benchmark-only override (scripts/benchmark-rank-decay.mjs); neither UI sets it.
+  const decayOverride = Number(goals.rankDecay);
+  const decay = decayOverride > 0 && decayOverride <= 1 ? decayOverride : RANK_DECAY;
   const source = Array.isArray(goals.priorities) && goals.priorities.length ? goals.priorities : (goals.increase ?? []);
   const unique = new Map();
   for (const [index, raw] of source.entries()) {
@@ -40,7 +50,7 @@ export function normalizeRankedGoals(goals = {}) {
         : "maximize";
     const normalizedTarget = mode === "target" ? target : null;
     const normalizedMinimum = mode === "target" ? target : Number.isFinite(minimum) ? minimum : null;
-    unique.set(id, { id, rank, weight: RANK_DECAY ** (rank - 1), mode, minimum: normalizedMinimum, target: normalizedTarget });
+    unique.set(id, { id, rank, weight: decay ** (rank - 1), mode, minimum: normalizedMinimum, target: normalizedTarget });
   }
   return [...unique.values()].sort((a, b) => a.rank - b.rank || a.id.localeCompare(b.id));
 }
@@ -603,8 +613,12 @@ export function optimizeProgressionFinalistTask(core, payload, context, progress
   const evaluate = (build, evaluationOptions = {}) => {
     const progressionWeaponTypes = evaluationOptions.progressionWeaponTypes ?? weapons;
     const scenario = taskScenarioForBuild(core, context.scenario, build);
+    // totalsOnly is exact for scoring (identical totals, no presentation
+    // products) — verified by scripts/tests/calculate-build-totals-only.test.mjs
+    // and a full-trajectory equivalence run; roughly halves the mastery stage.
     return withCompositeTotals(totalMap(core.calculateBuild(build, attributes, {
       includeSetEffects: context.includeSetEffects !== false,
+      totalsOnly: true,
       ...(scenario == null ? {} : { scenario }),
       ...(progressionWeaponTypes?.length ? { progressionWeaponTypes } : {}),
     })), context.constraintGoals ?? context.rankedGoals);
@@ -1156,7 +1170,11 @@ export async function createOptimizerAdapter(deps = {}) {
         if (!itemId) return true;
         if (Object.values(selections).some((selection) => selection?.itemId === itemId)) return false;
         return true;
-      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, setRoutes, structuralStateKeys, routeLegalityMetadataComplete: true, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching compatible loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {},
+      // Goal minimums ride along as retention targets in every mode: scratch
+      // enforces them only after attribute allocation, so floor-capable states
+      // must survive the beam even while score-dominant states outrank them.
+      minimumTargets: rankedGoals.filter((goal) => goal.minimum != null).map(({ id, components, minimum }) => ({ id, components, minimum })), setRoutes, structuralStateKeys, routeLegalityMetadataComplete: true, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching compatible loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       const setRouteStages = { preliminary: search.setRouteMetrics ?? { requested: setRoutes.length, represented: 0, representedRouteIds: [] } };
       const structuralStateStages = { preliminary: search.structuralStateMetrics ?? { requested: structuralStateKeys.length, represented: 0, representedKeys: [] } };
       if (attributePointBudget != null) {
@@ -1427,8 +1445,12 @@ export async function createOptimizerAdapter(deps = {}) {
           const codes = [...issues.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([code, count]) => `${code} (${count})`).join(", ");
           return `${stage}: ${codes}`;
         }).join("; ");
+        // Constraint rejections outrank blocking-issue summaries: when both
+        // occur across finalists, "relax your floors" is the actionable
+        // message — an illegal-progression summary reads as an engine fault.
+        if (rejectionDiagnostics.constraints) throw new Error("No build satisfies the protected or minimum stat constraints.");
         if (blockingSummary) throw new Error(`No complete build passed the final calculation checks. ${blockingSummary}`);
-        if (rejectionDiagnostics.constraints || Object.keys(protectedStats).length) throw new Error("No build satisfies the protected or minimum stat constraints.");
+        if (Object.keys(protectedStats).length) throw new Error("No build satisfies the protected or minimum stat constraints.");
         throw new Error("No complete build passed the final calculation checks.");
       }
       return shapeResult(search.best);
