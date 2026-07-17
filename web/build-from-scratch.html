@@ -428,7 +428,7 @@
           </label>
           <sc-for list="{{ progressionWeapons }}" as="weapon" hint-placeholder-count="2">
             <label style="display:grid;gap:6px;padding:11px 12px;border:1px solid {{ weapon.border }};border-radius:10px;background:rgba(0,0,0,.22);">
-              <span style="display:flex;justify-content:space-between;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><span>{{ weapon.name }} Mastery</span><span style="color:#d8b8ff;">{{ weapon.value }}/220</span></span>
+              <span style="display:flex;align-items:center;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><sc-if condition="{{ weapon.hasIcon }}"><span aria-hidden="true" style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(185,140,240,.32);background:{{ weapon.icon }};"></span></sc-if><span>{{ weapon.name }} Mastery</span><span style="margin-left:auto;color:#d8b8ff;">{{ weapon.value }}/220</span></span>
               <input type="number" min="0" max="220" step="1" value="{{ weapon.value }}" onInput="{{ weapon.change }}" disabled="{{ weapon.disabled }}" aria-label="Available {{ weapon.name }} Mastery points" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(185,140,240,.28);border-radius:7px;background:#0b080d;color:#eadcf2;font:600 12px 'Instrument Sans';">
               <span style="color:#75687e;font-size:9px;line-height:1.4;">The optimizer may spend up to this many available points on this weapon.</span>
             </label>
@@ -2056,6 +2056,18 @@ class Component extends DCLogic {
   }
   setGoalMode(id,event) { this.setState({goalModes:{...this.state.goalModes,[id]:event.target.value}}); }
   setGoalValue(id,event) { const value=event.target.value;this.setState({goalValues:{...this.state.goalValues,[id]:value===''?null:Number(value)}}); }
+  // Representative catalogue icon for a weapon family: the highest-grade item
+  // of that equipmentType (deterministic tie-break by id). Icons are mirrored
+  // locally by scripts/mirror-icons.mjs, so this never leaves the origin.
+  weaponFamilyIcon(type) {
+    if(!this.core||!type)return '';
+    this._familyIcons=this._familyIcons||{};
+    if(type in this._familyIcons)return this._familyIcons[type];
+    const best=(this.core.data?.items||[])
+      .filter(item=>item.equipmentType===type&&item.imageUrl)
+      .sort((a,b)=>(Number(b.grade)||0)-(Number(a.grade)||0)||String(a.id).localeCompare(String(b.id)))[0];
+    return this._familyIcons[type]=best?.imageUrl||'';
+  }
   setWeaponType(role,event) {
     const value=event.target.value;
     const weaponTypes={...this.state.weaponTypes,[role]:value};
@@ -2164,16 +2176,19 @@ class Component extends DCLogic {
       const slotId=role==='main'?'main_hand':'off_hand';
       const selected=s.weaponTypes[role];
       const types=this.core?this.core.slotById(slotId).types:[];
+      const familyIcon=selected?this.weaponFamilyIcon(selected):'';
       return { role:role==='main'?'Main weapon':'Off-hand weapon', value:selected, name:selected?this.core.label(selected):'Choose weapon', ariaLabel:role==='main'?'Main weapon family':'Off-hand weapon family',
         options:types.filter(type=>type!==s.weaponTypes[role==='main'?'off':'main']).map(type=>({id:type,label:this.core.label(type)})),
         family:selected?(this.core.label(selected)+' family locked for this search'):'Choose a weapon family', name_color:selected?'#f2c777':'#8a795f',
         border:selected?'rgba(242,199,119,.65)':'rgba(212,166,94,.24)', bg:'rgba(0,0,0,.24)',
-        icon:'radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)',glow:'rgba(229,200,143,.16)',change:(event)=>this.setWeaponType(role,event) };
+        icon:familyIcon?`url(${familyIcon}) center/78% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`:'radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)',glow:'rgba(229,200,143,.16)',change:(event)=>this.setWeaponType(role,event) };
     });
     const progressionWeapons=['main','off'].map(role=>{
       const weapon=s.weaponTypes[role];
       const value=weapon ? Number(s.progression.masteryPointsByWeapon[weapon] ?? this.core?.MASTERY_POINT_BUDGET ?? 220) : 0;
+      const familyIcon=weapon?this.weaponFamilyIcon(weapon):'';
       return {weapon,name:weapon?(this.core?.label(weapon)||weapon):(role==='main'?'Main weapon':'Off-hand weapon'),value,disabled:!weapon,
+        hasIcon:Boolean(familyIcon),icon:familyIcon?`url(${familyIcon}) center/contain no-repeat, radial-gradient(circle at 35% 30%,#241a2e,#0e0a13 72%)`:'',
         border:weapon?'rgba(185,140,240,.3)':'rgba(120,105,128,.14)',change:(event)=>this.setMasteryPoints(weapon,event)};
     });
     const passiveLevelOptions=[
