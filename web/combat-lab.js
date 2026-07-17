@@ -868,7 +868,7 @@ function renderTradeVerdict() {
     const kitSide = (label, kit) => kit.included.length
       ? `${label}: ${kit.included.length}/${kit.totalActives} damage skills + auto-attacks`
       : `${label}: auto-attacks only — no modelable damage skills${kit.totalActives ? "" : " (equip actives in the Armory to model a kit)"}`;
-    const kitNote = `${kitSide(sourceLabel, sourceKit)} · ${kitSide(targetLabel, targetKit)} · Cooldown Speed applied as the game's divisor.`;
+    const kitNote = `${kitSide(sourceLabel, sourceKit)} · ${kitSide(targetLabel, targetKit)} · Cooldown Speed applied as the game's divisor · skills modeled at base form, specializations not applied.`;
     const badge = "Modeled · full cadence · before Defense";
     const raceBar = raceBarMarkup(sourceLabel, targetLabel, verdict);
     if (verdict.winner === "even") {

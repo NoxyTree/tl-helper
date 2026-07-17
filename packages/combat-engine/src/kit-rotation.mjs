@@ -75,6 +75,7 @@ export function modelKitRotationPacket({ skills = [], weaponDamage, autoAttack =
       ? "Skill cooldowns are divided by (1 + Cooldown Speed), the live game's verified divisor form."
       : "Base cooldowns are used; Cooldown Speed is not applied.",
     "Each skill contributes its primary attack-power component only; extra hits and conditional casts are undercounted, never overcounted.",
+    "Skill specializations are not applied: every skill is modeled at its base form, which can understate or overstate a specialized skill's real numbers.",
     "Derived-classified coefficients follow the verified naming transform but have not been individually reviewed.",
   ];
   return Object.freeze({
