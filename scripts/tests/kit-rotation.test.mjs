@@ -42,7 +42,8 @@ test("assumptions disclose the cadence and undercounting limits", () => {
   assert.ok(packet.assumptions.some((text) => text.includes("undercounted, never overcounted")));
   assert.ok(packet.assumptions.some((text) => text.includes("auto-attacks between skill casts are not included")));
   assert.ok(packet.assumptions.some((text) => text.includes("Cooldown Speed is not applied")));
-  assert.ok(packet.assumptions.some((text) => text.includes("specializations are not applied")));
+  assert.ok(packet.assumptions.some((text) => text.includes("Validated specialization overrides are applied")));
+  assert.ok(packet.assumptions.some((text) => text.includes("without a validated override keeps the skill at its base form")));
 });
 
 test("auto-attack stream adds weapon damage per interval and permits an empty kit", () => {
