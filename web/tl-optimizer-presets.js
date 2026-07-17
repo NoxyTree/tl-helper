@@ -85,6 +85,38 @@ export const OPTIMIZER_PRESETS = [
     ],
   },
   {
+    id: "frontline-tank",
+    label: "Frontline Tank",
+    tagline: "Block, Endurance, and crowd-control resistance to anchor a fight, with enough accuracy to land your hits.",
+    iconSkillId: "SkillSet_WP_SW_SH_S_ShieldThrow",
+    maximize: [
+      "hp_max",
+      "pvp_all_double_defense",
+      "shield_block_chance",
+      "damage_reduction",
+      "all_state_tolerance",
+    ],
+    floors: [
+      { id: "pvp_{family}_accuracy", display: 3000 },
+    ],
+  },
+  {
+    id: "pvp-skirmisher",
+    label: "PvP Skirmisher",
+    tagline: "Evasion-first damage that slips answers while keeping crit pressure, with hit and health floors.",
+    iconSkillId: "SkillSet_WP_DA_DA_S_MoveSkillEvasion",
+    maximize: [
+      "pvp_all_evasion",
+      "pvp_{family}_critical_attack",
+      "critical_damage_dealt_modifier",
+      "pvp_damage_dealt_modifier",
+    ],
+    floors: [
+      { id: "pvp_{family}_accuracy", display: 3000 },
+      { id: "hp_max", display: 35000 },
+    ],
+  },
+  {
     id: "support",
     label: "Support / Healer",
     tagline: "Healing output, cooldown speed, and buff duration, with a health floor to stay standing.",

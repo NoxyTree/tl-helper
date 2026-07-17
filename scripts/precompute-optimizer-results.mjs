@@ -30,6 +30,8 @@ const MATRIX = [
   { preset: "boss-dps", pairs: [["dagger", "sword2h"], ["crossbow", "dagger"], ["staff", "dagger"]] },
   { preset: "pvp-burst", pairs: [["sword2h", "dagger"], ["crossbow", "dagger"], ["staff", "dagger"]] },
   { preset: "pvp-evasion", pairs: [["sword", "dagger"], ["sword", "wand"]] },
+  { preset: "frontline-tank", pairs: [["sword", "wand"], ["sword", "dagger"]] },
+  { preset: "pvp-skirmisher", pairs: [["dagger", "sword"], ["staff", "dagger"]] },
   { preset: "support", pairs: [["wand", "orb"], ["wand", "sword"]] },
 ];
 

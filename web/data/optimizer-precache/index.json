@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "gameBuild": "24118850",
   "engineFingerprint": "e2be597ce0ee1d7fb6326152f6eb3e5309dd1b90379ab37814a43b70fb9b45b6",
-  "generatedAt": "2026-07-17T21:46:15.842Z",
+  "generatedAt": "2026-07-17T22:31:36.964Z",
   "entries": {
     "2106dc96e2006f56168b7406d61bdc01fe1bbf499145f75b6ef5efdbb7b45f2a": "boss-dps-dagger-sword2h.json",
     "9e88ac88265fa578bb9fc1758ebc9e3a428f7305e5182037f551f10a1856824f": "boss-dps-crossbow-dagger.json",
@@ -13,6 +13,10 @@
     "97a1c779e2ce9917f3e55e7c25de1fa78008e632463f4b6ab72d2aecfe72f3c2": "pvp-burst-staff-dagger.json",
     "699c21b2b38b6ce28522af460d5c79550069490f17368962d4ff8d2aa0b22eaa": "pvp-evasion-sword-dagger.json",
     "bd6607d71c279f4534e8fc3939b8fd45537392a203d3db8071bd7e51b17b9b75": "pvp-evasion-sword-wand.json",
+    "f2bb0e34ba8c42a134c67857a8ab12cc9ebeda8e99e15108cac5a7072b38ce3a": "frontline-tank-sword-wand.json",
+    "0ba9eb727260ce6ffb422999b8f2b03d31b54f5a480171175d1006c1fa3c4f0c": "frontline-tank-sword-dagger.json",
+    "153d74474eee8abde8c6f7d3b94034abcaa0963884bc9cc5c21f42441da49871": "pvp-skirmisher-dagger-sword.json",
+    "2996a87ce6d20611de22beccfba6ae026e6ffc2e891a39be79dd97262755e930": "pvp-skirmisher-staff-dagger.json",
     "453dae2342760e1423b89607e5716f1d640cc8807d9f5e6a7f97d2cf2a051126": "support-wand-orb.json",
     "ea13ae68056daca18d6e5483319d7d68bc95dfa075aff5e30c60b195bdb6ff9a": "support-wand-sword.json"
   }
