@@ -28,6 +28,18 @@
 //   buffs that only deal damage through other skills or conditional riders)
 //   are excluded as no_tooltip_damage_line: a damage packet for them would
 //   overstate a PvP damage race by construction.
+// - Specialization trait overrides follow the same discipline against the
+//   client-visible skillTraits text: only full-form replacements (every
+//   level's effect reads "Change(s) to …" or "Activates the …") whose every
+//   level's description parses to "deals N% of Base Damage (+ M)" with
+//   non-decreasing magnitudes are published. Conditional riders, stat buffs,
+//   heal conversions, and charge maxima never become overrides — a chosen
+//   trait without a validated override keeps the skill at base form and is
+//   disclosed to the consumer as unverified. Charge-range statements take the
+//   minimum. Where a skill's specialization variant rows state the same
+//   damage line at every trait level, a longer variant cooldown replaces the
+//   base cooldown (never a shorter one), so an override can slow a kit but
+//   never speed it up on unconfirmed evidence.
 //
 // Usage:
 //   $env:TL_DATA_ROOT = 'D:\TL_Data'
@@ -36,6 +48,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const AP_TYPE = "EFormulaType::kAmountFromAttackPower";
 const MUL_BASIS = 10000;
@@ -165,7 +179,111 @@ function selectAnchoredPacket(mapping, skill) {
   };
 }
 
-export function buildKitPacketsArtifact({ skillsProjection, formulaMap, generatedAtUtc }) {
+// --- Specialization trait overrides -----------------------------------------
+// Trait level rows are keyed by the skill's own level (sparsely: a 5-entry
+// trait states levels 1,12..15), so the consumer's honest-level rule — highest
+// stated level at or below the skill's level — applies to overrides unchanged.
+
+const TRAIT_BASE_DAMAGE_MENTION = /base damage/i;
+// Only full-form replacements may override the primary hit. Riders ("deals
+// additional …"), conditional hits ("On Critical Hit, deals …"), and buffs
+// share the same damage vocabulary but do not replace the skill's cast.
+const TRAIT_REPLACEMENT_EFFECT = /^\s*(?:changes?\s+to\b|activates?\s+the\b)/i;
+// First statement wins: replacement descriptions open with the main hit, and
+// charge ranges ("500% … to 800% …") therefore resolve to the uncharged
+// minimum. Rider vocabulary ("additional", "bonus") never matches because the
+// magnitude must directly follow the verb (or "damage equal to").
+const TRAIT_DAMAGE_PATTERNS = [
+  /deals?\s+([\d,.]+)%\s+of\s+Base\s+Damage(?:\s*\+\s*([\d,]+))?/i,
+  /deal(?:s|ing)\s+(?:(?:fixed\s+)?damage\s+equal\s+to\s+)?([\d,.]+)%\s+of\s+Base\s+Damage(?:\s*\+\s*([\d,.]+))?/i,
+  /deal(?:s|ing)\s+([\d,.]+)%\s*\+\s*([\d,.]+)\s+of\s+Base\s+Damage/i,
+];
+
+const traitNumber = (value) => Number(String(value).replace(/,/g, ""));
+
+function parseTraitDamage(description) {
+  for (const pattern of TRAIT_DAMAGE_PATTERNS) {
+    const match = pattern.exec(String(description ?? ""));
+    if (match) return { percent: traitNumber(match[1]), add: match[2] === undefined ? 0 : traitNumber(match[2]) };
+  }
+  return null;
+}
+
+// A specialization variant row whose client-visible "Damage ▲" line agrees
+// with the parsed trait text at every stated level confirms the parse and is
+// the only accepted evidence for a changed cooldown.
+function matchTraitVariant(skill, traitLevels, parsed) {
+  for (const variant of skill.specializations ?? []) {
+    const agrees = traitLevels.every((traitLevel, index) => {
+      const row = (variant.levels ?? []).find((entry) => Number(entry.level) === Number(traitLevel.level));
+      const option = (row?.tooltipOptions ?? []).find((entry) => entry.name === DAMAGE_LINE);
+      const match = option ? DAMAGE_LINE_PATTERN.exec(String(option.parameter).trim()) : null;
+      if (!match) return false;
+      return Math.abs(Number(match[1]) - parsed[index].percent) <= DISPLAY_TOLERANCE &&
+        Math.abs((match[2] === undefined ? 0 : Number(match[2])) - parsed[index].add) <= DISPLAY_TOLERANCE;
+    });
+    if (agrees) return variant;
+  }
+  return null;
+}
+
+// Classifies every trait row exactly once: a validated override attached to
+// its skill's packet, or an exclusion with a reason. Damage-relevant traits
+// excluded on a modeled skill are listed on the packet as unverified, so the
+// consumer can keep the skill at base form and say so.
+function applyTraitOverrides({ skillTraits, skillById, packets }) {
+  const excluded = [];
+  let overrideCount = 0;
+  let unverifiedCount = 0;
+  for (const trait of skillTraits) {
+    const levels = trait.levels ?? [];
+    const packet = packets[trait.skillSetId];
+    const exclude = (reason, damageRelevant) => {
+      excluded.push({ traitId: trait.id, skillSetId: trait.skillSetId, name: trait.name, reason });
+      if (damageRelevant && packet) {
+        packet.unverifiedDamageTraits = packet.unverifiedDamageTraits ?? [];
+        packet.unverifiedDamageTraits.push(trait.id);
+        unverifiedCount += 1;
+      }
+    };
+    const mentionsBaseDamage = levels.some((level) =>
+      TRAIT_BASE_DAMAGE_MENTION.test(`${level.description ?? ""} ${level.effect ?? ""}`));
+    if (!levels.length || !mentionsBaseDamage) { exclude("no_damage_effect", false); continue; }
+    if (!levels.every((level) => TRAIT_REPLACEMENT_EFFECT.test(level.effect ?? ""))) { exclude("not_main_hit_replacement", true); continue; }
+    const parsed = levels.map((level) => parseTraitDamage(level.description));
+    if (!parsed.every(Boolean)) { exclude("unparsed_damage_text", true); continue; }
+    const monotonic = parsed.every((entry, index) => index === 0 ||
+      (entry.percent >= parsed[index - 1].percent && entry.add >= parsed[index - 1].add));
+    if (!monotonic) { exclude("inconsistent_levels", true); continue; }
+    if (!packet) { exclude("skill_not_modeled", false); continue; }
+
+    const skill = skillById.get(trait.skillSetId);
+    const variant = matchTraitVariant(skill, levels, parsed);
+    const overrideLevels = {};
+    levels.forEach((level, index) => {
+      const entry = { coefficient: (parsed[index].percent / 100).toFixed(4), flatAdd: String(parsed[index].add) };
+      if (variant) {
+        const baseCooldown = cooldownAt(skill, level.level);
+        const variantRow = (variant.levels ?? []).find((row) => Number(row.level) === Number(level.level));
+        const variantCooldown = Number(variantRow?.cooldown);
+        if (variantCooldown > 0 && baseCooldown !== null && variantCooldown > baseCooldown) entry.cooldown = variantCooldown;
+      }
+      overrideLevels[String(level.level)] = entry;
+    });
+    packet.traitOverrides = packet.traitOverrides ?? {};
+    packet.traitOverrides[trait.id] = {
+      name: trait.name,
+      mappingClass: "derived",
+      source: "skillTraits replacement-form level descriptions",
+      variantConfirmed: variant ? (variant.id ?? variant.name ?? null) : null,
+      levels: overrideLevels,
+    };
+    overrideCount += 1;
+  }
+  return { excluded, summary: { total: skillTraits.length, overrides: overrideCount, unverifiedOnModeledSkills: unverifiedCount, excluded: excluded.length } };
+}
+
+export function buildKitPacketsArtifact({ skillsProjection, formulaMap, skillTraits = [], generatedAtUtc }) {
   const gameBuild = String(formulaMap.gameBuild);
   if (String(skillsProjection.gameBuild) !== gameBuild) {
     throw new Error(`skills.json build ${skillsProjection.gameBuild} does not match ${gameBuild}.`);
@@ -205,9 +323,11 @@ export function buildKitPacketsArtifact({ skillsProjection, formulaMap, generate
     };
   }
 
+  const traits = applyTraitOverrides({ skillTraits, skillById, packets });
+
   return {
     schema: "tl-helper.kit-damage-packets",
-    schemaVersion: 2,
+    schemaVersion: 3,
     gameBuild,
     generatedAtUtc: generatedAtUtc ?? new Date().toISOString(),
     provenance: {
@@ -215,18 +335,27 @@ export function buildKitPacketsArtifact({ skillsProjection, formulaMap, generate
       cooldownSource: "web/data/projections/skills.json (client-visible per-level cooldowns)",
       coefficientBasis: "kAmountFromAttackPower mul / 10000, verified display encoding",
       tooltipAnchor: `web/data/projections/skills.json per-level tooltipOptions "${DAMAGE_LINE}" (client-visible damage line)`,
+      traitSource: "web/data/app-data.json skillTraits (client-visible specialization descriptions), variant cooldowns cross-checked against skills.json specializations rows",
     },
     method: {
       componentSelection: "single largest-coefficient attack-power row per skill when its embedded tooltip agrees; otherwise the row anchored to the client-visible Damage line, publishing only tooltip-confirmed levels (multi-hit kits and unconfirmed levels undercounted, never overcounted)",
       confidence: "mappingClass exact|derived carried per skill; unresolved, non-attack-power, and no-damage-line actives excluded",
+      traitOverrides: "replacement-form specializations only (every level's effect reads Change(s) to/Activates the), every level parsed from 'deals N% of Base Damage (+ M)' with non-decreasing magnitudes; charge ranges take the minimum; cooldown raised to a damage-line-matched variant row's cooldown when longer, never shortened; all other Base-Damage-mentioning traits excluded and listed unverified on their packet",
     },
-    summary: { skills: Object.keys(packets).length, exact: exactCount, derived: derivedCount, excluded: excluded.length },
+    summary: {
+      skills: Object.keys(packets).length,
+      exact: exactCount,
+      derived: derivedCount,
+      excluded: excluded.length,
+      traits: traits.summary,
+    },
     skills: packets,
     excluded,
+    excludedTraits: traits.excluded,
   };
 }
 
-export function main() {
+export async function main() {
   const option = (name, fallback) => process.argv.find((row) => row.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
   const gameBuild = option("build", process.env.TL_STEAM_BUILD ?? "24118850");
   const dataRoot = process.env.TL_DATA_ROOT ?? "D:\\TL_Data";
@@ -235,12 +364,20 @@ export function main() {
   const skillsProjection = JSON.parse(readFileSync(path.join(repoRoot, "web", "data", "projections", "skills.json"), "utf8"));
   const formulaMap = JSON.parse(readFileSync(path.join(dataRoot, "reports", gameBuild, "skill-formula-map.json"), "utf8"));
   if (String(formulaMap.gameBuild) !== String(gameBuild)) throw new Error(`skill-formula-map build ${formulaMap.gameBuild} does not match ${gameBuild}.`);
+  const appData = await loadWebDataFromFile(path.join(repoRoot, "web", "data", "app-data.json"));
+  if (String(appData.gameBuild) !== String(gameBuild)) throw new Error(`app-data build ${appData.gameBuild} does not match ${gameBuild}.`);
 
-  const artifact = buildKitPacketsArtifact({ skillsProjection, formulaMap });
+  const artifact = buildKitPacketsArtifact({ skillsProjection, formulaMap, skillTraits: appData.skillTraits ?? [] });
   const outputPath = path.join(repoRoot, "web", "data", "kit-packets.json");
   writeFileSync(outputPath, `${JSON.stringify(artifact, null, 2)}\n`);
   console.log(JSON.stringify({ outputPath, summary: artifact.summary }, null, 2));
+  // The parse residue: damage-relevant traits that stated Base Damage but did
+  // not validate. Reviewed by hand when the parser evolves; everything here is
+  // kept at base form and disclosed, never guessed.
+  const residue = artifact.excludedTraits.filter((row) => row.reason !== "no_damage_effect" && row.reason !== "skill_not_modeled");
+  console.log(`trait residue (${residue.length} unvalidated damage traits):`);
+  for (const row of residue) console.log(`  ${row.reason}  ${row.traitId}`);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (isMain) main();
+if (isMain) await main();

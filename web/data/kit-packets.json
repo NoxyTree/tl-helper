@@ -1,8 +1,8 @@
 {
   "schema": "tl-helper.kit-damage-packets",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "gameBuild": "24118850",
-  "generatedAtUtc": "2026-07-17T02:14:09.730Z",
+  "generatedAtUtc": "2026-07-17T05:06:49.422Z",
   "provenance": {
     "skillFormulaMap": {
       "skillSets": {
@@ -23,17 +23,25 @@
     },
     "cooldownSource": "web/data/projections/skills.json (client-visible per-level cooldowns)",
     "coefficientBasis": "kAmountFromAttackPower mul / 10000, verified display encoding",
-    "tooltipAnchor": "web/data/projections/skills.json per-level tooltipOptions \"Damage ▲\" (client-visible damage line)"
+    "tooltipAnchor": "web/data/projections/skills.json per-level tooltipOptions \"Damage ▲\" (client-visible damage line)",
+    "traitSource": "web/data/app-data.json skillTraits (client-visible specialization descriptions), variant cooldowns cross-checked against skills.json specializations rows"
   },
   "method": {
     "componentSelection": "single largest-coefficient attack-power row per skill when its embedded tooltip agrees; otherwise the row anchored to the client-visible Damage line, publishing only tooltip-confirmed levels (multi-hit kits and unconfirmed levels undercounted, never overcounted)",
-    "confidence": "mappingClass exact|derived carried per skill; unresolved, non-attack-power, and no-damage-line actives excluded"
+    "confidence": "mappingClass exact|derived carried per skill; unresolved, non-attack-power, and no-damage-line actives excluded",
+    "traitOverrides": "replacement-form specializations only (every level's effect reads Change(s) to/Activates the), every level parsed from 'deals N% of Base Damage (+ M)' with non-decreasing magnitudes; charge ranges take the minimum; cooldown raised to a damage-line-matched variant row's cooldown when longer, never shortened; all other Base-Damage-mentioning traits excluded and listed unverified on their packet"
   },
   "summary": {
     "skills": 79,
     "exact": 58,
     "derived": 21,
-    "excluded": 41
+    "excluded": 41,
+    "traits": {
+      "total": 398,
+      "overrides": 25,
+      "unverifiedOnModeledSkills": 22,
+      "excluded": 373
+    }
   },
   "skills": {
     "SkillSet_WP_BO_S_PowerShot": {
@@ -149,6 +157,76 @@
           "coefficient": "8.3000",
           "flatAdd": "583",
           "cooldown": 18
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_BO_S_PowerShot_Trait_5": {
+          "name": "Decisive Sniping - Decisive Bombardment",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_BO_S_PowerShot_Charge",
+          "levels": {
+            "1": {
+              "coefficient": "5.0000",
+              "flatAdd": "53"
+            },
+            "2": {
+              "coefficient": "5.0000",
+              "flatAdd": "80"
+            },
+            "3": {
+              "coefficient": "5.3000",
+              "flatAdd": "106"
+            },
+            "4": {
+              "coefficient": "5.3000",
+              "flatAdd": "133"
+            },
+            "5": {
+              "coefficient": "5.6000",
+              "flatAdd": "159"
+            },
+            "6": {
+              "coefficient": "5.9000",
+              "flatAdd": "186"
+            },
+            "7": {
+              "coefficient": "5.9000",
+              "flatAdd": "212"
+            },
+            "8": {
+              "coefficient": "6.2000",
+              "flatAdd": "239"
+            },
+            "9": {
+              "coefficient": "6.2000",
+              "flatAdd": "265"
+            },
+            "10": {
+              "coefficient": "6.5000",
+              "flatAdd": "292"
+            },
+            "11": {
+              "coefficient": "6.8000",
+              "flatAdd": "318"
+            },
+            "12": {
+              "coefficient": "6.8000",
+              "flatAdd": "345"
+            },
+            "13": {
+              "coefficient": "7.1000",
+              "flatAdd": "371"
+            },
+            "14": {
+              "coefficient": "7.1000",
+              "flatAdd": "398"
+            },
+            "15": {
+              "coefficient": "7.4000",
+              "flatAdd": "424"
+            }
+          }
         }
       }
     },
@@ -271,6 +349,76 @@
           "flatAdd": "97",
           "cooldown": 24
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW2_S_GaiaCrash_trait_1": {
+          "name": "Gaia Crash - Frost Cleaving",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "3.8300",
+              "flatAdd": "56"
+            },
+            "2": {
+              "coefficient": "3.8300",
+              "flatAdd": "60"
+            },
+            "3": {
+              "coefficient": "3.9000",
+              "flatAdd": "65"
+            },
+            "4": {
+              "coefficient": "3.9000",
+              "flatAdd": "69"
+            },
+            "5": {
+              "coefficient": "3.9800",
+              "flatAdd": "74"
+            },
+            "6": {
+              "coefficient": "4.0500",
+              "flatAdd": "78"
+            },
+            "7": {
+              "coefficient": "4.0500",
+              "flatAdd": "83"
+            },
+            "8": {
+              "coefficient": "4.1300",
+              "flatAdd": "87"
+            },
+            "9": {
+              "coefficient": "4.1300",
+              "flatAdd": "92"
+            },
+            "10": {
+              "coefficient": "4.2000",
+              "flatAdd": "96"
+            },
+            "11": {
+              "coefficient": "4.2800",
+              "flatAdd": "101"
+            },
+            "12": {
+              "coefficient": "4.2800",
+              "flatAdd": "105"
+            },
+            "13": {
+              "coefficient": "4.3500",
+              "flatAdd": "110"
+            },
+            "14": {
+              "coefficient": "4.3500",
+              "flatAdd": "114"
+            },
+            "15": {
+              "coefficient": "4.4300",
+              "flatAdd": "119"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SW2_S_MainAttack": {
@@ -387,6 +535,76 @@
           "flatAdd": "110",
           "cooldown": 9
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW2_S_MainAttack_trait_1": {
+          "name": "Valiant Brawl - Cruel Smite",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "1.1000",
+              "flatAdd": "9"
+            },
+            "2": {
+              "coefficient": "1.1000",
+              "flatAdd": "13"
+            },
+            "3": {
+              "coefficient": "1.2000",
+              "flatAdd": "18"
+            },
+            "4": {
+              "coefficient": "1.2000",
+              "flatAdd": "23"
+            },
+            "5": {
+              "coefficient": "1.3500",
+              "flatAdd": "27"
+            },
+            "6": {
+              "coefficient": "1.4500",
+              "flatAdd": "31"
+            },
+            "7": {
+              "coefficient": "1.4500",
+              "flatAdd": "36"
+            },
+            "8": {
+              "coefficient": "1.5500",
+              "flatAdd": "40"
+            },
+            "9": {
+              "coefficient": "1.5500",
+              "flatAdd": "44"
+            },
+            "10": {
+              "coefficient": "1.7000",
+              "flatAdd": "49"
+            },
+            "11": {
+              "coefficient": "1.8000",
+              "flatAdd": "54"
+            },
+            "12": {
+              "coefficient": "1.8000",
+              "flatAdd": "58"
+            },
+            "13": {
+              "coefficient": "1.9000",
+              "flatAdd": "63"
+            },
+            "14": {
+              "coefficient": "1.9000",
+              "flatAdd": "67"
+            },
+            "15": {
+              "coefficient": "2.0500",
+              "flatAdd": "71"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_BO_S_StrongShot": {
@@ -403,7 +621,11 @@
           "flatAdd": "182",
           "cooldown": 6
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_BO_S_StrongShot_Trait_1",
+        "SkillSet_WP_BO_S_StrongShot_Trait_2"
+      ]
     },
     "SkillSet_WP_CR_CR_S_RapidShot": {
       "name": "Quick Fire",
@@ -777,7 +999,10 @@
           "flatAdd": "264",
           "cooldown": 15
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_DA_DA_S_DeadlyStrike_trait_1"
+      ]
     },
     "SkillSet_WP_GT_Active_ChainAttack": {
       "name": "Chain Strike",
@@ -1212,7 +1437,80 @@
           "flatAdd": "0",
           "cooldown": 36
         }
-      }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_WA_GR_S_CurseArea_trait_1": {
+          "name": "Corrupted Magic Circle - Decaying Touch",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "0.4200",
+              "flatAdd": "16"
+            },
+            "2": {
+              "coefficient": "0.4200",
+              "flatAdd": "20"
+            },
+            "3": {
+              "coefficient": "0.4400",
+              "flatAdd": "23"
+            },
+            "4": {
+              "coefficient": "0.4400",
+              "flatAdd": "26"
+            },
+            "5": {
+              "coefficient": "0.4700",
+              "flatAdd": "30"
+            },
+            "6": {
+              "coefficient": "0.4800",
+              "flatAdd": "34"
+            },
+            "7": {
+              "coefficient": "0.4800",
+              "flatAdd": "38"
+            },
+            "8": {
+              "coefficient": "0.5100",
+              "flatAdd": "42"
+            },
+            "9": {
+              "coefficient": "0.5100",
+              "flatAdd": "44"
+            },
+            "10": {
+              "coefficient": "0.5300",
+              "flatAdd": "48"
+            },
+            "11": {
+              "coefficient": "0.5500",
+              "flatAdd": "52"
+            },
+            "12": {
+              "coefficient": "0.5500",
+              "flatAdd": "56"
+            },
+            "13": {
+              "coefficient": "0.5600",
+              "flatAdd": "60"
+            },
+            "14": {
+              "coefficient": "0.5600",
+              "flatAdd": "62"
+            },
+            "15": {
+              "coefficient": "0.6000",
+              "flatAdd": "66"
+            }
+          }
+        }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_WA_GR_S_CurseArea_trait_3"
+      ]
     },
     "SkillSet_WP_ORB_Active_Laser": {
       "name": "Stellar Dash",
@@ -1570,7 +1868,10 @@
           "flatAdd": "353",
           "cooldown": 24
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ORB_Active_OrbitSlash_Trait_1"
+      ]
     },
     "SkillSet_WP_SW_SH_S_WhirlwindSlash": {
       "name": "Annihilating Slash",
@@ -1752,6 +2053,36 @@
           "flatAdd": "191",
           "cooldown": 24
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW_SH_S_VictoryAttack_trait_1": {
+          "name": "A Shot at Victory - Annihilation Blade",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "7.3000",
+              "flatAdd": "51"
+            },
+            "12": {
+              "coefficient": "7.3000",
+              "flatAdd": "65"
+            },
+            "13": {
+              "coefficient": "7.9000",
+              "flatAdd": "79"
+            },
+            "14": {
+              "coefficient": "7.9000",
+              "flatAdd": "93"
+            },
+            "15": {
+              "coefficient": "8.8000",
+              "flatAdd": "107"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SW_SH_S_ShieldThrow": {
@@ -1867,6 +2198,76 @@
           "coefficient": "3.8200",
           "flatAdd": "0",
           "cooldown": 33
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW_SH_S_ShieldThrow_trait_1": {
+          "name": "Shield Throw - Whirling Shield",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SW_SH_S_ShieldThrow_trait1",
+          "levels": {
+            "1": {
+              "coefficient": "2.7000",
+              "flatAdd": "0"
+            },
+            "2": {
+              "coefficient": "2.7500",
+              "flatAdd": "0"
+            },
+            "3": {
+              "coefficient": "2.8000",
+              "flatAdd": "0"
+            },
+            "4": {
+              "coefficient": "2.8500",
+              "flatAdd": "0"
+            },
+            "5": {
+              "coefficient": "2.9000",
+              "flatAdd": "0"
+            },
+            "6": {
+              "coefficient": "2.9500",
+              "flatAdd": "0"
+            },
+            "7": {
+              "coefficient": "3.0000",
+              "flatAdd": "0"
+            },
+            "8": {
+              "coefficient": "3.0500",
+              "flatAdd": "0"
+            },
+            "9": {
+              "coefficient": "3.1000",
+              "flatAdd": "0"
+            },
+            "10": {
+              "coefficient": "3.1500",
+              "flatAdd": "0"
+            },
+            "11": {
+              "coefficient": "3.2000",
+              "flatAdd": "0"
+            },
+            "12": {
+              "coefficient": "3.2500",
+              "flatAdd": "0"
+            },
+            "13": {
+              "coefficient": "3.3000",
+              "flatAdd": "0"
+            },
+            "14": {
+              "coefficient": "3.3500",
+              "flatAdd": "0"
+            },
+            "15": {
+              "coefficient": "3.4000",
+              "flatAdd": "0"
+            }
+          }
         }
       }
     },
@@ -2104,6 +2505,76 @@
           "coefficient": "1.8000",
           "flatAdd": "89",
           "cooldown": 24
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_CrossAttack_trait_4": {
+          "name": "Rising Slash - Slaughtering Slash",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SP_S_CrossAttack_SP",
+          "levels": {
+            "1": {
+              "coefficient": "1.2000",
+              "flatAdd": "16"
+            },
+            "2": {
+              "coefficient": "1.2000",
+              "flatAdd": "20"
+            },
+            "3": {
+              "coefficient": "1.2500",
+              "flatAdd": "23"
+            },
+            "4": {
+              "coefficient": "1.2500",
+              "flatAdd": "27"
+            },
+            "5": {
+              "coefficient": "1.3000",
+              "flatAdd": "30"
+            },
+            "6": {
+              "coefficient": "1.3500",
+              "flatAdd": "34"
+            },
+            "7": {
+              "coefficient": "1.3500",
+              "flatAdd": "38"
+            },
+            "8": {
+              "coefficient": "1.4000",
+              "flatAdd": "41"
+            },
+            "9": {
+              "coefficient": "1.4000",
+              "flatAdd": "45"
+            },
+            "10": {
+              "coefficient": "1.4500",
+              "flatAdd": "48"
+            },
+            "11": {
+              "coefficient": "1.5000",
+              "flatAdd": "52"
+            },
+            "12": {
+              "coefficient": "1.5000",
+              "flatAdd": "56"
+            },
+            "13": {
+              "coefficient": "1.5500",
+              "flatAdd": "59"
+            },
+            "14": {
+              "coefficient": "1.5500",
+              "flatAdd": "63"
+            },
+            "15": {
+              "coefficient": "1.6000",
+              "flatAdd": "67"
+            }
+          }
         }
       }
     },
@@ -2347,6 +2818,76 @@
           "flatAdd": "60",
           "cooldown": 27
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_RapidAttack_trait_1": {
+          "name": "Cyclonic Fury - Phoenix Barrage",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SP_S_RapidAttack_SP",
+          "levels": {
+            "1": {
+              "coefficient": "0.5000",
+              "flatAdd": "4"
+            },
+            "2": {
+              "coefficient": "0.5000",
+              "flatAdd": "5"
+            },
+            "3": {
+              "coefficient": "0.5200",
+              "flatAdd": "6"
+            },
+            "4": {
+              "coefficient": "0.5200",
+              "flatAdd": "7"
+            },
+            "5": {
+              "coefficient": "0.5400",
+              "flatAdd": "8"
+            },
+            "6": {
+              "coefficient": "0.5600",
+              "flatAdd": "9"
+            },
+            "7": {
+              "coefficient": "0.5600",
+              "flatAdd": "10"
+            },
+            "8": {
+              "coefficient": "0.5800",
+              "flatAdd": "11"
+            },
+            "9": {
+              "coefficient": "0.5800",
+              "flatAdd": "12"
+            },
+            "10": {
+              "coefficient": "0.6200",
+              "flatAdd": "13"
+            },
+            "11": {
+              "coefficient": "0.6400",
+              "flatAdd": "15"
+            },
+            "12": {
+              "coefficient": "0.6400",
+              "flatAdd": "15"
+            },
+            "13": {
+              "coefficient": "0.6800",
+              "flatAdd": "17"
+            },
+            "14": {
+              "coefficient": "0.6800",
+              "flatAdd": "18"
+            },
+            "15": {
+              "coefficient": "0.7300",
+              "flatAdd": "19"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SP_S_RapidThrust": {
@@ -2468,6 +3009,144 @@
           "flatAdd": "67",
           "cooldown": 15
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_RapidThrust_trait_1": {
+          "name": "Vicious Fury - Brutal Fury",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SP_S_RapidThrust_5Hit",
+          "levels": {
+            "1": {
+              "coefficient": "1.2500",
+              "flatAdd": "10"
+            },
+            "2": {
+              "coefficient": "1.2500",
+              "flatAdd": "13"
+            },
+            "3": {
+              "coefficient": "1.3000",
+              "flatAdd": "16"
+            },
+            "4": {
+              "coefficient": "1.3000",
+              "flatAdd": "19"
+            },
+            "5": {
+              "coefficient": "1.4000",
+              "flatAdd": "22"
+            },
+            "6": {
+              "coefficient": "1.4500",
+              "flatAdd": "25"
+            },
+            "7": {
+              "coefficient": "1.4500",
+              "flatAdd": "28"
+            },
+            "8": {
+              "coefficient": "1.5000",
+              "flatAdd": "30"
+            },
+            "9": {
+              "coefficient": "1.5000",
+              "flatAdd": "33"
+            },
+            "10": {
+              "coefficient": "1.6000",
+              "flatAdd": "36"
+            },
+            "11": {
+              "coefficient": "1.6500",
+              "flatAdd": "39"
+            },
+            "12": {
+              "coefficient": "1.6500",
+              "flatAdd": "42"
+            },
+            "13": {
+              "coefficient": "1.7000",
+              "flatAdd": "45"
+            },
+            "14": {
+              "coefficient": "1.7000",
+              "flatAdd": "48"
+            },
+            "15": {
+              "coefficient": "1.8000",
+              "flatAdd": "50"
+            }
+          }
+        },
+        "SkillSet_WP_SP_S_RapidThrust_trait_2": {
+          "name": "Vicious Fury - Explosive Fury",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SP_S_RapidThrust_SP",
+          "levels": {
+            "1": {
+              "coefficient": "2.0000",
+              "flatAdd": "16"
+            },
+            "2": {
+              "coefficient": "2.0000",
+              "flatAdd": "21"
+            },
+            "3": {
+              "coefficient": "2.0800",
+              "flatAdd": "26"
+            },
+            "4": {
+              "coefficient": "2.0800",
+              "flatAdd": "30"
+            },
+            "5": {
+              "coefficient": "2.2400",
+              "flatAdd": "35"
+            },
+            "6": {
+              "coefficient": "2.3200",
+              "flatAdd": "40"
+            },
+            "7": {
+              "coefficient": "2.3200",
+              "flatAdd": "45"
+            },
+            "8": {
+              "coefficient": "2.4000",
+              "flatAdd": "48"
+            },
+            "9": {
+              "coefficient": "2.4000",
+              "flatAdd": "53"
+            },
+            "10": {
+              "coefficient": "2.5600",
+              "flatAdd": "58"
+            },
+            "11": {
+              "coefficient": "2.6400",
+              "flatAdd": "62"
+            },
+            "12": {
+              "coefficient": "2.6400",
+              "flatAdd": "67"
+            },
+            "13": {
+              "coefficient": "2.7200",
+              "flatAdd": "72"
+            },
+            "14": {
+              "coefficient": "2.7200",
+              "flatAdd": "77"
+            },
+            "15": {
+              "coefficient": "2.8800",
+              "flatAdd": "80"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SP_S_SpearThrower": {
@@ -2584,6 +3263,76 @@
           "flatAdd": "154",
           "cooldown": 18
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_SpearThrower_trait_1": {
+          "name": "Javelin Surge - Javelin Inferno",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SP_S_SpearThrower_SP",
+          "levels": {
+            "1": {
+              "coefficient": "1.6200",
+              "flatAdd": "20"
+            },
+            "2": {
+              "coefficient": "1.6200",
+              "flatAdd": "25"
+            },
+            "3": {
+              "coefficient": "1.7600",
+              "flatAdd": "31"
+            },
+            "4": {
+              "coefficient": "1.7600",
+              "flatAdd": "36"
+            },
+            "5": {
+              "coefficient": "1.8900",
+              "flatAdd": "41"
+            },
+            "6": {
+              "coefficient": "1.9600",
+              "flatAdd": "47"
+            },
+            "7": {
+              "coefficient": "1.9600",
+              "flatAdd": "52"
+            },
+            "8": {
+              "coefficient": "2.0900",
+              "flatAdd": "58"
+            },
+            "9": {
+              "coefficient": "2.0900",
+              "flatAdd": "63"
+            },
+            "10": {
+              "coefficient": "2.2300",
+              "flatAdd": "68"
+            },
+            "11": {
+              "coefficient": "2.3000",
+              "flatAdd": "74"
+            },
+            "12": {
+              "coefficient": "2.3000",
+              "flatAdd": "79"
+            },
+            "13": {
+              "coefficient": "2.4300",
+              "flatAdd": "85"
+            },
+            "14": {
+              "coefficient": "2.4300",
+              "flatAdd": "90"
+            },
+            "15": {
+              "coefficient": "2.5700",
+              "flatAdd": "95"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SP_S_ThrustPull": {
@@ -2699,6 +3448,76 @@
           "coefficient": "3.9804",
           "flatAdd": "132",
           "cooldown": 9
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_ThrustPull_trait_1": {
+          "name": "Culling Arc - Flaming Arc",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "1.2000",
+              "flatAdd": "11"
+            },
+            "2": {
+              "coefficient": "1.2000",
+              "flatAdd": "14"
+            },
+            "3": {
+              "coefficient": "1.3000",
+              "flatAdd": "17"
+            },
+            "4": {
+              "coefficient": "1.3000",
+              "flatAdd": "20"
+            },
+            "5": {
+              "coefficient": "1.4000",
+              "flatAdd": "23"
+            },
+            "6": {
+              "coefficient": "1.4500",
+              "flatAdd": "26"
+            },
+            "7": {
+              "coefficient": "1.4500",
+              "flatAdd": "29"
+            },
+            "8": {
+              "coefficient": "1.5500",
+              "flatAdd": "32"
+            },
+            "9": {
+              "coefficient": "1.5500",
+              "flatAdd": "35"
+            },
+            "10": {
+              "coefficient": "1.6500",
+              "flatAdd": "38"
+            },
+            "11": {
+              "coefficient": "1.7000",
+              "flatAdd": "41"
+            },
+            "12": {
+              "coefficient": "1.7000",
+              "flatAdd": "44"
+            },
+            "13": {
+              "coefficient": "1.8000",
+              "flatAdd": "47"
+            },
+            "14": {
+              "coefficient": "1.8000",
+              "flatAdd": "50"
+            },
+            "15": {
+              "coefficient": "1.9000",
+              "flatAdd": "53"
+            }
+          }
         }
       }
     },
@@ -2933,6 +3752,76 @@
           "coefficient": "6.5000",
           "flatAdd": "178",
           "cooldown": 6
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW_SH_S_DebuffAttack_trait_1": {
+          "name": "Shield Strike - Piercing Strike",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "3.6000",
+              "flatAdd": "16"
+            },
+            "2": {
+              "coefficient": "3.6000",
+              "flatAdd": "24"
+            },
+            "3": {
+              "coefficient": "3.8500",
+              "flatAdd": "32"
+            },
+            "4": {
+              "coefficient": "3.8500",
+              "flatAdd": "40"
+            },
+            "5": {
+              "coefficient": "4.1500",
+              "flatAdd": "48"
+            },
+            "6": {
+              "coefficient": "4.4000",
+              "flatAdd": "56"
+            },
+            "7": {
+              "coefficient": "4.4000",
+              "flatAdd": "64"
+            },
+            "8": {
+              "coefficient": "4.6500",
+              "flatAdd": "72"
+            },
+            "9": {
+              "coefficient": "4.6500",
+              "flatAdd": "80"
+            },
+            "10": {
+              "coefficient": "4.9500",
+              "flatAdd": "88"
+            },
+            "11": {
+              "coefficient": "5.2000",
+              "flatAdd": "96"
+            },
+            "12": {
+              "coefficient": "5.2000",
+              "flatAdd": "104"
+            },
+            "13": {
+              "coefficient": "5.5000",
+              "flatAdd": "112"
+            },
+            "14": {
+              "coefficient": "5.5000",
+              "flatAdd": "120"
+            },
+            "15": {
+              "coefficient": "5.8000",
+              "flatAdd": "129"
+            }
+          }
         }
       }
     },
@@ -3176,7 +4065,10 @@
           "flatAdd": "243",
           "cooldown": 6
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ST_S_MainAttack_trait_1"
+      ]
     },
     "SkillSet_WP_ST_S_PowerAttack": {
       "name": "Judgment Lightning",
@@ -3529,6 +4421,76 @@
           "flatAdd": "157",
           "cooldown": 24
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW2_S_UpperAttack_trait_1": {
+          "name": "Ascending Slash - Charging Slash",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SW2_S_UpperAttack_SP",
+          "levels": {
+            "1": {
+              "coefficient": "2.6500",
+              "flatAdd": "54"
+            },
+            "2": {
+              "coefficient": "2.6500",
+              "flatAdd": "59"
+            },
+            "3": {
+              "coefficient": "2.7000",
+              "flatAdd": "64"
+            },
+            "4": {
+              "coefficient": "2.7000",
+              "flatAdd": "69"
+            },
+            "5": {
+              "coefficient": "2.8000",
+              "flatAdd": "74"
+            },
+            "6": {
+              "coefficient": "2.8500",
+              "flatAdd": "79"
+            },
+            "7": {
+              "coefficient": "2.8500",
+              "flatAdd": "84"
+            },
+            "8": {
+              "coefficient": "2.9000",
+              "flatAdd": "90"
+            },
+            "9": {
+              "coefficient": "2.9000",
+              "flatAdd": "95"
+            },
+            "10": {
+              "coefficient": "3.0000",
+              "flatAdd": "100"
+            },
+            "11": {
+              "coefficient": "3.0500",
+              "flatAdd": "105"
+            },
+            "12": {
+              "coefficient": "3.0500",
+              "flatAdd": "110"
+            },
+            "13": {
+              "coefficient": "3.1000",
+              "flatAdd": "115"
+            },
+            "14": {
+              "coefficient": "3.1000",
+              "flatAdd": "120"
+            },
+            "15": {
+              "coefficient": "3.2000",
+              "flatAdd": "126"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SW2_S_DefenseDebuffAttack": {
@@ -3545,7 +4507,10 @@
           "flatAdd": "0",
           "cooldown": 24
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_SW2_S_DefenseDebuffAttack_trait_1"
+      ]
     },
     "SkillSet_WP_ST_S_ManaRengeUp": {
       "name": "Inner Peace",
@@ -3561,7 +4526,10 @@
           "flatAdd": "0",
           "cooldown": 60
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ST_S_ManaRengeUp_trait_1"
+      ]
     },
     "SkillSet_WP_ORB_Active_OrbShoot": {
       "name": "Summon Constellation",
@@ -3681,6 +4649,76 @@
           "coefficient": "3.3000",
           "flatAdd": "130",
           "cooldown": 36
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_ORB_Active_OrbShoot_Trait_1": {
+          "name": "Summon Constellation - Milky Way",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_ORB_Active_OrbShootPos",
+          "levels": {
+            "1": {
+              "coefficient": "2.0000",
+              "flatAdd": "30"
+            },
+            "2": {
+              "coefficient": "2.0000",
+              "flatAdd": "35"
+            },
+            "3": {
+              "coefficient": "2.1500",
+              "flatAdd": "40"
+            },
+            "4": {
+              "coefficient": "2.1500",
+              "flatAdd": "45"
+            },
+            "5": {
+              "coefficient": "2.2500",
+              "flatAdd": "50"
+            },
+            "6": {
+              "coefficient": "2.3500",
+              "flatAdd": "55"
+            },
+            "7": {
+              "coefficient": "2.3500",
+              "flatAdd": "60"
+            },
+            "8": {
+              "coefficient": "2.5000",
+              "flatAdd": "65"
+            },
+            "9": {
+              "coefficient": "2.5000",
+              "flatAdd": "70"
+            },
+            "10": {
+              "coefficient": "2.6000",
+              "flatAdd": "75"
+            },
+            "11": {
+              "coefficient": "2.7000",
+              "flatAdd": "80"
+            },
+            "12": {
+              "coefficient": "2.7000",
+              "flatAdd": "85"
+            },
+            "13": {
+              "coefficient": "2.8500",
+              "flatAdd": "90"
+            },
+            "14": {
+              "coefficient": "2.8500",
+              "flatAdd": "95"
+            },
+            "15": {
+              "coefficient": "3.0000",
+              "flatAdd": "100"
+            }
+          }
         }
       }
     },
@@ -3930,7 +4968,10 @@
           "flatAdd": "0",
           "cooldown": 21
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_DA_DA_S_BloodStrike_trait_3"
+      ]
     },
     "SkillSet_WP_DA_DA_S_LegAttack": {
       "name": "Ankle Strike",
@@ -4278,7 +5319,10 @@
           "flatAdd": "73",
           "cooldown": 30
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_DA_DA_S_ShadowChaser_trait_1"
+      ]
     },
     "SkillSet_WP_DA_DA_S_PoisonDagger": {
       "name": "Knife Throwing",
@@ -4293,6 +5337,76 @@
           "coefficient": "0.6000",
           "flatAdd": "0",
           "cooldown": 18
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_DA_DA_S_PoisonDagger_Trait_1": {
+          "name": "Knife Throwing - Lightning Throw",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "2": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "3": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "4": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "5": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "6": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "7": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "8": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "9": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "10": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "11": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "12": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "13": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "14": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            },
+            "15": {
+              "coefficient": "0.6000",
+              "flatAdd": "0"
+            }
+          }
         }
       }
     },
@@ -4309,6 +5423,20 @@
           "coefficient": "2.2000",
           "flatAdd": "0",
           "cooldown": 36
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW_SH_S_PushAttack_trait_1": {
+          "name": "Fierce Clash - Desperate Clash",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "2.2000",
+              "flatAdd": "0"
+            }
+          }
         }
       }
     },
@@ -4431,6 +5559,76 @@
           "flatAdd": "238",
           "cooldown": 12
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_ST_S_WideAreaAttack_trait_1": {
+          "name": "Serial Fire Bombs - Focused Fire Bombs",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_ST_S_WideAreaAttack_Charge",
+          "levels": {
+            "1": {
+              "coefficient": "4.2000",
+              "flatAdd": "77"
+            },
+            "2": {
+              "coefficient": "4.2000",
+              "flatAdd": "112"
+            },
+            "3": {
+              "coefficient": "4.3800",
+              "flatAdd": "151"
+            },
+            "4": {
+              "coefficient": "4.3800",
+              "flatAdd": "189"
+            },
+            "5": {
+              "coefficient": "4.5500",
+              "flatAdd": "228"
+            },
+            "6": {
+              "coefficient": "4.9000",
+              "flatAdd": "263"
+            },
+            "7": {
+              "coefficient": "4.9000",
+              "flatAdd": "301"
+            },
+            "8": {
+              "coefficient": "5.0800",
+              "flatAdd": "340"
+            },
+            "9": {
+              "coefficient": "5.0800",
+              "flatAdd": "378"
+            },
+            "10": {
+              "coefficient": "5.2500",
+              "flatAdd": "413"
+            },
+            "11": {
+              "coefficient": "5.6000",
+              "flatAdd": "452"
+            },
+            "12": {
+              "coefficient": "5.6000",
+              "flatAdd": "490"
+            },
+            "13": {
+              "coefficient": "5.7800",
+              "flatAdd": "529"
+            },
+            "14": {
+              "coefficient": "5.7800",
+              "flatAdd": "564"
+            },
+            "15": {
+              "coefficient": "5.9500",
+              "flatAdd": "602"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_CR_D_RobShot": {
@@ -4513,6 +5711,36 @@
           "flatAdd": "1140",
           "cooldown": 27
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_DefenceAttack_trait_2": {
+          "name": "Cataclysm - Wreak Havoc",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "2.2000",
+              "flatAdd": "60"
+            },
+            "12": {
+              "coefficient": "2.2000",
+              "flatAdd": "66"
+            },
+            "13": {
+              "coefficient": "2.4000",
+              "flatAdd": "72"
+            },
+            "14": {
+              "coefficient": "2.4000",
+              "flatAdd": "78"
+            },
+            "15": {
+              "coefficient": "2.7000",
+              "flatAdd": "84"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_SP_S_StunAttack": {
@@ -4528,6 +5756,76 @@
           "coefficient": "1.5000",
           "flatAdd": "0",
           "cooldown": 36
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SP_S_StunAttack_trait_1": {
+          "name": "Abyssal Cleave - Ascending Cleave",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "2": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "3": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "4": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "5": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "6": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "7": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "8": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "9": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "10": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "11": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "12": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "13": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "14": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            },
+            "15": {
+              "coefficient": "1.5000",
+              "flatAdd": "0"
+            }
+          }
         }
       }
     },
@@ -4793,7 +6091,10 @@
           "flatAdd": "940",
           "cooldown": 90
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ORB_Active_GravityCollapse_Trait_1"
+      ]
     },
     "SkillSet_WP_CR_TauntTrap": {
       "name": "Explosive Trap",
@@ -4912,6 +6213,36 @@
           "flatAdd": "225",
           "cooldown": 60
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_ST_S_WideAreaPowerAttack_trait_1": {
+          "name": "Infernal Meteor - Hellfire Rain",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "5.5800",
+              "flatAdd": "35"
+            },
+            "12": {
+              "coefficient": "5.5800",
+              "flatAdd": "45"
+            },
+            "13": {
+              "coefficient": "6.0000",
+              "flatAdd": "54"
+            },
+            "14": {
+              "coefficient": "6.0000",
+              "flatAdd": "65"
+            },
+            "15": {
+              "coefficient": "6.6600",
+              "flatAdd": "74"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_ST_S_IceFreeze": {
@@ -5028,7 +6359,10 @@
           "flatAdd": "18",
           "cooldown": 30
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ST_S_IceFreeze_trait_3"
+      ]
     },
     "SkillSet_WP_BO_S_TornadoShot": {
       "name": "Arrow Vortex",
@@ -5043,6 +6377,91 @@
           "coefficient": "1.0000",
           "flatAdd": "0",
           "cooldown": 30
+        }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_BO_S_TornadoShot_Trait_1": {
+          "name": "Arrow Vortex - Tornado",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_BO_S_CycloneShot",
+          "levels": {
+            "1": {
+              "coefficient": "1.0000",
+              "flatAdd": "15",
+              "cooldown": 45
+            },
+            "2": {
+              "coefficient": "1.0000",
+              "flatAdd": "17",
+              "cooldown": 45
+            },
+            "3": {
+              "coefficient": "1.0500",
+              "flatAdd": "19",
+              "cooldown": 45
+            },
+            "4": {
+              "coefficient": "1.0500",
+              "flatAdd": "21",
+              "cooldown": 45
+            },
+            "5": {
+              "coefficient": "1.1000",
+              "flatAdd": "23",
+              "cooldown": 45
+            },
+            "6": {
+              "coefficient": "1.1500",
+              "flatAdd": "25",
+              "cooldown": 45
+            },
+            "7": {
+              "coefficient": "1.1500",
+              "flatAdd": "27",
+              "cooldown": 45
+            },
+            "8": {
+              "coefficient": "1.2500",
+              "flatAdd": "29",
+              "cooldown": 45
+            },
+            "9": {
+              "coefficient": "1.2500",
+              "flatAdd": "31",
+              "cooldown": 45
+            },
+            "10": {
+              "coefficient": "1.3000",
+              "flatAdd": "33",
+              "cooldown": 45
+            },
+            "11": {
+              "coefficient": "1.3500",
+              "flatAdd": "35",
+              "cooldown": 45
+            },
+            "12": {
+              "coefficient": "1.3500",
+              "flatAdd": "37",
+              "cooldown": 45
+            },
+            "13": {
+              "coefficient": "1.4000",
+              "flatAdd": "39",
+              "cooldown": 45
+            },
+            "14": {
+              "coefficient": "1.4000",
+              "flatAdd": "41",
+              "cooldown": 45
+            },
+            "15": {
+              "coefficient": "1.5000",
+              "flatAdd": "43",
+              "cooldown": 45
+            }
+          }
         }
       }
     },
@@ -5076,7 +6495,10 @@
           "flatAdd": "0",
           "cooldown": 30
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_SW_SH_S_TauntBuff_trait_4"
+      ]
     },
     "SkillSet_WP_CR_CR_S_ArmorBreakShot": {
       "name": "Mortal Mark",
@@ -5486,6 +6908,76 @@
           "flatAdd": "116",
           "cooldown": 30
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_ST_S_IceSpear_trait_1": {
+          "name": "Ice Spear - Ice Spear Bombardment",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_ST_S_IceSpear_Onetarget",
+          "levels": {
+            "1": {
+              "coefficient": "0.7600",
+              "flatAdd": "8"
+            },
+            "2": {
+              "coefficient": "0.7600",
+              "flatAdd": "9"
+            },
+            "3": {
+              "coefficient": "0.7900",
+              "flatAdd": "10"
+            },
+            "4": {
+              "coefficient": "0.7900",
+              "flatAdd": "11"
+            },
+            "5": {
+              "coefficient": "0.8200",
+              "flatAdd": "11"
+            },
+            "6": {
+              "coefficient": "0.8500",
+              "flatAdd": "12"
+            },
+            "7": {
+              "coefficient": "0.8500",
+              "flatAdd": "13"
+            },
+            "8": {
+              "coefficient": "0.8900",
+              "flatAdd": "13"
+            },
+            "9": {
+              "coefficient": "0.8900",
+              "flatAdd": "14"
+            },
+            "10": {
+              "coefficient": "0.9200",
+              "flatAdd": "15"
+            },
+            "11": {
+              "coefficient": "0.9500",
+              "flatAdd": "15"
+            },
+            "12": {
+              "coefficient": "0.9500",
+              "flatAdd": "16"
+            },
+            "13": {
+              "coefficient": "0.9800",
+              "flatAdd": "17"
+            },
+            "14": {
+              "coefficient": "0.9800",
+              "flatAdd": "18"
+            },
+            "15": {
+              "coefficient": "1.0200",
+              "flatAdd": "18"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_DA_DA_S_BlinkStrike": {
@@ -5534,7 +7026,10 @@
           "flatAdd": "180",
           "cooldown": 36
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ST_S_AoeTeleport_trait_3"
+      ]
     },
     "SkillSet_WP_SW2_S_SpinAttack": {
       "name": "Devastating Tornado",
@@ -5650,7 +7145,80 @@
           "flatAdd": "29",
           "cooldown": 15
         }
-      }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW2_S_SpinAttack_trait_1": {
+          "name": "Devastating Tornado - Ice Tornado",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": "WP_SW2_S_SpinAttack_1_SP",
+          "levels": {
+            "1": {
+              "coefficient": "0.5700",
+              "flatAdd": "9"
+            },
+            "2": {
+              "coefficient": "0.5700",
+              "flatAdd": "10"
+            },
+            "3": {
+              "coefficient": "0.5800",
+              "flatAdd": "11"
+            },
+            "4": {
+              "coefficient": "0.5800",
+              "flatAdd": "12"
+            },
+            "5": {
+              "coefficient": "0.5900",
+              "flatAdd": "13"
+            },
+            "6": {
+              "coefficient": "0.6000",
+              "flatAdd": "14"
+            },
+            "7": {
+              "coefficient": "0.6000",
+              "flatAdd": "15"
+            },
+            "8": {
+              "coefficient": "0.6100",
+              "flatAdd": "16"
+            },
+            "9": {
+              "coefficient": "0.6100",
+              "flatAdd": "17"
+            },
+            "10": {
+              "coefficient": "0.6200",
+              "flatAdd": "18"
+            },
+            "11": {
+              "coefficient": "0.6300",
+              "flatAdd": "19"
+            },
+            "12": {
+              "coefficient": "0.6300",
+              "flatAdd": "20"
+            },
+            "13": {
+              "coefficient": "0.6400",
+              "flatAdd": "21"
+            },
+            "14": {
+              "coefficient": "0.6400",
+              "flatAdd": "22"
+            },
+            "15": {
+              "coefficient": "0.6500",
+              "flatAdd": "23"
+            }
+          }
+        }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_SW2_S_SpinAttack_trait_4"
+      ]
     },
     "SkillSet_WP_SW_SH_S_DashAttack": {
       "name": "Strategic Rush",
@@ -5782,6 +7350,20 @@
           "flatAdd": "0",
           "cooldown": 35
         }
+      },
+      "traitOverrides": {
+        "SkillSet_WP_SW_SH_S_PullSkill_trait_1": {
+          "name": "Chain Hook - Controlling Rake",
+          "mappingClass": "derived",
+          "source": "skillTraits replacement-form level descriptions",
+          "variantConfirmed": null,
+          "levels": {
+            "1": {
+              "coefficient": "1.0000",
+              "flatAdd": "0"
+            }
+          }
+        }
       }
     },
     "SkillSet_WP_WA_GR_S_HealAll": {
@@ -5898,7 +7480,10 @@
           "flatAdd": "1430",
           "cooldown": 45
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_WA_GR_S_HealAll_trait_1"
+      ]
     },
     "SkillSet_WP_WA_GR_S_HealField": {
       "name": "Fountain of Life",
@@ -5980,7 +7565,11 @@
           "flatAdd": "1950",
           "cooldown": 6
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_BO_S_RegenHeal_Trait_2",
+        "SkillSet_WP_BO_S_RegenHeal_Trait_4"
+      ]
     },
     "SkillSet_WP_WA_GR_S_MagicShield": {
       "name": "Invincible Wall",
@@ -6112,7 +7701,11 @@
           "flatAdd": "0",
           "cooldown": 45
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_SW_SH_S_BuffAttack_trait_1",
+        "SkillSet_WP_SW_SH_S_BuffAttack_trait_3"
+      ]
     },
     "SkillSet_WP_SP_S_BloodAura": {
       "name": "Bloodleech Aura",
@@ -6344,7 +7937,10 @@
           "flatAdd": "2280",
           "cooldown": 9
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_ORB_Active_Shield_Trait_1"
+      ]
     },
     "SkillSet_WP_SW2_S_ShieldBuff": {
       "name": "DaVinci's Courage",
@@ -6360,7 +7956,10 @@
           "flatAdd": "200",
           "cooldown": 45
         }
-      }
+      },
+      "unverifiedDamageTraits": [
+        "SkillSet_WP_SW2_S_ShieldBuff_trait_4"
+      ]
     }
   },
   "excluded": [
@@ -6568,6 +8167,2246 @@
       "skillSetId": "SkillSet_WP_BO_S_AbnormalDispel",
       "name": "Purifying Touch",
       "reason": "no_attack_power_component"
+    }
+  ],
+  "excludedTraits": [
+    {
+      "traitId": "SkillSet_WP_BO_S_AbnormalDispel_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_AbnormalDispel",
+      "name": "Purifying Touch - Additional Removal",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_AbnormalDispel_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_AbnormalDispel",
+      "name": "Purifying Touch - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_AbnormalDispel_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_AbnormalDispel",
+      "name": "Purifying Touch - Healing Touch",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_AttackMark_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_AttackMark",
+      "name": "Deadly Marker - Bullseye",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_AttackMark_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_AttackMark",
+      "name": "Deadly Marker - Increases Hit Chance",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_BindShot_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_BindShot",
+      "name": "Ensnaring Arrow - Cooldown Reset",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_BindShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_BindShot",
+      "name": "Ensnaring Arrow - Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_BindShot_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_BindShot",
+      "name": "Ensnaring Arrow - Hit Chance ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_BindShot_Trait_4",
+      "skillSetId": "SkillSet_WP_BO_S_BindShot",
+      "name": "Ensnaring Arrow - Shield Removal",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_Detection_trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_Detection",
+      "name": "Flash Arrow - Flash Wave",
+      "reason": "skill_not_modeled"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_Detection_trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_Detection",
+      "name": "Flash Arrow - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_Detection_trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_Detection",
+      "name": "Flash Arrow - Blind",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_Detection_trait_4",
+      "skillSetId": "SkillSet_WP_BO_S_Detection",
+      "name": "Flash Arrow - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_DoubleShot_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_DoubleShot",
+      "name": "Blitz - Limit Break",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_DoubleShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_DoubleShot",
+      "name": "Blitz - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_DropShot_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_DropShot",
+      "name": "Brutal Arrow - Gale Area",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_DropShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_DropShot",
+      "name": "Brutal Arrow - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_MultiShot_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_MultiShot",
+      "name": "Strafing - Gale",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_MultiShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_MultiShot",
+      "name": "Strafing - Mobility",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_MultiShot_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_MultiShot",
+      "name": "Strafing - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_PowerShot_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_PowerShot",
+      "name": "Decisive Sniping - Charging Time ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_PowerShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_PowerShot",
+      "name": "Decisive Sniping - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_PowerShot_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_PowerShot",
+      "name": "Decisive Sniping - Charging Time ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_PowerShot_Trait_4",
+      "skillSetId": "SkillSet_WP_BO_S_PowerShot",
+      "name": "Decisive Sniping - Mobility",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenAura_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_RegenAura",
+      "name": "Nature's Blessing - Vigorous",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenAura_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_RegenAura",
+      "name": "Nature's Blessing - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenAura_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_RegenAura",
+      "name": "Nature's Blessing - Whirlpool",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenHeal_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_RegenHeal",
+      "name": "Healing Touch - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenHeal_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_RegenHeal",
+      "name": "Healing Touch - Additional Health Recovery",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenHeal_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_RegenHeal",
+      "name": "Healing Touch - Mana Cost Reduced",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_RegenHeal_Trait_4",
+      "skillSetId": "SkillSet_WP_BO_S_RegenHeal",
+      "name": "Healing Touch - Concentration Stance",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_StrongShot_Trait_1",
+      "skillSetId": "SkillSet_WP_BO_S_StrongShot",
+      "name": "Zephyr's Nock - Damage ▲",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_StrongShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_StrongShot",
+      "name": "Zephyr's Nock - Collision",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_StrongShot_Trait_3",
+      "skillSetId": "SkillSet_WP_BO_S_StrongShot",
+      "name": "Zephyr's Nock - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_BO_S_TornadoShot_Trait_2",
+      "skillSetId": "SkillSet_WP_BO_S_TornadoShot",
+      "name": "Arrow Vortex - Whirlpool",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_AddProjectile_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_CR_S_AddProjectile",
+      "name": "Mother Nature's Protest - Gale Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_AddProjectile_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_CR_S_AddProjectile",
+      "name": "Mother Nature's Protest - Flame Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_AddProjectile_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_CR_S_AddProjectile",
+      "name": "Mother Nature's Protest - Frost Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_AddProjectile_Trait_4",
+      "skillSetId": "SkillSet_WP_CR_CR_S_AddProjectile",
+      "name": "Mother Nature's Protest - Lightning Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_ArmorBreakShot_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_CR_S_ArmorBreakShot",
+      "name": "Mortal Mark - Chain Effects",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_ArmorBreakShot_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_CR_S_ArmorBreakShot",
+      "name": "Mortal Mark - Detonation Mark",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_ArmorBreakShot_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_CR_S_ArmorBreakShot",
+      "name": "Mortal Mark - Stamina Stagnation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_BloodToSoul_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_CR_S_BloodToSoul",
+      "name": "Mana Exchange - Effect Boost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_BloodToSoul_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_CR_S_BloodToSoul",
+      "name": "Mana Exchange - Stamina Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_BloodToSoul_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_CR_S_BloodToSoul",
+      "name": "Mana Exchange - Removes CC effect(s)",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_BuckShot_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_CR_S_BuckShot",
+      "name": "Multi-Shot - Rapid Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_BuckShot_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_CR_S_BuckShot",
+      "name": "Multi-Shot - Collision Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_BuckShot_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_CR_S_BuckShot",
+      "name": "Multi-Shot - Shield Removal",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_RapidShot_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_CR_S_RapidShot",
+      "name": "Quick Fire - Gale",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_RapidShot_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_CR_S_RapidShot",
+      "name": "Quick Fire - Min Chain Fire ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_RapidShot_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_CR_S_RapidShot",
+      "name": "Quick Fire - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_RapidShot_Trait_4",
+      "skillSetId": "SkillSet_WP_CR_CR_S_RapidShot",
+      "name": "Quick Fire - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_Step_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_CR_S_Step",
+      "name": "Nimble Leap - Whirlpool",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_Step_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_CR_S_Step",
+      "name": "Nimble Leap - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_Step_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_CR_S_Step",
+      "name": "Nimble Leap - Cooldown Reset",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_CR_S_Step_Trait_4",
+      "skillSetId": "SkillSet_WP_CR_CR_S_Step",
+      "name": "Nimble Leap - Immune",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_AddShot_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_D_AddShot",
+      "name": "Recoil Shot - Gale",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_AddShot_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_D_AddShot",
+      "name": "Recoil Shot - Wave Shot",
+      "reason": "skill_not_modeled"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_AddShot_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_D_AddShot",
+      "name": "Recoil Shot - Off-Hand Weapon Attack ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_RobShot_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_D_RobShot",
+      "name": "Wind Snatcher - Damage Transfer",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_RobShot_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_D_RobShot",
+      "name": "Wind Snatcher - Stamina Absorption",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_WeakPointShot_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_D_WeakPointShot",
+      "name": "Weak Point Shot - Expand Conditions",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_WeakPointShot_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_D_WeakPointShot",
+      "name": "Weak Point Shot - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_D_WeakPointShot_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_D_WeakPointShot",
+      "name": "Weak Point Shot - Weaken Shield",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_FuriousFire_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_FuriousFire",
+      "name": "Merciless Barrage - Annihilation Barrage Shot",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_FuriousFire_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_FuriousFire",
+      "name": "Merciless Barrage - Wild Barrage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_FuriousFire_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_FuriousFire",
+      "name": "Merciless Barrage - Gale",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_S_GhostWalk_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_S_GhostWalk",
+      "name": "Selfless Diffusion - Removes CC",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_S_GhostWalk_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_S_GhostWalk",
+      "name": "Selfless Diffusion - Health Concentration Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_S_GhostWalk_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_S_GhostWalk",
+      "name": "Selfless Diffusion - Aggro ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_S_GhostWalk_Trait_4",
+      "skillSetId": "SkillSet_WP_CR_S_GhostWalk",
+      "name": "Selfless Diffusion - Ignore Directions",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_TauntTrap_Trait_1",
+      "skillSetId": "SkillSet_WP_CR_TauntTrap",
+      "name": "Explosive Trap - Shock Bomb",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_TauntTrap_Trait_2",
+      "skillSetId": "SkillSet_WP_CR_TauntTrap",
+      "name": "Explosive Trap - Set up range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_CR_TauntTrap_Trait_3",
+      "skillSetId": "SkillSet_WP_CR_TauntTrap",
+      "name": "Explosive Trap - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BlinkStrike_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BlinkStrike",
+      "name": "Shadow Strike - Shadowy Escape",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BlinkStrike_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BlinkStrike",
+      "name": "Shadow Strike - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BlinkStrike_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BlinkStrike",
+      "name": "Shadow Strike - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BlinkStrike_trait_4",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BlinkStrike",
+      "name": "Shadow Strike - Effect Accumulation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BloodStrike_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BloodStrike",
+      "name": "Vampiric Strike - Additional Hit",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BloodStrike_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BloodStrike",
+      "name": "Vampiric Strike - Effect Boost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_BloodStrike_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_BloodStrike",
+      "name": "Vampiric Strike - Shield Health ▼",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_CriticalStrike_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_CriticalStrike",
+      "name": "Cleaving Moonlight - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_CriticalStrike_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_CriticalStrike",
+      "name": "Cleaving Moonlight - Effect Accumulation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_CriticalStrike_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_CriticalStrike",
+      "name": "Cleaving Moonlight - Attack Speed ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_CriticalStrike_trait_4",
+      "skillSetId": "SkillSet_WP_DA_DA_S_CriticalStrike",
+      "name": "Cleaving Moonlight - Additional Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DeadlyStrike_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DeadlyStrike",
+      "name": "Brutal Incision - Thundering Bomb",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DeadlyStrike_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DeadlyStrike",
+      "name": "Brutal Incision - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DeadlyStrike_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DeadlyStrike",
+      "name": "Brutal Incision - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DelayDamage_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DelayDamage",
+      "name": "Fatal Stigma - AoE Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DelayDamage_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DelayDamage",
+      "name": "Fatal Stigma - Cooldown Reset",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DelayDamage_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DelayDamage",
+      "name": "Fatal Stigma - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_DelayDamage_trait_4",
+      "skillSetId": "SkillSet_WP_DA_DA_S_DelayDamage",
+      "name": "Fatal Stigma - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_LegAttack_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_LegAttack",
+      "name": "Ankle Strike - Expand Conditions",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_LegAttack_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_LegAttack",
+      "name": "Ankle Strike - Off-Hand Weapon Activation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonDagger_Trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonDagger",
+      "name": "Knife Throwing - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonDagger_Trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonDagger",
+      "name": "Knife Throwing - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonDagger_Trait_4",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonDagger",
+      "name": "Knife Throwing - Additional Hit",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonEnchant_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonEnchant",
+      "name": "Inject Venom - Lightning Infusion",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonEnchant_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonEnchant",
+      "name": "Inject Venom - Mana Cost Reduced",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonEnchant_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonEnchant",
+      "name": "Inject Venom - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_PoisonEnchant_trait_4",
+      "skillSetId": "SkillSet_WP_DA_DA_S_PoisonEnchant",
+      "name": "Inject Venom - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_ShadowChaser_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_ShadowChaser",
+      "name": "Umbral Spirit - Thunder Spirit",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_ShadowChaser_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_ShadowChaser",
+      "name": "Umbral Spirit - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_ShadowChaser_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_ShadowChaser",
+      "name": "Umbral Spirit - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_Smoke_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_Smoke",
+      "name": "Phantom Smokescreen - Improved Smokescreen",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_Smoke_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_Smoke",
+      "name": "Phantom Smokescreen - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_Smoke_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_Smoke",
+      "name": "Phantom Smokescreen - Back Attack",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_SonicAttacka_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+      "name": "Frenzied Sword Dance - Mad Sword Dance",
+      "reason": "skill_not_modeled"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_SonicAttacka_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+      "name": "Frenzied Sword Dance - Effect Accumulation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_SonicAttacka_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+      "name": "Frenzied Sword Dance - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_SonicAttacka_trait_4",
+      "skillSetId": "SkillSet_WP_DA_DA_S_SonicAttacka",
+      "name": "Frenzied Sword Dance - AoE Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_Stealth_trait_1",
+      "skillSetId": "SkillSet_WP_DA_DA_S_Stealth",
+      "name": "Camouflage Cloak - CC Immunity",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_Stealth_trait_2",
+      "skillSetId": "SkillSet_WP_DA_DA_S_Stealth",
+      "name": "Camouflage Cloak - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_DA_DA_S_Stealth_trait_3",
+      "skillSetId": "SkillSet_WP_DA_DA_S_Stealth",
+      "name": "Camouflage Cloak - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_AggroBuff_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_AggroBuff",
+      "name": "Threat Boost - Effect Enchantments",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_AggroBuff_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_AggroBuff",
+      "name": "Threat Boost - Targets Expanded",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_AggroBuff_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_AggroBuff",
+      "name": "Threat Boost - Stamina Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_BattleTrance_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_BattleTrance",
+      "name": "Trance - Health Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_BattleTrance_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_BattleTrance",
+      "name": "Trance - Effect Enchantments",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_BattleTrance_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_BattleTrance",
+      "name": "Trance - Mana Cost Reduced",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Bulldozer_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_Bulldozer",
+      "name": "Sweep - Bind",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Bulldozer_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_Bulldozer",
+      "name": "Sweep - All Resistance and Collision Chance ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Bulldozer_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_Bulldozer",
+      "name": "Sweep - Movement Speed, Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChainAttack_trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_ChainAttack",
+      "name": "Chain Strike - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChainAttack_trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_ChainAttack",
+      "name": "Chain Strike - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChainAttack_trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_ChainAttack",
+      "name": "Chain Strike - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChargeAttack_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_ChargeAttack",
+      "name": "Critical Hit - All Defense ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChargeAttack_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_ChargeAttack",
+      "name": "Critical Hit - Aggro ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChargeAttack_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_ChargeAttack",
+      "name": "Critical Hit - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_ChargeAttack_Trait_4",
+      "skillSetId": "SkillSet_WP_GT_Active_ChargeAttack",
+      "name": "Critical Hit - Chain Skill",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Earthquake_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_Earthquake",
+      "name": "Earthquake - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Earthquake_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_Earthquake",
+      "name": "Earthquake - Movement Speed ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Earthquake_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_Earthquake",
+      "name": "Earthquake - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Earthquake_Trait_4",
+      "skillSetId": "SkillSet_WP_GT_Active_Earthquake",
+      "name": "Earthquake - Mana Cost Reduced",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_EclipseOfBlood_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_EclipseOfBlood",
+      "name": "Eclipse of Blood - Mana Cost Reduced",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_EclipseOfBlood_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_EclipseOfBlood",
+      "name": "Eclipse of Blood - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_GatlingAttack_trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_GatlingAttack",
+      "name": "Explosive Flurry - Stamina Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_GatlingAttack_trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_GatlingAttack",
+      "name": "Explosive Flurry - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_GatlingAttack_trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_GatlingAttack",
+      "name": "Explosive Flurry - Stun",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_GatlingAttack_trait_4",
+      "skillSetId": "SkillSet_WP_GT_Active_GatlingAttack",
+      "name": "Explosive Flurry - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_MoveAttack_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_MoveAttack",
+      "name": "Mobility Strike - Additional Effects",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_MoveAttack_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_MoveAttack",
+      "name": "Mobility Strike - Mobility Enchant",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_MoveAttack_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_MoveAttack",
+      "name": "Mobility Strike - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_OneInchPunch_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_OneInchPunch",
+      "name": "One-Inch Punch - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_OneInchPunch_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_OneInchPunch",
+      "name": "One-Inch Punch - Additional Effects",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_OneInchPunch_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_OneInchPunch",
+      "name": "One-Inch Punch - Weaken Shield",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Taunt_trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_Taunt",
+      "name": "Taunt - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Taunt_trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_Taunt",
+      "name": "Taunt - Movement Speed ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_Taunt_trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_Taunt",
+      "name": "Taunt - Stamina Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_TurtleStance_Trait_1",
+      "skillSetId": "SkillSet_WP_GT_Active_TurtleStance",
+      "name": "Fortifying Shell - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_TurtleStance_Trait_2",
+      "skillSetId": "SkillSet_WP_GT_Active_TurtleStance",
+      "name": "Fortifying Shell - Damage Reduction ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_TurtleStance_Trait_3",
+      "skillSetId": "SkillSet_WP_GT_Active_TurtleStance",
+      "name": "Fortifying Shell - Movement Speed ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_GT_TurtleStance_Trait_4",
+      "skillSetId": "SkillSet_WP_GT_Active_TurtleStance",
+      "name": "Fortifying Shell - Instant Healing",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_GravityCollapse_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_GravityCollapse",
+      "name": "Supernova Collapse - Enhanced Link",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_GravityCollapse_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_GravityCollapse",
+      "name": "Supernova Collapse - Improve Link Effect",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_GravityCollapse_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_GravityCollapse",
+      "name": "Supernova Collapse - Stamina Stagnation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_GravityCollapse_Trait_4",
+      "skillSetId": "SkillSet_WP_ORB_Active_GravityCollapse",
+      "name": "Supernova Collapse - Increase Range",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Laser_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_Laser",
+      "name": "Stellar Dash - Damage Boost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Laser_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_Laser",
+      "name": "Stellar Dash - Pierce Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Laser_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_Laser",
+      "name": "Stellar Dash - Additional Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbExplosion_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbExplosion",
+      "name": "Interstellar Explosion - Stun",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbExplosion_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbExplosion",
+      "name": "Interstellar Explosion - Orb Explosion Radius",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbitSlash_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbitSlash",
+      "name": "Void Slash - Healing Wave",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbitSlash_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbitSlash",
+      "name": "Void Slash - Reactivate",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbShoot_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbShoot",
+      "name": "Summon Constellation - Damage Boost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbShoot_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbShoot",
+      "name": "Summon Constellation - Block Chance ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbSummon_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbSummon",
+      "name": "Starcalling - Increase Effect Duration",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbSummon_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbSummon",
+      "name": "Starcalling - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_OrbSummon_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_OrbSummon",
+      "name": "Starcalling - Reduce Resource Cost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_PartyBarrier_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_PartyBarrier",
+      "name": "Guardian Defensive Wall - Stun Immunity",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_PartyBarrier_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_PartyBarrier",
+      "name": "Guardian Defensive Wall - Increase Effect Duration",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_PartyBarrier_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_PartyBarrier",
+      "name": "Guardian Defensive Wall - Proportionate to Max Health",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Phasing_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_Phasing",
+      "name": "Temporal Leap - Space Transition",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Phasing_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_Phasing",
+      "name": "Temporal Leap - Damage Taken ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Restoration_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_Restoration",
+      "name": "Restoring Constellation - Time Dilation",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Restoration_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_Restoration",
+      "name": "Restoring Constellation - Additional Effects",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Restoration_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_Restoration",
+      "name": "Restoring Constellation - Echoes of Distortion",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_RollingBall_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_RollingBall",
+      "name": "Star Destroyer - Gravity Star Destroyer",
+      "reason": "skill_not_modeled"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_RollingBall_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_RollingBall",
+      "name": "Star Destroyer - Increase Range, Time",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_RollingBall_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_RollingBall",
+      "name": "Star Destroyer - Healing Star",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_RollingBall_Trait_4",
+      "skillSetId": "SkillSet_WP_ORB_Active_RollingBall",
+      "name": "Star Destroyer - Additional Effects",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Satellite_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_Satellite",
+      "name": "Summon Satellite - Summon Guardian Satellite",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Satellite_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_Satellite",
+      "name": "Summon Satellite - Increase Effect Duration",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Shield_Trait_1",
+      "skillSetId": "SkillSet_WP_ORB_Active_Shield",
+      "name": "Distortion Veil - Amplification Veil",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Shield_Trait_2",
+      "skillSetId": "SkillSet_WP_ORB_Active_Shield",
+      "name": "Distortion Veil - Movement Speed ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Shield_Trait_3",
+      "skillSetId": "SkillSet_WP_ORB_Active_Shield",
+      "name": "Distortion Veil - Quick Reuse",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ORB_Active_Shield_Trait_4",
+      "skillSetId": "SkillSet_WP_ORB_Active_Shield",
+      "name": "Distortion Veil - Mana Withdrawal",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_AbnormalTolerance_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_AbnormalTolerance",
+      "name": "Unyielding Sentinel - Sentinel's Bastion",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_AbnormalTolerance_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_AbnormalTolerance",
+      "name": "Unyielding Sentinel - Distant Protection",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_AbnormalTolerance_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_AbnormalTolerance",
+      "name": "Unyielding Sentinel - Unyielding Shield",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_AbnormalTolerance_trait_4",
+      "skillSetId": "SkillSet_WP_SP_S_AbnormalTolerance",
+      "name": "Unyielding Sentinel - Enforcer",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_BloodAura_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_BloodAura",
+      "name": "Bloodleech Aura - Frequent Bloodleech",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_BloodAura_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_BloodAura",
+      "name": "Bloodleech Aura - Bloodleech",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_CrossAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_CrossAttack",
+      "name": "Rising Slash - Bursting Echo",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_CrossAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_CrossAttack",
+      "name": "Rising Slash - Distant Slash",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_CrossAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_CrossAttack",
+      "name": "Rising Slash - Explosive Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DashAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_DashAttack",
+      "name": "Gale Rush - Initiative Blitz",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DashAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_DashAttack",
+      "name": "Gale Rush - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DashAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_DashAttack",
+      "name": "Gale Rush - Removes CC effect(s)",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DashAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SP_S_DashAttack",
+      "name": "Gale Rush - Additional Blitz",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DefenceAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_DefenceAttack",
+      "name": "Cataclysm - Stunning Resolve",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DropAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_DropAttack",
+      "name": "Death From Above - Tormentor's Guise",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DropAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_DropAttack",
+      "name": "Death From Above - Additional Victims",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_DropAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_DropAttack",
+      "name": "Death From Above - Fear Fall",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_PushAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SP_S_PushAttack",
+      "name": "Tempest Strike - Constricting Tempest",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_PushAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_PushAttack",
+      "name": "Tempest Strike - Lasting Storm",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_PushAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_PushAttack",
+      "name": "Tempest Strike - Directional Tempest",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_RapidAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_RapidAttack",
+      "name": "Cyclonic Fury - Conditional Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_RapidAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_RapidAttack",
+      "name": "Cyclonic Fury - Critical Aftermath",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_RapidAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SP_S_RapidAttack",
+      "name": "Cyclonic Fury - Weaken Shield",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_RapidThrust_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_RapidThrust",
+      "name": "Vicious Fury - Conditional Hit",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_RapidThrust_trait_4",
+      "skillSetId": "SkillSet_WP_SP_S_RapidThrust",
+      "name": "Vicious Fury - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_SpearThrower_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_SpearThrower",
+      "name": "Javelin Surge - Hamstring",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_SpearThrower_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_SpearThrower",
+      "name": "Javelin Surge - Species Damage Boost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_StunAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_StunAttack",
+      "name": "Abyssal Cleave - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_StunAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_StunAttack",
+      "name": "Abyssal Cleave - Critical Cleave",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_ThrustPull_trait_2",
+      "skillSetId": "SkillSet_WP_SP_S_ThrustPull",
+      "name": "Culling Arc - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_ThrustPull_trait_3",
+      "skillSetId": "SkillSet_WP_SP_S_ThrustPull",
+      "name": "Culling Arc - Damage Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SP_S_ThrustPull_trait_4",
+      "skillSetId": "SkillSet_WP_SP_S_ThrustPull",
+      "name": "Culling Arc - Burst",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_AoeTeleport_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_AoeTeleport",
+      "name": "Frost Smokescreen - Burning Smokescreen",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_AoeTeleport_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_AoeTeleport",
+      "name": "Frost Smokescreen - Apply Designated Ground Targeting",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_AoeTeleport_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_AoeTeleport",
+      "name": "Frost Smokescreen - Additional Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_BringSkill_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_BringSkill",
+      "name": "Salvation Chain - Redemptive Barrier",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_BringSkill_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_BringSkill",
+      "name": "Salvation Chain - Jumping Chain",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_BringSkill_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_BringSkill",
+      "name": "Salvation Chain - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_FireCombo_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_FireCombo",
+      "name": "Fireball Barrage - Fireball Frenzy",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_FireCombo_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_FireCombo",
+      "name": "Fireball Barrage - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_FireCombo_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_FireCombo",
+      "name": "Fireball Barrage - Mana Burn",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_FireCombo_trait_4",
+      "skillSetId": "SkillSet_WP_ST_S_FireCombo",
+      "name": "Fireball Barrage - Mobility",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_FireCombo_trait_5",
+      "skillSetId": "SkillSet_WP_ST_S_FireCombo",
+      "name": "Fireball Barrage - Penetrating Flame",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_GlobalCoolDownBuff_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_GlobalCoolDownBuff",
+      "name": "High Focus - Targets Expanded",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_GlobalCoolDownBuff_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_GlobalCoolDownBuff",
+      "name": "High Focus - Base Damage Boost",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_GlobalCoolDownBuff_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_GlobalCoolDownBuff",
+      "name": "High Focus - Victorious Energy",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_IceFreeze_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_IceFreeze",
+      "name": "Icebound Tomb - Icebound Armor",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_IceFreeze_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_IceFreeze",
+      "name": "Icebound Tomb - Bind",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_IceFreeze_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_IceFreeze",
+      "name": "Icebound Tomb - Icy Mire",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_IceSpear_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_IceSpear",
+      "name": "Ice Spear - Bind",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_IceSpear_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_IceSpear",
+      "name": "Ice Spear - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_MainAttack_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_MainAttack",
+      "name": "Chain Lightning - Chaining Bolt",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_MainAttack_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_MainAttack",
+      "name": "Chain Lightning - Damage Transfer",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_MainAttack_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_MainAttack",
+      "name": "Chain Lightning - Damage Transfer",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_ManaRengeUp_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_ManaRengeUp",
+      "name": "Inner Peace - Thunder's Blessing",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_ManaRengeUp_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_ManaRengeUp",
+      "name": "Inner Peace - Immune to CC",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_ManaRengeUp_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_ManaRengeUp",
+      "name": "Inner Peace - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_PowerAttack_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_PowerAttack",
+      "name": "Judgment Lightning - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_PowerAttack_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_PowerAttack",
+      "name": "Judgment Lightning - Damage Transfer",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_PowerAttack_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_PowerAttack",
+      "name": "Judgment Lightning - Damage Transfer",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaAttack_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaAttack",
+      "name": "Serial Fire Bombs - Mobility",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaAttack_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaAttack",
+      "name": "Serial Fire Bombs - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaAttack_trait_4",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaAttack",
+      "name": "Serial Fire Bombs - Projectile Speed Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaAttack_trait_5",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaAttack",
+      "name": "Serial Fire Bombs - Instant Casting",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaDebuffAttack_trait_1",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaDebuffAttack",
+      "name": "Inferno Wave - Frenzied Lightning Wave",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaDebuffAttack_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaDebuffAttack",
+      "name": "Inferno Wave - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaDebuffAttack_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaDebuffAttack",
+      "name": "Inferno Wave - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaDebuffAttack_trait_4",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaDebuffAttack",
+      "name": "Inferno Wave - Burning",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaPowerAttack_trait_2",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaPowerAttack",
+      "name": "Infernal Meteor - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_ST_S_WideAreaPowerAttack_trait_3",
+      "skillSetId": "SkillSet_WP_ST_S_WideAreaPowerAttack",
+      "name": "Infernal Meteor - Health Recovery Slowed",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_CounterAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_CounterAttack",
+      "name": "Death Blow - Charges Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_CounterAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_CounterAttack",
+      "name": "Death Blow - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_CounterAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_CounterAttack",
+      "name": "Death Blow - Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DamageReceive_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_DamageReceive",
+      "name": "Blood Devotion - Devoted Sanctuary",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DamageReceive_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_DamageReceive",
+      "name": "Blood Devotion - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DamageReceive_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_DamageReceive",
+      "name": "Blood Devotion - Damage Transfer Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DamageReceive_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_DamageReceive",
+      "name": "Blood Devotion - Damage Increased",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DamageReceive_trait_5",
+      "skillSetId": "SkillSet_WP_SW2_S_DamageReceive",
+      "name": "Blood Devotion - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DashAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_DashAttack",
+      "name": "Precision Dash - Bind",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DashAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_DashAttack",
+      "name": "Precision Dash - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DashAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_DashAttack",
+      "name": "Precision Dash - Decrease Defense",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DashAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_DashAttack",
+      "name": "Precision Dash - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DashAttack_trait_5",
+      "skillSetId": "SkillSet_WP_SW2_S_DashAttack",
+      "name": "Precision Dash - Charge Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DefenseDebuffAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_DefenseDebuffAttack",
+      "name": "Willbreaker - Damage Area Change",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DefenseDebuffAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_DefenseDebuffAttack",
+      "name": "Willbreaker - Evasion Decrease",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DefenseDebuffAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_DefenseDebuffAttack",
+      "name": "Willbreaker - Aggro ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DefenseDebuffAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_DefenseDebuffAttack",
+      "name": "Willbreaker - Heavy Attack Damage ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_DefenseDebuffAttack_trait_5",
+      "skillSetId": "SkillSet_WP_SW2_S_DefenseDebuffAttack",
+      "name": "Willbreaker - Skill Damage Boost ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_GaiaCrash_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_GaiaCrash",
+      "name": "Gaia Crash - Attack Speed ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_GaiaCrash_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_GaiaCrash",
+      "name": "Gaia Crash - Critical Hit Chance Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_LeapAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_LeapAttack",
+      "name": "Devastating Smash - Chance Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_LeapAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_LeapAttack",
+      "name": "Devastating Smash - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_MainAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_MainAttack",
+      "name": "Valiant Brawl - Damage Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_MainAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_MainAttack",
+      "name": "Valiant Brawl - Aggro ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_MainAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_MainAttack",
+      "name": "Valiant Brawl - Weaken Shield",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_PowerAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_PowerAttack",
+      "name": "Guillotine Blade - Charges Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_PowerAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_PowerAttack",
+      "name": "Guillotine Blade - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_PowerAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_PowerAttack",
+      "name": "Guillotine Blade - AoE Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_ShieldBuff_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_ShieldBuff",
+      "name": "DaVinci's Courage - DaVinci's Chill",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_ShieldBuff_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_ShieldBuff",
+      "name": "DaVinci's Courage - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_ShieldBuff_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_ShieldBuff",
+      "name": "DaVinci's Courage - Damage Reduction",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_ShieldBuff_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_ShieldBuff",
+      "name": "DaVinci's Courage - Instant Healing",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_SpinAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_SpinAttack",
+      "name": "Devastating Tornado - Resistance Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_SpinAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_SpinAttack",
+      "name": "Devastating Tornado - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_SpinAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_SpinAttack",
+      "name": "Devastating Tornado - Additional Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_StunAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW2_S_StunAttack",
+      "name": "Stunning Blow - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_StunAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_StunAttack",
+      "name": "Stunning Blow - Damage Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_StunAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_StunAttack",
+      "name": "Stunning Blow - Aggro ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_StunAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_StunAttack",
+      "name": "Stunning Blow - Hit Chance Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_StunAttack_trait_5",
+      "skillSetId": "SkillSet_WP_SW2_S_StunAttack",
+      "name": "Stunning Blow - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_UpperAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW2_S_UpperAttack",
+      "name": "Ascending Slash - Damage Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_UpperAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW2_S_UpperAttack",
+      "name": "Ascending Slash - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW2_S_UpperAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW2_S_UpperAttack",
+      "name": "Ascending Slash - Effect Duration Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_BuffAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_BuffAttack",
+      "name": "Counter Barrier - Concentrated Barrier",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_BuffAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_BuffAttack",
+      "name": "Counter Barrier - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_BuffAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_BuffAttack",
+      "name": "Counter Barrier - Damage Increased",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_DashAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_DashAttack",
+      "name": "Strategic Rush - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_DashAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_DashAttack",
+      "name": "Strategic Rush - Affected Targets ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_DashAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_DashAttack",
+      "name": "Strategic Rush - Movement Speed Slowed",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_DashAttack_trait_4",
+      "skillSetId": "SkillSet_WP_SW_SH_S_DashAttack",
+      "name": "Strategic Rush - Block Chance ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_DebuffAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_DebuffAttack",
+      "name": "Shield Strike - Aggro ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_DebuffAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_DebuffAttack",
+      "name": "Shield Strike - Critical Hit Chance ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ManaAttack_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ManaAttack",
+      "name": "Witty Retort - Stamina Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ManaAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ManaAttack",
+      "name": "Witty Retort - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_MaxHealthUp_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_MaxHealthUp",
+      "name": "Immortal Pride - Blessing of Immortality",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_MaxHealthUp_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_MaxHealthUp",
+      "name": "Immortal Pride - Mana Cost Reduced",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_MaxHealthUp_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_MaxHealthUp",
+      "name": "Immortal Pride - Health Regen",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_MaxHealthUp_trait_4",
+      "skillSetId": "SkillSet_WP_SW_SH_S_MaxHealthUp",
+      "name": "Immortal Pride - All Defense ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_PullSkill_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_PullSkill",
+      "name": "Chain Hook - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_PullSkill_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_PullSkill",
+      "name": "Chain Hook - Wrath Attack",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_PullSkill_trait_4",
+      "skillSetId": "SkillSet_WP_SW_SH_S_PullSkill",
+      "name": "Chain Hook - Rear Chain Hook",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_PushAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_PushAttack",
+      "name": "Fierce Clash - Damage Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_PushAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_PushAttack",
+      "name": "Fierce Clash - Chance Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldBuff_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldBuff",
+      "name": "Stalwart Bastion - Righteous Fury",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldBuff_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldBuff",
+      "name": "Stalwart Bastion - Movement Speed Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldBuff_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldBuff",
+      "name": "Stalwart Bastion - Stalwart Ego",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldBuff_trait_4",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldBuff",
+      "name": "Stalwart Bastion - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldThrow_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldThrow",
+      "name": "Shield Throw - Aggro ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldThrow_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldThrow",
+      "name": "Shield Throw - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_ShieldThrow_trait_4",
+      "skillSetId": "SkillSet_WP_SW_SH_S_ShieldThrow",
+      "name": "Shield Throw - Endurance ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_TauntBuff_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_TauntBuff",
+      "name": "Provoking Roar - Cleaving Roar",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_TauntBuff_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_TauntBuff",
+      "name": "Provoking Roar - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_TauntBuff_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_TauntBuff",
+      "name": "Provoking Roar - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_TauntBuff_trait_4",
+      "skillSetId": "SkillSet_WP_SW_SH_S_TauntBuff",
+      "name": "Provoking Roar - Additional Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_VictoryAttack_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_VictoryAttack",
+      "name": "A Shot at Victory - Effect Boost",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_VictoryAttack_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_VictoryAttack",
+      "name": "A Shot at Victory - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_WhirlwindSlash_trait_1",
+      "skillSetId": "SkillSet_WP_SW_SH_S_WhirlwindSlash",
+      "name": "Annihilating Slash - Movement Speed Slowed",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_WhirlwindSlash_trait_2",
+      "skillSetId": "SkillSet_WP_SW_SH_S_WhirlwindSlash",
+      "name": "Annihilating Slash - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_SW_SH_S_WhirlwindSlash_trait_3",
+      "skillSetId": "SkillSet_WP_SW_SH_S_WhirlwindSlash",
+      "name": "Annihilating Slash - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Corruption_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Corruption",
+      "name": "Touch of Despair - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Corruption_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Corruption",
+      "name": "Touch of Despair - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Corruption_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Corruption",
+      "name": "Touch of Despair - Curse",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseArea_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseArea",
+      "name": "Corrupted Magic Circle - Rotten Marsh",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseArea_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseArea",
+      "name": "Corrupted Magic Circle - Additional Damage",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseBurst_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseBurst",
+      "name": "Curse Explosion - Dark Explosion",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseBurst_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseBurst",
+      "name": "Curse Explosion - Damage Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseBurst_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseBurst",
+      "name": "Curse Explosion - Focus target",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseSpread_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseSpread",
+      "name": "Karmic Haze - Witching Hour",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseSpread_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseSpread",
+      "name": "Karmic Haze - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_CurseSpread_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_CurseSpread",
+      "name": "Karmic Haze - Additional Damage",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Decay_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Decay",
+      "name": "Time for Punishment - Enchanting Time",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Decay_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Decay",
+      "name": "Time for Punishment - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Decay_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Decay",
+      "name": "Time for Punishment - Burning Time",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_DefenseUp_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_DefenseUp",
+      "name": "Blessed Barrier - Valorous Barrier",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_DefenseUp_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_DefenseUp",
+      "name": "Blessed Barrier - Targets Expanded",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_DefenseUp_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_DefenseUp",
+      "name": "Blessed Barrier - Duration Increased",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_HealAll_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_HealAll",
+      "name": "Clay's Salvation - Janice's Rage",
+      "reason": "unparsed_damage_text"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_HealAll_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_HealAll",
+      "name": "Clay's Salvation - Weaken Removal",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_HealAll_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_HealAll",
+      "name": "Clay's Salvation - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_HealField_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_HealField",
+      "name": "Fountain of Life - Mana Recovery",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_HealField_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_HealField",
+      "name": "Fountain of Life - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_HealField_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_HealField",
+      "name": "Fountain of Life - Effect Duration ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Heal_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "name": "Swift Healing - Healing Transfers",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Heal_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "name": "Swift Healing - Consecutive Use",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Heal_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "name": "Swift Healing - Skill Range ▲",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Heal_trait_4",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Heal",
+      "name": "Swift Healing - Mana Recovery",
+      "reason": "not_main_hit_replacement"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_LinkLaser_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_LinkLaser",
+      "name": "Ray of Disaster - Targets Expanded",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_LinkLaser_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_LinkLaser",
+      "name": "Ray of Disaster - Movement Speed Slowed",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_LinkLaser_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_LinkLaser",
+      "name": "Ray of Disaster - Cooldown ▼",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_LinkLaser_trait_4",
+      "skillSetId": "SkillSet_WP_WA_GR_S_LinkLaser",
+      "name": "Ray of Disaster - Concentration Effect Time",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_MagicShield_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_MagicShield",
+      "name": "Invincible Wall - Targets Expanded",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_MagicShield_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_MagicShield",
+      "name": "Invincible Wall - Range Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_MagicShield_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_MagicShield",
+      "name": "Invincible Wall - Evasion, Endurance Increase",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Sleep_trait_1",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Sleep",
+      "name": "Cursed Nightmare - Deep Sleep",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Sleep_trait_2",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Sleep",
+      "name": "Cursed Nightmare - Enhanced Nightmare",
+      "reason": "no_damage_effect"
+    },
+    {
+      "traitId": "SkillSet_WP_WA_GR_S_Sleep_trait_3",
+      "skillSetId": "SkillSet_WP_WA_GR_S_Sleep",
+      "name": "Cursed Nightmare - Enhanced Mire",
+      "reason": "no_damage_effect"
     }
   ]
 }
