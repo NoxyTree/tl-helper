@@ -819,7 +819,6 @@ function renderTradeVerdict() {
     };
     const sourceKit = kitFor(source);
     const targetKit = kitFor(target);
-    const rotationMode = sourceKit.included.length > 0 && targetKit.included.length > 0;
     const expectedFor = (attacker, defender, kit) => {
       const inferred = inferBuildAttackType(attacker.state.build, resolveItemType);
       if (!inferred) throw new Error(`${attacker.label} has no equipped weapon to model.`);
@@ -828,9 +827,15 @@ function renderTradeVerdict() {
         minimum: String(snapshotStat(attacker.snapshot, `${prefix}_min`)),
         maximum: String(snapshotStat(attacker.snapshot, `${prefix}_max`)),
       };
-      const basis = rotationMode
-        ? (() => { const packet = resolveKitRotationPacket({ skills: kit.included, weaponDamage }); return { minimum: packet.perSecond.minimum, maximum: packet.perSecond.maximum }; })()
-        : weaponDamage;
+      // Attack speed raw is milliseconds per swing; Cooldown Speed raw is
+      // basis points of the display percent (6400 = 64%), applied by the
+      // engine as the game's verified divisor, cooldown / (1 + speed).
+      // Negative contest-style stats are floored like the matchup ratings.
+      const intervalSeconds = Number(snapshotStat(attacker.snapshot, `attack_speed_${inferred.slotId === "off_hand" ? "off_hand" : "main_hand"}`)) / 1000;
+      if (!(intervalSeconds > 0)) throw new Error(`${attacker.label} has no resolvable attack speed for its weapon.`);
+      const cooldownSpeed = Math.max(0, Number(snapshotStat(attacker.snapshot, "skill_cooldown_modifier")) / 10000);
+      const packet = resolveKitRotationPacket({ skills: kit.included, weaponDamage, autoAttack: { intervalSeconds }, cooldownSpeed });
+      const basis = { minimum: packet.perSecond.minimum, maximum: packet.perSecond.maximum };
       const contest = stringifyEngineInputs(resolveVisibleMatchupInputs({ sourceSnapshot: attacker.snapshot, targetSnapshot: defender.snapshot, attackType: inferred.attackType, readStat: snapshotStat }));
       return resolveCustomExpectedPvpDamage({
         minimum: basis.minimum,
@@ -856,17 +861,16 @@ function renderTradeVerdict() {
       const seconds = 100 / Number(pressurePercent);
       return Number.isFinite(seconds) && seconds < 999 ? `~${Math.round(seconds)}s` : "over 999s";
     };
-    const race = rotationMode
-      ? `Running their full skill kits, ${sourceLabel} lands the kill in ${ttk(verdict.pressures.source.perSwingPercentOfOpponentHp)}; ${targetLabel} needs ${ttk(verdict.pressures.target.perSwingPercentOfOpponentHp)}`
-      : `${sourceLabel} removes ${escapeHtml(verdict.pressures.source.perSwingPercentOfOpponentHp)}% of ${targetLabel}'s health per swing; ${targetLabel} removes ${escapeHtml(verdict.pressures.target.perSwingPercentOfOpponentHp)}% back`;
+    const race = `Running their full cadence, ${sourceLabel} lands the kill in ${ttk(verdict.pressures.source.perSwingPercentOfOpponentHp)}; ${targetLabel} needs ${ttk(verdict.pressures.target.perSwingPercentOfOpponentHp)}`;
     const stability = verdict.stableWithinModeledSensitivity
       ? "Stable across the model's sensitivity range."
       : "Close enough that model uncertainty could flip it.";
-    const kitNote = rotationMode
-      ? `Kit basis: ${sourceLabel} ${sourceKit.included.length}/${sourceKit.totalActives} damage skills modeled, ${targetLabel} ${targetKit.included.length}/${targetKit.totalActives} · base cooldowns, Cooldown Speed not applied.`
-      : "Generic weapon-swing basis — one or both builds carry no modelable skill kit.";
-    const badge = rotationMode ? "Modeled · full skill kit · before Defense" : "Modeled · one swing each · before Defense";
-    const raceBar = rotationMode ? raceBarMarkup(sourceLabel, targetLabel, verdict) : "";
+    const kitSide = (label, kit) => kit.included.length
+      ? `${label}: ${kit.included.length}/${kit.totalActives} damage skills + auto-attacks`
+      : `${label}: auto-attacks only — no modelable damage skills${kit.totalActives ? "" : " (equip actives in the Armory to model a kit)"}`;
+    const kitNote = `${kitSide(sourceLabel, sourceKit)} · ${kitSide(targetLabel, targetKit)} · Cooldown Speed applied as the game's divisor.`;
+    const badge = "Modeled · full cadence · before Defense";
+    const raceBar = raceBarMarkup(sourceLabel, targetLabel, verdict);
     if (verdict.winner === "even") {
       banner.className = "trade-verdict even";
       banner.innerHTML = `<strong>Dead even — this one comes down to the pilot.</strong><span>${race}. ${escapeHtml(stability)}</span>${raceBar}<span class="trade-verdict-kit">${kitNote}</span><em class="badge modeled">${escapeHtml(badge)}</em>`;
