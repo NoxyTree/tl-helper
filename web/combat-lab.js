@@ -803,6 +803,8 @@ function renderTradeVerdict() {
     const kitFor = (candidate) => {
       const actives = (candidate.state.build.skills ?? []).filter((row) => row.loadoutType === "active");
       const included = [];
+      let appliedSpecSkills = 0;
+      let unverifiedSpecSkills = 0;
       for (const row of actives) {
         const packet = state.kitPackets?.skills?.[row.skillId];
         if (!packet) continue;
@@ -812,10 +814,32 @@ function renderTradeVerdict() {
         // contribution, so the skill is left out of the modeled kit instead.
         const level = available.filter((value) => value <= Number(row.level)).pop();
         if (level === undefined) continue;
-        const entry = packet.levels[String(level)];
-        included.push({ skillSetId: row.skillId, name: packet.name, coefficient: entry.coefficient, flatAdd: entry.flatAdd, cooldown: entry.cooldown, mappingClass: packet.mappingClass });
+        let entry = packet.levels[String(level)];
+        let mappingClass = packet.mappingClass;
+        // A chosen specialization with a validated override replaces the
+        // primary hit under the same honest-level rule; a damage-relevant
+        // specialization without one keeps the skill at base form and is
+        // disclosed instead of guessed. Two matching overrides on one skill
+        // would be ambiguous, so that skill also stays at base form.
+        const specIds = Array.isArray(row.specializationIds) ? row.specializationIds : [];
+        const overrides = specIds.filter((id) => packet.traitOverrides?.[id]);
+        let specUnverified = specIds.some((id) => (packet.unverifiedDamageTraits ?? []).includes(id));
+        if (overrides.length === 1) {
+          const override = packet.traitOverrides[overrides[0]];
+          const overrideLevel = Object.keys(override.levels).map(Number).filter((value) => value <= Number(row.level)).sort((a, b) => a - b).pop();
+          if (overrideLevel === undefined) specUnverified = true;
+          else {
+            const overrideEntry = override.levels[String(overrideLevel)];
+            entry = { coefficient: overrideEntry.coefficient, flatAdd: overrideEntry.flatAdd, cooldown: overrideEntry.cooldown ?? entry.cooldown };
+            mappingClass = override.mappingClass;
+            specUnverified = false;
+            appliedSpecSkills += 1;
+          }
+        } else if (overrides.length > 1) specUnverified = true;
+        if (specUnverified) unverifiedSpecSkills += 1;
+        included.push({ skillSetId: row.skillId, name: packet.name, coefficient: entry.coefficient, flatAdd: entry.flatAdd, cooldown: entry.cooldown, mappingClass });
       }
-      return { included, totalActives: actives.length };
+      return { included, totalActives: actives.length, appliedSpecSkills, unverifiedSpecSkills };
     };
     const sourceKit = kitFor(source);
     const targetKit = kitFor(target);
@@ -868,7 +892,15 @@ function renderTradeVerdict() {
     const kitSide = (label, kit) => kit.included.length
       ? `${label}: ${kit.included.length}/${kit.totalActives} damage skills + auto-attacks`
       : `${label}: auto-attacks only — no modelable damage skills${kit.totalActives ? "" : " (equip actives in the Armory to model a kit)"}`;
-    const kitNote = `${kitSide(sourceLabel, sourceKit)} · ${kitSide(targetLabel, targetKit)} · Cooldown Speed applied as the game's divisor · skills modeled at base form, specializations not applied.`;
+    const appliedSpecTotal = sourceKit.appliedSpecSkills + targetKit.appliedSpecSkills;
+    const unverifiedSpecTotal = sourceKit.unverifiedSpecSkills + targetKit.unverifiedSpecSkills;
+    const specNote = appliedSpecTotal
+      ? `validated specialization overrides applied to ${appliedSpecTotal} skill${appliedSpecTotal === 1 ? "" : "s"}`
+      : "validated specialization overrides applied where taken";
+    const unverifiedNote = unverifiedSpecTotal
+      ? ` · ${unverifiedSpecTotal} skill${unverifiedSpecTotal === 1 ? "" : "s"} with unverified specs kept at base form`
+      : "";
+    const kitNote = `${kitSide(sourceLabel, sourceKit)} · ${kitSide(targetLabel, targetKit)} · Cooldown Speed applied as the game's divisor · ${specNote}${unverifiedNote}.`;
     const badge = "Modeled · full cadence · before Defense";
     const raceBar = raceBarMarkup(sourceLabel, targetLabel, verdict);
     if (verdict.winner === "even") {
