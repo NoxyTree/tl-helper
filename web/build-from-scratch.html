@@ -109,10 +109,64 @@
       <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
         <button onClick="{{ editGoals }}" style="display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';letter-spacing:.06em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;"><span style="font-size:15px;">⚙</span> Edit build goals</button>
         <sc-if value="{{ resultActionsReady }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ openComparePanel }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(114,169,255,.4);border-radius:10px;background:rgba(16,20,28,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(114,169,255,.7);color:#dce9ff;">Compare</button>
           <button onClick="{{ saveResult }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">Save as preset</button>
           <button onClick="{{ useResult }}" style="min-height:44px;padding:0 18px;color:#0b0805;border:1px solid #f2c777;border-radius:10px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 12px 'Instrument Sans';">Use in Armory</button>
         </sc-if>
         <sc-if value="{{ masteryPending }}" hint-placeholder-val="{{ false }}"><span role="status" style="display:inline-flex;align-items:center;gap:6px;color:#f6d391;font-size:11px;"><span style="width:9px;height:9px;border:2px solid rgba(246,211,145,.35);border-top-color:#f6d391;border-radius:50%;display:inline-block;animation:tlSpin .8s linear infinite;"></span>Save &amp; Use unlock once mastery is finalized</span></sc-if>
+        <sc-if value="{{ savePanelOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-basis:100%;display:flex;justify-content:flex-end;">
+            <div role="dialog" aria-label="Save result as preset" style="display:grid;gap:9px;padding:14px;border:1px solid rgba(232,184,106,.42);border-radius:10px;background:rgba(17,13,8,.97);min-width:min(360px,90vw);box-shadow:0 16px 44px rgba(0,0,0,.55);">
+              <label style="display:grid;gap:4px;font:600 10px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;color:#a38c67;">Preset name
+                <input value="{{ saveName }}" onInput="{{ setSaveName }}" spellcheck="false" style="border:1px solid rgba(232,184,106,.4);border-radius:7px;background:rgba(8,6,4,.65);color:#f3e9d4;font:400 13px 'Instrument Sans';padding:8px 9px;letter-spacing:0;text-transform:none;">
+              </label>
+              <sc-if value="{{ hasSaveChoices }}" hint-placeholder-val="{{ false }}">
+                <label style="display:grid;gap:4px;font:600 10px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;color:#a38c67;">Save mode
+                  <select value="{{ replaceTargetId }}" onChange="{{ setReplaceTarget }}" style="border:1px solid rgba(232,184,106,.4);border-radius:7px;background:rgba(8,6,4,.65);color:#f3e9d4;font:400 12px 'Instrument Sans';padding:8px 9px;letter-spacing:0;text-transform:none;">
+                    <option value="">Save as a new preset</option>
+                    <sc-for list="{{ savePresetChoices }}" as="choice" hint-placeholder-count="3"><option value="{{ choice.id }}">Replace: {{ choice.name }}</option></sc-for>
+                  </select>
+                </label>
+              </sc-if>
+              <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button onClick="{{ closeSavePanel }}" style="min-height:36px;padding:0 13px;color:#9d8a68;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:transparent;cursor:pointer;font:600 11px 'Instrument Sans';">Cancel</button>
+                <button onClick="{{ confirmSaveResult }}" style="min-height:36px;padding:0 14px;color:#0b0805;border:1px solid #f2c777;border-radius:8px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 11px 'Instrument Sans';">{{ confirmSaveLabel }}</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ comparePanelOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-basis:100%;display:flex;justify-content:flex-end;">
+            <div role="dialog" aria-label="Compare builds" style="display:grid;gap:10px;padding:14px;border:1px solid rgba(114,169,255,.4);border-radius:10px;background:rgba(11,14,20,.97);min-width:min(560px,92vw);box-shadow:0 16px 44px rgba(0,0,0,.55);">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <strong style="color:#dce9ff;font:400 14px Marcellus,serif;">Priority stats · nothing is saved by comparing</strong>
+                <button onClick="{{ closeComparePanel }}" style="min-height:30px;padding:0 11px;color:#8397b5;border:1px solid rgba(114,169,255,.3);border-radius:7px;background:transparent;cursor:pointer;font:600 11px 'Instrument Sans';">Close</button>
+              </div>
+              <sc-if value="{{ hasComparePresets }}" hint-placeholder-val="{{ false }}">
+                <label style="display:grid;gap:4px;font:600 9.5px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;color:#8397b5;">Compare against preset
+                  <select value="{{ compareTargetId }}" onChange="{{ setCompareTarget }}" style="min-height:32px;padding:5px 8px;border:1px solid rgba(114,169,255,.35);border-radius:7px;background:rgba(0,0,0,.4);color:#dce9ff;font:400 12px 'Instrument Sans';letter-spacing:0;text-transform:none;">
+                    <sc-for list="{{ comparePresetChoices }}" as="choice" hint-placeholder-count="3"><option value="{{ choice.id }}">{{ choice.name }}</option></sc-for>
+                  </select>
+                </label>
+              </sc-if>
+              <div style="overflow-x:auto;">
+                <div style="display:grid;grid-template-columns:minmax(150px,1.4fr) repeat(3,minmax(105px,1fr));gap:6px 10px;align-items:baseline;min-width:480px;">
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8397b5;">Stat</span>
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8397b5;text-align:right;">Current Armory</span>
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8397b5;text-align:right;">Preset</span>
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#f2c777;text-align:right;">This result</span>
+                  <sc-for list="{{ compareRows }}" as="row" hint-placeholder-count="5">
+                    <span style="font-size:11px;color:#d8c9ab;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.rank }}. {{ row.name }}</span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;font-size:11.5px;color:#e6d6b4;">{{ row.armory }} <small style="color:{{ row.armoryDeltaColor }};font-size:9px;">{{ row.armoryDelta }}</small></span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;font-size:11.5px;color:#e6d6b4;">{{ row.preset }} <small style="color:{{ row.presetDeltaColor }};font-size:9px;">{{ row.presetDelta }}</small></span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;color:#f2c777;">{{ row.result }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="font-size:9px;color:#687991;line-height:1.5;">Deltas show how this result compares with each stored build (green = result is higher). Stored builds use persistent static totals; a scenario-scored result may differ in-scenario.</div>
+            </div>
+          </div>
+        </sc-if>
         <sc-if value="{{ resultActionMessage }}" hint-placeholder-val="{{ false }}"><span role="status" style="flex-basis:100%;color:#7ee0a6;font-size:10px;text-align:right;">{{ resultActionMessage }}</span></sc-if>
       </div>
     </sc-if>
@@ -290,6 +344,33 @@
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ setControls.visible }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:12px;padding:13px;border:1px solid rgba(212,166,94,.18);border-radius:11px;background:rgba(0,0,0,.18);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;">
+              <span style="color:#e6d6b4;font-size:12px;font-weight:600;">Set preferences</span>
+              <span style="color:#6f5f49;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;">How the search treats set bonuses</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 14px;align-items:center;">
+              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Require a set
+                <select value="{{ setControls.requireValue }}" onChange="{{ setControls.setRequire }}" style="color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(212,166,94,.3);border-radius:6px;padding:6px 8px;font-size:11px;">
+                  <option value="">No specific set required</option>
+                  <sc-for list="{{ setControls.requireOptions }}" as="opt" hint-placeholder-count="4"><option value="{{ opt.id }}">{{ opt.name }}</option></sc-for>
+                </select>
+              </label>
+              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Minimum active set bonuses
+                <input type="number" min="0" step="1" value="{{ setControls.minimum }}" onInput="{{ setControls.setMinimum }}" aria-label="Minimum active set bonuses" style="color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(212,166,94,.3);border-radius:6px;padding:6px 8px;font-size:11px;">
+              </label>
+              <button type="button" onClick="{{ setControls.togglePrefer }}" aria-pressed="{{ setControls.preferOn }}" style="display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;cursor:pointer;padding:4px 0;">
+                <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ setControls.prefer.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ setControls.prefer.knob }};width:16px;height:16px;border-radius:50%;background:{{ setControls.prefer.knobColor }};"></span></span>
+                <span style="color:#e6d6b4;font-size:11.5px;">Prefer set effects <span style="display:block;color:#8a795f;font-size:9.5px;">Break ties toward more active sets</span></span>
+              </button>
+              <button type="button" onClick="{{ setControls.toggleNoBreak }}" aria-pressed="{{ setControls.noBreakOn }}" style="display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;cursor:pointer;padding:4px 0;">
+                <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ setControls.noBreak.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ setControls.noBreak.knob }};width:16px;height:16px;border-radius:50%;background:{{ setControls.noBreak.knobColor }};"></span></span>
+                <span style="color:#e6d6b4;font-size:11.5px;">Never break a set <span style="display:block;color:#8a795f;font-size:9.5px;">Reject builds with partial sets</span></span>
+              </button>
+            </div>
+          </div>
+        </sc-if>
       </section>
 
       <!-- Combat scenario -->
@@ -407,7 +488,7 @@
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Attribute Budget</h2>
           <span style="margin-left:auto;color:#f2c777;font:400 20px Marcellus,serif;">{{ attrBudget }}<span style="color:#6f5f49;font-family:'Instrument Sans';font-size:11px;"> pts</span></span>
         </div>
-        <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached.</p>
+        <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more — a high-ranked At least goal can keep absorbing score far past its floor and starve lower priorities. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached — use it when "enough is enough".</p>
       </section>
 
       <!-- Passive skills and mastery -->
@@ -1023,13 +1104,26 @@
             <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
               <label style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:8px 10px;border:1px solid {{ row.border }};border-radius:10px;background:{{ row.bg }};transition:border-color .22s ease,background .22s ease,transform .22s ease;">
                 <span style="min-width:0;color:#d8c9ab;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.name }} <small style="color:#8f7e9f;font-size:8px;font-weight:500;letter-spacing:.04em;">{{ row.capLabel }}</small></span>
-                <strong style="color:#f2c777;font:400 15px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
-                <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
+                <span style="display:flex;align-items:center;gap:5px;">
+                  <button type="button" onClick="{{ row.dec }}" aria-label="Lower {{ row.name }} to the previous retained build" title="Previous retained build" style="width:22px;height:22px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:12px;line-height:1;">−</button>
+                  <input type="number" inputmode="decimal" step="any" value="{{ row.displayValue }}" onChange="{{ row.numeric }}" aria-label="Set a target value for {{ row.name }} (display units)" title="Type a target and press Enter; snaps to the nearest retained build" style="width:74px;min-height:22px;padding:2px 5px;border:1px solid rgba(185,140,240,.3);border-radius:6px;background:rgba(0,0,0,.35);color:#f2c777;font-size:10.5px;font-variant-numeric:tabular-nums;text-align:right;">
+                  <button type="button" onClick="{{ row.inc }}" aria-label="Raise {{ row.name }} to the next retained build" title="Next retained build" style="width:22px;height:22px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:12px;line-height:1;">+</button>
+                  <strong style="color:#f2c777;font:400 15px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
+                </span>
+                <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" onKeyDown="{{ row.rangeKey }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
                 <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.minimumLabel }}</span><span style="text-align:right;color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.maximumLabel }}</span>
               </label>
             </sc-for>
           </div>
-          <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Slider changes only select complete builds already recalculated by the optimizer.</div>
+          <sc-if value="{{ hasTuneCandidates }}" hint-placeholder-val="{{ false }}">
+            <label style="display:grid;gap:4px;margin-top:9px;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#8f7e9f;">Jump to a retained build
+              <select value="" onChange="{{ selectTuneCandidate }}" aria-label="Choose a retained tradeoff build by its stat totals" style="min-height:30px;padding:5px 7px;border:1px solid rgba(185,140,240,.35);border-radius:7px;background:rgba(0,0,0,.4);color:#e6d6f2;font-size:10px;letter-spacing:0;text-transform:none;">
+                <option value="">Choose by stat totals…</option>
+                <sc-for list="{{ tuneCandidates }}" as="cand" hint-placeholder-count="5"><option value="{{ cand.id }}">{{ cand.label }}</option></sc-for>
+              </select>
+            </label>
+          </sc-if>
+          <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Sliders, − / + steps, typed targets, and the build list only select complete builds already recalculated by the optimizer.</div>
         </div>
       </sc-if>
       <div style="margin-bottom:12px;">
@@ -1241,11 +1335,21 @@ class Component extends DCLogic {
     resultOrigin: 'scratch',
     resultReturnUrl: './full-build-optimizer.html',
     resultActionMessage: '',
+    savePanelOpen: false,
+    saveName: '',
+    replaceTargetId: '',
+    savePresetChoices: [],
+    comparePanelOpen: false,
+    compareTargetId: '',
+    comparePresetChoices: [],
+    compareArmory: null,
+    comparePreset: null,
     kept: {},
     engineReady: false,
     engineError: '',
     progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
     rules: { endgame: true, heroic: true, traits: true, sets: true, runes: true, artifacts: true },
+    setRules: { require: '', prefer: false, allowBreaking: true, minimumActiveBonuses: 0 },
     openTip: null,
     heroicsEngaged: false,
     heroicMode: 'theoretical',
@@ -1259,8 +1363,9 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets]) => {
+    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js'), import('./tl-preset-meta.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets, presetMeta]) => {
       this.core = core;
+      this.presetMeta = presetMeta;
       this.rulesData = rulesData;
       this.tuner = tuner;
       this.persistence = persistence;
@@ -1706,7 +1811,7 @@ class Component extends DCLogic {
     const item = this.findHeroic(group, cfg.itemId) || {};
     const inh = item.inherentByLevel ? [{ name:'Item Level', value:'Lv ' + (cfg.level || (this.getItemLevels(item).at(-1)||'')) }, { name:(item.inherentByLevel[cfg.level]||Object.values(item.inherentByLevel)[0]||''), value:'' }] : [];
     const unique=cfg.uniqueTrait?[{name:this.statLabel(cfg.uniqueTrait.statId),formattedValue:this.core.formatStat(cfg.uniqueTrait.statId,this.tierVal(item.itemStats?.uniqueTraits?.[cfg.uniqueTrait.statId],cfg.uniqueTrait.tier))}]:[];
-    const heroicEffects=cfg.heroicEffects.map((e,i)=>{const option=this.heroicEffectOptions(item,i).find(row=>row.statId===e.statId);const value=this.heroicEffectValue(option,e.levelKnown?e.level:0);return {groupNumber:i+1,name:this.statLabel(e.statId),value:this.core.formatSigned(value,e.statId),level:e.level,levelKnown:e.levelKnown};});
+    const heroicEffects=cfg.heroicEffects.map((e,i)=>{const option=this.heroicEffectOptions(item,i).find(row=>row.statId===e.statId);const value=this.heroicEffectValue(option,e.levelKnown?e.level:0);return {groupNumber:i+1,name:this.statLabel(e.statId),value:this.core.formatSigned(value,e.statId),level:e.level,levelKnown:e.levelKnown,baseValue:this.core.formatSigned(this.heroicEffectValue(option,0),e.statId),maxValue:this.core.formatSigned(this.heroicEffectValue(option,option?.maxLevel??0),e.statId)};});
     return { name:item.name, meta:this.itemMeta(item), slotLabel:item.slotLabel, rarity:'heroic', slot:'heroic_'+group,
       imageUrl:item.imageUrl||'',stats:inh,traits:cfg.traits.map(t=>({name:this.statLabel(t.statId),value:this.core.formatStat(t.statId,this.tierVal(item.itemStats?.traits?.[t.statId],t.tier))})),unique,heroicEffects,
       runes: cfg.runes.filter(r=>r.runeId).map(r => { const rn=this.runeById(item, r.runeId);
@@ -1761,7 +1866,7 @@ class Component extends DCLogic {
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
         bestHeroicConfiguration:this.state.heroicMode==='theoretical', allowUnownedHeroics:this.state.heroicMode==='theoretical',
         runes:{mode:this.state.rules.runes?'normal':'keep',chaosOwnershipRequired:true,normalDuplicateCap:3,chaosDuplicateCap:1},
-        artifacts:{mode:this.state.rules.artifacts?'sets':'keep'} }, depth:'thorough',
+        artifacts:{mode:this.state.rules.artifacts?'sets':'keep'}, ...(this.state.rules.sets?{sets:this.setRulesForRequest()}:{}) }, depth:'thorough',
       ...(scenario?{scenario}:{}),
     };
   }
@@ -1841,26 +1946,144 @@ class Component extends DCLogic {
     const loaded=this.persistence.loadArmoryState(localStorage,{currentGameBuild:gameBuild});
     return {profile:loaded.ok?loaded.data.profile:{name:this.state.result?.name??'Optimized build',role:'Adventurer',server:''},attributes:{...(this.state.result?.optimizedAttributes||this.state.result?.attributes||{})},favoriteStatIds:[...this.state.priorities],build:this.core.deepClone(this.state.result.build)};
   }
+  loadPresetList() {
+    const gameBuild=this.core.data?.gameBuild??'unversioned';
+    const loaded=this.persistence.loadArmoryPresets(localStorage,{currentGameBuild:gameBuild});
+    return { gameBuild, presets:loaded.ok?loaded.data:[] };
+  }
+  // Side-by-side compare: current Armory build vs a chosen preset vs this
+  // result, on the ranked priority stats. Static persistent totals for the
+  // stored builds; the result column reuses its own goalResults.
+  compareStatValue(calc,id) {
+    const composite=this.core.compositeStatBreakdown?.(calc,id);
+    return composite?composite.total:this.core.statTotal(calc,id);
+  }
+  compareColumnFor(stored) {
+    if(!stored?.build)return null;
+    try{
+      const calc=this.core.calculateBuild(stored.build,stored.attributes??{},{includeSetEffects:true});
+      return Object.fromEntries(this.state.priorities.map(id=>[id,this.compareStatValue(calc,id)]));
+    }catch{return null;}
+  }
+  openComparePanel = () => {
+    try{
+      const gameBuild=this.core.data?.gameBuild??'unversioned';
+      const armory=this.persistence.loadArmoryState(localStorage,{currentGameBuild:gameBuild});
+      const { presets }=this.loadPresetList();
+      this.setState({
+        comparePanelOpen:true,
+        compareTargetId:presets[0]?.id??'',
+        comparePresetChoices:presets.map(preset=>({id:preset.id,name:preset.name})),
+        compareArmory:armory.ok?this.compareColumnFor(armory.data):null,
+        comparePreset:presets[0]?this.compareColumnFor(presets[0]):null,
+        resultActionMessage:'',
+      });
+    }catch{this.setState({resultActionMessage:'Comparison data is unavailable in this browser.'});}
+  };
+  closeComparePanel = () => this.setState({comparePanelOpen:false});
+  setCompareTarget = (event) => {
+    const compareTargetId=event.target.value;
+    const { presets }=this.loadPresetList();
+    const target=presets.find(preset=>preset.id===compareTargetId);
+    this.setState({compareTargetId,comparePreset:target?this.compareColumnFor(target):null});
+  };
+  defaultResultPresetName(existingNames) {
+    const label=this.state.resultOrigin==='improved'?'Optimized':'Forged';
+    return this.presetMeta.generatePresetName(this.core,{build:this.state.result.build,origin:'optimized',label,existingNames});
+  }
   saveResult = () => {
     try{
-      const gameBuild=this.core.data?.gameBuild??'unversioned',snapshot={...this.resultSnapshot(),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name:this.state.result?.name??'Optimized build',createdAt:new Date().toISOString()};
-      const loaded=this.persistence.loadArmoryPresets(localStorage,{currentGameBuild:gameBuild});
-      this.persistence.saveArmoryPresets(localStorage,[...(loaded.ok?loaded.data:[]),snapshot],{gameBuild});
-      this.setState({resultActionMessage:'Saved as a new Armory preset.'});
+      const { presets }=this.loadPresetList();
+      this.setState({
+        savePanelOpen:true,
+        saveName:this.defaultResultPresetName(presets.map(preset=>preset.name)),
+        replaceTargetId:'',
+        savePresetChoices:presets.map(preset=>({id:preset.id,name:preset.name})),
+        resultActionMessage:'',
+      });
+    }catch{this.setState({resultActionMessage:'Presets are unavailable in this browser.'});}
+  };
+  closeSavePanel = () => this.setState({savePanelOpen:false});
+  setSaveName = (event) => this.setState({saveName:event.target.value});
+  setReplaceTarget = (event) => {
+    const replaceTargetId=event.target.value;
+    const target=this.state.savePresetChoices.find(choice=>choice.id===replaceTargetId);
+    this.setState({replaceTargetId, ...(target?{saveName:target.name}:{})});
+  };
+  confirmSaveResult = () => {
+    try{
+      const { gameBuild, presets }=this.loadPresetList();
+      const requested=String(this.state.saveName??'').trim();
+      const replaceId=this.state.replaceTargetId;
+      if(replaceId){
+        const targetIndex=presets.findIndex(preset=>preset.id===replaceId);
+        if(targetIndex<0){this.setState({resultActionMessage:'That preset no longer exists.',savePanelOpen:false});return;}
+        const otherNames=presets.filter(preset=>preset.id!==replaceId).map(preset=>preset.name);
+        const name=this.presetMeta.uniqueName(requested||presets[targetIndex].name,otherNames);
+        const replaced=[...presets];
+        replaced[targetIndex]={...this.resultSnapshot(),id:replaceId,name,origin:'optimized',createdAt:presets[targetIndex].createdAt??new Date().toISOString(),updatedAt:new Date().toISOString()};
+        this.persistence.saveArmoryPresets(localStorage,replaced,{gameBuild});
+        this.setState({savePanelOpen:false,resultActionMessage:`Replaced “${name}”. Your current Armory build is untouched.`});
+        return;
+      }
+      const name=this.presetMeta.uniqueName(requested||this.defaultResultPresetName(presets.map(preset=>preset.name)),presets.map(preset=>preset.name));
+      const snapshot={...this.resultSnapshot(),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name,origin:'optimized',createdAt:new Date().toISOString()};
+      this.persistence.saveArmoryPresets(localStorage,[...presets,snapshot],{gameBuild});
+      this.setState({savePanelOpen:false,resultActionMessage:`Saved as “${name}”. Your current Armory build is untouched.`});
     }catch{this.setState({resultActionMessage:'The preset could not be saved in this browser.'});}
   };
   useResult = () => {
     try{
+      this.persistence.backupArmoryStateForUndo(localStorage);
       this.persistence.saveArmoryState(localStorage,this.resultSnapshot(),{gameBuild:this.core.data?.gameBuild??'unversioned'});
       location.href='./index.html';
     }catch{this.setState({resultActionMessage:'The build could not be saved in this browser.'});}
   };
-  tuneStat(id,event) {
+  tuneContext() {
     const result=this.state.result,targetCaps=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.target!=null).map(goal=>[goal.id,goal.target]));
     const frontier=this.tuner?.paretoTuneFrontier(result?.tuningFrontier||[],this.state.priorities,48,targetCaps)||[];
     const floors=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.minimum!=null).map(goal=>[goal.id,goal.minimum]));
-    const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,Number(event.target.value),floors);
-    if(!candidate)return;
+    return { result, frontier, floors };
+  }
+  tuneStat(id,event) { this.tuneStatToValue(id,Number(event.target.value)); }
+  tuneStatInput(id,event) {
+    const display=Number(String(event.target.value).replace(/,/g,''));
+    if(!Number.isFinite(display))return;
+    this.tuneStatToValue(id,this.core.statDisplayToRaw(id,display));
+  }
+  // Step to the next distinct retained-candidate value so keyboard and button
+  // steps always land on a different complete build (a tiny numeric step can
+  // otherwise snap back to the same candidate and feel unresponsive).
+  tuneStatStep(id,direction) {
+    const {frontier}=this.tuneContext();
+    const values=[...new Set(frontier.map(candidate=>Number(candidate.goalValues?.[id])||0))].sort((a,b)=>a-b);
+    const current=Number(this.state.result?.goalResults?.find(goal=>goal.id===id)?.value)||0;
+    const next=direction>0?values.find(value=>value>current):[...values].reverse().find(value=>value<current);
+    if(next==null)return;
+    this.tuneStatToValue(id,next);
+  }
+  tuneRangeKey(id,event) {
+    const step={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[event.key];
+    if(step){event.preventDefault();this.tuneStatStep(id,step);return;}
+    if(event.key==='Home'||event.key==='End'){
+      event.preventDefault();
+      const {frontier}=this.tuneContext();
+      const values=frontier.map(candidate=>Number(candidate.goalValues?.[id])||0);
+      if(values.length)this.tuneStatToValue(id,event.key==='Home'?Math.min(...values):Math.max(...values));
+    }
+  }
+  selectTuneCandidate = (event) => {
+    const {frontier}=this.tuneContext();
+    const candidate=frontier.find(row=>String(row.id)===event.target.value);
+    if(candidate)this.applyTuneCandidate(candidate);
+  };
+  tuneStatToValue(id,rawTarget) {
+    const {frontier,floors}=this.tuneContext();
+    const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,rawTarget,floors);
+    if(candidate)this.applyTuneCandidate(candidate);
+  }
+  applyTuneCandidate(candidate) {
+    const result=this.state.result;
     const resultCalc=this.core.calculateBuild(candidate.build,candidate.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
     if(resultCalc.status?.state!=='legal'||(result.scenario&&resultCalc.scenarioEffects?.status!=='applied'))return;
     const totals=Object.fromEntries((resultCalc.scenarioStats??resultCalc.stats??[]).map(row=>[row.id,Number(row.total)||0]));
@@ -1973,6 +2196,23 @@ class Component extends DCLogic {
       || /^(max health|damage reduction|cooldown speed|buff duration|attack speed|block chance|pvp endurance|pvp evasion|pvp hit chance|pvp heavy attack)/i.test(row.name);
   }
   toggleRule(k) { const value=!this.state.rules[k]; this.setState({ rules: { ...this.state.rules, [k]: value }, ...(k==='heroic'?{heroicMode:value?'theoretical':'owned'}:{}) }); }
+  toggleSetRule(k) { this.setState({ setRules: { ...this.state.setRules, [k]: !this.state.setRules[k] } }); }
+  setSetRequire = (event) => this.setState({ setRules: { ...this.state.setRules, require: event.target.value } });
+  setSetMinimum = (event) => { const n=Math.max(0,Math.trunc(Number(event.target.value)||0)); this.setState({ setRules: { ...this.state.setRules, minimumActiveBonuses: n } }); };
+  setRulesForRequest() {
+    const s=this.state.setRules; const out={};
+    if(s.require) out.require=s.require;
+    if(s.prefer) out.prefer=true;
+    if(s.allowBreaking===false) out.allowBreaking=false;
+    if(Number(s.minimumActiveBonuses)>0) out.minimumActiveBonuses=Math.trunc(Number(s.minimumActiveBonuses));
+    return out;
+  }
+  setCatalogue() {
+    if(this._setCatalogue?.length) return this._setCatalogue;
+    const sets=(this.core?.data?.itemSets ?? []).map(set=>({ id:set.id, name:set.name })).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    if(sets.length) this._setCatalogue=sets; // only cache once core data is loaded
+    return sets;
+  }
   toggleScenario = () => this.setState({scenario:{...this.state.scenario,enabled:!this.state.scenario.enabled}});
   setScenarioDistance = (event) => this.setState({scenario:{...this.state.scenario,distance:event.target.value}});
   setScenarioTimeOfDay = (event) => this.setState({scenario:{...this.state.scenario,timeOfDay:event.target.value}});
@@ -2211,7 +2451,7 @@ class Component extends DCLogic {
         dropBefore:dropTarget&&!s.dragInsertAfter,dropAfter:dropTarget&&s.dragInsertAfter,
         rank_color: top ? '#0b0805' : '#f2c777', rank_bg: top ? '#f2c777' : 'rgba(0,0,0,.3)',
         rank_border: top ? '#f2c777' : 'rgba(242,199,119,.4)',
-        goalMode:s.goalModes[id]||'maximize',goalModeOptions:[{id:'maximize',label:'Maximize'},{id:'at_least',label:'At least'},{id:'target',label:'Target'}],
+        goalMode:s.goalModes[id]||'maximize',goalModeOptions:[{id:'maximize',label:'Maximize'},{id:'at_least',label:'At least — floor, still rewards more'},{id:'target',label:'Target — floor, then stops'}],
         hasGoalValue:(s.goalModes[id]||'maximize')!=='maximize',goalValue:s.goalValues[id]??'',valueLabel:(s.goalModes[id]||'maximize')==='target'?'Reach':'Floor',
         setGoalMode:(event)=>this.setGoalMode(id,event),setGoalValue:(event)=>this.setGoalValue(id,event),
         dragStart:(event)=>this.startPriorityDrag(id,event),dragOver:(event)=>this.dragOverPriority(id,event),drop:(event)=>this.dropPriority(id,event),reorderKey:(event)=>this.priorityReorderKey(id,event),remove: () => this.removePriority(id) };
@@ -2261,6 +2501,19 @@ class Component extends DCLogic {
         track: on ? 'linear-gradient(90deg,#a9702a,#f2c777)' : 'rgba(120,105,80,.35)',
         knob: on ? '18px' : '2px', knob_color: on ? '#0b0805' : '#8a795f' };
     });
+
+    const setRules = s.setRules;
+    const setToggle = (on) => ({ track: on ? 'linear-gradient(90deg,#a9702a,#f2c777)' : 'rgba(120,105,80,.35)', knob: on ? '18px' : '2px', knobColor: on ? '#0b0805' : '#8a795f' });
+    const setControls = {
+      visible: s.rules.sets,
+      requireValue: setRules.require,
+      requireOptions: this.setCatalogue(),
+      setRequire: this.setSetRequire,
+      minimum: String(setRules.minimumActiveBonuses || 0),
+      setMinimum: this.setSetMinimum,
+      prefer: setToggle(setRules.prefer), preferOn: setRules.prefer, togglePrefer: () => this.toggleSetRule('prefer'),
+      noBreak: setToggle(setRules.allowBreaking === false), noBreakOn: setRules.allowBreaking === false, toggleNoBreak: () => this.toggleSetRule('allowBreaking'),
+    };
 
     const forgeSteps = this.FORGE_PHASES.map((f, i) => {
       const done = i < s.stepIndex, cur = i === s.stepIndex;
@@ -2340,8 +2593,19 @@ class Component extends DCLogic {
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{},range=tuningRanges[id]||{minimum:Number(goal.value)||0,maximum:Number(goal.value)||0};
       const rawValue=Number(goal.value)||0,span=Math.max(0,Number(range.maximum)-Number(range.minimum));
       const capLabel=goal.formattedTarget?`Target ${goal.formattedTarget}`:goal.formattedMinimum?`Floor ${goal.formattedMinimum}`:goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP diff 4,500 / -3,000':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC diff 1,800 / -1,200':'';
-      return{id,name:goal.name||this.statLabel(id),capLabel,value:goal.formattedValue||this.core.formatStat(id,rawValue),rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event)};
+      const formattedValue=goal.formattedValue||this.core.formatStat(id,rawValue);
+      const parsedDisplay=parseFloat(String(formattedValue).replace(/,/g,''));
+      return{id,name:goal.name||this.statLabel(id),capLabel,value:formattedValue,rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event),
+        displayValue:Number.isFinite(parsedDisplay)?parsedDisplay:rawValue,
+        numeric:(event)=>this.tuneStatInput(id,event),
+        rangeKey:(event)=>this.tuneRangeKey(id,event),
+        dec:()=>this.tuneStatStep(id,-1),
+        inc:()=>this.tuneStatStep(id,1)};
     });
+    const tuneCandidates=tuningFrontier.slice(0,24).map(candidate=>({
+      id:String(candidate.id),
+      label:s.priorities.slice(0,3).map(statId=>`${this.statLabel(statId)} ${this.core.formatStat(statId,Number(candidate.goalValues?.[statId])||0)}`).join(' · '),
+    }));
 
     const favourites = s.priorities.map((id, i) => {
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{};
@@ -2618,7 +2882,7 @@ class Component extends DCLogic {
         draftTraitRows: item ? draft.traits.map(t=>({name:this.statLabel(t.statId), tier:'T'+t.tier+' · '+this.core.formatStat(t.statId,this.tierVal(item.itemStats.traits[t.statId],t.tier))})) : [],
         draftHeroicTrait: draft.uniqueTrait ? (this.statLabel(draft.uniqueTrait.statId)+' · T'+draft.uniqueTrait.tier) : '—',
         draftEffectRows: item ? draft.heroicEffects.map((e,i)=>{ const opt=this.heroicEffectOptions(item,i).find(o=>o.statId===e.statId);
-          return { name:this.statLabel(e.statId), level: e.levelKnown ? ('Lv '+e.level+' · '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,e.level))) : 'Unknown · base '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,0)) }; }) : [],
+          return { name:this.statLabel(e.statId), level: e.levelKnown ? ('Lv '+e.level+' · '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,e.level))) : 'Level unknown · base '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,0))+' · max '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,opt?.maxLevel??0)) }; }) : [],
         draftResonance: draft.resonance ? (this.statLabel(draft.resonance.statId)+' T'+draft.resonance.tier) : 'None',
         draftRuneChips: item ? draft.runes.map(r=>{ const rune=r.runeId?this.runeById(item,r.runeId):null;
           return { label: rune ? (this.statLabel(r.statId)+' Lv'+r.level+(r.chaos?' · Chaos':'')) : 'Empty socket',
@@ -2654,7 +2918,7 @@ class Component extends DCLogic {
       scenarioPartyTotal:s.scenario.partyTotal,scenarioPartyWithin4:s.scenario.partyWithin4,scenarioPartyAdditional4To16:s.scenario.partyAdditional4To16,scenarioAlliedNonpartyWithin4:s.scenario.alliedNonpartyWithin4,
       toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
-      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
+      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList, setControls,
       presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>{
         const skillIcon=this.core?.indexes?.skillById?.[preset.iconSkillId]?.imageUrl||'';
         return {label:preset.label,tagline:preset.tagline,hasIcon:Boolean(skillIcon),icon:skillIcon?`url(${skillIcon}) center/cover`:'',select:()=>this.applyPreset(preset.id)};
@@ -2668,11 +2932,36 @@ class Component extends DCLogic {
       progress: s.progress, progressMsg: s.progressMsg, progressPhase: s.progressPhase, candidates: s.candidates.toLocaleString(),
       forgeSteps, cancelForge: this.cancelForge, editGoals: this.editGoals, refit: this.refit, refitLabel:s.resultOrigin==='improved'?'Edit improve rules':'Re-forge unlocked',
       saveResult:this.saveResult,useResult:this.useResult,resultActionMessage:s.resultActionMessage,
+      savePanelOpen:s.savePanelOpen,saveName:s.saveName,replaceTargetId:s.replaceTargetId,savePresetChoices:s.savePresetChoices,
+      hasSaveChoices:s.savePresetChoices.length>0,confirmSaveLabel:s.replaceTargetId?'Replace preset':'Save new preset',
+      closeSavePanel:this.closeSavePanel,setSaveName:this.setSaveName,setReplaceTarget:this.setReplaceTarget,confirmSaveResult:this.confirmSaveResult,
+      comparePanelOpen:s.comparePanelOpen,openComparePanel:this.openComparePanel,closeComparePanel:this.closeComparePanel,setCompareTarget:this.setCompareTarget,
+      compareTargetId:s.compareTargetId,comparePresetChoices:s.comparePresetChoices,hasComparePresets:s.comparePresetChoices.length>0,
+      hasCompareArmory:Boolean(s.compareArmory),
+      compareRows:s.comparePanelOpen?s.priorities.map((id,index)=>{
+        const goal=s.result?.goalResults?.find(row=>row.id===id)||{};
+        const resultValue=Number(goal.value)||0;
+        const cellFor=(column)=>{
+          if(!column||column[id]==null)return {text:'—',delta:'',deltaColor:'#695d70'};
+          const value=Number(column[id])||0;
+          const delta=resultValue-value;
+          return {
+            text:this.core.formatStat(id,value),
+            delta:delta===0?'±0':`${delta>0?'+':'−'}${this.core.formatStat(id,Math.abs(delta))}`,
+            deltaColor:delta>0?'#7ee0a6':delta<0?'#e57c72':'#8a795f',
+          };
+        };
+        const armory=cellFor(s.compareArmory),preset=cellFor(s.comparePreset);
+        return {rank:index+1,name:goal.name||this.statLabel(id),result:this.core.formatStat(id,resultValue),
+          armory:armory.text,armoryDelta:armory.delta,armoryDeltaColor:armory.deltaColor,
+          preset:preset.text,presetDelta:preset.delta,presetDeltaColor:preset.deltaColor};
+      }):[],
 
       gearAll, weapons, artifacts,
       moveHover: this.moveHover, leaveHover: this.leaveHover, closeAttr: () => this.setState({ openAttr: null }),
       weaponStats, attrTracks, setSummary, runeChips, noActiveSystems:setSummary.length===0&&runeChips.length===0,
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
+      tuneCandidates, hasTuneCandidates:tuneCandidates.length>1, selectTuneCandidate:this.selectTuneCandidate,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
       hasProgression,showCompactProgression:false,passiveSkills,passiveSkillCount:passiveSkills.length,passiveBudgetPct:`${Math.min(100,passiveSkills.length/8*100)}%`,resultPassiveCards,resultPassiveEmpty:Array.from({length:Math.max(0,8-resultPassiveCards.length)},(_,index)=>({id:index})),resultSkillFocus,hasResultSkillFocus:Boolean(resultSkillFocus),masteryPanel,masteryGroups,overallMasteries,hasOverallMastery:overallMasteries.length>0,hasNoOverallMastery:overallMasteries.length===0,overallMasteryCount:overallMasteries.length,resultOverallMasteryLevel,
 
@@ -2688,5 +2977,6 @@ class Component extends DCLogic {
 }
 </script>
   <script type="module" src="./tl-account-menu.js"></script>
+  <script type="module" src="./tl-support-link.js"></script>
 </body>
 </html>

@@ -1067,7 +1067,7 @@
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
       if (model.hasUnique) sections.push(`<div class="hc-section"><div class="hc-title heroic">Heroic Trait</div>${statRows(model.unique, "trait")}</div>`);
       if (model.hasHeroicEffects) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.18);background:rgba(255,152,45,0.035)"><div class="hc-title heroic">Heroic Effects</div>${model.heroicEffects.map((row) =>
-        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}${row.levelKnown ? ` · Lv ${esc(row.level)}` : " · level unknown"}</span><span class="fill"></span><span class="val">${esc(row.value)}</span></div>`).join("")}</div>`);
+        `<div class="hc-heroic-row"><span class="num">${esc(row.groupNumber)}</span><span class="hc-line">${esc(row.name)}${row.levelKnown ? ` · Lv ${esc(row.level)}` : " · level unknown"}</span><span class="fill"></span><span class="val">${row.levelKnown || row.baseValue == null ? esc(row.value) : `${esc(row.baseValue)} base · max ${esc(row.maxValue)}`}</span></div>`).join("")}</div>`);
       if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="resonance-selected"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}${model.resonanceOptions.length > model.resonance.length ? `<div class="hc-gain-hint">Hold <kbd>R</kbd> to show all possibilities</div>` : ""}</div><div class="resonance-all"><div class="hc-title resonance">Possible Trait Resonances</div>${statRows(model.resonanceOptions, "resonance")}</div></div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
@@ -1545,5 +1545,6 @@
     boot();
   </script>
   <script type="module" src="./tl-account-menu.js"></script>
+  <script type="module" src="./tl-support-link.js"></script>
 </body>
 </html>

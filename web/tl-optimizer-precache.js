@@ -15,7 +15,7 @@ import { normalizeRankedGoals } from "./tl-full-build-adapter.js";
 export const PRECACHE_INDEX_URL = "./data/optimizer-precache/index.json";
 
 const RUNE_RULE_FIELDS = ["mode", "chaosOwnershipRequired", "normalDuplicateCap", "chaosDuplicateCap"];
-const RULE_FIELDS = ["minimumItemLevel", "keepCurrentHeroics", "reconsiderHeroics", "includeSetEffects", "optimizeThreeTraits", "bestHeroicConfiguration", "allowUnownedHeroics"];
+const RULE_FIELDS = ["minimumItemLevel", "keepCurrentHeroics", "reconsiderHeroics", "heroicPolicy", "includeSetEffects", "optimizeThreeTraits", "bestHeroicConfiguration", "allowUnownedHeroics"];
 
 function buildHasSelections(build) {
   for (const group of [build?.equipment, build?.artifacts, build?.supportSlots]) {

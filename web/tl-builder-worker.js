@@ -32,6 +32,7 @@ self.onmessage = async (event) => {
     self.postMessage({
       type: error?.name === "AbortError" ? "cancelled" : "error",
       message: String(error?.message ?? error),
+      ...(error?.constraintDiagnostics ? { constraintDiagnostics: error.constraintDiagnostics } : {}),
     });
   } finally {
     activeTaskPool.terminate();

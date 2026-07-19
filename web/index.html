@@ -324,6 +324,16 @@
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;"><span style="font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase; color: #a38c67;">Stat breakdown</span><button type="button" onClick="{{ selectedStat.onFavorite }}" aria-label="{{ selectedStat.favoriteLabel }}" title="{{ selectedStat.favoriteLabel }}" style="width: 30px; height: 30px; border: 1px solid rgba(232, 184, 106, 0.2); border-radius: 7px; background: rgba(8,6,4,0.4); color: {{ selectedStat.favoriteColor }}; cursor: pointer; font-size: 15px;">{{ selectedStat.favoriteGlyph }}</button></div>
                   <h2 style="margin: 12px 0 0; font-family: Marcellus, serif; font-size: 21px; font-weight: 400; color: #f6d391; line-height: 1.15;">{{ selectedStat.name }}</h2>
                   <div style="display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,166,94,0.14);"><div><div data-stat-flash="{{ selectedStat.flashId }}" data-stat-flash-value="{{ selectedStat.value }}" style="font-family: Marcellus, serif; font-size: 34px; line-height: 1; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ selectedStat.value }}</div><div style="margin-top: 5px; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: {{ selectedStat.color }};">{{ selectedStat.page }}</div></div><span style="font-size: 10px; color: #8a795f;">{{ selectedStat.sourceLabel }}</span></div>
+                  <sc-if value="{{ selectedStat.hasComposite }}" hint-placeholder-val="false">
+                    <div data-testid="composite-stat-components" style="margin-top: 12px; padding: 10px 11px; border: 1px solid rgba(232, 184, 106, 0.16); border-radius: 8px; background: rgba(8, 6, 4, 0.35);">
+                      <div style="font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: #a38c67;">Composite · weakest component counts</div>
+                      <div style="display: grid; gap: 6px; margin-top: 8px;">
+                        <sc-for list="{{ selectedStat.compositeRows }}" as="comp" hint-placeholder-count="3">
+                          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;"><span style="font-size: 10.5px; color: {{ comp.nameColor }}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ comp.name }}{{ comp.weakestTag }}</span><strong style="font-size: 11px; color: {{ comp.valueColor }}; font-variant-numeric: tabular-nums;">{{ comp.value }}</strong></div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
                   <div style="display: grid; gap: 11px; margin-top: 15px; max-height: {{ selectedStat.sourceListMaxHeight }}; overflow-y: {{ selectedStat.sourceListOverflow }}; padding-right: 3px;"><sc-for list="{{ selectedStat.sources }}" as="src" hint-placeholder-count="4"><div><div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: baseline;"><span style="font-size: 11px; color: #c4ae89; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ src.label }}</span><strong data-stat-flash="{{ src.flashId }}" data-stat-flash-value="{{ src.value }}" style="font-size: 11px; color: #f3e9d4; font-variant-numeric: tabular-nums;">{{ src.value }}</strong></div><div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;"><span style="font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #75654d;">{{ src.type }}</span><span style="flex: 1; height: 2px; border-radius: 2px; background: rgba(212,166,94,.1); overflow: hidden;"><span style="display: block; width: {{ src.pct }}; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #b87b32, #f0c473);"></span></span></div></div></sc-for></div>
                   <sc-if value="{{ selectedStat.hasMoreSources }}" hint-placeholder-val="false"><button type="button" onClick="{{ selectedStat.onToggleSources }}" style="width: 100%; margin-top: 13px; padding: 8px 10px; border: 1px solid rgba(232,184,106,.18); border-radius: 7px; background: rgba(232,184,106,.05); color: #cbb185; cursor: pointer; font-size: 10px; letter-spacing: .04em;">{{ selectedStat.sourcesToggleLabel }}</button></sc-if>
                   <sc-if value="{{ selectedStat.noSources }}" hint-placeholder-val="false"><p style="margin: 14px 0 0; color: #7d6c52; font-size: 11px; line-height: 1.5;">This total has no separate contribution rows in the current build snapshot.</p></sc-if>
@@ -1156,14 +1166,47 @@
             <button type="button" onClick="{{ addCurrentPreset }}" style="white-space:nowrap;padding:8px 13px;border-radius:8px;border:1px solid rgba(114,169,255,.5);background:rgba(114,169,255,.12);color:#dce9ff;cursor:pointer;">Save current build</button>
           </div>
 
+          <sc-if value="{{ undoAvailable }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; padding:12px; border:1px solid rgba(232,184,106,.3); border-radius:10px; background:rgba(232,184,106,.06);">
+              <div>
+                <div style="font-size:12px;color:#f6d391;">Restore replaced build</div>
+                <div style="margin-top:3px;font-size:10px;color:#a38c67;line-height:1.5;">{{ undoLabel }}</div>
+              </div>
+              <button type="button" onClick="{{ restoreReplacedBuild }}" style="white-space:nowrap;padding:8px 13px;border-radius:8px;border:1px solid rgba(232,184,106,.5);background:rgba(232,184,106,.12);color:#f6d391;cursor:pointer;">Restore</button>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ hasPresetError }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;color:#e56a6a;font-size:11px;">{{ presetError }}</div></sc-if>
 
           <div style="display:grid;gap:9px;margin-top:14px;">
             <sc-for list="{{ presetRows }}" as="preset" hint-placeholder-count="2">
-              <div style="display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid rgba(212,166,94,.2);border-radius:10px;background:rgba(10,8,5,.58);">
+              <div style="display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid {{ preset.activeBorder }};border-radius:10px;background:rgba(10,8,5,.58);">
                 <div style="min-width:0;">
-                  <input value="{{ preset.name }}" onChange="{{ preset.onRename }}" aria-label="{{ preset.renameLabel }}" spellcheck="false" style="width:100%;border:0;border-bottom:1px solid rgba(212,166,94,.18);background:transparent;color:#f3e9d4;font-family:Marcellus,serif;font-size:16px;padding:2px 0 5px;">
+                  <sc-if value="{{ preset.notEditing }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                      <span style="color:#f3e9d4;font-family:Marcellus,serif;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ preset.name }}</span>
+                      <sc-if value="{{ preset.active }}" hint-placeholder-val="{{ false }}"><span style="flex:none;padding:2px 7px;border-radius:999px;border:1px solid rgba(126,224,166,.45);background:rgba(126,224,166,.1);color:#7ee0a6;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">Active</span></sc-if>
+                      <span style="flex:none;padding:2px 7px;border-radius:999px;border:1px solid rgba(212,166,94,.3);background:rgba(212,166,94,.08);color:#cbb185;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">{{ preset.originLabel }}</span>
+                      <button type="button" onClick="{{ preset.onStartRename }}" aria-label="{{ preset.renameLabel }}" title="Rename" style="flex:none;width:26px;height:26px;border:1px solid rgba(212,166,94,.25);border-radius:6px;background:transparent;color:#cbb185;cursor:pointer;font-size:12px;">✎</button>
+                      <sc-if value="{{ preset.justSaved }}" hint-placeholder-val="{{ false }}"><span role="status" style="flex:none;color:#7ee0a6;font-size:10px;">Name saved ✓</span></sc-if>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ preset.editing }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;align-items:center;gap:7px;min-width:0;">
+                      <input value="{{ preset.renameDraft }}" onInput="{{ preset.onRenameInput }}" onKeyDown="{{ preset.onRenameKey }}" aria-label="{{ preset.renameLabel }}" spellcheck="false" style="flex:1;min-width:0;border:1px solid rgba(232,184,106,.45);border-radius:6px;background:rgba(8,6,4,.6);color:#f3e9d4;font-family:Marcellus,serif;font-size:15px;padding:5px 8px;">
+                      <button type="button" onClick="{{ preset.onRenameSave }}" style="flex:none;padding:6px 11px;border-radius:6px;border:1px solid rgba(126,224,166,.45);background:rgba(126,224,166,.1);color:#7ee0a6;cursor:pointer;font-size:11px;">Save</button>
+                      <button type="button" onClick="{{ preset.onRenameCancel }}" style="flex:none;padding:6px 11px;border-radius:6px;border:1px solid rgba(212,166,94,.25);background:transparent;color:#9d8a68;cursor:pointer;font-size:11px;">Cancel</button>
+                    </div>
+                  </sc-if>
                   <div style="margin-top:6px;font-size:10px;color:#8a795f;letter-spacing:.08em;text-transform:uppercase;">{{ preset.meta }}</div>
+                  <sc-if value="{{ preset.hasHeroics }}" hint-placeholder-val="{{ false }}"><div style="margin-top:5px;font-size:10px;color:#ffb765;">{{ preset.heroicsLabel }}</div></sc-if>
+                  <sc-if value="{{ preset.hasKeyStats }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                      <sc-for list="{{ preset.keyStats }}" as="chip" hint-placeholder-count="3">
+                        <span style="padding:3px 8px;border-radius:6px;border:1px solid rgba(212,166,94,.22);background:rgba(212,166,94,.06);font-size:10px;color:#c4ae89;">{{ chip.name }} <b style="color:#f3e9d4;">{{ chip.value }}</b></span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
                   <sc-if value="{{ preset.hasSource }}" hint-placeholder-val="{{ false }}"><a href="{{ preset.source }}" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:6px;font-size:10px;color:#72a9ff;">View source</a></sc-if>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
@@ -1374,31 +1417,25 @@
                     <div style="padding: 11px 15px 13px; border-top: 1px solid rgba(114,169,255,0.18); background: rgba(114,169,255,0.035);">
                       <label style="display:grid;gap:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9fc3ff;">Item Potential (excluded)
                         <select value="{{ preview.potentialStatValue }}" onChange="{{ preview.onPotentialStat }}" disabled="{{ preview.potentialStatDisabled }}" style="width:100%;color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(114,169,255,.3);border-radius:6px;padding:7px 8px;font-size:11px;text-transform:none;letter-spacing:0;">
-                          <option value="">Not included in calculations</option>
-                          <sc-for list="{{ preview.potentialStatOptions }}" as="option" hint-placeholder-count="4"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
+                          <option value="">No Item Potential selected</option>
+                          <sc-for list="{{ preview.potentialOutcomeOptions }}" as="option" hint-placeholder-count="4"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
                         </select>
                       </label>
-                      <div style="margin-top:6px;font-size:9px;line-height:1.45;color:#8fa5c2;">Item Potential selections are preserved when imported, but all stat and skill outcomes are excluded from totals and recommendations in this release.</div>
-                      <sc-if value="{{ preview.hasStoredPotential }}" hint-placeholder-val="{{ false }}">
-                        <div style="margin-top:7px;padding:6px 8px;border:1px solid rgba(114,169,255,.18);border-radius:6px;background:rgba(10,8,5,.42);color:#a9bdd8;font-size:9.5px;line-height:1.4;">Stored: {{ preview.storedPotentialLabel }}</div>
-                        <button type="button" onClick="{{ preview.onClearPotential }}" style="margin-top:7px;padding:5px 8px;border:1px solid rgba(114,169,255,.28);border-radius:6px;background:rgba(10,8,5,.58);color:#a9bdd8;font-size:9.5px;cursor:pointer;">Clear stored Item Potential</button>
-                      </sc-if>
-                      <sc-if value="{{ preview.hasPotentialSkills }}" hint-placeholder-val="{{ false }}">
-                        <div style="margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9fc3ff;">Possible Skill Outcomes</div>
-                        <div style="display: grid; gap: 6px; margin-top: 6px;">
-                          <sc-for list="{{ preview.potentialSkills }}" as="proc" hint-placeholder-count="2">
-                            <div style="display: flex; gap: 9px; align-items: flex-start; padding: 7px 9px; border-radius: 7px; border: 1px solid rgba(114,169,255,0.18); background: rgba(10,8,5,0.45);">
-                              <sc-if value="{{ proc.hasIcon }}" hint-placeholder-val="{{ false }}">
-                                <span style="flex: none; width: 26px; height: 26px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(114,169,255,0.3); background: url({{ proc.icon }}) center/cover #171209;"></span>
-                              </sc-if>
-                              <span style="min-width: 0;">
-                                <span style="display: block; font-size: 11px; font-weight: 600; color: #dce9ff;">{{ proc.name }} <i style="font-style: normal; font-weight: 400; color: #8fa5c2;">{{ proc.chance }}</i></span>
-                                <span style="display: block; font-size: 10px; line-height: 1.45; color: #a8b8d0; margin-top: 2px;">{{ proc.desc }}</span>
-                              </span>
-                            </div>
-                          </sc-for>
+                      <sc-if value="{{ preview.hasPotentialDetail }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;gap:9px;align-items:flex-start;margin-top:8px;padding:8px 9px;border-radius:7px;border:1px solid rgba(114,169,255,0.28);background:rgba(10,8,5,0.5);">
+                          <sc-if value="{{ preview.potentialDetail.hasIcon }}" hint-placeholder-val="{{ false }}">
+                            <span style="flex:none;width:30px;height:30px;border-radius:6px;overflow:hidden;border:1px solid rgba(114,169,255,0.3);background:url({{ preview.potentialDetail.icon }}) center/cover #171209;"></span>
+                          </sc-if>
+                          <span style="min-width:0;">
+                            <span style="display:block;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#7f93b3;">{{ preview.potentialDetail.kind }}</span>
+                            <span style="display:block;font-size:11.5px;font-weight:600;color:#dce9ff;margin-top:2px;">{{ preview.potentialDetail.name }} <i style="font-style:normal;font-weight:400;color:#8fa5c2;">{{ preview.potentialDetail.chance }}</i></span>
+                            <span style="display:block;font-size:10px;line-height:1.45;color:#a8b8d0;margin-top:3px;">{{ preview.potentialDetail.desc }}</span>
+                          </span>
                         </div>
-                        <div style="margin-top: 6px; font-size: 9px; color: #6e7f99;">These outcomes are informational and are not part of totals or recommendations.</div>
+                      </sc-if>
+                      <div style="margin-top:6px;font-size:9px;line-height:1.45;color:#8fa5c2;">Choose one rolled outcome — it applies to this item immediately and is preserved on import. Note: all stat and skill outcomes are excluded from totals and recommendations in this release.</div>
+                      <sc-if value="{{ preview.hasStoredPotential }}" hint-placeholder-val="{{ false }}">
+                        <button type="button" onClick="{{ preview.onClearPotential }}" style="margin-top:7px;padding:5px 8px;border:1px solid rgba(114,169,255,.28);border-radius:6px;background:rgba(10,8,5,.58);color:#a9bdd8;font-size:9.5px;cursor:pointer;">Clear stored Item Potential</button>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -1429,6 +1466,7 @@
                               <option value="">Choose an effect</option>
                               <sc-for list="{{ effect.options }}" as="option" hint-placeholder-count="5"><option value="{{ option.id }}">{{ option.label }}</option></sc-for>
                             </select>
+                            <sc-if value="{{ effect.hasNote }}" hint-placeholder-val="{{ false }}"><small style="font-size: 9.5px; letter-spacing: 0; text-transform: none; color: #f2c777;">{{ effect.note }}</small></sc-if>
                           </label>
                         </sc-for>
                       </div>
@@ -1608,6 +1646,9 @@ class Component extends DCLogic {
     presets: [],
     presetError: "",
     activePresetId: "",
+    renamingPresetId: "",
+    renameDraft: "",
+    renameSavedId: "",
     equipFlash: "",
     wheelScale: 1,
     wheelZoom: 1.25,
@@ -1785,11 +1826,12 @@ class Component extends DCLogic {
     document.addEventListener("keydown", this._resonanceKeyDown);
     document.addEventListener("keyup", this._resonanceKeyUp);
     window.addEventListener("blur", this._resonanceBlur);
-    Promise.all([import("./tl-core.js"), import("./tl-build-snapshot.js"), import("./tl-persistence.js")])
-      .then(async ([core, buildSnapshots, persistence]) => {
+    Promise.all([import("./tl-core.js"), import("./tl-build-snapshot.js"), import("./tl-persistence.js"), import("./tl-preset-meta.js")])
+      .then(async ([core, buildSnapshots, persistence, presetMeta]) => {
         this.core = core;
         this.buildSnapshots = buildSnapshots;
         this.persistence = persistence;
+        this.presetMeta = presetMeta;
         await core.initCore("./data/app-data.json");
         const referenceResponse = await fetch("./data/reference-build.json");
         if (!referenceResponse.ok) throw new Error(`Reference preset failed to load (${referenceResponse.status}).`);
@@ -1904,10 +1946,17 @@ class Component extends DCLogic {
   }
 
   addCurrentPreset() {
-    const defaultName = `${this.state.profile.name || "Unnamed Character"} Build`;
+    const existingNames = this.state.presets.map((preset) => preset.name);
+    const buildName = !this.state.build?.name || this.state.build.name === "Default Build" ? "" : this.state.build.name;
+    const preferredName = buildName || this.presetMeta.generatePresetName(this.core, {
+      build: this.state.build,
+      origin: "manual",
+      label: this.state.profile.name || "Build",
+    });
     const snapshot = {
       id: `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name: !this.state.build?.name || this.state.build.name === "Default Build" ? defaultName : this.state.build.name,
+      name: this.presetMeta.uniqueName(preferredName, existingNames),
+      origin: "manual",
       profile: this.core.deepClone(this.state.profile),
       attributes: this.core.deepClone(this.state.attributes),
       favoriteStatIds: this.core.deepClone(this.state.favoriteStatIds ?? []),
@@ -1915,6 +1964,34 @@ class Component extends DCLogic {
       createdAt: new Date().toISOString(),
     };
     this.updatePresets([...this.state.presets, snapshot], { activePresetId: snapshot.id });
+  }
+
+  restoreReplacedBuild() {
+    const result = this.persistence.loadArmoryUndo(localStorage, { currentGameBuild: this.core.data?.gameBuild ?? "unversioned" });
+    if (!result.ok) {
+      this.setState({ presetError: "The replaced build could not be restored." });
+      return;
+    }
+    const loaded = this.normalizeStoredState(result.data);
+    if (!loaded) {
+      this.setState({ presetError: "The replaced build is missing valid build data." });
+      return;
+    }
+    // Swap: the build being displaced moves into the undo slot, so Restore
+    // can be pressed again to switch back.
+    this.persistence.backupArmoryStateForUndo(localStorage);
+    const build = loaded.build;
+    for (const weapon of this.core.currentWeaponTypes(build)) this.core.reconcileMasterySelections(weapon, build);
+    this.setState({
+      profile: loaded.profile ?? this.state.profile,
+      attributes: loaded.attributes ?? this.state.attributes,
+      favoriteStatIds: loaded.favoriteStatIds ?? [],
+      build,
+      masteryWeapon: this.core.currentWeaponTypes(build)[0] ?? "sword",
+      activePresetId: "",
+      presetError: "",
+      picker: null,
+    }, () => this.save());
   }
 
   loadPreset(presetId) {
@@ -1942,6 +2019,31 @@ class Component extends DCLogic {
   renamePreset(presetId, name) {
     const presets = this.state.presets.map((preset) => preset.id === presetId ? { ...preset, name } : preset);
     this.updatePresets(presets);
+  }
+
+  startRenamePreset(presetId, currentName) {
+    this.setState({ renamingPresetId: presetId, renameDraft: currentName, renameSavedId: "", presetError: "" });
+  }
+
+  cancelRenamePreset() {
+    this.setState({ renamingPresetId: "", renameDraft: "" });
+  }
+
+  commitRenamePreset(presetId) {
+    const name = String(this.state.renameDraft ?? "").trim();
+    if (!name) {
+      this.setState({ presetError: "A build name cannot be empty." });
+      return;
+    }
+    const clash = this.state.presets.find((preset) => preset.id !== presetId && String(preset.name ?? "").trim().toLowerCase() === name.toLowerCase());
+    if (clash) {
+      this.setState({ presetError: `Another build is already named “${clash.name}”. Choose a distinct name.` });
+      return;
+    }
+    this.renamePreset(presetId, name);
+    this.setState({ renamingPresetId: "", renameDraft: "", renameSavedId: presetId, presetError: "" });
+    clearTimeout(this._renameSavedTimer);
+    this._renameSavedTimer = setTimeout(() => this.setState({ renameSavedId: "" }), 2500);
   }
 
   movePreset(presetId, direction) {
@@ -2155,12 +2257,13 @@ class Component extends DCLogic {
     });
   }
 
-  setPotentialStat(slotId, statId) {
+  setPotentialStat(slotId, potentialId) {
     this.mutate((build) => {
       const selection = this.core.slotSelection(slotId, build);
       const item = this.core.indexes.itemById[selection.itemId];
-      const options = item?.itemPotential?.stats ?? [];
-      selection.potentialId = options.some((row) => (row.statId ?? row.stat_id) === statId) ? statId : "";
+      // potentialId may be a stat OR a skill outcome id; itemPotentialOutcome
+      // validates both kinds against the item.
+      selection.potentialId = this.core.itemPotentialOutcome(item, potentialId) ? potentialId : "";
     });
   }
 
@@ -2449,7 +2552,7 @@ class Component extends DCLogic {
     const build = this.state.build;
     const slotId = this.state.dollHoverSlot;
     if (!slotId) return { hasDollHover: false };
-    const model = core.buildItemHoverModel(slotId, build, calc);
+    const model = core.buildItemHoverModel(slotId, build, calc, { attributes: this.state.attributes });
     if (!model) return { hasDollHover: false };
     const y = this.state.dollHoverY || 0;
     const flip = typeof window !== "undefined" && y > window.innerHeight * 0.5;
@@ -2669,9 +2772,21 @@ class Component extends DCLogic {
         flashId: `stat-src:${selectedSourceRow.id}:${core.sourceTypeLabel(source.type)}:${source.sourceLabel || "Source"}`,
       }));
     const visibleSelectedSources = this.state.statSourcesExpanded ? selectedSources : selectedSources.slice(0, 5);
+    const selectedComposite = selectedSourceRow ? core.compositeStatBreakdown(calc, selectedSourceRow.id) : null;
     const selectedStat = selectedSourceRow ? {
       name: core.statName(selectedSourceRow.id),
-      value: core.formatStat(selectedSourceRow.id, selectedSourceRow.total),
+      value: core.formatStat(selectedSourceRow.id, selectedComposite ? selectedComposite.total : selectedSourceRow.total),
+      hasComposite: Boolean(selectedComposite),
+      compositeRows: (selectedComposite?.components ?? []).map((component) => {
+        const weakest = component.total === selectedComposite.total;
+        return {
+          name: core.statName(component.id),
+          value: core.formatStat(component.id, component.total),
+          weakestTag: weakest ? " · weakest" : "",
+          nameColor: weakest ? "#f6d391" : "#c4ae89",
+          valueColor: weakest ? "#f6d391" : "#f3e9d4",
+        };
+      }),
       flashId: `stat-inspect:${selectedSourceRow.id}`,
       page: statPageNames[selectedPage] ?? "Effects",
       color: dotColors[selectedPage] ?? "#cbb185",
@@ -2691,6 +2806,8 @@ class Component extends DCLogic {
     } : {
       name: "No matching stat",
       value: "None",
+      hasComposite: false,
+      compositeRows: [],
       flashId: "",
       page: statPageNames[this.state.statPage] ?? "Effects",
       color: "#8a795f",
@@ -2710,10 +2827,11 @@ class Component extends DCLogic {
     };
     const favoriteStatRows = [...favoriteIds].map((id) => {
       const page = core.statPageFor(id);
+      const composite = core.compositeStatBreakdown(calc, id);
       return {
         id,
         name: core.statName(id),
-        value: core.formatStat(id, core.statTotal(calc, id)),
+        value: core.formatStat(id, composite ? composite.total : core.statTotal(calc, id)),
         page: statPageNames[page] ?? "Effects",
         color: dotColors[page] ?? "#cbb185",
         onOpen: () => this.setState({ statPage: page, expandedStatId: id, statSourcesExpanded: false }),
@@ -2732,27 +2850,85 @@ class Component extends DCLogic {
 
     const weapons = core.currentWeaponTypes(build);
     const weaponPairLabel = core.equippedWeaponTypes(build).map(core.label).join(" / ") || "No weapons";
+    const presetRowMeta = (preset) => {
+      if (!this._presetMetaCache) this._presetMetaCache = new Map();
+      const cached = this._presetMetaCache.get(preset.id);
+      if (cached) return cached;
+      const meta = { heroics: [], keyStats: [], combatPower: "" };
+      try {
+        meta.heroics = this.presetMeta.heroicItemNames(core, preset.build);
+        meta.combatPower = core.formatNumber(core.calculateCombatPower(preset.build));
+        const statIds = preset.favoriteStatIds?.length ? preset.favoriteStatIds : this.state.favoriteStatIds ?? [];
+        if (statIds.length) {
+          const presetCalc = core.calculateBuild(preset.build, preset.attributes ?? {}, { includeSetEffects: true });
+          meta.keyStats = this.presetMeta.keyStatChips(core, presetCalc, statIds, 3);
+        }
+      } catch { /* metadata is best-effort; the row still renders */ }
+      this._presetMetaCache.set(preset.id, meta);
+      return meta;
+    };
     const presetRows = this.state.presets.map((preset, index) => {
-      const presetWeaponPair = core.equippedWeaponTypes(preset.build).map(core.label).join(" / ") || "No weapons";
+      const presetWeaponPair = this.presetMeta.weaponComboLabel(core, preset.build, { short: false }) || "No weapons";
+      const meta = this.state.presetsOpen ? presetRowMeta(preset) : { heroics: [], keyStats: [], combatPower: "" };
+      const createdLabel = this.presetMeta.dateStamp(preset.createdAt);
+      const editing = this.state.renamingPresetId === preset.id;
+      const active = preset.id === this.state.activePresetId;
       return {
         id: preset.id,
         name: preset.name,
         renameLabel: `Rename ${preset.name}`,
-        meta: `${preset.profile?.name ?? "Unknown character"} · ${presetWeaponPair}`,
-        active: preset.id === this.state.activePresetId,
-        activeLabel: preset.id === this.state.activePresetId ? "Loaded" : "Load",
-        activeColor: preset.id === this.state.activePresetId ? "#7ee0a6" : "#dce9ff",
+        meta: [
+          preset.profile?.name ?? "Unknown character",
+          presetWeaponPair,
+          createdLabel ? `Saved ${createdLabel}` : "",
+          meta.combatPower ? `CP ${meta.combatPower}` : "",
+        ].filter(Boolean).join(" · "),
+        originLabel: this.presetMeta.presetOriginLabel(preset),
+        heroicsLabel: meta.heroics.length ? `Heroics: ${meta.heroics.join(", ")}` : "",
+        hasHeroics: meta.heroics.length > 0,
+        keyStats: meta.keyStats,
+        hasKeyStats: meta.keyStats.length > 0,
+        active,
+        activeLabel: active ? "Loaded" : "Load",
+        activeColor: active ? "#7ee0a6" : "#dce9ff",
+        activeBorder: active ? "rgba(126,224,166,.5)" : "rgba(212,166,94,.2)",
+        editing,
+        notEditing: !editing,
+        renameDraft: editing ? this.state.renameDraft : preset.name,
+        justSaved: this.state.renameSavedId === preset.id,
         source: preset.source ?? "",
         hasSource: Boolean(preset.source),
         upDisabled: index === 0,
         downDisabled: index === this.state.presets.length - 1,
-        onRename: (event) => this.renamePreset(preset.id, event.target.value),
+        onStartRename: () => this.startRenamePreset(preset.id, preset.name),
+        onRenameInput: (event) => this.setState({ renameDraft: event.target.value }),
+        onRenameKey: (event) => {
+          if (event.key === "Enter") { event.preventDefault(); this.commitRenamePreset(preset.id); }
+          else if (event.key === "Escape") { event.preventDefault(); this.cancelRenamePreset(); }
+        },
+        onRenameSave: () => this.commitRenamePreset(preset.id),
+        onRenameCancel: () => this.cancelRenamePreset(),
         onLoad: () => this.loadPreset(preset.id),
         onUp: () => this.movePreset(preset.id, -1),
         onDown: () => this.movePreset(preset.id, 1),
         onRemove: () => this.removePreset(preset.id),
       };
     });
+    const undoInfo = (() => {
+      if (!this.state.presetsOpen) return { available: false, label: "" };
+      try {
+        const result = this.persistence.loadArmoryUndo(localStorage, { currentGameBuild: core.data?.gameBuild ?? "unversioned" });
+        if (!result.ok) return { available: false, label: "" };
+        const day = this.presetMeta.dateStamp(result.savedAt);
+        const characterName = result.data?.profile?.name;
+        return {
+          available: true,
+          label: `${characterName ? `“${characterName}”` : "The previous build"}${day ? `, saved ${day},` : ""} was replaced by an optimizer result. Restoring swaps it with the current build.`,
+        };
+      } catch {
+        return { available: false, label: "" };
+      }
+    })();
 
     return {
       ready: true,
@@ -2777,6 +2953,9 @@ class Component extends DCLogic {
       noPresets: presetRows.length === 0,
       presetError: this.state.presetError,
       hasPresetError: Boolean(this.state.presetError),
+      undoAvailable: undoInfo.available,
+      undoLabel: undoInfo.label,
+      restoreReplacedBuild: () => this.restoreReplacedBuild(),
       addCurrentPreset: () => this.addCurrentPreset(),
       onNewBuild: () => this.newBuild(),
       emptyBuild: gearCount === 0,
@@ -3799,7 +3978,10 @@ class Component extends DCLogic {
       const selectedHeroicEffects = core.normalizeHeroicEffectRows(selection.heroicEffects, previewItem);
       const heroicEffectRows = Array.from({ length: core.heroicEffectGroupCount(previewItem) }, (_, groupIndex) => {
         const options = core.heroicEffectOptions(previewItem, groupIndex);
-        const selected = isEquippedPreview ? selectedHeroicEffects[groupIndex]?.statId ?? "" : "";
+        const selectedRow = isEquippedPreview ? selectedHeroicEffects[groupIndex] : null;
+        const selected = selectedRow?.statId ?? "";
+        const selectedOption = selected ? options.find((option) => option.statId === selected) : null;
+        const levelUnknown = Boolean(selectedOption) && selectedRow?.levelKnown !== true && selectedOption.maxLevel > 0;
         return {
           n: groupIndex + 1,
           value: selected,
@@ -3808,6 +3990,10 @@ class Component extends DCLogic {
             id: option.statId,
             label: `${core.statName(option.statId)} ${core.formatSigned(option.value, option.statId)}`,
           })),
+          hasNote: levelUnknown,
+          note: levelUnknown
+            ? `Level unknown · base ${core.formatSigned(selectedOption.baseValue, selected)} · max ${core.formatSigned(selectedOption.maxValue, selected)}`
+            : "",
           onChange: (event) => isEquippedPreview && this.setHeroicEffect(slot.id, groupIndex, event.target.value),
         };
       });
@@ -3828,6 +4014,21 @@ class Component extends DCLogic {
         icon: row.imageUrl ?? "",
         hasIcon: Boolean(row.imageUrl),
       }));
+      // One selectable list covering both stat and skill Item Potential
+      // outcomes — they share the single stored potentialId.
+      const potentialOutcomeOptions = [
+        ...potentialStatOptions.map((option) => ({ id: option.id, label: option.label })),
+        ...potentialSkills.map((skill) => ({ id: skill.id, label: `${skill.name}${skill.chance ? ` ${skill.chance}` : ""}` })),
+      ];
+      const selectedOutcome = isEquippedPreview && selection.potentialId ? core.itemPotentialOutcome(previewItem, selection.potentialId) : null;
+      let selectedPotentialDetail = null;
+      if (selectedOutcome?.kind === "skill") {
+        const skill = potentialSkills.find((row) => row.id === selectedOutcome.id);
+        if (skill) selectedPotentialDetail = { kind: "Skill outcome", name: skill.name, chance: skill.chance, desc: skill.desc, icon: skill.icon, hasIcon: skill.hasIcon };
+      } else if (selectedOutcome?.kind === "stat") {
+        const statId = selectedOutcome.row.statId ?? selectedOutcome.row.stat_id;
+        selectedPotentialDetail = { kind: "Stat outcome", name: core.statName(statId), chance: selectedOutcome.row.probability == null ? "" : `· ${selectedOutcome.row.probability}%`, desc: `${core.formatSigned(selectedOutcome.row.value, statId)} ${core.statName(statId)}`, icon: "", hasIcon: false };
+      }
       const storedPotential = isEquippedPreview ? core.itemPotentialOutcome(previewItem, selection.potentialId) : null;
       const storedPotentialLabel = !selection.potentialId ? ""
         : storedPotential?.kind === "stat" ? `${core.statName(storedPotential.id)} stat outcome (excluded)`
@@ -3918,15 +4119,16 @@ class Component extends DCLogic {
         artifactStatValue: isEquippedPreview ? selection.artifactStatId ?? "" : "",
         artifactStatDisabled: !isEquippedPreview,
         onArtifactStat: (event) => isEquippedPreview && this.setArtifactStat(slot.id, event.target.value),
-        hasPotentialStats: potentialStatOptions.length > 0 || potentialSkills.length > 0 || (isEquippedPreview && Boolean(selection.potentialId)),
-        potentialStatOptions,
-        potentialSkills,
-        hasPotentialSkills: potentialSkills.length > 0,
+        hasPotentialStats: potentialOutcomeOptions.length > 0 || (isEquippedPreview && Boolean(selection.potentialId)),
+        potentialOutcomeOptions,
+        hasPotentialOutcomes: potentialOutcomeOptions.length > 0,
         potentialStatValue: isEquippedPreview ? selection.potentialId ?? "" : "",
-        potentialStatDisabled: true,
+        potentialStatDisabled: !isEquippedPreview,
         onPotentialStat: (event) => isEquippedPreview && this.setPotentialStat(slot.id, event.target.value),
         hasStoredPotential: isEquippedPreview && Boolean(selection.potentialId),
         storedPotentialLabel,
+        hasPotentialDetail: Boolean(selectedPotentialDetail),
+        potentialDetail: selectedPotentialDetail ?? { kind: "", name: "", chance: "", desc: "", icon: "", hasIcon: false },
         onClearPotential: () => isEquippedPreview && this.setPotentialStat(slot.id, ""),
         hasPerks: perkOptions.length > 0,
         perkOptions,
@@ -3998,5 +4200,6 @@ class Component extends DCLogic {
 }
 </script>
   <script type="module" src="./tl-account-menu.js"></script>
+  <script type="module" src="./tl-support-link.js"></script>
 </body>
 </html>

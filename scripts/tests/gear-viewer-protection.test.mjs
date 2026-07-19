@@ -53,13 +53,15 @@ test("hover cards show inherent stats separately and gear can filter exact item 
   const core = await readFile(new URL("../../web/tl-core.js", import.meta.url), "utf8");
   const hoverCard = await readFile(new URL("../../web/ItemHoverCard.dc.html", import.meta.url), "utf8");
   assert.match(core, /stats, hasStats: stats\.length > 0/);
-  assert.match(hoverCard, /data\.hasStats/);
+  // Raw inherent stats show when no build-contribution deltas are available;
+  // filled runes render as a compact one-line summary.
+  assert.match(hoverCard, /data\.showRawStats/);
   assert.match(html, /id="level-select"/);
   assert.match(html, /String\(row\.level\) === state\.itemLevel/);
   assert.match(html, /if \(model\.hasStats\).*Stats.*statRows\(model\.stats\)/);
   assert.match(core, /name: statName\(statId\), formattedValue: formatStat\(statId, value\)/);
   assert.match(core, /filled: true/);
-  assert.match(hoverCard, /value="\{\{ rune\.filled \}\}"/);
+  assert.match(hoverCard, /list="\{\{ data\.filledRuneSummary \}\}"/);
   assert.match(html, /grid-template-columns: 12px minmax\(0, 1fr\) auto/);
 });
 

@@ -343,6 +343,19 @@ function reserveMinimumTargetStates(pooled, targets, reserveWidth) {
     .map(({ state }) => state);
 }
 
+// Request-level set-effect hard constraints. Absent (null) → today's behavior.
+// Decidable entirely from the build's active/partial set summary, which is
+// stable across attribute/mastery optimization (equipment is fixed by then).
+function setConstraintsLegal(evaluation, setConstraints) {
+  if (!setConstraints) return true;
+  const summary = evaluation?.setSummary;
+  if (!summary) return true; // no set data (set effects disabled) → do not reject
+  if (setConstraints.require && !summary.activeSetIds.includes(setConstraints.require)) return false;
+  if (setConstraints.minimumActiveBonuses && number(summary.activeBonusCount) < setConstraints.minimumActiveBonuses) return false;
+  if (setConstraints.allowBreaking === false && (summary.partialSetIds?.length ?? 0) > 0) return false;
+  return true;
+}
+
 function protectedLegal(evaluation, protectedStats) {
   return Object.entries(protectedStats ?? {}).every(([id, rule]) => {
     const value = number(evaluation.stats?.[id]);
@@ -460,15 +473,29 @@ export async function optimizeFullBuild(options) {
     const evaluation = batchEvaluations
       ? batchEvaluations[index]
       : await options.evaluate(state.selections, evaluationInputs[index].context);
-    if (evaluation?.legal !== false && protectedLegal(evaluation ?? {}, options.protectedStats)) {
-      results.push({ selections: state.selections, candidates: state.candidates, setCounts: state.sets, structuralKeys: state.custom, evaluation, key: state.key });
+    if (evaluation?.legal !== false) {
+      if (protectedLegal(evaluation ?? {}, options.protectedStats) && setConstraintsLegal(evaluation ?? {}, options.setConstraints)) {
+        results.push({ selections: state.selections, candidates: state.candidates, setCounts: state.sets, structuralKeys: state.custom, evaluation, key: state.key });
+      } else {
+        // A legal build dropped purely on floors/protected stats: report it so
+        // the caller can diagnose an infeasible run instead of ending with a
+        // bare "no builds match".
+        options.onConstraintRejection?.(evaluation?.stats ?? null);
+      }
     }
     if (!batchEvaluations) options.onProgress?.({ phase: "evaluate", completed: index + 1, total: beam.length, legal: results.length, workerCount: 1, mode: "sequential" });
   }
 
   const neutral = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + number(candidate[key]), 0);
+  // `prefer` is a soft nudge only: set bonuses already count in the primary
+  // score via calculateBuild, so this ranks more active set bonuses ahead only
+  // when the score and protected headroom are otherwise tied.
+  const preferSetTie = options.preferSets
+    ? (a, b) => number(b.evaluation.setSummary?.activeBonusCount) - number(a.evaluation.setSummary?.activeBonusCount)
+    : () => 0;
   results.sort((a, b) => number(b.evaluation.score) - number(a.evaluation.score)
     || number(b.evaluation.protectedHeadroom) - number(a.evaluation.protectedHeadroom)
+    || preferSetTie(a, b)
     || neutral(a, "neutralHeroicCost") - neutral(b, "neutralHeroicCost")
     || neutral(b, "neutralItemLevel") - neutral(a, "neutralItemLevel")
     || neutral(b, "neutralGrade") - neutral(a, "neutralGrade")

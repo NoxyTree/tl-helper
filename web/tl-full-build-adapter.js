@@ -525,6 +525,28 @@ function taskScenarioForBuild(core, scenario, build) {
     : scenario;
 }
 
+// Compact per-build view of active set bonuses, for the set-effect controls
+// (require / minimumActiveBonuses / allowBreaking) and the prefer tie-break.
+// "active" mirrors the setEffectLines filter (active breakpoint, not excluded);
+// a "partial" set has equipped pieces but no active breakpoint (a broken set).
+export function setEffectSummary(calc) {
+  const sets = calc?.setEffects?.sets ?? [];
+  let activeBonusCount = 0;
+  const activeSetIds = [];
+  const partialSetIds = [];
+  for (const set of sets) {
+    const breakpoints = set.breakpoints ?? [];
+    // A scored bonus (counts for minimumActiveBonuses / prefer / require).
+    const scored = breakpoints.filter((breakpoint) => breakpoint.active && breakpoint.status !== "excluded");
+    // Reached ANY breakpoint, even one excluded from totals this release — such
+    // a set is doing its job, so it is not "broken".
+    const reachedBreakpoint = breakpoints.some((breakpoint) => breakpoint.active);
+    if (scored.length) { activeBonusCount += scored.length; activeSetIds.push(set.setId); }
+    if (Number(set.equippedPieces) > 0 && !reachedBreakpoint) partialSetIds.push(set.setId);
+  }
+  return { activeBonusCount, activeSetIds, partialSetIds };
+}
+
 export function evaluateOptimizerBuildTask(core, payload, context) {
   const build = applySelections(context.sourceBuild, payload.selections);
   const scenario = taskScenarioForBuild(core, context.scenario, build);
@@ -540,6 +562,7 @@ export function evaluateOptimizerBuildTask(core, payload, context) {
     build,
     attributes: context.attributes ?? {},
     activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc),
+    setSummary: setEffectSummary(calc),
     legal: blockingIssues.length === 0,
     blockingIssues,
   };
@@ -568,6 +591,7 @@ export function optimizeAttributeFinalistTask(core, payload, context) {
     stats: optimized.stats,
     attributes: optimized.attributes,
     activeAttributeBreakpoints: optimized.activeAttributeBreakpoints,
+    setSummary: setEffectSummary(calculation),
     blockingIssues: blockingCalculationIssues(core, calculation),
   };
 }
@@ -903,6 +927,17 @@ export async function createOptimizerAdapter(deps = {}) {
       const source = wrap(request.build);
       const scratch = request.sourceKind === "scratch" || request.build?.sourceKind === "scratch";
       const rules = request.rules ?? {};
+      // Request-level set-effect controls. Built only when at least one hard
+      // constraint is present, so an absent rules.sets preserves today's search
+      // exactly (the set-completion/route tests depend on this).
+      const setRules = rules.sets ?? {};
+      const requireSetId = typeof setRules.require === "string" && setRules.require ? setRules.require : null;
+      const minimumActiveSetBonuses = Number.isFinite(Number(setRules.minimumActiveBonuses)) ? Math.max(0, Math.trunc(Number(setRules.minimumActiveBonuses))) : 0;
+      const forbidSetBreaking = setRules.allowBreaking === false;
+      const setConstraints = (requireSetId || minimumActiveSetBonuses > 0 || forbidSetBreaking) && rules.includeSetEffects !== false
+        ? { require: requireSetId, minimumActiveBonuses: minimumActiveSetBonuses, allowBreaking: !forbidSetBreaking }
+        : null;
+      const preferSets = setRules.prefer === true && rules.includeSetEffects !== false;
       const scenario = request.scenario ?? null;
       const scenarioForBuild = (build, weaponTypes = null) => {
         if (scenario == null) return null;
@@ -1017,6 +1052,14 @@ export async function createOptimizerAdapter(deps = {}) {
       });
       const runeCandidatesByCategory = new Map();
       const optimizerRuneStatIds = new Set(optimizerStatIds(core));
+      // Heroic handling policy. "keep_config" locks equipped Heroic items with
+      // their exact traits/effects; "keep_items" keeps the item identities but
+      // re-optimizes their traits, Heroic trait, and Heroic effects;
+      // "replace_any" allows any legal Heroic. The legacy boolean pair
+      // keepCurrentHeroics/reconsiderHeroics maps onto keep_config/replace_any.
+      const heroicPolicy = ["keep_config", "keep_items", "replace_any"].includes(rules.heroicPolicy)
+        ? rules.heroicPolicy
+        : (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics ? "keep_config" : "replace_any");
 
       for (let slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
         const slot = slots[slotIndex];
@@ -1024,7 +1067,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const currentItem = core.indexes.itemById[current?.itemId];
         const requiredWeaponType = weaponTypeConstraints[slot];
         const lockEmptyExistingWeaponSlot = !scratch && core.WEAPON_SLOTS.includes(slot) && !requiredWeaponType;
-        const keepCurrentHeroic = !scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
+        const keepCurrentHeroic = !scratch && heroicPolicy === "keep_config" && currentItem?.grade === core.HEROIC_GRADE;
         if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic || lockEmptyExistingWeaponSlot) {
           if (requiredWeaponType && currentItem?.equipmentType !== requiredWeaponType) throw new Error(`Locked ${core.slotById(slot).label ?? slot} does not match the chosen ${requiredWeaponType} weapon type.`);
           candidatesBySlot[slot] = [{ id: current.itemId ? itemCandidateId(current.itemId, current, "current") : `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem, current) }];
@@ -1038,8 +1081,8 @@ export async function createOptimizerAdapter(deps = {}) {
           let selection = optimizerItemSelection(core, item, current);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           selection.resonance = optimizedResonanceSelection(item, rankedGoals, generationScales);
-          if (!scratch && rules.keepCurrentHeroics && !rules.reconsiderHeroics && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
-          if (rules.bestHeroicConfiguration && item.grade === core.HEROIC_GRADE) {
+          if (!scratch && heroicPolicy !== "replace_any" && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
+          if ((rules.bestHeroicConfiguration || (heroicPolicy === "keep_items" && item.id === current?.itemId)) && item.grade === core.HEROIC_GRADE) {
             selection = { ...selection, ...optimizeHeroicPotential(item, { allowDuplicateEffects: false, frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
           }
           if (rules.runes?.mode === "keep") selection.runes = clone(current?.runes ?? []);
@@ -1119,6 +1162,33 @@ export async function createOptimizerAdapter(deps = {}) {
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
       const rejectionDiagnostics = { blockingByStage: new Map(), constraints: 0 };
+      // When every finalist dies on a floor or protected stat, per-stat bests
+      // turn "no builds match" into a diagnosis: which constraint is
+      // impossible on its own, the best value any finalist reached, and the
+      // closest near-miss when the floors are only jointly infeasible.
+      const requiredConstraintValue = (rule) => Math.max(
+        rule.min != null ? Number(rule.min) : -Infinity,
+        rule.baseline != null ? Number(rule.baseline) * (1 - Number(rule.allowedLossPercent ?? 0) / 100) : -Infinity,
+      );
+      const constraintTracker = { best: new Map(), closest: null };
+      const trackConstraintRejection = (stats) => {
+        if (!stats) return;
+        let shortfall = 0;
+        const misses = [];
+        for (const [id, rule] of Object.entries(protectedStats)) {
+          const value = Number(stats[id] ?? 0);
+          const required = requiredConstraintValue(rule);
+          const best = constraintTracker.best.get(id);
+          if (best == null || value > best) constraintTracker.best.set(id, value);
+          if (value < required) {
+            shortfall += (required - value) / Math.max(1, Math.abs(required));
+            misses.push({ id, value, required });
+          }
+        }
+        if (misses.length && (!constraintTracker.closest || shortfall < constraintTracker.closest.shortfall)) {
+          constraintTracker.closest = { shortfall, misses };
+        }
+      };
       const recordBlockingIssues = (stage, issues) => {
         if (!issues?.length) return;
         const stageIssues = rejectionDiagnostics.blockingByStage.get(stage) ?? new Map();
@@ -1151,6 +1221,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const evaluateBuild = (selections) => evaluateOptimizerBuildTask(core, { selections }, buildEvaluationContext);
       const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
       const exactOrder = (a, b) => b.evaluation.score - a.evaluation.score
+        || (preferSets ? Number(b.evaluation.setSummary?.activeBonusCount ?? 0) - Number(a.evaluation.setSummary?.activeBonusCount ?? 0) : 0)
         || neutralTotal(a, "neutralHeroicCost") - neutralTotal(b, "neutralHeroicCost")
         || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")
         || neutralTotal(b, "neutralGrade") - neutralTotal(a, "neutralGrade")
@@ -1171,6 +1242,8 @@ export async function createOptimizerAdapter(deps = {}) {
         if (Object.values(selections).some((selection) => selection?.itemId === itemId)) return false;
         return true;
       }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {},
+      setConstraints, preferSets,
+      onConstraintRejection: (stats) => { rejectionDiagnostics.constraints += 1; trackConstraintRejection(stats); },
       // Goal minimums ride along as retention targets in every mode: scratch
       // enforces them only after attribute allocation, so floor-capable states
       // must survive the beam even while score-dominant states outrank them.
@@ -1215,6 +1288,7 @@ export async function createOptimizerAdapter(deps = {}) {
           }
           if (!satisfiesProtectedStats(optimized.stats, protectedStats)) {
             rejectionDiagnostics.constraints += 1;
+            trackConstraintRejection(optimized.stats);
             continue;
           }
           exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
@@ -1314,6 +1388,73 @@ export async function createOptimizerAdapter(deps = {}) {
                 : "Neutral fallback: conserves Heroic allowances, then prefers item level and grade";
           return { slotId: slot.id, slot: slot.label, current: scratch ? null : { name: itemName(core, currentSelection) }, recommended: { name: itemName(core, recommendedSelection) }, reason, neutralFallback: !directGoals.length && !candidate?.setKeys?.length };
         });
+        // Per-item Heroic effect explanation: the available pool, the picks,
+        // which ranked goal each pick feeds, and whether a pick was only a
+        // deterministic tie-breaker (it improves no ranked goal).
+        const goalsFedBy = (statId) => {
+          const closure = new Set([statId]);
+          const queue = [statId];
+          while (queue.length) {
+            for (const expanded of STAT_EXPANSIONS[queue.pop()] ?? []) {
+              if (!closure.has(expanded)) { closure.add(expanded); queue.push(expanded); }
+            }
+          }
+          return rankedGoals.filter((goal) => closure.has(goal.id)
+            || (goal.components?.length ? goal.components : [goal.id]).some((component) => closure.has(component)));
+        };
+        const heroicSelectionReport = core.EQUIPMENT_SLOTS.flatMap((slot) => {
+          const selection = best.selections[slot.id];
+          const item = core.indexes.itemById[selection?.itemId];
+          if (!item || item.grade !== core.HEROIC_GRADE) return [];
+          const selected = core.selectedHeroicEffects(item, selection);
+          const groups = Array.from({ length: core.heroicEffectGroupCount(item) }, (_, groupIndex) => {
+            const pool = core.heroicEffectOptions(item, groupIndex).map((option) => ({
+              statId: option.statId,
+              name: core.statName(option.statId),
+              formattedBaseValue: core.formatSigned(option.baseValue, option.statId),
+              formattedMaxValue: core.formatSigned(option.maxValue, option.statId),
+            }));
+            const chosen = selected.find((row) => row.groupIndex === groupIndex) ?? null;
+            const feedsGoals = chosen ? goalsFedBy(chosen.statId).map((goal) => ({ id: goal.id, rank: goal.rank, name: core.statName(goal.id) })) : [];
+            return {
+              groupNumber: groupIndex + 1,
+              pool,
+              selected: chosen ? { statId: chosen.statId, name: chosen.name, level: chosen.level, levelKnown: chosen.levelKnown, formattedValue: chosen.formattedValue } : null,
+              feedsGoals,
+              tieBreaker: Boolean(chosen) && feedsGoals.length === 0,
+            };
+          });
+          return [{ slotId: slot.id, slotLabel: slot.label, itemName: item.name, locked: Boolean(best.candidates[slot.id]?.locked), groups }];
+        });
+        // Set-effect visibility: name every active bonus, and when none is
+        // active say plainly that breaking sets was an intentional tradeoff.
+        const setEffectLines = (() => {
+          if (rules.includeSetEffects === false) return [];
+          const sets = finalCalculation.setEffects?.sets ?? [];
+          const active = sets.flatMap((set) => (set.breakpoints ?? [])
+            .filter((breakpoint) => breakpoint.active && breakpoint.status !== "excluded")
+            .map((breakpoint) => `Set bonus active: ${set.name} at ${breakpoint.required} piece${breakpoint.required === 1 ? "" : "s"} (${set.equippedPieces}/${set.memberPieces} equipped).`));
+          if (active.length) return active;
+          const nearest = sets.filter((set) => set.equippedPieces > 0).sort((a, b) => b.equippedPieces - a.equippedPieces)[0];
+          return [`No set bonus is active${nearest ? ` (closest: ${nearest.name} with ${nearest.equippedPieces} piece${nearest.equippedPieces === 1 ? "" : "s"})` : ""}: individual items scored higher for your goals than completing a set, so the optimizer intentionally breaks sets when that wins.`];
+        })();
+        // Echo which request-level set controls were enforced, so the result is
+        // self-explaining about why some builds were rejected or reranked.
+        const setControlLines = [];
+        if (setConstraints) {
+          const parts = [];
+          if (setConstraints.require) parts.push(`the ${core.indexes.itemSetById?.[setConstraints.require]?.name ?? setConstraints.require} set must be active`);
+          if (setConstraints.minimumActiveBonuses) parts.push(`at least ${setConstraints.minimumActiveBonuses} active set bonus${setConstraints.minimumActiveBonuses === 1 ? "" : "es"}`);
+          if (setConstraints.allowBreaking === false) parts.push("no partial (broken) sets");
+          if (parts.length) setControlLines.push(`Set constraints enforced: ${parts.join("; ")}.`);
+        }
+        if (preferSets) setControlLines.push("Set preference on: ties were resolved toward more active set bonuses (score was never sacrificed).");
+        const heroicExplanationLines = heroicSelectionReport.map((entry) => {
+          const groupText = entry.groups.map((group) => group.selected
+            ? `Effect ${group.groupNumber}: ${group.selected.name} ${group.selected.formattedValue}${group.selected.levelKnown ? "" : " (level unknown)"} — ${group.tieBreaker ? "improves no ranked goal; kept as a deterministic tie-breaker" : `feeds ${group.feedsGoals.map((goal) => `#${goal.rank} ${goal.name}`).join(", ")}`}${group.pool.length > 1 ? `; alternatives: ${group.pool.filter((option) => option.statId !== group.selected.statId).slice(0, 3).map((option) => `${option.name} ${option.formattedMaxValue}`).join(", ")}` : ""}`
+            : `Effect ${group.groupNumber}: none selected`).join(". ");
+          return `Heroic ${entry.itemName}${entry.locked ? " (locked configuration)" : ""}: ${groupText}.`;
+        });
         const tuningFrontier = (search.frontier?.length ? search.frontier : [best]).map((row) => ({
           id: row.key,
           score: Number(row.evaluation.score) || 0,
@@ -1326,7 +1467,8 @@ export async function createOptimizerAdapter(deps = {}) {
         return {
           name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", masteryPending: !!preliminary, preliminary: !!preliminary, score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
           statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
-          explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
+          heroicSelectionReport,
+          explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...setControlLines, ...setEffectLines, ...heroicExplanationLines, ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
           assumptions: ["Item Potentials are excluded from calculations and recommendations in this release; same-item selections are preserved.", ...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "The game allows repeated Equipment Skills, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
           warnings: [...(preliminary ? ["Mastery and passive skills are still being finalized; this loadout and its stats may adjust when they complete."] : []), "This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
           alternatives: (search.alternatives ?? []).slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score, ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}) })),
@@ -1403,6 +1545,7 @@ export async function createOptimizerAdapter(deps = {}) {
           }
           if (!refined.protectedStatsSatisfied || !refined.minimumsSatisfied) {
             rejectionDiagnostics.constraints += 1;
+            trackConstraintRejection(refined.stats);
             continue;
           }
           exactProgression.push({
@@ -1448,7 +1591,39 @@ export async function createOptimizerAdapter(deps = {}) {
         // Constraint rejections outrank blocking-issue summaries: when both
         // occur across finalists, "relax your floors" is the actionable
         // message — an illegal-progression summary reads as an engine fault.
-        if (rejectionDiagnostics.constraints) throw new Error("No build satisfies the protected or minimum stat constraints.");
+        if (rejectionDiagnostics.constraints) {
+          const conflicts = [...constraintTracker.best.entries()].flatMap(([id, best]) => {
+            const rule = protectedStats[id];
+            if (!rule) return [];
+            const required = requiredConstraintValue(rule);
+            if (!(best < required)) return [];
+            return [{
+              id,
+              name: core.statName(id),
+              required,
+              bestAchievable: best,
+              kind: rule.min != null ? "minimum" : "protected",
+              formattedRequired: core.formatStat(id, required),
+              formattedBestAchievable: core.formatStat(id, best),
+            }];
+          });
+          const closest = constraintTracker.closest ? {
+            misses: constraintTracker.closest.misses.map((miss) => ({
+              ...miss,
+              name: core.statName(miss.id),
+              formattedValue: core.formatStat(miss.id, miss.value),
+              formattedRequired: core.formatStat(miss.id, miss.required),
+            })),
+          } : null;
+          const detail = conflicts.length
+            ? conflicts.map((row) => `${row.name} needs ${row.formattedRequired} but the best evaluated build reached ${row.formattedBestAchievable}`).join("; ")
+            : closest
+              ? `each floor is reachable on its own, but no single build meets them together — the closest build missed: ${closest.misses.map((miss) => `${miss.name} ${miss.formattedValue} of ${miss.formattedRequired}`).join(", ")}`
+              : "";
+          const error = new Error(`No build satisfies the protected or minimum stat constraints.${detail ? ` ${detail}.` : ""}`);
+          error.constraintDiagnostics = { conflicts, closest };
+          throw error;
+        }
         if (blockingSummary) throw new Error(`No complete build passed the final calculation checks. ${blockingSummary}`);
         if (Object.keys(protectedStats).length) throw new Error("No build satisfies the protected or minimum stat constraints.");
         throw new Error("No complete build passed the final calculation checks.");
