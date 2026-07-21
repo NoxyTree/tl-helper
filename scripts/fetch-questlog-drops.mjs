@@ -53,13 +53,13 @@ function extractDrops(item) {
   if (!item) return [];
   const out = [];
   for (const npc of item.itemDroppedFromNpcs ?? []) {
-    out.push({ location: npc.name, kind: npc.mainCategory === "boss" ? "boss" : "npc", level: npc.level ?? null, probability: npc.probability ?? null });
+    out.push({ location: npc.name, kind: npc.mainCategory === "boss" ? "boss" : "npc", level: npc.level ?? null, probability: npc.probability ?? null, icon: npc.icon ?? null });
   }
   for (const dg of item.itemIsRewardOfGuildDungeons ?? []) {
-    out.push({ location: dg.name, kind: "dungeon", level: dg.level ?? null, probability: null });
+    out.push({ location: dg.name, kind: "dungeon", level: dg.level ?? null, probability: null, icon: dg.icon ?? null });
   }
   for (const v of item.itemIsSoldByNpcs ?? []) {
-    out.push({ location: v.name, kind: "vendor", level: v.level ?? null, probability: null });
+    out.push({ location: v.name, kind: "vendor", level: v.level ?? null, probability: null, icon: v.icon ?? null });
   }
   // De-dupe by location+kind; sort bosses first, then by descending probability.
   const seen = new Set();

@@ -99,10 +99,19 @@ function main() {
     }
   }
 
-  // Drops From (static Questlog sourcing; drops don't change between builds)
+  // Drops From (static Questlog sourcing; drops don't change between builds).
+  // Resolve each source's Questlog icon ref to the same local mirrored-webp path
+  // convention the app uses for item icons (assets/icons/<path>.webp).
+  const iconToLocal = (icon) => {
+    if (!icon) return null;
+    let p = icon;
+    if (p.includes(".")) p = p.slice(0, p.lastIndexOf("."));
+    p = p.replace(/^\/+/, "").replace(/^assets\//i, "");
+    return `assets/icons/${p}.webp`;
+  };
   for (const [id, rec] of Object.entries(drops)) {
     if (!gearIds.has(id)) continue;
-    ensure(id).dropsFrom = rec.dropsFrom ?? [];
+    ensure(id).dropsFrom = (rec.dropsFrom ?? []).map((d) => ({ ...d, image: iconToLocal(d.icon), icon: undefined }));
   }
 
   const gameBuild = String(process.env.TL_STEAM_BUILD ?? eq.gameBuild ?? "").trim();

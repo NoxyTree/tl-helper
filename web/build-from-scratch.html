@@ -1183,38 +1183,51 @@
           <sc-if value="{{ guideReady }}" hint-placeholder-val="{{ true }}">
           <div style="display:grid;gap:9px;">
             <sc-for list="{{ guideItems }}" as="g" hint-placeholder-count="10">
-              <div style="border:1px solid rgba(212,166,94,.22);border-radius:11px;background:linear-gradient(180deg,rgba(24,18,12,.7),rgba(12,9,6,.85));padding:11px 12px;">
-                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
-                  <span style="color:#f3e2bd;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.name }}</span>
-                  <span style="flex:1;"></span>
-                  <span style="color:#7d6b51;font-size:8px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;">{{ g.slot }}</span>
+              <div style="border:1px solid rgba(212,166,94,.22);border-radius:12px;background:linear-gradient(180deg,rgba(26,20,13,.74),rgba(12,9,6,.9));padding:12px;">
+                <!-- Item header -->
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px;">
+                  <span style="flex:0 0 auto;width:46px;height:46px;border-radius:10px;border:1px solid rgba(242,199,119,.4);background:radial-gradient(circle at 40% 30%,#2a2013,#120d07);overflow:hidden;display:grid;place-items:center;">
+                    <sc-if value="{{ g.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:42px;height:42px;background:url({{ g.image }}) center/contain no-repeat;"></span></sc-if>
+                  </span>
+                  <div style="min-width:0;flex:1;">
+                    <div style="color:#f6e6c3;font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.name }}</div>
+                    <div style="margin-top:2px;color:#7d6b51;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;">{{ g.slot }}</div>
+                  </div>
                 </div>
-                <!-- Craftable From -->
-                <div style="display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start;padding:6px 0;border-top:1px dotted rgba(212,166,94,.14);">
-                  <span style="color:#8fd6aa;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:2px;">Craftable</span>
+                <!-- Craftable -->
+                <div style="display:grid;grid-template-columns:64px 1fr;gap:9px;align-items:start;padding:8px 0;border-top:1px solid rgba(212,166,94,.1);">
+                  <span style="color:#8fd6aa;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding-top:3px;">Craft</span>
                   <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ true }}">
                     <div style="min-width:0;">
-                      <div style="color:#e6d6b4;font-size:10.5px;margin-bottom:4px;">{{ g.craftCost }}<sc-if value="{{ g.craftUpgrade }}" hint-placeholder-val="{{ false }}"> · <span style="color:#f2c777;">{{ g.craftUpgrade }}</span></sc-if></div>
-                      <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                        <sc-for list="{{ g.craftIngredients }}" as="ing" hint-placeholder-count="4"><span style="padding:2px 7px;border:1px solid rgba(212,166,94,.2);border-radius:6px;background:rgba(0,0,0,.24);color:#cbb185;font-size:9px;white-space:nowrap;">{{ ing.label }}</span></sc-for>
-                      </div>
+                      <div style="color:#e6d6b4;font-size:11px;margin-bottom:5px;">{{ g.craftCost }}<sc-if value="{{ g.craftUpgrade }}" hint-placeholder-val="{{ false }}"> · <span style="color:#f2c777;">{{ g.craftUpgrade }}</span></sc-if></div>
+                      <div style="display:flex;flex-wrap:wrap;gap:4px;"><sc-for list="{{ g.craftIngredients }}" as="ing" hint-placeholder-count="4"><span style="padding:2px 7px;border:1px solid rgba(212,166,94,.2);border-radius:6px;background:rgba(0,0,0,.24);color:#cbb185;font-size:9px;white-space:nowrap;">{{ ing.label }}</span></sc-for></div>
                     </div>
                   </sc-if>
-                  <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">Not craftable</span></sc-if>
+                  <sc-if value="{{ g.notCraftable }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10.5px;font-style:italic;padding-top:2px;">Not craftable</span></sc-if>
                 </div>
-                <!-- Drops From -->
-                <div style="display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start;padding:6px 0;border-top:1px dotted rgba(212,166,94,.14);">
-                  <span style="color:#e0a86b;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:2px;">Drops from</span>
-                  <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;flex-wrap:wrap;gap:4px;"><sc-for list="{{ g.drops }}" as="d" hint-placeholder-count="2"><span style="padding:2px 7px;border:1px solid rgba(224,168,107,.3);border-radius:6px;background:rgba(255,152,45,.06);color:#e0a86b;font-size:9px;">{{ d.location }}</span></sc-for></div>
+                <!-- Drops (boss image + name + rate) -->
+                <div style="display:grid;grid-template-columns:64px 1fr;gap:9px;align-items:start;padding:8px 0;border-top:1px solid rgba(212,166,94,.1);">
+                  <span style="color:#e0a86b;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding-top:3px;">Drops</span>
+                  <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:grid;gap:5px;">
+                      <sc-for list="{{ g.drops }}" as="d" hint-placeholder-count="3">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                          <span style="flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid rgba(224,168,107,.45);background:radial-gradient(circle at 40% 30%,#3a2a17,#140e08);overflow:hidden;display:grid;place-items:center;">
+                            <sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:26px;height:26px;border-radius:50%;background:url({{ d.image }}) center/cover no-repeat;"></span></sc-if>
+                          </span>
+                          <span style="min-width:0;flex:1;color:#f0dcc0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ d.name }}</span>
+                          <sc-if value="{{ d.hasProb }}" hint-placeholder-val="{{ true }}"><span style="flex:0 0 auto;padding:2px 8px;border:1px solid rgba(224,168,107,.35);border-radius:999px;background:rgba(255,152,45,.09);color:#e8b57c;font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ d.prob }}</span></sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
                   </sc-if>
-                  <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">No boss or dungeon drop</span></sc-if>
+                  <sc-if value="{{ g.noDrops }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10.5px;font-style:italic;padding-top:2px;">No boss or dungeon drop</span></sc-if>
                 </div>
-                <!-- Price on Market -->
-                <div style="display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start;padding:6px 0 2px;border-top:1px dotted rgba(212,166,94,.14);">
-                  <span style="color:#b98cf0;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:2px;">Market</span>
-                  <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ false }}"><span style="color:#d8b8ff;font-size:10.5px;font-weight:600;">{{ g.market }}</span></sc-if>
-                  <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ true }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">Check prices above</span></sc-if>
+                <!-- Market -->
+                <div style="display:grid;grid-template-columns:64px 1fr;gap:9px;align-items:center;padding:8px 0 2px;border-top:1px solid rgba(212,166,94,.1);">
+                  <span style="color:#b98cf0;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Market</span>
+                  <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ true }}"><span style="color:#d8b8ff;font-size:11.5px;font-weight:600;">{{ g.market }}</span></sc-if>
+                  <sc-if value="{{ g.marketUnchecked }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10.5px;font-style:italic;">Check prices above</span></sc-if>
                 </div>
               </div>
             </sc-for>
@@ -2842,13 +2855,14 @@ class Component extends DCLogic {
       const dropList=Array.isArray(acq.dropsFrom)?acq.dropsFrom:[];
       return {
         itemId, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
-        craftable:!!craft,
+        image:item.imageUrl||'', hasImage:!!item.imageUrl,
+        craftable:!!craft, notCraftable:!craft,
         craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
         craftUpgrade:craft&&craft.upgradeFrom&&craft.upgradeFrom.length?('Upgrade from '+craft.upgradeFrom.map(nameOf).join(', ')):'',
         craftIngredients:craft?craft.ingredients.slice(0,5).map(i=>({label:i.qty+'× '+i.name,gear:!!i.isGear})):[],
-        dropsKnown:dropList.length>0,
-        drops:dropList.slice(0,3).map(d=>({location:d.location+(d.probability?' · '+(d.probability*100).toFixed(1)+'%':'')})),
-        marketChecked:!!mp,
+        dropsKnown:dropList.length>0, noDrops:dropList.length===0,
+        drops:dropList.slice(0,4).map(d=>({name:d.location, prob:d.probability?(d.probability*100).toFixed(1)+'%':'', hasProb:!!d.probability, image:d.image||'', hasImage:!!d.image})),
+        marketChecked:!!mp, marketUnchecked:!mp,
         market:mp?(mp.error?'Price unavailable':(mp.minPrice!=null?fmtNum(mp.minPrice)+' Lucent'+(mp.inStock!=null?' · '+mp.inStock+' listed':''):'Not tradeable')):'',
       };
     }).filter(Boolean):[];
