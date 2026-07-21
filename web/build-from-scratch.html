@@ -212,17 +212,6 @@
           <span style="margin-left:auto;color:#6f5f49;font-size:10px;letter-spacing:.06em;text-transform:uppercase;">Drag to reorder</span>
         </div>
         <p style="margin:0 0 14px;color:#8a795f;font-size:11.5px;line-height:1.5;">The optimizer weights these in order. Priority 1 is protected hardest. These become your <strong style="color:#e5c88f;">favourite stats</strong> on the result screen.</p>
-        <div style="margin:0 0 14px;padding:11px 12px;border:1px solid rgba(185,140,240,.22);border-radius:11px;background:rgba(185,140,240,.05);">
-          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
-            <span style="color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Start from a preset</span>
-            <span style="color:#75664f;font-size:9.5px;">Replaces the list below. Floors keep the baseline meta builds never give up — tune anything after.</span>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            <sc-for list="{{ presetChips }}" as="chip" hint-placeholder-count="4">
-              <button onClick="{{ chip.select }}" title="{{ chip.tagline }}" style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 7px;border:1px solid rgba(185,140,240,.35);border-radius:8px;background:rgba(185,140,240,.08);color:#d9c9ea;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(185,140,240,.7);color:#efe4fb;"><sc-if value="{{ chip.hasIcon }}"><span aria-hidden="true" style="pointer-events:none;flex:0 0 auto;width:20px;height:20px;border-radius:6px;border:1px solid rgba(185,140,240,.4);background:{{ chip.icon }};"></span></sc-if><span style="pointer-events:none;">{{ chip.label }}</span></button>
-            </sc-for>
-          </div>
-        </div>
         <div style="display:grid;gap:8px;">
           <sc-for list="{{ rankedList }}" as="p" hint-placeholder-count="5">
             <div draggable="true" tabindex="0" onDragStart="{{ p.dragStart }}" onDragEnd="{{ endPriorityDrag }}" onDragOver="{{ p.dragOver }}" onDrop="{{ p.drop }}" onKeyDown="{{ p.reorderKey }}" aria-label="Drag to reorder {{ p.name }}. Use arrow keys for keyboard reordering." style="position:relative;display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid {{ p.border }};border-radius:11px;background:{{ p.bg }};opacity:{{ p.opacity }};cursor:grab;transition:border-color .12s ease,background .12s ease,opacity .12s ease;">
