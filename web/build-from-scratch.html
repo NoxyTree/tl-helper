@@ -852,13 +852,13 @@
 
     <!-- ===== LEFT: EQUIPMENT CANVAS ===== -->
     <sc-if value="{{ showResultOverview }}" hint-placeholder-val="{{ true }}">
-    <section style="min-width:0;grid-column:{{ eqCol }};grid-row:1;animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
+    <section style="min-width:0;grid-column:{{ eqCol }};animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
         <h2 style="margin:0;color:#ead8b7;font:400 17px Marcellus,serif;">Equipment</h2>
         <span style="color:#6f5f49;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Hover · click to lock</span>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;">
         <sc-for list="{{ gearAll }}" as="it" hint-placeholder-count="10">
           <div onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden;padding:8px;border:1px solid {{ it.cardBorder }};border-radius:11px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
             <span style="position:relative;flex:0 0 auto;width:60px;height:60px;border-radius:50%;border:2px solid {{ it.ring }};background:{{ it.icon }};box-shadow:0 0 14px {{ it.glow }};">
@@ -935,10 +935,32 @@
       </div>
     </section>
 
-    <!-- ===== Weapons / Attributes / Sets & Runes — shown under the Stats subtab ===== -->
-    <sc-if value="{{ showStatsView }}" hint-placeholder-val="{{ false }}">
-    <section style="min-width:0;grid-column:{{ mainCol }};grid-row:{{ sec2Row }};animation:tlRise .5s ease .08s both;display:grid;gap:13px;">
+        </sc-if>
 
+    <!-- ===== RIGHT: STAT SCREEN (tabs: Guide / Stats / Progression) ===== -->
+    <section style="min-width:0;grid-column:{{ mainCol }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
+      <div style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
+        <sc-for list="{{ primaryTabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showStatsSubchips }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">
+          <sc-for list="{{ statSubChips }}" as="c" hint-placeholder-count="7">
+            <button onClick="{{ c.select }}" style="padding:5px 11px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showProgressionSubchips }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:5px;margin-bottom:13px;">
+          <sc-for list="{{ progressionSubChips }}" as="c" hint-placeholder-count="2">
+            <button onClick="{{ c.select }}" style="padding:5px 14px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <!-- Weapons / Attributes / Sets & Runes (Summary sub-chip, in-panel) -->
+      <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;gap:13px;margin-bottom:14px;">
       <!-- Weapons block -->
       <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
@@ -1084,30 +1106,7 @@
           </sc-if>
         </div>
       </div>
-    </section>
-    </sc-if>
-    </sc-if>
-
-    <!-- ===== RIGHT: STAT SCREEN (tabs: Guide / Stats / Progression) ===== -->
-    <section style="min-width:0;grid-column:{{ mainCol }};grid-row:{{ sec3Row }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
-      <div style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
-        <sc-for list="{{ primaryTabs }}" as="t" hint-placeholder-count="4">
-          <button onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
-        </sc-for>
       </div>
-      <sc-if value="{{ showStatsSubchips }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">
-          <sc-for list="{{ statSubChips }}" as="c" hint-placeholder-count="7">
-            <button onClick="{{ c.select }}" style="padding:5px 11px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
-          </sc-for>
-        </div>
-      </sc-if>
-      <sc-if value="{{ showProgressionSubchips }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;gap:5px;margin-bottom:13px;">
-          <sc-for list="{{ progressionSubChips }}" as="c" hint-placeholder-count="2">
-            <button onClick="{{ c.select }}" style="padding:5px 14px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
-          </sc-for>
-        </div>
       </sc-if>
       <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
@@ -1239,7 +1238,7 @@
             </sc-for>
           </div>
           </sc-if>
-          <sc-if value="{{ guideReady }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ guideNotReady }}" hint-placeholder-val="{{ false }}">
             <div style="padding:14px;border:1px dashed rgba(212,166,94,.2);border-radius:10px;color:#8a795f;font-size:10.5px;text-align:center;">Loading item sourcing…</div>
           </sc-if>
         </div>
@@ -1368,7 +1367,7 @@
 class Component extends DCLogic {
   state = {
     phase: 'setup',
-    statTab: 'guide',
+    statTab: 'summary',
     acquisition: null,
     marketPrices: {},
     marketRegion: 'na-f',
@@ -2736,7 +2735,9 @@ class Component extends DCLogic {
     const progressionSubChips=[['skills','Skills'],['mastery','Mastery']].map(([id,name])=>subChip(id,name));
     const showStatsSubchips=resultView==='stats';
     const showProgressionSubchips=resultView==='progression';
-    const showStatsExtras=resultView==='stats';
+    // Weapons/Attributes/Sets + tradeoff sliders live on the Summary sub-chip; the
+    // other category chips (Attack/Defense/…) show just the filtered stat table.
+    const showStatsExtras=s.statTab==='summary';
     const allStats=s.result?.allStats||[];
     const favouriteIds=new Set(s.priorities);
     const matchesTab=(row)=>{const name=String(row.name).toLowerCase(),group=String(row.group).toLowerCase();if(s.statTab==='pvp'||s.statTab==='boss')return group===s.statTab;if(s.statTab==='attack')return /attack|accuracy|hit chance|critical|damage dealt|penetration|range/.test(name)&&!/(evasion|resistance|reduction)/.test(name);if(s.statTab==='defense')return /health|defense|evasion|endurance|resistance|reduction|block/.test(name);if(s.statTab==='utility')return !['pvp','boss'].includes(group)&&/speed|duration|mana|healing|cost|recovery|control|chance/.test(name);if(s.statTab==='gear'||s.statTab==='sets')return false;return favouriteIds.has(row.id)||['hp_max','cost_max','damage_reduction','block_chance','move_speed','skill_cooldown_modifier','attack_speed_modifier'].includes(row.id);};
@@ -2851,11 +2852,9 @@ class Component extends DCLogic {
     // Guide-centric result: left column = Equipment + favourite stats; right column = the tab panel (Guide default).
     // Weapons/Attributes/Sets sit under the tab panel in the right column, shown only on the Stats subtab.
     const narrowResult = vw <= 900;
-    const resultCols = narrowResult ? '1fr' : 'minmax(0,300px) minmax(0,1fr)';
+    const resultCols = narrowResult ? '1fr' : 'minmax(0,320px) minmax(0,1fr)';
     const eqCol = narrowResult ? '1 / -1' : '1';
     const mainCol = narrowResult ? '1 / -1' : '2';
-    const sec2Row = narrowResult ? 'auto' : '2';
-    const sec3Row = narrowResult ? 'auto' : '1';
     const progressionTab=s.statTab==='skills'||s.statTab==='mastery';
     const guideTab=s.statTab==='guide';
     // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
@@ -3049,8 +3048,8 @@ class Component extends DCLogic {
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
-      setupCols, resultCols, statsSpan, eqCol, mainCol, sec2Row, sec3Row, showResultOverview:!!s.result,showStatOverview:resultView==='stats',showStatsView:resultView==='stats',tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
-      tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady,
+      setupCols, resultCols, statsSpan, eqCol, mainCol, showResultOverview:!!s.result,showStatOverview:resultView==='stats',showStatsView:resultView==='stats',tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
+      tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady, guideNotReady:!s.acquisition,
       marketBusy:s.marketBusy, marketRegion:s.marketRegion, checkMarketPrices:this.checkMarketPrices, setMarketRegion:this.setMarketRegion,
       marketButtonLabel:s.marketBusy?'Checking…':'Check market prices', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
       weaponSetIcons:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.weaponFamilyIcon(type)).filter(Boolean).map(icon=>({icon:`url(${icon}) center/82% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`})),
