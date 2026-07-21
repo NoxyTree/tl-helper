@@ -16,6 +16,7 @@ import {
   PASSIVE_SKILL_RULES,
   PERK_PASSIVE_RULES,
   SET_EXCLUSIVITY_GROUPS,
+  CONTEXT_SPLIT_COMPOSITE_IDS,
   SET_PASSIVE_RULES,
   STAT_EXPANSIONS,
   STAT_HARD_CAPS,
@@ -3380,6 +3381,9 @@ export function statTotal(calc, statId) {
 // typed component. Mirrors the optimizer's component-minimum (component totals
 // in calc.stats already include expanded umbrella contributions and hard caps).
 export function compositeStatBreakdown(calc, statId) {
+  // Context-split composites (Boss/PvP pairs) are shown as their own single total,
+  // not min(boss, pvp) — a build only plays one context. See CONTEXT_SPLIT_COMPOSITE_IDS.
+  if (CONTEXT_SPLIT_COMPOSITE_IDS.has(statId)) return null;
   const componentIds = STAT_EXPANSIONS[statId] ?? [];
   if (componentIds.length < 2) return null;
   const components = componentIds.map((id) => ({ id, total: statTotal(calc, id) }));

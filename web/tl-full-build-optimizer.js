@@ -474,13 +474,19 @@ export async function optimizeFullBuild(options) {
       ? batchEvaluations[index]
       : await options.evaluate(state.selections, evaluationInputs[index].context);
     if (evaluation?.legal !== false) {
-      if (protectedLegal(evaluation ?? {}, options.protectedStats) && setConstraintsLegal(evaluation ?? {}, options.setConstraints)) {
+      const protectedOk = protectedLegal(evaluation ?? {}, options.protectedStats);
+      const setOk = setConstraintsLegal(evaluation ?? {}, options.setConstraints);
+      if (protectedOk && setOk) {
         results.push({ selections: state.selections, candidates: state.candidates, setCounts: state.sets, structuralKeys: state.custom, evaluation, key: state.key });
-      } else {
-        // A legal build dropped purely on floors/protected stats: report it so
-        // the caller can diagnose an infeasible run instead of ending with a
-        // bare "no builds match".
+      } else if (!protectedOk) {
+        // A legal build dropped on floors/protected stats: report it so the
+        // caller can diagnose an infeasible run instead of a bare "no builds
+        // match". Stat failure outranks set failure for reporting.
         options.onConstraintRejection?.(evaluation?.stats ?? null);
+      } else {
+        // Passed stats but failed the set-effect constraints: reported
+        // separately so the diagnosis blames the set rule, not stat floors.
+        options.onSetConstraintRejection?.(evaluation?.setSummary ?? null);
       }
     }
     if (!batchEvaluations) options.onProgress?.({ phase: "evaluate", completed: index + 1, total: beam.length, legal: results.length, workerCount: 1, mode: "sequential" });

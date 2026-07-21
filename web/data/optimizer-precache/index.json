@@ -2,8 +2,8 @@
   "schema": "tl-helper.optimizer-precache-index",
   "schemaVersion": 1,
   "gameBuild": "24118850",
-  "engineFingerprint": "4ab22d3b2579d392f75d5842a2300a99ae730d57d3432a96d987f0ffdb86e7a7",
-  "generatedAt": "2026-07-19T01:29:51.316Z",
+  "engineFingerprint": "8a71af1acc3428fa6169f982a892ddf4182e4b922750626ff6d15b980a201bb6",
+  "generatedAt": "2026-07-21T15:54:12.252Z",
   "entries": {
     "0885c6c342a70edc2a7055f2dc9ef3e96570fce2e06f1542083bc38fc4814bd6": "boss-dps-dagger-sword2h.json",
     "383a69928cca0d7d3466981cd99783e70e030c0ba09b74d7a23e8c9db66b6185": "boss-dps-crossbow-dagger.json",

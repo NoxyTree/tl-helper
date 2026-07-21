@@ -54,11 +54,20 @@ test("no set controls ⇒ the highest score wins even if it uses no set", async 
 });
 
 test("minimumActiveBonuses forces a build with an active set bonus", async () => {
-  const rejected = [];
-  const result = await run({ setConstraints: { minimumActiveBonuses: 1 }, onConstraintRejection: (stats) => rejected.push(stats) });
+  const statRejects = [];
+  const setRejects = [];
+  const result = await run({
+    setConstraints: { minimumActiveBonuses: 1 },
+    onConstraintRejection: (stats) => statRejects.push(stats),
+    onSetConstraintRejection: (summary) => setRejects.push(summary),
+  });
   assert.equal(result.best.evaluation.setSummary.activeBonusCount, 1);
   assert.equal(Object.values(result.best.selections).every((row) => row.itemId.endsWith("-set")), true);
-  assert.ok(rejected.length > 0, "set-less builds are reported through the constraint-rejection hook");
+  // Set failures are reported through the dedicated set channel, NOT the stat one,
+  // so an infeasible set rule is not misattributed to stat floors.
+  assert.equal(statRejects.length, 0, "set failures do not fire the stat-constraint hook");
+  assert.ok(setRejects.length > 0, "set-less builds fire the set-constraint hook");
+  assert.ok(setRejects.every((summary) => summary && summary.activeBonusCount === 0));
 });
 
 test("require forces a specific set to be active", async () => {

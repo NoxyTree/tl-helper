@@ -62,6 +62,13 @@ order. Heroic policy maps: `allow_all` → replace with any legal Heroic;
 `keep`+`optimize` → keep the item, re-optimize its traits and Heroic effects;
 `keep`+`keep` → keep the exact stored configuration.
 
+**Default when `heroics` is omitted:** `keep`+`keep` (equipped Heroics are locked),
+matching the Build Optimizer UI's default-on "Lock equipped Heroics". This is a
+deliberate, conservative default — Heroics are expensive, so the API will not
+suggest replacing them unless you pass `heroics.itemPolicy: "allow_all"` (or
+`configurationPolicy: "optimize"` to re-roll their traits/effects while keeping
+the items). Scratch builds (`weapons` provided) are unaffected by this default.
+
 ## Response
 
 `optimize`/`preview` return:

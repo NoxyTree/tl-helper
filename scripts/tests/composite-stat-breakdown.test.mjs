@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { compositeStatBreakdown, statTotal } from "../../web/tl-core.js";
-import { STAT_EXPANSIONS } from "../../web/tl-questlog-rules.js";
+import { CONTEXT_SPLIT_COMPOSITE_IDS, STAT_EXPANSIONS } from "../../web/tl-questlog-rules.js";
 
 const calcWith = (rows) => ({ stats: rows.map(([id, total]) => ({ id, total })) });
 
@@ -43,11 +43,14 @@ test("non-composite stats return null and keep using the direct total", () => {
   assert.equal(statTotal(calc, "skill_cooldown_modifier"), 975);
 });
 
-test("every multi-component expansion produces a breakdown", () => {
+test("every multi-component expansion produces a breakdown, except context-split composites", () => {
   for (const [statId, components] of Object.entries(STAT_EXPANSIONS)) {
     const calc = calcWith(components.map((id, index) => [id, (index + 1) * 100]));
     const breakdown = compositeStatBreakdown(calc, statId);
-    if (components.length < 2) {
+    if (CONTEXT_SPLIT_COMPOSITE_IDS.has(statId)) {
+      // Boss/PvP pairs display as a single total (their own row), never min(boss, pvp).
+      assert.equal(breakdown, null, `${statId} is context-split and must not break down`);
+    } else if (components.length < 2) {
       assert.equal(breakdown, null, statId);
     } else {
       assert.ok(breakdown, statId);

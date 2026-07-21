@@ -671,19 +671,15 @@
           </div>
           <button onClick="{{ closeDrawer }}" style="flex:0 0 auto;width:34px;height:34px;border:1px solid rgba(212,166,94,.28);border-radius:9px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:14px;" style-hover="border-color:rgba(229,124,114,.6);color:#e57c72;">✕</button>
         </div>
-        <div style="display:flex;gap:6px;margin-top:14px;">
-          <sc-for list="{{ drawerSteps }}" as="ds" hint-placeholder-count="3">
-            <div style="flex:1;">
-              <div style="height:3px;border-radius:2px;background:{{ ds.bar }};"></div>
-              <div style="margin-top:6px;color:{{ ds.color }};font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">{{ ds.n }} · {{ ds.label }}</div>
-            </div>
-          </sc-for>
+        <div style="margin-top:6px;color:#8a795f;font-size:10.5px;line-height:1.4;">
+          <sc-if value="{{ drawerPickMode }}" hint-placeholder-val="{{ true }}">Pick the Heroic you own — its traits prefill so you only adjust what differs.</sc-if>
+          <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">Prefilled to typical max rolls · tweak any tier, level or rune to match your real item.</sc-if>
         </div>
       </div>
 
       <div style="flex:1;overflow-y:auto;padding:18px 20px;">
-        <!-- STEP 1 -->
-        <sc-if value="{{ drawerStep1 }}" hint-placeholder-val="{{ true }}">
+        <!-- PICK: choose which Heroic you own -->
+        <sc-if value="{{ drawerPickMode }}" hint-placeholder-val="{{ true }}">
           <input value="{{ drawerSearch }}" onInput="{{ setDrawerSearch }}" placeholder="Search Heroic equipment by name…" style="width:100%;padding:11px 13px;border:1px solid rgba(212,166,94,.26);border-radius:10px;background:rgba(7,5,3,.76);color:#f3e9d4;font:13px 'Instrument Sans';margin-bottom:12px;">
           <sc-if value="{{ drawerWeaponNote }}" hint-placeholder-val="{{ false }}">
             <div style="margin-bottom:10px;padding:8px 11px;border-left:2px solid rgba(185,140,240,.5);background:rgba(126,86,196,.08);color:#c9b7e6;font-size:10.5px;line-height:1.5;">Filtered to your <strong>{{ drawerWeaponFamilies }}</strong> pairing. Incompatible weapon types are hidden.</div>
@@ -703,23 +699,24 @@
           </div>
         </sc-if>
 
-        <!-- STEP 2 -->
-        <sc-if value="{{ drawerStep2 }}" hint-placeholder-val="{{ false }}">
+        <!-- CONFIG: recreate the owned item (single scroll, prefilled) -->
+        <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
           <!-- A. Selected item -->
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;padding:10px 12px;border:1px solid rgba(255,183,101,.3);border-radius:11px;background:rgba(255,152,45,.05);">
             <span style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,183,101,.7);background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);"></span>
             <div style="min-width:0;flex:1;">
-              <div style="color:#ffcf8c;font-size:13px;font-weight:700;">{{ draftName }}</div>
-              <div style="color:#a4906d;font-size:10px;">{{ draftMeta }} · {{ draftSlot }} · Set: {{ draftSet }}</div>
-              <div style="margin-top:2px;color:#8a795f;font-size:9.5px;">{{ draftInherent }}</div>
+              <div style="color:#ffcf8c;font-size:13.5px;font-weight:700;">{{ draftName }}</div>
+              <div style="color:#a4906d;font-size:10.5px;">{{ draftMeta }} · {{ draftSlot }} · Set: {{ draftSet }}</div>
+              <div style="margin-top:2px;color:#8a795f;font-size:10px;">{{ draftInherent }}</div>
             </div>
             <sc-if value="{{ showLevelSelect }}" hint-placeholder-val="{{ false }}">
-              <select value="{{ draftLevel }}" onChange="{{ onLevel }}" style="flex:0 0 auto;padding:7px 9px;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#f3e9d4;font:600 11px 'Instrument Sans';">
+              <select value="{{ draftLevel }}" onChange="{{ onLevel }}" style="flex:0 0 auto;padding:7px 9px;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#f3e9d4;font:600 12px 'Instrument Sans';">
                 <sc-for list="{{ levelOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
               </select>
             </sc-if>
+            <button onClick="{{ changeDraftItem }}" style="flex:0 0 auto;min-height:32px;padding:0 12px;border:1px solid rgba(212,166,94,.32);border-radius:8px;background:rgba(0,0,0,.28);color:#d8c6a5;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">Change</button>
           </div>
-          <div style="color:#6f5f49;font-size:9.5px;margin-bottom:16px;">Recreate the exact item you own. Nothing is auto-maximized — set your real tiers and levels.</div>
+          <div style="color:#6f5f49;font-size:10px;margin-bottom:16px;line-height:1.5;">Traits prefill at max tier — <strong style="color:#8a795f;">adjust any that don't match your item</strong>. Effect roll levels stay Unknown until you set them.</div>
 
           <!-- B. Normal traits -->
           <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;"><span style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Owned Traits</span><span style="color:{{ traitCountColor }};font-size:10.5px;font-weight:600;">{{ traitCount }} / 3</span></div>
@@ -772,8 +769,8 @@
                   <span style="flex:0 0 auto;min-width:44px;text-align:right;color:#ffb765;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;">{{ ef.value }}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:7px;">
-                  <button onClick="{{ ef.setKnown }}" style="padding:4px 9px;border:1px solid {{ ef.kBorder }};border-radius:6px;background:{{ ef.kBg }};color:{{ ef.kColor }};cursor:pointer;font:700 8.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;">Known</button>
-                  <button onClick="{{ ef.setUnknown }}" style="padding:4px 9px;border:1px solid {{ ef.uBorder }};border-radius:6px;background:{{ ef.uBg }};color:{{ ef.uColor }};cursor:pointer;font:700 8.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;">Unknown</button>
+                  <button onClick="{{ ef.setKnown }}" style="padding:4px 9px;border:1px solid {{ ef.kBorder }};border-radius:6px;background:{{ ef.kBg }};color:{{ ef.kColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;min-height:28px;padding:0 11px;">Known</button>
+                  <button onClick="{{ ef.setUnknown }}" style="padding:4px 9px;border:1px solid {{ ef.uBorder }};border-radius:6px;background:{{ ef.uBg }};color:{{ ef.uColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;min-height:28px;padding:0 11px;">Unknown</button>
                   <span style="flex:1;"></span>
                   <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ true }}">
                     <button onClick="{{ ef.dec }}" style="width:24px;height:24px;border:1px solid rgba(212,166,94,.3);border-radius:6px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:13px;">−</button>
@@ -816,11 +813,11 @@
             <sc-for list="{{ runeRows }}" as="rr" hint-placeholder-count="3">
               <div style="display:flex;align-items:center;gap:7px;padding:8px 9px;border:1px solid rgba(212,166,94,.16);border-radius:10px;background:rgba(0,0,0,.2);">
                 <span style="flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:1.5px solid {{ rr.typeColor }};"></span>
-                <select value="{{ rr.runeId }}" onChange="{{ rr.onKind }}" style="flex:0 0 auto;width:96px;padding:6px 6px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 10px 'Instrument Sans';">
+                <select value="{{ rr.runeId }}" onChange="{{ rr.onKind }}" style="flex:0 0 auto;width:104px;padding:7px 7px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 11.5px 'Instrument Sans';">
                   <sc-for list="{{ rr.runeOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                 </select>
                 <sc-if value="{{ rr.hasRune }}" hint-placeholder-val="{{ true }}">
-                  <select value="{{ rr.statId }}" onChange="{{ rr.onStat }}" style="flex:1;min-width:0;padding:6px 6px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 10px 'Instrument Sans';">
+                  <select value="{{ rr.statId }}" onChange="{{ rr.onStat }}" style="flex:1;min-width:0;padding:7px 7px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 11.5px 'Instrument Sans';">
                     <sc-for list="{{ rr.statOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                   </select>
                   <button onClick="{{ rr.dec }}" style="flex:0 0 auto;width:22px;height:22px;border:1px solid rgba(212,166,94,.3);border-radius:6px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:12px;">−</button>
@@ -837,28 +834,8 @@
           <div style="margin-top:8px;padding:7px 10px;border-left:2px solid rgba(126,224,166,.4);background:rgba(31,76,47,.1);color:#a9c9b3;font-size:10px;">◆ Rune Synergy · {{ runeSynergy }}</div>
         </sc-if>
 
-        <!-- STEP 3 -->
-        <sc-if value="{{ drawerStep3 }}" hint-placeholder-val="{{ false }}">
-          <div style="color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Review · this exact item locks into your build</div>
-          <div style="border:1px solid rgba(255,183,101,.45);border-radius:11px;background:linear-gradient(180deg, rgba(27,20,13,.99), rgba(11,8,5,.99));overflow:hidden;">
-            <div style="display:flex;align-items:center;gap:11px;padding:13px 15px;border-top:2px solid #ffb765;background:linear-gradient(180deg, rgba(255,152,45,.12), transparent);">
-              <span style="flex:0 0 auto;width:46px;height:46px;border-radius:9px;border:1px solid #ffb765;background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);"></span>
-              <div style="min-width:0;"><div style="color:#ffb765;font-size:15px;font-weight:700;">{{ draftName }}</div><div style="color:#9d8a68;font-size:10.5px;margin-top:2px;">{{ draftMeta }} · {{ draftSlot }}</div></div>
-            </div>
-            <div style="padding:10px 15px;border-top:1px solid rgba(212,166,94,.1);"><div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cbb185;margin-bottom:5px;">Traits</div>
-              <sc-for list="{{ draftTraitRows }}" as="r" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:12px 1fr auto;gap:5px;font-size:12px;min-height:19px;align-items:baseline;"><span style="color:#d4a65e;">◆</span><span style="color:#cfc1a6;">{{ r.name }}</span><strong style="color:#f0e1c1;">{{ r.tier }}</strong></div></sc-for>
-            </div>
-            <div style="padding:10px 15px;border-top:1px solid rgba(255,152,45,.18);background:rgba(255,152,45,.035);"><div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#ffb765;margin-bottom:5px;">Heroic</div>
-              <div style="font-size:12px;color:#d9c8a5;">★ {{ draftHeroicTrait }}</div>
-              <sc-for list="{{ draftEffectRows }}" as="e" hint-placeholder-count="2"><div style="display:flex;gap:8px;font-size:11.5px;margin-top:3px;"><span style="color:#d9c8a5;flex:1;">{{ e.name }}</span><span style="color:#ffb765;font-weight:600;">{{ e.level }}</span></div></sc-for>
-            </div>
-            <div style="padding:10px 15px 12px;border-top:1px solid rgba(212,166,94,.1);"><div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cbb185;margin-bottom:6px;">Runes · Resonance {{ draftResonance }}</div>
-              <div style="display:flex;flex-wrap:wrap;gap:7px;">
-                <sc-for list="{{ draftRuneChips }}" as="rc" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid {{ rc.border }};border-radius:999px;font-size:9.5px;color:#d9c8a5;"><span style="width:8px;height:8px;border-radius:50%;background:{{ rc.dot }};"></span>{{ rc.label }}</span></sc-for>
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:12px;padding:10px 12px;border:1px solid rgba(126,224,166,.3);border-radius:10px;background:rgba(31,76,47,.12);color:#a9c9b3;font-size:10.5px;line-height:1.5;"><span style="color:#7ee0a6;">🔒</span><span>This item, its traits, Heroic effects, effect levels, resonance and runes lock into the build and are never replaced.</span></div>
+        <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;margin-top:16px;padding:10px 12px;border:1px solid rgba(126,224,166,.3);border-radius:10px;background:rgba(31,76,47,.12);color:#a9c9b3;font-size:10.5px;line-height:1.5;"><span style="color:#7ee0a6;">🔒</span><span>This exact item — traits, Heroic effects, effect levels, resonance and runes — locks into your build and is never replaced.</span></div>
         </sc-if>
       </div>
 
@@ -867,8 +844,13 @@
           <div style="margin-bottom:10px;padding:8px 11px;border-left:2px solid #e57c72;background:rgba(82,28,24,.14);color:#e6b0aa;font-size:10.5px;line-height:1.45;">{{ drawerWarning }}</div>
         </sc-if>
         <div style="display:flex;gap:9px;">
-          <button onClick="{{ drawerBack }}" style="min-height:46px;padding:0 18px;border:1px solid rgba(212,166,94,.3);border-radius:11px;background:rgba(0,0,0,.28);color:#cbb185;cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">{{ drawerBackLabel }}</button>
-          <button onClick="{{ drawerPrimary }}" style="flex:1;min-height:46px;border:1px solid {{ drawerPrimaryBorder }};border-radius:11px;background:{{ drawerPrimaryBg }};color:{{ drawerPrimaryColor }};cursor:{{ drawerPrimaryCursor }};font:400 16px Marcellus,serif;">{{ drawerPrimaryLabel }}</button>
+          <button onClick="{{ closeDrawer }}" style="min-height:46px;padding:0 18px;border:1px solid rgba(212,166,94,.3);border-radius:11px;background:rgba(0,0,0,.28);color:#cbb185;cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">Cancel</button>
+          <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ drawerPrimary }}" style="flex:1;min-height:46px;border:1px solid {{ drawerPrimaryBorder }};border-radius:11px;background:{{ drawerPrimaryBg }};color:{{ drawerPrimaryColor }};cursor:{{ drawerPrimaryCursor }};font:400 16px Marcellus,serif;">{{ drawerPrimaryLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ drawerPickMode }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;color:#6f5f49;font-size:11px;font-style:italic;">Select a Heroic above to configure it</div>
+          </sc-if>
         </div>
       </div>
     </div>
@@ -1084,15 +1066,27 @@
 
     <!-- ===== RIGHT: STAT SCREEN ===== -->
     <section style="min-width:0;grid-column:{{ statsSpan }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
-      <div style="display:flex;gap:3px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);overflow-x:auto;margin-bottom:13px;">
-        <sc-for list="{{ statTabs }}" as="t" hint-placeholder-count="10">
-          <button onClick="{{ t.select }}" title="{{ t.name }}" style="flex:1;min-width:58px;display:grid;justify-items:center;gap:3px;padding:8px 4px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};cursor:pointer;">
-            <span style="width:16px;height:16px;border-radius:{{ t.shape }};border:1.5px solid {{ t.mark }};background:{{ t.fill }};transform:{{ t.rot }};"></span>
-            <span style="color:{{ t.color }};font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;">{{ t.short }}</span>
-          </button>
+      <div style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
+        <sc-for list="{{ primaryTabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
         </sc-for>
       </div>
+      <sc-if value="{{ showStatsSubchips }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">
+          <sc-for list="{{ statSubChips }}" as="c" hint-placeholder-count="7">
+            <button onClick="{{ c.select }}" style="padding:5px 11px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showProgressionSubchips }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:5px;margin-bottom:13px;">
+          <sc-for list="{{ progressionSubChips }}" as="c" hint-placeholder-count="2">
+            <button onClick="{{ c.select }}" style="padding:5px 14px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showOverviewExtras }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ false }}">
         <div style="margin-bottom:13px;padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
@@ -1158,6 +1152,7 @@
           </sc-for>
         </div>
       </div>
+      </sc-if>
 
       <div style="margin-top:8px;color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;">{{ activeTabName }}</div>
 
@@ -1179,6 +1174,67 @@
           </div>
         </sc-for>
       </div>
+      </sc-if>
+
+      <!-- ===== GEARING GUIDE ===== -->
+      <sc-if value="{{ tabGuide }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:tlRise .24s ease both;">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:4px;">
+            <span style="color:#f2c777;font:400 16px Marcellus,serif;">Where to get this gear</span>
+            <span style="flex:1;"></span>
+            <span style="color:#8a795f;font-size:9.5px;font-variant-numeric:tabular-nums;">{{ guideSourcedCount }}/{{ guideTotalCount }} craftable</span>
+          </div>
+          <div style="color:#8a795f;font-size:10px;line-height:1.5;margin-bottom:10px;">Crafting recipes and drop sources for each item the optimizer chose. Market prices are live from the auction house — click to check.</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">
+            <select value="{{ marketRegion }}" onChange="{{ setMarketRegion }}" aria-label="Auction house region" style="padding:6px 8px;border:1px solid rgba(185,140,240,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 10.5px 'Instrument Sans';">
+              <option value="na-f">Americas</option><option value="eu-f">Europe</option><option value="as-f">Asia</option>
+            </select>
+            <button onClick="{{ checkMarketPrices }}" style="min-height:30px;padding:0 13px;border:1px solid rgba(185,140,240,.4);border-radius:8px;background:rgba(159,86,214,.14);color:#d8b8ff;cursor:pointer;font:600 10.5px 'Instrument Sans';" style-hover="border-color:#c9a2f2;">{{ marketButtonLabel }}</button>
+          </div>
+          <sc-if value="{{ guideReady }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;gap:9px;">
+            <sc-for list="{{ guideItems }}" as="g" hint-placeholder-count="10">
+              <div style="border:1px solid rgba(212,166,94,.22);border-radius:11px;background:linear-gradient(180deg,rgba(24,18,12,.7),rgba(12,9,6,.85));padding:11px 12px;">
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+                  <span style="color:#f3e2bd;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.name }}</span>
+                  <span style="flex:1;"></span>
+                  <span style="color:#7d6b51;font-size:8px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;">{{ g.slot }}</span>
+                </div>
+                <!-- Craftable From -->
+                <div style="display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start;padding:6px 0;border-top:1px dotted rgba(212,166,94,.14);">
+                  <span style="color:#8fd6aa;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:2px;">Craftable</span>
+                  <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ true }}">
+                    <div style="min-width:0;">
+                      <div style="color:#e6d6b4;font-size:10.5px;margin-bottom:4px;">{{ g.craftCost }}<sc-if value="{{ g.craftUpgrade }}" hint-placeholder-val="{{ false }}"> · <span style="color:#f2c777;">{{ g.craftUpgrade }}</span></sc-if></div>
+                      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        <sc-for list="{{ g.craftIngredients }}" as="ing" hint-placeholder-count="4"><span style="padding:2px 7px;border:1px solid rgba(212,166,94,.2);border-radius:6px;background:rgba(0,0,0,.24);color:#cbb185;font-size:9px;white-space:nowrap;">{{ ing.label }}</span></sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">Not craftable</span></sc-if>
+                </div>
+                <!-- Drops From -->
+                <div style="display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start;padding:6px 0;border-top:1px dotted rgba(212,166,94,.14);">
+                  <span style="color:#e0a86b;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:2px;">Drops from</span>
+                  <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;"><sc-for list="{{ g.drops }}" as="d" hint-placeholder-count="2"><span style="padding:2px 7px;border:1px solid rgba(224,168,107,.3);border-radius:6px;background:rgba(255,152,45,.06);color:#e0a86b;font-size:9px;">{{ d.location }}</span></sc-for></div>
+                  </sc-if>
+                  <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">No boss or dungeon drop</span></sc-if>
+                </div>
+                <!-- Price on Market -->
+                <div style="display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start;padding:6px 0 2px;border-top:1px dotted rgba(212,166,94,.14);">
+                  <span style="color:#b98cf0;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:2px;">Market</span>
+                  <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ false }}"><span style="color:#d8b8ff;font-size:10.5px;font-weight:600;">{{ g.market }}</span></sc-if>
+                  <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ true }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">Check prices above</span></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ guideReady }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px;border:1px dashed rgba(212,166,94,.2);border-radius:10px;color:#8a795f;font-size:10.5px;text-align:center;">Loading item sourcing…</div>
+          </sc-if>
+        </div>
       </sc-if>
 
       <sc-if value="{{ tabSkills }}" hint-placeholder-val="{{ false }}">
@@ -1305,6 +1361,10 @@ class Component extends DCLogic {
   state = {
     phase: 'setup',
     statTab: 'summary',
+    acquisition: null,
+    marketPrices: {},
+    marketRegion: 'na-f',
+    marketBusy: false,
     locked: {},
     hover: null,
     openAttr: null,
@@ -1363,6 +1423,8 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
+    // Gearing-guide sourcing (craftable/codex now; drops+market later). Non-blocking; guide degrades if absent.
+    fetch('./data/projections/acquisition.json').then(r=>r.ok?r.json():null).then(a=>{ if(a&&a.items) this.setState({ acquisition:a.items }); }).catch(()=>{});
     Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js'), import('./tl-preset-meta.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets, presetMeta]) => {
       this.core = core;
       this.presetMeta = presetMeta;
@@ -1532,6 +1594,7 @@ class Component extends DCLogic {
   ];
 
   STAT_TABS = [
+    { id:'guide',   name:'Gearing Guide', short:'Guide', shape:'20%',  rot:'none' },
     { id:'summary', name:'Summary',      short:'Sum',  shape:'50%',   rot:'none' },
     { id:'attack',  name:'Attack',       short:'Atk',  shape:'0',     rot:'rotate(45deg)' },
     { id:'defense', name:'Defense',      short:'Def',  shape:'40% 40% 50% 50%', rot:'none' },
@@ -1755,21 +1818,45 @@ class Component extends DCLogic {
     resonance:cfg.resonance?{...cfg.resonance}:null, runes:cfg.runes.map(r=>({...r})) } } }); }
   removeHeroic(group) { const h={...this.state.heroics}; h[group]=null;this.persistHeroics(h,this.state.heroicMode);this.setState({ heroics:h }); }
   closeDrawer = () => this.setState({ drawer:null });
+  setMarketRegion = (e) => this.setState({ marketRegion:e.target.value, marketPrices:{} });
+  // Live auction-house prices via the same-origin questlog proxy (functions/api/questlog/market.js).
+  // Degrades silently where the proxy isn't deployed (e.g. static local dev).
+  checkMarketPrices = async () => {
+    const s=this.state; if(s.marketBusy||!s.result) return;
+    const ids=[...new Set(Object.values(s.result.build.equipment||{}).map(e=>e&&e.itemId).filter(Boolean))];
+    const region=s.marketRegion||'na-f';
+    this.setState({ marketBusy:true });
+    const prices={...s.marketPrices};
+    await Promise.all(ids.map(async id=>{
+      try{ const r=await fetch(`./api/questlog/market?item=${encodeURIComponent(id)}&region=${region}`);
+        if(r.ok){ const j=await r.json(); prices[id]={ minPrice:j.minPrice, inStock:j.inStock }; } else { prices[id]={ error:true }; } }
+      catch{ prices[id]={ error:true }; }
+    }));
+    this.setState({ marketPrices:prices, marketBusy:false });
+  };
   patchDrawer(p) { this.setState({ drawer:{ ...this.state.drawer, ...p } }); }
   patchDraft(p) { const d=this.state.drawer; this.setState({ drawer:{ ...d, draft:{ ...d.draft, ...p } } }); }
   setDrawerSearch = (e) => this.patchDrawer({ search:e.target.value });
   curItem() { const d=this.state.drawer; return this.findHeroic(d.group, d.draft.itemId); }
   selectDraftItem(item) {
-    // Owned recreation: conservative defaults, nothing auto-maximized. Effects start "unknown" (level 0).
+    // Fast recreation: prefill the 3 owned traits from the item's own pool at max tier
+    // (most owned Heroics are maxed — you just adjust what differs), and prefill the Heroic
+    // trait. Effect ROLL levels still start "unknown" — that's an axis we genuinely can't assume.
+    const its=item.itemStats||{};
+    const traits=Object.keys(its.traits||{}).slice(0,3).map(statId=>({ statId, tier:this.tierMax(its.traits[statId]) }));
+    const uKeys=Object.keys(its.uniqueTraits||{});
+    const uniqueTrait=uKeys.length?{ statId:uKeys[0], tier:this.tierMax(its.uniqueTraits[uKeys[0]]) }:null;
     const usedEffects=new Set();
     const heroicEffects = Array.from({length:this.heroicEffectGroupCount(item)},(_,groupIndex) => {
       const option=this.heroicEffectOptions(item,groupIndex).find(row=>!usedEffects.has(row.statId));
       if(option)usedEffects.add(option.statId);
       return { statId:option?.statId||'', level:0, levelKnown:false };
     });
-    this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits:[], uniqueTrait:null,
+    this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits, uniqueTrait,
       heroicEffects, resonance:null, runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] });
   }
+  // Return to the item picker, discarding the current draft config for this slot.
+  changeDraftItem() { this.patchDraft({ ...this.emptyDraft(this.state.drawer.group) }); }
   setDraftLevel = (e) => this.patchDraft({ level:Number(e.target.value) });
   addTraitRow() { const d=this.state.drawer.draft; const item=this.curItem(); if (d.traits.length>=3) return;
     const used=d.traits.map(t=>t.statId); const next=Object.keys(item.itemStats.traits).find(s=>!used.includes(s));
@@ -2177,7 +2264,9 @@ class Component extends DCLogic {
   clearPrioritySearch = () => this.setState({ prioritySearch:'' });
   priorityPickerKeyDown = (event) => { if(event.key==='Escape')this.closePriorityPicker(); };
   toggleComposite(id) { this.setState({ openComposite:this.state.openComposite===id?null:id }); }
-  compositeComponents(id) { return (this.rulesData?.STAT_EXPANSIONS?.[id]||[]).map(componentId=>({id:componentId,name:this.statLabel(componentId)})); }
+  // Context-split composites (Boss/PvP pairs) are treated as single leaf goals, not min(boss,pvp).
+  isCompositeGoal(id){ if(this.rulesData?.CONTEXT_SPLIT_COMPOSITE_IDS?.has(id))return false; return (this.rulesData?.STAT_EXPANSIONS?.[id]||[]).length>1; }
+  compositeComponents(id) { if(!this.isCompositeGoal(id))return []; return (this.rulesData?.STAT_EXPANSIONS?.[id]||[]).map(componentId=>({id:componentId,name:this.statLabel(componentId)})); }
   statPickerCategory(row) {
     const id=String(row?.id||'').toLowerCase(),name=String(row?.name||'').toLowerCase(),text=id+' '+name;
     if(['str','dex','int','per','con'].includes(id))return 'attributes';
@@ -2441,8 +2530,8 @@ class Component extends DCLogic {
 
     const rankedList = s.priorities.map((id, i) => {
       const option=s.statOptions.find(row=>row.id===id);
-      const components=this.rulesData?.STAT_EXPANSIONS?.[id]||[];
-      const d = {name:option?.name||this.statLabel(id),hint:components.length>1?'Optimizes all included stats together.':'Maximized after higher-ranked goals.',composite:components.length>1};
+      const isComposite=this.isCompositeGoal(id);
+      const d = {name:option?.name||this.statLabel(id),hint:isComposite?'Optimizes all included stats together.':'Maximized after higher-ranked goals.',composite:isComposite};
       const top = i === 0;
       const dragging=s.dragPriorityId===id,dropTarget=s.dragOverPriorityId===id&&!dragging;
       return { id, rank: i + 1, name: d.name, hint: d.hint, composite: !!d.composite, components:this.compositeComponents(id),compositeOpen:s.openComposite===id,compositeCaret:s.openComposite===id?'▲':'▼',toggleComposite:()=>this.toggleComposite(id),
@@ -2456,7 +2545,7 @@ class Component extends DCLogic {
         setGoalMode:(event)=>this.setGoalMode(id,event),setGoalValue:(event)=>this.setGoalValue(id,event),
         dragStart:(event)=>this.startPriorityDrag(id,event),dragOver:(event)=>this.dragOverPriority(id,event),drop:(event)=>this.dropPriority(id,event),reorderKey:(event)=>this.priorityReorderKey(id,event),remove: () => this.removePriority(id) };
     });
-    const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:(this.rulesData?.STAT_EXPANSIONS?.[row.id]||[]).length>1}));
+    const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:this.isCompositeGoal(row.id)}));
     const categoryDefs = [
       ['featured','Featured','Common build goals and composite stats.'],
       ['offense','Offense','Damage, hit, critical and heavy attack stats.'],
@@ -2612,7 +2701,7 @@ class Component extends DCLogic {
       const stat=s.statOptions.find(row=>row.id===id);
       const parts=(goal.components||[]).map(component=>({name:component.name,value:component.formattedValue,weak:Number(component.value)===Number(goal.value),color:Number(component.value)===Number(goal.value)?'#e57c72':'#e5c88f',dot:Number(component.value)===Number(goal.value)?'#e57c72':'#b98cf0'}));
       const capLabel=goal.formattedTarget?`Target ${goal.formattedTarget}`:goal.formattedMinimum?`Floor ${goal.formattedMinimum}`:goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP difference cap':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC difference cap':'';
-      return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),capLabel,value:goal.formattedValue||'Queued',composite:parts.length>1,parts};
+      return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),capLabel,value:goal.formattedValue||'Queued',composite:this.isCompositeGoal(id)&&parts.length>1,parts};
     });
 
     const statTabs = this.STAT_TABS.map(t => {
@@ -2623,6 +2712,21 @@ class Component extends DCLogic {
         select: () => this.setState({ statTab: t.id }) };
     });
     const activeTab = this.STAT_TABS.find(t => t.id === s.statTab) || this.STAT_TABS[0];
+    // Consolidated result panel: 4 primary views, with the granular stat categories
+    // and progression pages as sub-filter chips instead of an 11-tab strip.
+    const STAT_GROUP={summary:'overview',attack:'stats',defense:'stats',utility:'stats',pvp:'stats',boss:'stats',gear:'stats',sets:'stats',skills:'progression',mastery:'progression',guide:'guide'};
+    const resultView=STAT_GROUP[s.statTab]||'overview';
+    const primaryTabs=[{id:'overview',name:'Overview',dflt:'summary'},{id:'stats',name:'Stats',dflt:'attack'},{id:'guide',name:'Guide',dflt:'guide'},{id:'progression',name:'Progression',dflt:'skills'}].map(p=>{
+      const on=resultView===p.id;
+      return { name:p.name, on, border:on?'rgba(242,199,119,.55)':'rgba(212,166,94,.14)', bg:on?'linear-gradient(135deg, rgba(107,68,22,.4), rgba(32,23,13,.6))':'transparent', color:on?'#f6d391':'#8a795f',
+        select:()=>this.setState({ statTab:p.dflt }) };
+    });
+    const subChip=(id,name)=>({ name, on:s.statTab===id, border:s.statTab===id?'rgba(242,199,119,.5)':'rgba(212,166,94,.2)', bg:s.statTab===id?'rgba(107,68,22,.32)':'rgba(0,0,0,.24)', color:s.statTab===id?'#f6d391':'#a4906d', select:()=>this.setState({ statTab:id }) });
+    const statSubChips=[['attack','Attack'],['defense','Defense'],['utility','Utility'],['pvp','PvP'],['boss','Boss'],['gear','Gear'],['sets','Sets & Runes']].map(([id,name])=>subChip(id,name));
+    const progressionSubChips=[['skills','Skills'],['mastery','Mastery']].map(([id,name])=>subChip(id,name));
+    const showStatsSubchips=resultView==='stats';
+    const showProgressionSubchips=resultView==='progression';
+    const showOverviewExtras=resultView==='overview';
     const allStats=s.result?.allStats||[];
     const favouriteIds=new Set(s.priorities);
     const matchesTab=(row)=>{const name=String(row.name).toLowerCase(),group=String(row.group).toLowerCase();if(s.statTab==='pvp'||s.statTab==='boss')return group===s.statTab;if(s.statTab==='attack')return /attack|accuracy|hit chance|critical|damage dealt|penetration|range/.test(name)&&!/(evasion|resistance|reduction)/.test(name);if(s.statTab==='defense')return /health|defense|evasion|endurance|resistance|reduction|block/.test(name);if(s.statTab==='utility')return !['pvp','boss'].includes(group)&&/speed|duration|mana|healing|cost|recovery|control|chance/.test(name);if(s.statTab==='gear'||s.statTab==='sets')return false;return favouriteIds.has(row.id)||['hp_max','cost_max','damage_reduction','block_chance','move_speed','skill_cooldown_modifier','attack_speed_modifier'].includes(row.id);};
@@ -2736,6 +2840,31 @@ class Component extends DCLogic {
     const twoCol = vw <= 1350 && vw > 820;
     const resultCols = vw <= 820 ? '1fr' : twoCol ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr) minmax(0,1.12fr)';
     const progressionTab=s.statTab==='skills'||s.statTab==='mastery';
+    const guideTab=s.statTab==='guide';
+    // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
+    const acqMap=s.acquisition||{};
+    const fmtNum=(n)=>this.core?.formatNumber?this.core.formatNumber(n):String(n);
+    const guideItems=(s.result&&this.core)?Object.entries(s.result.build.equipment||{}).map(([slot,sel])=>{
+      const itemId=sel&&sel.itemId; if(!itemId)return null;
+      const item=this.core.indexes?.itemById?.[itemId]||{};
+      const acq=acqMap[itemId]||{}; const craft=acq.craftable;
+      const nameOf=(id)=>this.core.indexes?.itemById?.[id]?.name||id;
+      const mp=s.marketPrices?.[itemId];
+      const dropList=Array.isArray(acq.dropsFrom)?acq.dropsFrom:[];
+      return {
+        itemId, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
+        craftable:!!craft,
+        craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
+        craftUpgrade:craft&&craft.upgradeFrom&&craft.upgradeFrom.length?('Upgrade from '+craft.upgradeFrom.map(nameOf).join(', ')):'',
+        craftIngredients:craft?craft.ingredients.slice(0,5).map(i=>({label:i.qty+'× '+i.name,gear:!!i.isGear})):[],
+        dropsKnown:dropList.length>0,
+        drops:dropList.slice(0,3).map(d=>({location:d.location+(d.probability?' · '+(d.probability*100).toFixed(1)+'%':'')})),
+        marketChecked:!!mp,
+        market:mp?(mp.error?'Price unavailable':(mp.minPrice!=null?fmtNum(mp.minPrice)+' Lucent'+(mp.inStock!=null?' · '+mp.inStock+' listed':''):'Not tradeable')):'',
+      };
+    }).filter(Boolean):[];
+    const guideSourcedCount=guideItems.filter(g=>g.craftable).length;
+    const guideReady=!!s.acquisition;
     const statsSpan = progressionTab||twoCol ? '1 / -1' : 'auto';
 
     // ---------- My Heroics ----------
@@ -2777,11 +2906,12 @@ class Component extends DCLogic {
       const group = dr.group; const draft = dr.draft; const item = this.findHeroic(group, draft.itemId);
       const gmeta = this.HGROUPS.find(g=>g.key===group);
       const chaosUsed = draft.runes.filter(r=>r.chaos).length;
-      const step1Valid = !!draft.itemId;
+      const pickMode = !draft.itemId;
+      const configMode = !!draft.itemId;
       const effectsOk = draft.heroicEffects.every(e=>!!e.statId);
       const uniqueRequired=Object.keys(item?.itemStats?.uniqueTraits||{}).length>0;
-      const step2Valid = draft.traits.length===3 && (!uniqueRequired || !!draft.uniqueTrait) && effectsOk && chaosUsed<=1;
-      const valid = dr.step===1 ? step1Valid : dr.step===2 ? step2Valid : true;
+      const configValid = draft.traits.length===3 && (!uniqueRequired || !!draft.uniqueTrait) && effectsOk && chaosUsed<=1;
+      const valid = configMode && configValid;
       let list = this.heroicCatalog(group);
       if (group==='weapon') list = list.filter(it => [s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).includes(it.wtype));
       if (dr.search) { const q=dr.search.toLowerCase(); list = list.filter(it => it.name.toLowerCase().includes(q)); }
@@ -2793,11 +2923,6 @@ class Component extends DCLogic {
         select:()=>this.selectDraftItem(it),
         enter:(e)=>this.setHover({ name:it.name, meta:this.itemMeta(it), rarity:'heroic', slot:'pick',
           stats:[{name:invText(it),value:''}], traits:Object.keys(it.itemStats.traits||{}).slice(0,3).map(sid=>({name:this.statLabel(sid),value:'owned?'})) }, e) }));
-      const drawerSteps = [['1','Choose'],['2','Configure'],['3','Review']].map((st,i)=>{
-        const idx=i+1; const done=idx<dr.step; const cur=idx===dr.step;
-        return { n:st[0], label:st[1], bar: done?'#ffb765':cur?'linear-gradient(90deg,#a9702a,#ffb765)':'rgba(120,105,80,.3)', color:(done||cur)?'#ffcf8c':'#6f5f49' };
-      });
-
       let showLevelSelect=false, levelOptions=[], normalTraitRows=[], canAddTrait=false,
           hasUnique=false, uniqueOptions=[], uniqueStat='', uniqueTierOptions=[], uniqueTierVal='', uniqueValue='', hasUniqueSel=false,
           effectRows=[], resonanceOptions=[], resonanceStat='', resonanceTierOptions=[], resonanceValue='', hasResonanceSel=false,
@@ -2860,15 +2985,15 @@ class Component extends DCLogic {
         runeSynergy = syn ? (syn[0].charAt(0).toUpperCase()+syn[0].slice(1)+' Resonance active · '+syn[1]+' sockets') : 'No synergy — mix of rune types';
       }
       let warning='';
-      if(dr.step===2){
+      if(configMode){
         if(draft.traits.length!==3) warning='Select exactly 3 owned traits ('+draft.traits.length+'/3).';
         else if(uniqueRequired&&!draft.uniqueTrait) warning='Choose the Heroic trait.';
         else if(chaosUsed>1) warning='Only one Chaos rune may be used on an item.';
       }
       drawerVals = {
-        drawerTitle: gmeta.title, drawerStep1:dr.step===1, drawerStep2:dr.step===2, drawerStep3:dr.step===3,
+        drawerTitle: gmeta.title, drawerPickMode:pickMode, drawerConfigMode:configMode, changeDraftItem:()=>this.changeDraftItem(),
         drawerWeaponFamilies:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core.label(type)).join(' + '),
-        drawerSteps, drawerSearch:dr.search, drawerWeaponNote:group==='weapon', drawerItems,
+        drawerSearch:dr.search, drawerWeaponNote:group==='weapon', drawerItems,
         draftName:item?item.name:'', draftMeta:item?this.itemMeta(item):'', draftSlot:item?item.slotLabel:'',
         draftSet:item?item.setName:'—', draftInherent:item?(item.inherentByLevel[draft.level]||invText(item)):'',
         showLevelSelect, draftLevel:String(draft.level||''), levelOptions, onLevel:this.setDraftLevel,
@@ -2887,10 +3012,10 @@ class Component extends DCLogic {
         draftRuneChips: item ? draft.runes.map(r=>{ const rune=r.runeId?this.runeById(item,r.runeId):null;
           return { label: rune ? (this.statLabel(r.statId)+' Lv'+r.level+(r.chaos?' · Chaos':'')) : 'Empty socket',
             dot: rune ? (r.chaos?'#ffb765':this.RUNE_TYPE_COLOR[rune.runeType]) : '#3a3228', border:'rgba(212,166,94,.28)' }; }) : [],
-        drawerWarning:warning, drawerBackLabel:dr.step>1?'Back':'Cancel', drawerPrimaryLabel:dr.step<3?'Next':'Use this Heroic',
+        drawerWarning:warning, drawerPrimaryLabel:'Save this Heroic',
         drawerPrimaryBorder:valid?'rgba(255,183,101,.65)':'rgba(212,166,94,.18)', drawerPrimaryBg:valid?'linear-gradient(135deg, rgba(150,86,24,.5), rgba(56,38,16,.7))':'rgba(0,0,0,.25)',
         drawerPrimaryColor:valid?'#ffe6ac':'#5a4d3a', drawerPrimaryCursor:valid?'pointer':'not-allowed',
-        drawerPrimary:()=>{ if(!valid) return; if(dr.step<3) this.drawerNext(); else this.useHeroic(); },
+        drawerPrimary:()=>{ if(valid) this.useHeroic(); },
       };
     }
 
@@ -2906,7 +3031,10 @@ class Component extends DCLogic {
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
-      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
+      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab&&!guideTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
+      tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady,
+      marketBusy:s.marketBusy, marketRegion:s.marketRegion, checkMarketPrices:this.checkMarketPrices, setMarketRegion:this.setMarketRegion,
+      marketButtonLabel:s.marketBusy?'Checking…':'Check market prices', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
       weaponSetIcons:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.weaponFamilyIcon(type)).filter(Boolean).map(icon=>({icon:`url(${icon}) center/82% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`})),
       hasEngineError:!!s.engineError, engineError:s.engineError,
 
@@ -2963,6 +3091,7 @@ class Component extends DCLogic {
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
       tuneCandidates, hasTuneCandidates:tuneCandidates.length>1, selectTuneCandidate:this.selectTuneCandidate,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
+      primaryTabs, statSubChips, progressionSubChips, showStatsSubchips, showProgressionSubchips, showOverviewExtras,
       hasProgression,showCompactProgression:false,passiveSkills,passiveSkillCount:passiveSkills.length,passiveBudgetPct:`${Math.min(100,passiveSkills.length/8*100)}%`,resultPassiveCards,resultPassiveEmpty:Array.from({length:Math.max(0,8-resultPassiveCards.length)},(_,index)=>({id:index})),resultSkillFocus,hasResultSkillFocus:Boolean(resultSkillFocus),masteryPanel,masteryGroups,overallMasteries,hasOverallMastery:overallMasteries.length>0,hasNoOverallMastery:overallMasteries.length===0,overallMasteryCount:overallMasteries.length,resultOverallMasteryLevel,
 
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,

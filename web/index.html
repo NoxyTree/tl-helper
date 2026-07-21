@@ -2852,19 +2852,23 @@ class Component extends DCLogic {
     const weaponPairLabel = core.equippedWeaponTypes(build).map(core.label).join(" / ") || "No weapons";
     const presetRowMeta = (preset) => {
       if (!this._presetMetaCache) this._presetMetaCache = new Map();
-      const cached = this._presetMetaCache.get(preset.id);
+      const statIds = preset.favoriteStatIds?.length ? preset.favoriteStatIds : this.state.favoriteStatIds ?? [];
+      // Key on the inputs the metadata actually depends on: the preset's own
+      // build/attributes (so a saveResult replace under the same id refreshes)
+      // and the effective favourite stats (so changing them re-derives chips).
+      const cacheKey = `${preset.id}|${statIds.join(",")}|${JSON.stringify(preset.build?.equipment ?? {})}|${JSON.stringify(preset.attributes ?? {})}`;
+      const cached = this._presetMetaCache.get(cacheKey);
       if (cached) return cached;
       const meta = { heroics: [], keyStats: [], combatPower: "" };
       try {
         meta.heroics = this.presetMeta.heroicItemNames(core, preset.build);
         meta.combatPower = core.formatNumber(core.calculateCombatPower(preset.build));
-        const statIds = preset.favoriteStatIds?.length ? preset.favoriteStatIds : this.state.favoriteStatIds ?? [];
         if (statIds.length) {
           const presetCalc = core.calculateBuild(preset.build, preset.attributes ?? {}, { includeSetEffects: true });
           meta.keyStats = this.presetMeta.keyStatChips(core, presetCalc, statIds, 3);
         }
       } catch { /* metadata is best-effort; the row still renders */ }
-      this._presetMetaCache.set(preset.id, meta);
+      this._presetMetaCache.set(cacheKey, meta);
       return meta;
     };
     const presetRows = this.state.presets.map((preset, index) => {

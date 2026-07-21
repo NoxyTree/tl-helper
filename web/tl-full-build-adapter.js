@@ -4,7 +4,7 @@ import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
 import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimizer-components.js";
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
 import { optimizeScratchProgression } from "./tl-progression-optimizer.js";
-import { ATTRIBUTE_BREAKPOINTS, SET_PASSIVE_RULES, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue } from "./tl-questlog-rules.js";
+import { ATTRIBUTE_BREAKPOINTS, SET_PASSIVE_RULES, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue, goalCompositeComponents } from "./tl-questlog-rules.js";
 import { evaluateScenarioEffects } from "./tl-scenario-effects.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
@@ -59,7 +59,9 @@ export function expandCompositeGoals(rankedGoals) {
   // The calculator applies STAT_EXPANSIONS one level at a time. For example,
   // Endurance contributes to Melee, Ranged, and Magic Endurance; those typed
   // totals must not be reinterpreted as boss-only and PvP-only totals here.
-  return rankedGoals.map((goal) => ({ ...goal, components: [...new Set(STAT_EXPANSIONS[goal.id] ?? [goal.id])] }));
+  // goalCompositeComponents() also collapses context-split composites (Boss/PvP
+  // pairs) to a single leaf so they score on their own row, never min(boss, pvp).
+  return rankedGoals.map((goal) => ({ ...goal, components: [...new Set(goalCompositeComponents(goal.id))] }));
 }
 
 function goalValue(stats, goal) {
@@ -1082,6 +1084,11 @@ export async function createOptimizerAdapter(deps = {}) {
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           selection.resonance = optimizedResonanceSelection(item, rankedGoals, generationScales);
           if (!scratch && heroicPolicy !== "replace_any" && item.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
+          // keep_items preserves the equipped Heroic's IDENTITY: a Heroic-occupied
+          // slot may only be filled by that same Heroic item (its traits, effects,
+          // and runes are re-optimized below). Without this, a higher-scoring
+          // non-Heroic would silently replace the Heroic the user chose to keep.
+          if (!scratch && heroicPolicy === "keep_items" && currentItem?.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
           if ((rules.bestHeroicConfiguration || (heroicPolicy === "keep_items" && item.id === current?.itemId)) && item.grade === core.HEROIC_GRADE) {
             selection = { ...selection, ...optimizeHeroicPotential(item, { allowDuplicateEffects: false, frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
           }
@@ -1095,6 +1102,7 @@ export async function createOptimizerAdapter(deps = {}) {
               runeCandidatesByCategory.set(category, runeRows);
             }
             if (runeRows[0]) selection.runes = runeRows[0].selection;
+            if (globalThis.__RUNE_DEBUG && item.grade === core.HEROIC_GRADE) console.error(`[runedbg] slot=${slot} item=${item.id} cat=${category} runeRows=${runeRows.length} row0runes=${runeRows[0] ? (runeRows[0].selection||[]).filter((r)=>r.runeId).length : "none"} selRunes=${(selection.runes||[]).filter((r)=>r.runeId).length}`);
           }
           const variants = perkVariants(core, item, scenario);
           const currentUnsupportedCore = !scratch
@@ -1135,7 +1143,15 @@ export async function createOptimizerAdapter(deps = {}) {
         const goalSeeds = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))].flatMap((statId) => [...ranked]
           .sort((a, b) => Number(b.stats?.[statId] ?? 0) - Number(a.stats?.[statId] ?? 0) || a.id.localeCompare(b.id)).slice(0, 2));
         const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds, ...attributeSeeds, ...goalSeeds];
-        candidatesBySlot[slot] = [...(scratch ? [] : [currentRow]), ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
+        // A kept Heroic that was re-generated (its traits/effects/runes optimized)
+        // makes the bare "current" candidate redundant AND harmful: the current
+        // selection often has empty rune sockets, and when those runes don't move
+        // the ranked goals it ties the re-generated candidate and can win, so the
+        // Heroic comes back with no runes. Drop the current candidate for that
+        // slot so the socketed, re-optimized Heroic is used.
+        const heroicRegenerated = !scratch && currentItem?.grade === core.HEROIC_GRADE && current?.itemId
+          && rows.some((row) => row.selection?.itemId === current.itemId);
+        candidatesBySlot[slot] = [...((scratch || heroicRegenerated) ? [] : [currentRow]), ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
       }
 
       if (rules.artifacts?.mode && rules.artifacts.mode !== "keep") {
@@ -1161,7 +1177,17 @@ export async function createOptimizerAdapter(deps = {}) {
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
-      const rejectionDiagnostics = { blockingByStage: new Map(), constraints: 0 };
+      const rejectionDiagnostics = { blockingByStage: new Map(), constraints: 0, setConstraints: 0 };
+      // Tracks how close the rejected builds got to the set-effect constraints,
+      // so an infeasible set rule is diagnosed as such rather than misreported
+      // as a stat-floor failure.
+      const setConstraintTracker = { bestActiveBonuses: 0, requireEverActive: false };
+      const trackSetConstraintRejection = (summary) => {
+        rejectionDiagnostics.setConstraints += 1;
+        if (!summary) return;
+        setConstraintTracker.bestActiveBonuses = Math.max(setConstraintTracker.bestActiveBonuses, Number(summary.activeBonusCount) || 0);
+        if (setConstraints?.require && (summary.activeSetIds ?? []).includes(setConstraints.require)) setConstraintTracker.requireEverActive = true;
+      };
       // When every finalist dies on a floor or protected stat, per-stat bests
       // turn "no builds match" into a diagnosis: which constraint is
       // impossible on its own, the best value any finalist reached, and the
@@ -1244,6 +1270,7 @@ export async function createOptimizerAdapter(deps = {}) {
       }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {},
       setConstraints, preferSets,
       onConstraintRejection: (stats) => { rejectionDiagnostics.constraints += 1; trackConstraintRejection(stats); },
+      onSetConstraintRejection: trackSetConstraintRejection,
       // Goal minimums ride along as retention targets in every mode: scratch
       // enforces them only after attribute allocation, so floor-capable states
       // must survive the beam even while score-dominant states outrank them.
@@ -1622,6 +1649,16 @@ export async function createOptimizerAdapter(deps = {}) {
               : "";
           const error = new Error(`No build satisfies the protected or minimum stat constraints.${detail ? ` ${detail}.` : ""}`);
           error.constraintDiagnostics = { conflicts, closest };
+          throw error;
+        }
+        if (rejectionDiagnostics.setConstraints && setConstraints) {
+          const setName = setConstraints.require ? (core.indexes.itemSetById?.[setConstraints.require]?.name ?? setConstraints.require) : null;
+          const parts = [];
+          if (setConstraints.require) parts.push(`the ${setName} set ${setConstraintTracker.requireEverActive ? "could be completed, but not alongside your other goals" : "could not be completed with the available equipment"}`);
+          if (setConstraints.minimumActiveBonuses) parts.push(`at least ${setConstraints.minimumActiveBonuses} active set bonus${setConstraints.minimumActiveBonuses === 1 ? "" : "es"} were required, but the closest build reached ${setConstraintTracker.bestActiveBonuses}`);
+          if (setConstraints.allowBreaking === false) parts.push("no build avoided partial (broken) sets");
+          const error = new Error(`No build satisfies your set-effect constraints.${parts.length ? ` ${parts.join("; ")}.` : ""} Relax the set requirements or allow breaking sets.`);
+          error.constraintDiagnostics = { setConstraints: { require: setConstraints.require ?? null, requireName: setName, minimumActiveBonuses: setConstraints.minimumActiveBonuses || 0, allowBreaking: setConstraints.allowBreaking !== false, bestActiveBonuses: setConstraintTracker.bestActiveBonuses } };
           throw error;
         }
         if (blockingSummary) throw new Error(`No complete build passed the final calculation checks. ${blockingSummary}`);

@@ -239,7 +239,16 @@ export function createOptimizerApi(deps = {}) {
       }
       const { request, unknown, ignored } = buildEngineRequest(input, source, scratch);
       if (unknown.length) throw new Error(`Unknown goal stat id(s): ${unknown.join(", ")}.`);
-      const resultId = stableHash({ request: { ...request, build: undefined }, weapons: request.weaponTypes ?? null, gameBuild: gameBuild() });
+      // The source build is part of the identity: two different account states
+      // with identical goals/rules must not collide on one resultId (which would
+      // let a stale id save the wrong optimization). Scratch skeletons are
+      // deterministic, so this stays stable for identical scratch requests.
+      const resultId = stableHash({
+        request: { ...request, build: undefined },
+        weapons: request.weaponTypes ?? null,
+        source: { equipment: source?.build?.equipment ?? source?.equipment ?? null, attributes: source?.attributes ?? null },
+        gameBuild: gameBuild(),
+      });
       const result = await runOptimize(request, runtime);
       results.set(resultId, { result, normalized: request, savedPresetId: null });
       return shapeResultForApi(result, resultId, ignored ? { ignored } : {});
@@ -298,14 +307,16 @@ export function createOptimizerApi(deps = {}) {
     async activatePreset(id) {
       const preset = loadPresets().find((row) => row.id === id);
       if (!preset) throw new Error(`No preset with id ${id}.`);
-      persistence.backupArmoryStateForUndo(storage);
+      // Returns false when there was no prior build to snapshot (fresh account),
+      // in which case there is genuinely nothing to restore.
+      const undoAvailable = persistence.backupArmoryStateForUndo(storage) !== false;
       persistence.saveArmoryState(storage, {
         profile: preset.profile ?? { name: preset.name, role: "Adventurer", server: "" },
         attributes: preset.attributes ?? {},
         favoriteStatIds: preset.favoriteStatIds ?? [],
         build: preset.build,
       }, { gameBuild: gameBuild() });
-      return { id, activated: true, undoAvailable: true };
+      return { id, activated: true, undoAvailable };
     },
   };
 

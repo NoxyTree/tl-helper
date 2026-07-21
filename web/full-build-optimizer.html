@@ -512,7 +512,8 @@
       if(/defense|armou?r|endurance|evasion|resistance|reduction|block|damage taken|shield/.test(text)) return "defense";
       return "offense";
     }
-    const compositeComponents=id=>(state.rulesData?.STAT_EXPANSIONS?.[id]??[]).map(componentId=>({id:componentId,name:state.core?.statName(componentId)??componentId}));
+    // Context-split composites (Boss/PvP pairs) are single leaf goals, not min(boss,pvp) — no Composite badge.
+    const compositeComponents=id=>(state.rulesData?.CONTEXT_SPLIT_COMPOSITE_IDS?.has(id)?[]:(state.rulesData?.STAT_EXPANSIONS?.[id]??[])).map(componentId=>({id:componentId,name:state.core?.statName(componentId)??componentId}));
     function setupPicker(id,key) {
       const root=$(id); root.dataset.key=key; root.dataset.open="false"; root.dataset.category="featured";
       root.innerHTML=`<div class="goal-selected" aria-live="polite"></div><button class="picker-trigger" type="button" aria-expanded="false"><span class="picker-trigger-plus">+</span><span class="picker-trigger-label">Add a ${key==="increase"?"wanted":"protected"} stat</span><span class="picker-trigger-count"></span><span class="picker-trigger-caret">▼</span></button><div class="picker-menu hidden" role="dialog" aria-label="Choose a ${key==="increase"?"wanted":"protected"} stat"><input class="picker-search" type="search" aria-label="Search all calculated stats" placeholder="Search all calculated stats"><div class="picker-categories"></div><div class="picker-result-head"><strong>Featured</strong><span></span></div><div class="picker-results"></div><div class="picker-footer"><span>Select as many stats as matter to this build.</span><button class="picker-done" type="button">Done</button></div></div>`;
