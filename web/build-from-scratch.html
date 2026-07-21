@@ -1169,12 +1169,20 @@
       <!-- ===== GEARING GUIDE ===== -->
       <sc-if value="{{ tabGuide }}" hint-placeholder-val="{{ false }}">
         <div style="animation:tlRise .24s ease both;">
-          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:4px;">
-            <span style="color:#f2c777;font:400 16px Marcellus,serif;">Where to get this gear</span>
-            <span style="flex:1;"></span>
-            <span style="color:#8a795f;font-size:9.5px;font-variant-numeric:tabular-nums;">{{ guideSourcedCount }}/{{ guideTotalCount }} craftable</span>
+          <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:9px;">
+            <div style="flex:1;min-width:170px;">
+              <div style="color:#f2c777;font:400 16px Marcellus,serif;">Where to get this gear</div>
+              <div style="margin-top:3px;color:#8a795f;font-size:10px;line-height:1.5;">Ordered by impact on your build, then by how quickly you can get each piece — farm it, buy it, or craft it.</div>
+            </div>
+            <div style="flex:0 0 auto;padding:9px 14px;border:1px solid rgba(212,166,94,.22);border-radius:11px;background:rgba(26,20,13,.6);">
+              <div style="color:#7d6b51;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;">Est. build cost</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-top:5px;">
+                <span style="color:#d8b8ff;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;">{{ guideCostLucent }}</span>
+                <span style="color:#6f5f49;font-size:12px;">+</span>
+                <span style="color:#8fd6aa;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;">{{ guideCostSollant }}</span>
+              </div>
+            </div>
           </div>
-          <div style="color:#8a795f;font-size:10px;line-height:1.5;margin-bottom:10px;">Crafting recipes and drop sources for each item the optimizer chose. Market prices are live from the auction house — click to check.</div>
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">
             <select value="{{ marketRegion }}" onChange="{{ setMarketRegion }}" aria-label="Auction house region" style="padding:6px 8px;border:1px solid rgba(185,140,240,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 10.5px 'Instrument Sans';">
               <option value="na-f">Americas</option><option value="eu-f">Europe</option><option value="as-f">Asia</option>
@@ -1185,54 +1193,56 @@
           <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));align-items:stretch;">
             <sc-for list="{{ guideItems }}" as="g" hint-placeholder-count="10">
               <div style="display:flex;flex-direction:column;border:1px solid rgba(212,166,94,.22);border-radius:12px;background:linear-gradient(180deg,rgba(26,20,13,.74),rgba(12,9,6,.9));padding:13px;">
-                <!-- Item header -->
-                <div style="display:flex;align-items:center;gap:11px;padding-bottom:11px;">
+                <!-- Item header: icon, name/slot, headline source badge -->
+                <div style="display:flex;align-items:center;gap:11px;">
                   <span style="flex:0 0 auto;width:48px;height:48px;border-radius:11px;border:1px solid rgba(242,199,119,.4);background:radial-gradient(circle at 40% 30%,#2a2013,#120d07);overflow:hidden;display:grid;place-items:center;">
                     <sc-if value="{{ g.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:44px;height:44px;background:url({{ g.image }}) center/contain no-repeat;"></span></sc-if>
                   </span>
                   <div style="min-width:0;flex:1;">
-                    <div style="color:#f6e6c3;font-size:14px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.name }}</div>
-                    <div style="margin-top:3px;color:#7d6b51;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;">{{ g.slot }}</div>
+                    <div style="color:#7d6b51;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;">{{ g.slot }}</div>
+                    <div style="margin-top:2px;color:#f6e6c3;font-size:14px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.name }}</div>
+                  </div>
+                  <div style="flex:0 0 auto;text-align:right;">
+                    <span style="display:inline-block;padding:3px 9px;border-radius:999px;background:{{ g.sourceBg }};color:{{ g.sourceColor }};font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">{{ g.sourceTag }}</span>
+                    <div style="margin-top:4px;color:#a9997a;font-size:10px;font-variant-numeric:tabular-nums;">{{ g.sourceDetail }}</div>
                   </div>
                 </div>
-                <!-- Craftable -->
-                <div style="display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:start;padding:9px 0;border-top:1px solid rgba(212,166,94,.1);">
-                  <span style="color:#8fd6aa;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding-top:2px;">Craft</span>
-                  <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ true }}">
-                    <div style="min-width:0;">
-                      <div style="color:#f0e1c1;font-size:11.5px;font-weight:600;margin-bottom:7px;font-variant-numeric:tabular-nums;">{{ g.craftCost }}<sc-if value="{{ g.craftUpgrade }}" hint-placeholder-val="{{ false }}"><span style="display:block;margin-top:2px;color:#f2c777;font-weight:400;font-size:10px;">{{ g.craftUpgrade }}</span></sc-if></div>
-                      <div style="display:grid;gap:4px;">
-                        <sc-for list="{{ g.craftIngredients }}" as="ing" hint-placeholder-count="4"><div style="display:flex;gap:8px;font-size:10.5px;line-height:1.35;"><span style="flex:0 0 auto;min-width:38px;color:#f2c777;font-weight:700;font-variant-numeric:tabular-nums;">{{ ing.qty }}</span><span style="min-width:0;color:#c6b489;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ing.name }}</span></div></sc-for>
-                      </div>
-                    </div>
-                  </sc-if>
-                  <sc-if value="{{ g.notCraftable }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10.5px;font-style:italic;padding-top:1px;">Not craftable</span></sc-if>
-                </div>
-                <!-- Drops (boss image + name + rate) -->
-                <div style="display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:start;padding:9px 0;border-top:1px solid rgba(212,166,94,.1);">
-                  <span style="color:#e0a86b;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding-top:2px;">Drops</span>
-                  <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}">
-                    <div style="display:grid;gap:6px;">
+                <!-- Drops: boss chips, best-first -->
+                <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
+                    <div style="color:#e0a86b;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;">Drops from</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:7px;">
                       <sc-for list="{{ g.drops }}" as="d" hint-placeholder-count="3">
-                        <div style="display:flex;align-items:center;gap:9px;">
-                          <span style="flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1px solid rgba(224,168,107,.45);background:radial-gradient(circle at 40% 30%,#3a2a17,#140e08);overflow:hidden;display:grid;place-items:center;">
-                            <sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:28px;height:28px;border-radius:50%;background:url({{ d.image }}) center/cover no-repeat;"></span></sc-if>
+                        <div style="display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border:1px solid rgba(224,168,107,.22);border-radius:9px;background:rgba(58,42,23,.35);">
+                          <span style="flex:0 0 auto;width:30px;height:30px;border-radius:7px;border:1px solid rgba(224,168,107,.4);background:radial-gradient(circle at 40% 30%,#3a2a17,#140e08);overflow:hidden;display:grid;place-items:center;">
+                            <sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:30px;height:30px;background:url({{ d.image }}) center/cover no-repeat;"></span></sc-if>
                           </span>
-                          <span style="min-width:0;flex:1;color:#f0dcc0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ d.name }}</span>
-                          <sc-if value="{{ d.hasProb }}" hint-placeholder-val="{{ true }}"><span style="flex:0 0 auto;padding:2px 9px;border:1px solid rgba(224,168,107,.35);border-radius:999px;background:rgba(255,152,45,.09);color:#e8b57c;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;">{{ d.prob }}</span></sc-if>
+                          <span style="display:flex;flex-direction:column;line-height:1.15;">
+                            <span style="max-width:150px;color:#f0dcc0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ d.name }}</span>
+                            <sc-if value="{{ d.hasProb }}" hint-placeholder-val="{{ true }}"><span style="color:#e8b57c;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ d.prob }}</span></sc-if>
+                          </span>
                         </div>
                       </sc-for>
                     </div>
-                  </sc-if>
-                  <sc-if value="{{ g.noDrops }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10.5px;font-style:italic;padding-top:1px;">No boss or dungeon drop</span></sc-if>
-                </div>
-                <!-- Market (pinned to card bottom, price right-aligned) -->
-                <div style="display:flex;align-items:baseline;gap:9px;margin-top:auto;padding-top:10px;border-top:1px solid rgba(212,166,94,.18);">
-                  <span style="flex:0 0 auto;color:#b98cf0;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;">Market</span>
-                  <span style="flex:1;"></span>
-                  <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ true }}"><span style="text-align:right;color:#d8b8ff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">{{ g.market }}</span></sc-if>
-                  <sc-if value="{{ g.marketUnchecked }}" hint-placeholder-val="{{ false }}"><span style="text-align:right;color:#6f5f49;font-size:10px;font-style:italic;">Check prices above</span></sc-if>
-                </div>
+                  </div>
+                </sc-if>
+                <!-- Craft: cost + ingredient list -->
+                <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:7px;"><span style="color:#8fd6aa;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Craft</span><span style="color:#f0e1c1;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;">{{ g.craftCost }}</span><sc-if value="{{ g.craftUpgrade }}" hint-placeholder-val="{{ false }}"><span style="color:#f2c777;font-size:10px;">{{ g.craftUpgrade }}</span></sc-if></div>
+                    <div style="display:grid;gap:4px;">
+                      <sc-for list="{{ g.craftIngredients }}" as="ing" hint-placeholder-count="4"><div style="display:flex;gap:8px;font-size:10.5px;line-height:1.35;"><span style="flex:0 0 auto;min-width:38px;color:#f2c777;font-weight:700;font-variant-numeric:tabular-nums;">{{ ing.qty }}</span><span style="min-width:0;color:#c6b489;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ing.name }}</span></div></sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <!-- Market: only once a price has been fetched -->
+                <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;align-items:baseline;gap:9px;margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.12);">
+                    <span style="flex:0 0 auto;color:#b98cf0;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Market</span>
+                    <span style="flex:1;"></span>
+                    <span style="text-align:right;color:#d8b8ff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">{{ g.market }}</span>
+                  </div>
+                </sc-if>
               </div>
             </sc-for>
           </div>
@@ -2058,6 +2068,43 @@ class Component extends DCLogic {
       return Object.fromEntries(this.state.priorities.map(id=>[id,this.compareStatValue(calc,id)]));
     }catch{return null;}
   }
+  // Per-item impact for the gearing guide: how much of each favourited stat a
+  // piece provides, measured as the marginal drop in that priority's total when
+  // the slot is emptied, weighted by the priority's rank. Memoised per result so
+  // it runs its ~one-calc-per-slot pass only once, not on every guide re-render.
+  guideImpactScores(){
+    const s=this.state, r=s.result;
+    if(!r||!this.core||!r.build)return {};
+    const eq=r.build.equipment||{};
+    const sig=(r.name||'')+'|'+s.priorities.join(',')+'|'+Object.keys(eq).map(k=>k+':'+(eq[k]?.itemId||'')).join(',');
+    if(this._impactCache&&this._impactCache.sig===sig)return this._impactCache.scores;
+    const prios=s.priorities;
+    let scores={};
+    if(prios.length){
+      try{
+        const attrs=r.optimizedAttributes||r.attributes||{};
+        const opts={includeSetEffects:!!(s.rules&&s.rules.sets),optionalFallback:false,...(r.scenario?{scenario:r.scenario}:{})};
+        const fullCalc=s.resultCalc||this.core.calculateBuild(r.build,attrs,opts);
+        const fullVals=prios.map(id=>this.compareStatValue(fullCalc,id)||0);
+        const N=prios.length;
+        for(const [slot,sel] of Object.entries(eq)){
+          const itemId=sel&&sel.itemId; if(!itemId)continue;
+          const emptied=this.core.deepClone(r.build);
+          emptied.equipment[slot]=this.core.emptyEquipmentSelection();
+          let calc; try{calc=this.core.calculateBuild(emptied,attrs,opts);}catch{continue;}
+          let score=0;
+          prios.forEach((id,i)=>{
+            const full=fullVals[i]; if(!(full>0))return;
+            const without=this.compareStatValue(calc,id)||0;
+            score+=(N-i)*Math.max(0,(full-without)/full);
+          });
+          scores[itemId]=score;
+        }
+      }catch{scores={};}
+    }
+    this._impactCache={sig,scores};
+    return scores;
+  }
   openComparePanel = () => {
     try{
       const gameBuild=this.core.data?.gameBuild??'unversioned';
@@ -2859,6 +2906,7 @@ class Component extends DCLogic {
     // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
     const acqMap=s.acquisition||{};
     const fmtNum=(n)=>this.core?.formatNumber?this.core.formatNumber(n):String(n);
+    const impactScores=(s.result&&this.core)?this.guideImpactScores():{};
     const guideItems=(s.result&&this.core)?Object.entries(s.result.build.equipment||{}).map(([slot,sel])=>{
       const itemId=sel&&sel.itemId; if(!itemId)return null;
       const item=this.core.indexes?.itemById?.[itemId]||{};
@@ -2866,19 +2914,48 @@ class Component extends DCLogic {
       const nameOf=(id)=>this.core.indexes?.itemById?.[id]?.name||id;
       const mp=s.marketPrices?.[itemId];
       const dropList=Array.isArray(acq.dropsFrom)?acq.dropsFrom:[];
+      const drops=dropList.slice(0,4).map(d=>({name:d.location, probNum:d.probability?d.probability*100:0, prob:d.probability?(d.probability*100).toFixed(1)+'%':'', hasProb:!!d.probability, image:d.image||'', hasImage:!!d.image}));
+      const bestProb=drops.reduce((m,d)=>Math.max(m,d.probNum),0);
+      const marketPriceNum=(mp&&!mp.error&&mp.minPrice!=null)?mp.minPrice:null;
+      const craftCostNum=craft?(craft.costSollant||0):null;
+      // Ease of acquisition (higher = quicker/cheaper). Cheap market buys and
+      // high drop-rate farmables lead; low-rate drops and pricey buys trail.
+      let ease=0;
+      if(marketPriceNum!=null)ease=Math.max(ease,90-Math.min(marketPriceNum/100,45));
+      if(bestProb>0)ease=Math.max(ease,40+bestProb*2);
+      if(craftCostNum!=null)ease=Math.max(ease,62-Math.min(craftCostNum/500,20));
+      if(ease===0)ease=30;
+      const impact=impactScores[itemId]||0;
+      // Headline badge: the single best answer to "how do I get this?"
+      const PAL={boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
+      let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above';
+      if(bestProb>0){sourceCls='boss';sourceTag='Boss drop';const top=drops.slice().sort((a,b)=>b.probNum-a.probNum)[0];sourceDetail='Best '+top.prob+' · '+top.name;}
+      else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=fmtNum(marketPriceNum)+' Lucent';}
+      else if(craft){sourceCls='craft';sourceTag='Craft';const ic=(craft.ingredients||[]).length;sourceDetail=ic?ic+' material'+(ic===1?'':'s'):'Craftable';}
+      else if(mp&&mp.error){sourceDetail='Price unavailable';}
+      else if(mp){sourceCls='market';sourceTag='Market';sourceDetail='Not tradeable';}
+      const sourceColor=PAL[sourceCls].c,sourceBg=PAL[sourceCls].b;
       return {
         itemId, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
         image:item.imageUrl||'', hasImage:!!item.imageUrl,
+        impact, ease, marketPriceNum, craftCostNum,
+        sourceCls, sourceTag, sourceDetail, sourceColor, sourceBg,
         craftable:!!craft, notCraftable:!craft,
         craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
         craftUpgrade:craft&&craft.upgradeFrom&&craft.upgradeFrom.length?('Upgrade from '+craft.upgradeFrom.map(nameOf).join(', ')):'',
         craftIngredients:craft?craft.ingredients.slice(0,6).map(i=>({qty:fmtNum(i.qty)+'×',name:i.name,gear:!!i.isGear})):[],
-        dropsKnown:dropList.length>0, noDrops:dropList.length===0,
-        drops:dropList.slice(0,4).map(d=>({name:d.location, prob:d.probability?(d.probability*100).toFixed(1)+'%':'', hasProb:!!d.probability, image:d.image||'', hasImage:!!d.image})),
+        dropsKnown:drops.length>0, noDrops:drops.length===0, drops,
         marketChecked:!!mp, marketUnchecked:!mp,
         market:mp?(mp.error?'Price unavailable':(mp.minPrice!=null?fmtNum(mp.minPrice)+' Lucent'+(mp.inStock!=null?' · '+mp.inStock+' listed':''):'Not tradeable')):'',
       };
     }).filter(Boolean):[];
+    // Impact first (most valuable to the character), ease as the tie-breaker.
+    guideItems.sort((a,b)=>(b.impact-a.impact)||(b.ease-a.ease)||a.name.localeCompare(b.name));
+    const guideTotalLucent=guideItems.reduce((t,g)=>t+(g.marketPriceNum||0),0);
+    const guideTotalSollant=guideItems.reduce((t,g)=>t+(g.craftCostNum||0),0);
+    const guideHasLucent=guideItems.some(g=>g.marketPriceNum!=null);
+    const guideCostLucent=guideHasLucent?fmtNum(guideTotalLucent)+' Lucent':'Check prices';
+    const guideCostSollant=fmtNum(guideTotalSollant)+' Sollant';
     const guideSourcedCount=guideItems.filter(g=>g.craftable).length;
     const guideReady=!!s.acquisition;
     const statsSpan = narrowResult ? '1 / -1' : 'auto';
@@ -3049,6 +3126,7 @@ class Component extends DCLogic {
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
       setupCols, resultCols, statsSpan, eqCol, mainCol, showResultOverview:!!s.result,showStatOverview:resultView==='stats',showStatsView:resultView==='stats',tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
       tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady, guideNotReady:!s.acquisition,
+      guideCostLucent, guideCostSollant,
       marketBusy:s.marketBusy, marketRegion:s.marketRegion, checkMarketPrices:this.checkMarketPrices, setMarketRegion:this.setMarketRegion,
       marketButtonLabel:s.marketBusy?'Checking…':'Check market prices', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
       weaponSetIcons:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.weaponFamilyIcon(type)).filter(Boolean).map(icon=>({icon:`url(${icon}) center/82% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`})),
