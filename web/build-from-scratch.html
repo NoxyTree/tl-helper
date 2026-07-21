@@ -852,7 +852,7 @@
 
     <!-- ===== LEFT: EQUIPMENT CANVAS ===== -->
     <sc-if value="{{ showResultOverview }}" hint-placeholder-val="{{ true }}">
-    <section style="min-width:0;animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
+    <section style="min-width:0;grid-column:{{ eqCol }};grid-row:1;animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
         <h2 style="margin:0;color:#ead8b7;font:400 17px Marcellus,serif;">Equipment</h2>
         <span style="color:#6f5f49;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Hover · click to lock</span>
@@ -900,10 +900,44 @@
         </div>
         <button onClick="{{ refit }}" style="margin-left:auto;min-height:36px;padding:0 13px;color:#e6d6b4;border:1px solid rgba(212,166,94,.35);border-radius:9px;background:rgba(28,21,13,.6);cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.05em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">↻ {{ refitLabel }}</button>
       </div>
+
+      <!-- Favourite stats — persistent, under the equipment -->
+      <div style="margin-top:14px;padding-top:13px;border-top:1px solid rgba(212,166,94,.14);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
+          <span style="color:#f2c777;font-size:11px;">★</span>
+          <span style="color:#e5c88f;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Favourite Stats</span>
+          <span style="color:#6f5f49;font-size:9px;">your priorities</span>
+        </div>
+        <div style="display:grid;gap:7px;">
+          <sc-for list="{{ favourites }}" as="f" hint-placeholder-count="3">
+            <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:9px 11px;box-shadow:inset 0 0 24px rgba(242,199,119,.05);">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="flex:0 0 auto;width:19px;height:19px;display:grid;place-items:center;color:#0b0805;background:#f2c777;border-radius:6px;font-size:9.5px;font-weight:800;">{{ f.rank }}</span>
+                <span style="min-width:0;color:#f6e6c3;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
+                <span style="flex:1;"></span>
+                <span style="color:#f2c777;font:400 17px Marcellus,serif;font-variant-numeric:tabular-nums;">{{ f.value }}</span>
+              </div>
+              <sc-if value="{{ f.composite }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;gap:3px;margin-top:7px;padding-top:7px;border-top:1px dotted rgba(242,199,119,.22);">
+                  <sc-for list="{{ f.parts }}" as="pt" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:baseline;gap:8px;font-size:10.5px;">
+                      <span style="color:{{ pt.dot }};font-size:8px;">◆</span>
+                      <span style="min-width:0;color:#cfc1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pt.name }}</span>
+                      <span style="flex:1;"></span>
+                      <span style="color:{{ pt.color }};font-weight:600;font-variant-numeric:tabular-nums;">{{ pt.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
     </section>
 
-    <!-- ===== CENTER: CHARACTER PRESENTATION ===== -->
-    <section style="min-width:0;animation:tlRise .5s ease .08s both;display:grid;gap:13px;">
+    <!-- ===== Weapons / Attributes / Sets & Runes — shown under the Stats subtab ===== -->
+    <sc-if value="{{ showStatsView }}" hint-placeholder-val="{{ false }}">
+    <section style="min-width:0;grid-column:{{ mainCol }};grid-row:{{ sec2Row }};animation:tlRise .5s ease .08s both;display:grid;gap:13px;">
 
       <!-- Weapons block -->
       <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
@@ -1052,9 +1086,10 @@
       </div>
     </section>
     </sc-if>
+    </sc-if>
 
-    <!-- ===== RIGHT: STAT SCREEN ===== -->
-    <section style="min-width:0;grid-column:{{ statsSpan }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
+    <!-- ===== RIGHT: STAT SCREEN (tabs: Guide / Stats / Progression) ===== -->
+    <section style="min-width:0;grid-column:{{ mainCol }};grid-row:{{ sec3Row }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
       <div style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
         <sc-for list="{{ primaryTabs }}" as="t" hint-placeholder-count="4">
           <button onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
@@ -1075,7 +1110,7 @@
         </div>
       </sc-if>
       <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
-      <sc-if value="{{ showOverviewExtras }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ false }}">
         <div style="margin-bottom:13px;padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
@@ -1109,38 +1144,6 @@
           <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Sliders, − / + steps, typed targets, and the build list only select complete builds already recalculated by the optimizer.</div>
         </div>
       </sc-if>
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
-          <span style="color:#f2c777;font-size:11px;">★</span>
-          <span style="color:#e5c88f;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Favourite Stats</span>
-          <span style="color:#6f5f49;font-size:9px;">from your priorities</span>
-        </div>
-        <div style="display:grid;gap:8px;">
-          <sc-for list="{{ favourites }}" as="f" hint-placeholder-count="3">
-            <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:10px 12px;box-shadow:inset 0 0 24px rgba(242,199,119,.05);">
-              <div style="display:flex;align-items:center;gap:9px;">
-                <span style="flex:0 0 auto;width:20px;height:20px;display:grid;place-items:center;color:#0b0805;background:#f2c777;border-radius:6px;font-size:10px;font-weight:800;">{{ f.rank }}</span>
-                <span style="color:#f6e6c3;font-size:12.5px;font-weight:600;">{{ f.name }}</span><small style="color:#8f7e9f;font-size:8px;">{{ f.capLabel }}</small>
-                <span style="flex:1;"></span>
-                <span style="color:#f2c777;font:400 18px Marcellus,serif;font-variant-numeric:tabular-nums;">{{ f.value }}</span>
-              </div>
-              <sc-if value="{{ f.composite }}" hint-placeholder-val="{{ false }}">
-                <div style="display:grid;gap:3px;margin-top:8px;padding-top:8px;border-top:1px dotted rgba(242,199,119,.22);">
-                  <sc-for list="{{ f.parts }}" as="pt" hint-placeholder-count="3">
-                    <div style="display:flex;align-items:baseline;gap:9px;font-size:11px;">
-                      <span style="color:{{ pt.dot }};font-size:8px;">◆</span>
-                      <span style="color:#cfc1a6;">{{ pt.name }}</span>
-                      <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.12);transform:translateY(-3px);"></span>
-                      <span style="color:{{ pt.color }};font-weight:600;font-variant-numeric:tabular-nums;">{{ pt.value }}</span>
-                      <sc-if value="{{ pt.weak }}" hint-placeholder-val="{{ false }}"><span style="color:#e57c72;font-size:8px;letter-spacing:.06em;text-transform:uppercase;">headline</span></sc-if>
-                    </div>
-                  </sc-for>
-                </div>
-              </sc-if>
-            </div>
-          </sc-for>
-        </div>
-      </div>
       </sc-if>
 
       <div style="margin-top:8px;color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;">{{ activeTabName }}</div>
@@ -1365,7 +1368,7 @@
 class Component extends DCLogic {
   state = {
     phase: 'setup',
-    statTab: 'summary',
+    statTab: 'guide',
     acquisition: null,
     marketPrices: {},
     marketRegion: 'na-f',
@@ -2717,21 +2720,23 @@ class Component extends DCLogic {
         select: () => this.setState({ statTab: t.id }) };
     });
     const activeTab = this.STAT_TABS.find(t => t.id === s.statTab) || this.STAT_TABS[0];
-    // Consolidated result panel: 4 primary views, with the granular stat categories
-    // and progression pages as sub-filter chips instead of an 11-tab strip.
-    const STAT_GROUP={summary:'overview',attack:'stats',defense:'stats',utility:'stats',pvp:'stats',boss:'stats',gear:'stats',sets:'stats',skills:'progression',mastery:'progression',guide:'guide'};
-    const resultView=STAT_GROUP[s.statTab]||'overview';
-    const primaryTabs=[{id:'overview',name:'Overview',dflt:'summary'},{id:'stats',name:'Stats',dflt:'attack'},{id:'guide',name:'Guide',dflt:'guide'},{id:'progression',name:'Progression',dflt:'skills'}].map(p=>{
+    // Guide-centric result panel: the gearing Guide is the default, prominent view;
+    // Weapons/Attributes/Sets, the tradeoff sliders and the stat breakdown live under
+    // a Stats subtab, and Skills/Mastery under Progression. Equipment + favourite stats
+    // sit in the persistent left column, so those aren't tabs here.
+    const STAT_GROUP={summary:'stats',attack:'stats',defense:'stats',utility:'stats',pvp:'stats',boss:'stats',gear:'stats',sets:'stats',skills:'progression',mastery:'progression',guide:'guide'};
+    const resultView=STAT_GROUP[s.statTab]||'guide';
+    const primaryTabs=[{id:'guide',name:'Guide',dflt:'guide'},{id:'stats',name:'Stats',dflt:'summary'},{id:'progression',name:'Progression',dflt:'skills'}].map(p=>{
       const on=resultView===p.id;
       return { name:p.name, on, border:on?'rgba(242,199,119,.55)':'rgba(212,166,94,.14)', bg:on?'linear-gradient(135deg, rgba(107,68,22,.4), rgba(32,23,13,.6))':'transparent', color:on?'#f6d391':'#8a795f',
         select:()=>this.setState({ statTab:p.dflt }) };
     });
     const subChip=(id,name)=>({ name, on:s.statTab===id, border:s.statTab===id?'rgba(242,199,119,.5)':'rgba(212,166,94,.2)', bg:s.statTab===id?'rgba(107,68,22,.32)':'rgba(0,0,0,.24)', color:s.statTab===id?'#f6d391':'#a4906d', select:()=>this.setState({ statTab:id }) });
-    const statSubChips=[['attack','Attack'],['defense','Defense'],['utility','Utility'],['pvp','PvP'],['boss','Boss'],['gear','Gear'],['sets','Sets & Runes']].map(([id,name])=>subChip(id,name));
+    const statSubChips=[['summary','Summary'],['attack','Attack'],['defense','Defense'],['utility','Utility'],['pvp','PvP'],['boss','Boss'],['gear','Gear'],['sets','Sets & Runes']].map(([id,name])=>subChip(id,name));
     const progressionSubChips=[['skills','Skills'],['mastery','Mastery']].map(([id,name])=>subChip(id,name));
     const showStatsSubchips=resultView==='stats';
     const showProgressionSubchips=resultView==='progression';
-    const showOverviewExtras=resultView==='overview';
+    const showStatsExtras=resultView==='stats';
     const allStats=s.result?.allStats||[];
     const favouriteIds=new Set(s.priorities);
     const matchesTab=(row)=>{const name=String(row.name).toLowerCase(),group=String(row.group).toLowerCase();if(s.statTab==='pvp'||s.statTab==='boss')return group===s.statTab;if(s.statTab==='attack')return /attack|accuracy|hit chance|critical|damage dealt|penetration|range/.test(name)&&!/(evasion|resistance|reduction)/.test(name);if(s.statTab==='defense')return /health|defense|evasion|endurance|resistance|reduction|block/.test(name);if(s.statTab==='utility')return !['pvp','boss'].includes(group)&&/speed|duration|mana|healing|cost|recovery|control|chance/.test(name);if(s.statTab==='gear'||s.statTab==='sets')return false;return favouriteIds.has(row.id)||['hp_max','cost_max','damage_reduction','block_chance','move_speed','skill_cooldown_modifier','attack_speed_modifier'].includes(row.id);};
@@ -2843,7 +2848,14 @@ class Component extends DCLogic {
     const vw = s.vw;
     const setupCols = vw <= 820 ? '1fr' : 'minmax(0,1.6fr) minmax(0,.9fr)';
     const twoCol = vw <= 1350 && vw > 820;
-    const resultCols = vw <= 820 ? '1fr' : twoCol ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr) minmax(0,1.12fr)';
+    // Guide-centric result: left column = Equipment + favourite stats; right column = the tab panel (Guide default).
+    // Weapons/Attributes/Sets sit under the tab panel in the right column, shown only on the Stats subtab.
+    const narrowResult = vw <= 900;
+    const resultCols = narrowResult ? '1fr' : 'minmax(0,300px) minmax(0,1fr)';
+    const eqCol = narrowResult ? '1 / -1' : '1';
+    const mainCol = narrowResult ? '1 / -1' : '2';
+    const sec2Row = narrowResult ? 'auto' : '2';
+    const sec3Row = narrowResult ? 'auto' : '1';
     const progressionTab=s.statTab==='skills'||s.statTab==='mastery';
     const guideTab=s.statTab==='guide';
     // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
@@ -2871,7 +2883,7 @@ class Component extends DCLogic {
     }).filter(Boolean):[];
     const guideSourcedCount=guideItems.filter(g=>g.craftable).length;
     const guideReady=!!s.acquisition;
-    const statsSpan = progressionTab||twoCol ? '1 / -1' : 'auto';
+    const statsSpan = narrowResult ? '1 / -1' : 'auto';
 
     // ---------- My Heroics ----------
     const heroicCount = Object.values(s.heroics).filter(Boolean).length;
@@ -3037,7 +3049,7 @@ class Component extends DCLogic {
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
-      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab&&!guideTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
+      setupCols, resultCols, statsSpan, eqCol, mainCol, sec2Row, sec3Row, showResultOverview:!!s.result,showStatOverview:resultView==='stats',showStatsView:resultView==='stats',tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
       tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady,
       marketBusy:s.marketBusy, marketRegion:s.marketRegion, checkMarketPrices:this.checkMarketPrices, setMarketRegion:this.setMarketRegion,
       marketButtonLabel:s.marketBusy?'Checking…':'Check market prices', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
@@ -3097,7 +3109,7 @@ class Component extends DCLogic {
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
       tuneCandidates, hasTuneCandidates:tuneCandidates.length>1, selectTuneCandidate:this.selectTuneCandidate,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
-      primaryTabs, statSubChips, progressionSubChips, showStatsSubchips, showProgressionSubchips, showOverviewExtras,
+      primaryTabs, statSubChips, progressionSubChips, showStatsSubchips, showProgressionSubchips, showStatsExtras,
       hasProgression,showCompactProgression:false,passiveSkills,passiveSkillCount:passiveSkills.length,passiveBudgetPct:`${Math.min(100,passiveSkills.length/8*100)}%`,resultPassiveCards,resultPassiveEmpty:Array.from({length:Math.max(0,8-resultPassiveCards.length)},(_,index)=>({id:index})),resultSkillFocus,hasResultSkillFocus:Boolean(resultSkillFocus),masteryPanel,masteryGroups,overallMasteries,hasOverallMastery:overallMasteries.length>0,hasNoOverallMastery:overallMasteries.length===0,overallMasteryCount:overallMasteries.length,resultOverallMasteryLevel,
 
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
