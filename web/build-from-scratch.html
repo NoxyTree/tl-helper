@@ -858,17 +858,16 @@
         <span style="color:#6f5f49;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Hover · click to lock</span>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
         <sc-for list="{{ gearAll }}" as="it" hint-placeholder-count="10">
-          <div onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden;padding:8px;border:1px solid {{ it.cardBorder }};border-radius:11px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
-            <span style="position:relative;flex:0 0 auto;width:60px;height:60px;border-radius:50%;border:2px solid {{ it.ring }};background:{{ it.icon }};box-shadow:0 0 14px {{ it.glow }};">
+          <div onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0;padding:10px 6px;border:1px solid {{ it.cardBorder }};border-radius:12px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
+            <span style="position:relative;flex:0 0 auto;width:56px;height:56px;border-radius:50%;border:2px solid {{ it.ring }};background:{{ it.icon }};box-shadow:0 0 14px {{ it.glow }};">
               <b style="position:absolute;right:-3px;bottom:-3px;min-width:18px;padding:0 3px;font-style:normal;font-size:8.5px;font-weight:700;color:#f3e2bd;background:rgba(10,8,5,.95);border:1px solid {{ it.ring }};border-radius:7px;">{{ it.level }}</b>
               <sc-if value="{{ it.locked }}" hint-placeholder-val="{{ false }}"><b style="position:absolute;left:-5px;top:-5px;width:20px;height:20px;font-style:normal;display:grid;place-items:center;font-size:10px;color:#0b0805;background:#f2c777;border-radius:50%;box-shadow:0 0 8px rgba(242,199,119,.6);">🔒</b></sc-if>
             </span>
-            <span style="min-width:0;flex:1;overflow:hidden;">
-              <span style="display:block;color:#7d6b51;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;">{{ it.slotLabel }}</span>
-              <span style="display:block;margin-top:2px;color:{{ it.nameColor }};font-size:12px;font-weight:600;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
-              <span style="display:block;margin-top:2px;color:#8a795f;font-size:9.5px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.topStat }}</span>
+            <span style="min-width:0;width:100%;">
+              <span style="display:block;color:#7d6b51;font-size:7px;letter-spacing:.1em;text-transform:uppercase;">{{ it.slotLabel }}</span>
+              <span style="display:block;margin-top:1px;color:{{ it.nameColor }};font-size:10.5px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
             </span>
           </div>
         </sc-for>
@@ -901,39 +900,7 @@
         <button onClick="{{ refit }}" style="margin-left:auto;min-height:36px;padding:0 13px;color:#e6d6b4;border:1px solid rgba(212,166,94,.35);border-radius:9px;background:rgba(28,21,13,.6);cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.05em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">↻ {{ refitLabel }}</button>
       </div>
 
-      <!-- Favourite stats — persistent, under the equipment -->
-      <div style="margin-top:14px;padding-top:13px;border-top:1px solid rgba(212,166,94,.14);">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
-          <span style="color:#f2c777;font-size:11px;">★</span>
-          <span style="color:#e5c88f;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Favourite Stats</span>
-          <span style="color:#6f5f49;font-size:9px;">your priorities</span>
-        </div>
-        <div style="display:grid;gap:7px;">
-          <sc-for list="{{ favourites }}" as="f" hint-placeholder-count="3">
-            <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:9px 11px;box-shadow:inset 0 0 24px rgba(242,199,119,.05);">
-              <div style="display:flex;align-items:center;gap:9px;">
-                <span style="flex:0 0 auto;width:19px;height:19px;display:grid;place-items:center;color:#0b0805;background:#f2c777;border-radius:6px;font-size:9.5px;font-weight:800;">{{ f.rank }}</span>
-                <span style="min-width:0;color:#f6e6c3;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
-                <span style="flex:1;"></span>
-                <span style="color:#f2c777;font:400 17px Marcellus,serif;font-variant-numeric:tabular-nums;">{{ f.value }}</span>
-              </div>
-              <sc-if value="{{ f.composite }}" hint-placeholder-val="{{ false }}">
-                <div style="display:grid;gap:3px;margin-top:7px;padding-top:7px;border-top:1px dotted rgba(242,199,119,.22);">
-                  <sc-for list="{{ f.parts }}" as="pt" hint-placeholder-count="3">
-                    <div style="display:flex;align-items:baseline;gap:8px;font-size:10.5px;">
-                      <span style="color:{{ pt.dot }};font-size:8px;">◆</span>
-                      <span style="min-width:0;color:#cfc1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pt.name }}</span>
-                      <span style="flex:1;"></span>
-                      <span style="color:{{ pt.color }};font-weight:600;font-variant-numeric:tabular-nums;">{{ pt.value }}</span>
-                    </div>
-                  </sc-for>
-                </div>
-              </sc-if>
-            </div>
-          </sc-for>
-        </div>
-      </div>
-    </section>
+      </section>
 
         </sc-if>
 
@@ -961,23 +928,8 @@
       <!-- Weapons / Attributes / Sets & Runes (Summary sub-chip, in-panel) -->
       <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
       <div style="display:grid;gap:13px;margin-bottom:14px;">
-      <!-- Weapons block -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
-        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
-          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Weapons</span>
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
-        </div>
-        <sc-for list="{{ weaponStats }}" as="s" hint-placeholder-count="5">
-          <div style="display:flex;align-items:baseline;gap:10px;padding:5px 0;">
-            <sc-if value="{{ s.tag }}" hint-placeholder-val="{{ false }}"><span style="color:#d49a45;font-size:11px;font-weight:600;">{{ s.tag }}</span></sc-if>
-            <span style="color:#b3a488;font-size:12.5px;">{{ s.name }}</span>
-            <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.16);transform:translateY(-3px);"></span>
-            <span style="color:#f0e1c1;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;">{{ s.value }}</span>
-          </div>
-        </sc-for>
-      </div>
-
+      <!-- Attributes | Favourite Stats (two halves) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:13px;align-items:start;margin-bottom:13px;">
       <!-- Attribute tracks (stacked) -->
       <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 6px;">
@@ -1033,7 +985,82 @@
           </sc-for>
         </div>
       </div>
-
+      <!-- Favourite Stats (beside Attributes) -->
+      <div style="border:1px solid rgba(242,199,119,.32);border-radius:14px;background:linear-gradient(180deg, rgba(30,22,13,.82), rgba(13,10,7,.92));padding:15px 17px;">
+        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
+          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Favourite Stats</span>
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
+        </div>
+        <div style="display:grid;gap:8px;">
+          <sc-for list="{{ favourites }}" as="f" hint-placeholder-count="7">
+            <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:9px 12px;">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="flex:0 0 auto;width:20px;height:20px;display:grid;place-items:center;color:#0b0805;background:#f2c777;border-radius:6px;font-size:10px;font-weight:800;">{{ f.rank }}</span>
+                <span style="min-width:0;color:#f6e6c3;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
+                <span style="flex:1;"></span>
+                <span style="color:#f2c777;font:400 18px Marcellus,serif;font-variant-numeric:tabular-nums;">{{ f.value }}</span>
+              </div>
+              <sc-if value="{{ f.composite }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;gap:3px;margin-top:7px;padding-top:7px;border-top:1px dotted rgba(242,199,119,.22);">
+                  <sc-for list="{{ f.parts }}" as="pt" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:baseline;gap:8px;font-size:10.5px;">
+                      <span style="color:{{ pt.dot }};font-size:8px;">◆</span>
+                      <span style="min-width:0;color:#cfc1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pt.name }}</span>
+                      <span style="flex:1;"></span>
+                      <span style="color:{{ pt.color }};font-weight:600;font-variant-numeric:tabular-nums;">{{ pt.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </div>
+      <!-- Weapons block -->
+      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
+          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Weapons</span>
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
+        </div>
+        <sc-for list="{{ weaponStats }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;align-items:baseline;gap:10px;padding:5px 0;">
+            <sc-if value="{{ s.tag }}" hint-placeholder-val="{{ false }}"><span style="color:#d49a45;font-size:11px;font-weight:600;">{{ s.tag }}</span></sc-if>
+            <span style="color:#b3a488;font-size:12.5px;">{{ s.name }}</span>
+            <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.16);transform:translateY(-3px);"></span>
+            <span style="color:#f0e1c1;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;">{{ s.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <!-- Sets & runes summary -->
+      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
+          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
+        </div>
+        <div style="display:grid;gap:8px;">
+          <sc-for list="{{ setSummary }}" as="st" hint-placeholder-count="2">
+            <div style="padding:9px 11px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;">
+                <span style="color:#e5c88f;font-size:12px;font-weight:600;">{{ st.name }}</span>
+                <span style="color:#8a795f;font-size:10px;">{{ st.count }}</span>
+              </div>
+              <div style="margin-top:3px;color:#a4906d;font-size:10.5px;line-height:1.4;">{{ st.bonus }}</div>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;">
+            <sc-for list="{{ runeChips }}" as="rc" hint-placeholder-count="4">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid {{ rc.border }};border-radius:999px;background:rgba(0,0,0,.24);font-size:10px;color:#d9c8a5;"><span style="width:8px;height:8px;border-radius:50%;background:{{ rc.dot }};"></span>{{ rc.label }}</span>
+            </sc-for>
+          </div>
+          <sc-if value="{{ noActiveSystems }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:10px 11px;border:1px dashed rgba(212,166,94,.18);border-radius:9px;color:#8a795f;font-size:10.5px;line-height:1.45;">No equipment set bonus or rune synergy is active in this loadout.</div>
+          </sc-if>
+        </div>
+      </div>
       <!-- Passive skills and mastery -->
       <sc-if value="{{ showCompactProgression }}" hint-placeholder-val="{{ false }}">
       <div style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
@@ -1078,34 +1105,6 @@
         <div style="margin-top:9px;color:#74677d;font-size:8.5px;line-height:1.45;">Every permanent mastery and passive contribution is included in the stat source breakdown. Conditional combat-only effects remain visible here but are not invented as always-on totals.</div>
       </div>
       </sc-if>
-
-      <!-- Sets & runes summary -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
-        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
-          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
-        </div>
-        <div style="display:grid;gap:8px;">
-          <sc-for list="{{ setSummary }}" as="st" hint-placeholder-count="2">
-            <div style="padding:9px 11px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;">
-                <span style="color:#e5c88f;font-size:12px;font-weight:600;">{{ st.name }}</span>
-                <span style="color:#8a795f;font-size:10px;">{{ st.count }}</span>
-              </div>
-              <div style="margin-top:3px;color:#a4906d;font-size:10.5px;line-height:1.4;">{{ st.bonus }}</div>
-            </div>
-          </sc-for>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;">
-            <sc-for list="{{ runeChips }}" as="rc" hint-placeholder-count="4">
-              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid {{ rc.border }};border-radius:999px;background:rgba(0,0,0,.24);font-size:10px;color:#d9c8a5;"><span style="width:8px;height:8px;border-radius:50%;background:{{ rc.dot }};"></span>{{ rc.label }}</span>
-            </sc-for>
-          </div>
-          <sc-if value="{{ noActiveSystems }}" hint-placeholder-val="{{ false }}">
-            <div style="padding:10px 11px;border:1px dashed rgba(212,166,94,.18);border-radius:9px;color:#8a795f;font-size:10.5px;line-height:1.45;">No equipment set bonus or rune synergy is active in this loadout.</div>
-          </sc-if>
-        </div>
-      </div>
       </div>
       </sc-if>
       <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
@@ -2725,7 +2724,7 @@ class Component extends DCLogic {
     // sit in the persistent left column, so those aren't tabs here.
     const STAT_GROUP={summary:'stats',attack:'stats',defense:'stats',utility:'stats',pvp:'stats',boss:'stats',gear:'stats',sets:'stats',skills:'progression',mastery:'progression',guide:'guide'};
     const resultView=STAT_GROUP[s.statTab]||'guide';
-    const primaryTabs=[{id:'guide',name:'Guide',dflt:'guide'},{id:'stats',name:'Stats',dflt:'summary'},{id:'progression',name:'Progression',dflt:'skills'}].map(p=>{
+    const primaryTabs=[{id:'stats',name:'Stats',dflt:'summary'},{id:'guide',name:'Guide',dflt:'guide'},{id:'progression',name:'Skills',dflt:'skills'}].map(p=>{
       const on=resultView===p.id;
       return { name:p.name, on, border:on?'rgba(242,199,119,.55)':'rgba(212,166,94,.14)', bg:on?'linear-gradient(135deg, rgba(107,68,22,.4), rgba(32,23,13,.6))':'transparent', color:on?'#f6d391':'#8a795f',
         select:()=>this.setState({ statTab:p.dflt }) };
