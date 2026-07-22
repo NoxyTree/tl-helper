@@ -1176,8 +1176,9 @@
             </div>
             <div style="flex:0 0 auto;padding:9px 14px;border:1px solid rgba(212,166,94,.22);border-radius:11px;background:rgba(26,20,13,.6);">
               <div style="color:#7d6b51;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;">Est. build cost</div>
-              <div style="display:flex;align-items:baseline;gap:8px;margin-top:5px;">
-                <span style="color:#d8b8ff;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;">{{ guideCostLucent }}</span>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                <sc-if value="{{ guideHasLucent }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:4px;color:#d8b8ff;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="15" height="15" style="display:block;">{{ guideCostLucent }}</span></sc-if>
+                <sc-if value="{{ guideNoLucent }}" hint-placeholder-val="{{ false }}"><span style="color:#a68fc4;font-size:12px;font-style:italic;">Check prices</span></sc-if>
                 <span style="color:#6f5f49;font-size:12px;">+</span>
                 <span style="color:#8fd6aa;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;">{{ guideCostSollant }}</span>
               </div>
@@ -1204,7 +1205,7 @@
                   </div>
                   <div style="flex:0 0 auto;text-align:right;">
                     <span style="display:inline-block;padding:3px 9px;border-radius:999px;background:{{ g.sourceBg }};color:{{ g.sourceColor }};font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">{{ g.sourceTag }}</span>
-                    <div style="margin-top:4px;color:#a9997a;font-size:10px;font-variant-numeric:tabular-nums;">{{ g.sourceDetail }}</div>
+                    <div style="margin-top:4px;color:#a9997a;font-size:10px;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:flex-end;gap:3px;"><sc-if value="{{ g.sourceLucent }}" hint-placeholder-val="{{ false }}"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="12" height="12" style="display:block;"></sc-if>{{ g.sourceDetail }}</div>
                   </div>
                 </div>
                 <!-- Drops: boss chips, best-first -->
@@ -1235,12 +1236,13 @@
                     </div>
                   </div>
                 </sc-if>
-                <!-- Market: only once a price has been fetched -->
-                <sc-if value="{{ g.marketChecked }}" hint-placeholder-val="{{ true }}">
-                  <div style="display:flex;align-items:baseline;gap:9px;margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.12);">
+                <!-- Market: shown when a price is fetched, unless the headline badge already carries it -->
+                <sc-if value="{{ g.showMarketBlock }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;align-items:center;gap:9px;margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.12);">
                     <span style="flex:0 0 auto;color:#b98cf0;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Market</span>
                     <span style="flex:1;"></span>
-                    <span style="text-align:right;color:#d8b8ff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">{{ g.market }}</span>
+                    <sc-if value="{{ g.marketHasPrice }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:4px;color:#d8b8ff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="13" height="13" style="display:block;">{{ g.marketPriceText }}</span><sc-if value="{{ g.marketStock }}" hint-placeholder-val="{{ true }}"><span style="color:#7d6b51;font-size:10px;">{{ g.marketStock }}</span></sc-if></sc-if>
+                    <sc-if value="{{ g.marketNoPrice }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">{{ g.marketOther }}</span></sc-if>
                   </div>
                 </sc-if>
               </div>
@@ -2928,25 +2930,30 @@ class Component extends DCLogic {
       const impact=impactScores[itemId]||0;
       // Headline badge: the single best answer to "how do I get this?"
       const PAL={boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
-      let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above';
+      let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above',sourceLucent=false;
       if(bestProb>0){sourceCls='boss';sourceTag='Boss drop';const top=drops.slice().sort((a,b)=>b.probNum-a.probNum)[0];sourceDetail='Best '+top.prob+' · '+top.name;}
-      else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=fmtNum(marketPriceNum)+' Lucent';}
+      else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=fmtNum(marketPriceNum);sourceLucent=true;}
       else if(craft){sourceCls='craft';sourceTag='Craft';const ic=(craft.ingredients||[]).length;sourceDetail=ic?ic+' material'+(ic===1?'':'s'):'Craftable';}
       else if(mp&&mp.error){sourceDetail='Price unavailable';}
       else if(mp){sourceCls='market';sourceTag='Market';sourceDetail='Not tradeable';}
       const sourceColor=PAL[sourceCls].c,sourceBg=PAL[sourceCls].b;
+      const sourcePlain=!sourceLucent;
       return {
         itemId, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
         image:item.imageUrl||'', hasImage:!!item.imageUrl,
         impact, ease, marketPriceNum, craftCostNum,
-        sourceCls, sourceTag, sourceDetail, sourceColor, sourceBg,
+        sourceCls, sourceTag, sourceDetail, sourceColor, sourceBg, sourceLucent, sourcePlain,
         craftable:!!craft, notCraftable:!craft,
         craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
         craftUpgrade:craft&&craft.upgradeFrom&&craft.upgradeFrom.length?('Upgrade from '+craft.upgradeFrom.map(nameOf).join(', ')):'',
         craftIngredients:craft?craft.ingredients.slice(0,6).map(i=>({qty:fmtNum(i.qty)+'×',name:i.name,gear:!!i.isGear})):[],
         dropsKnown:drops.length>0, noDrops:drops.length===0, drops,
         marketChecked:!!mp, marketUnchecked:!mp,
-        market:mp?(mp.error?'Price unavailable':(mp.minPrice!=null?fmtNum(mp.minPrice)+' Lucent'+(mp.inStock!=null?' · '+mp.inStock+' listed':''):'Not tradeable')):'',
+        showMarketBlock:!!mp&&!sourceLucent,
+        marketHasPrice:marketPriceNum!=null, marketNoPrice:!!mp&&marketPriceNum==null,
+        marketPriceText:marketPriceNum!=null?fmtNum(marketPriceNum):'',
+        marketStock:(marketPriceNum!=null&&mp.inStock!=null)?(mp.inStock+' listed'):'',
+        marketOther:mp?(mp.error?'Price unavailable':(marketPriceNum==null?'Not tradeable':'')):'',
       };
     }).filter(Boolean):[];
     // Impact first (most valuable to the character), ease as the tie-breaker.
@@ -2954,7 +2961,8 @@ class Component extends DCLogic {
     const guideTotalLucent=guideItems.reduce((t,g)=>t+(g.marketPriceNum||0),0);
     const guideTotalSollant=guideItems.reduce((t,g)=>t+(g.craftCostNum||0),0);
     const guideHasLucent=guideItems.some(g=>g.marketPriceNum!=null);
-    const guideCostLucent=guideHasLucent?fmtNum(guideTotalLucent)+' Lucent':'Check prices';
+    const guideNoLucent=!guideHasLucent;
+    const guideCostLucent=guideHasLucent?fmtNum(guideTotalLucent):'';
     const guideCostSollant=fmtNum(guideTotalSollant)+' Sollant';
     const guideSourcedCount=guideItems.filter(g=>g.craftable).length;
     const guideReady=!!s.acquisition;
@@ -3126,7 +3134,7 @@ class Component extends DCLogic {
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
       setupCols, resultCols, statsSpan, eqCol, mainCol, showResultOverview:!!s.result,showStatOverview:resultView==='stats',showStatsView:resultView==='stats',tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
       tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady, guideNotReady:!s.acquisition,
-      guideCostLucent, guideCostSollant,
+      guideCostLucent, guideCostSollant, guideHasLucent, guideNoLucent,
       marketBusy:s.marketBusy, marketRegion:s.marketRegion, checkMarketPrices:this.checkMarketPrices, setMarketRegion:this.setMarketRegion,
       marketButtonLabel:s.marketBusy?'Checking…':'Check market prices', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
       weaponSetIcons:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.weaponFamilyIcon(type)).filter(Boolean).map(icon=>({icon:`url(${icon}) center/82% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`})),
