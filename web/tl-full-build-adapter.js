@@ -50,10 +50,20 @@ export async function createOptimizerAdapter(deps = {}) {
   const fetcher = deps.fetch ?? globalThis.fetch?.bind(globalThis);
   if (!core.data) await core.initCore(deps.dataSource ?? "./data/app-data.json");
 
-  const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name });
+  const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name, sourceKind: payload.sourceKind ?? "armory" });
   const calculate = (wrapped, includeSetEffects = true) => core.calculateBuild(wrapped.build, wrapped.attributes ?? {}, { includeSetEffects });
 
   return {
+    async createScratchBuild({ name = "Scratch Build", attributes = {} } = {}) {
+      const build = core.createInitialBuild();
+      build.name = name;
+      return wrap({
+        build,
+        attributes: { str: 0, dex: 0, int: 0, per: 0, con: 0, ...attributes },
+        sourceKind: "scratch",
+      });
+    },
+
     async loadArmoryBuild() {
       const loaded = (deps.loadArmoryState ?? loadStateDefault)(storage, { currentGameBuild: core.data.gameBuild });
       if (!loaded?.ok) return null;
@@ -84,7 +94,8 @@ export async function createOptimizerAdapter(deps = {}) {
       const goals = request.goals ?? { increase: [], protect: [] };
       const baseline = totalMap(calculate(source, rules.includeSetEffects !== false));
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
-      const lockedIndexes = new Set(request.locks ?? []);
+      const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
+      const lockedSlotIds = new Set(request.lockedSlotIds ?? []);
       const candidatesBySlot = {};
       const cap = request.depth === "thorough" ? 18 : 8;
       const contribution = (slot, selection) => core.slotSelectionContribution(slot, selection, source.build, source.attributes, { includeSetEffects: false });
@@ -102,7 +113,7 @@ export async function createOptimizerAdapter(deps = {}) {
         const current = selectionFor(source.build, slot);
         const currentItem = core.indexes.itemById[current?.itemId];
         const keepCurrentHeroic = rules.keepCurrentHeroics && !rules.reconsiderHeroics && currentItem?.grade === core.HEROIC_GRADE;
-        if (lockedIndexes.has(slotIndex) || keepCurrentHeroic) {
+        if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic) {
           candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
           continue;
         }
@@ -140,17 +151,20 @@ export async function createOptimizerAdapter(deps = {}) {
         slots.push("artifact_bundle");
       }
 
+      const objectiveBaseline = request.objectiveBaseline && typeof request.objectiveBaseline === "object"
+        ? Object.fromEntries(Object.entries(request.objectiveBaseline).map(([id, value]) => [id, Number(value) || 0]))
+        : baseline;
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       const search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
         const build = applySelections(source.build, selections);
         const stats = totalMap(core.calculateBuild(build, source.attributes, { includeSetEffects: rules.includeSetEffects !== false }));
-        const normalized = (goals.increase ?? []).reduce((sum, id) => sum + ((stats[id] ?? 0) - (baseline[id] ?? 0)) / Math.max(1, Math.abs(baseline[id] ?? 0)), 0);
+        const normalized = (goals.increase ?? []).reduce((sum, id) => sum + ((stats[id] ?? 0) - (objectiveBaseline[id] ?? 0)) / Math.max(1, Math.abs(objectiveBaseline[id] ?? 0)), 0);
         return { score: normalized, stats, build };
       }, lockedSlots: {}, heroicCaps: { weapon: 1, armor: 1, accessory: 1 }, distinctWeaponTypes: true, weights: Object.fromEntries((goals.increase ?? []).map((id) => [id, 1])), protectedStats, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: 4, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + 45 * row.completedSlots / row.totalSlots : 50 + 50 * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
       const finalStats = best.evaluation.stats;
-      const outputSlots = core.EQUIPMENT_SLOTS.map(({ id, label }) => ({ slot: label, current: { name: itemName(core, selectionFor(source.build, id)) }, recommended: { name: itemName(core, best.selections[id]) }, reason: best.selections[id]?.itemId === selectionFor(source.build, id)?.itemId ? "Kept" : "Improves the selected build goals" }));
+      const outputSlots = core.EQUIPMENT_SLOTS.map(({ id, label }) => ({ slotId: id, slot: label, current: { name: itemName(core, selectionFor(source.build, id)) }, recommended: { name: itemName(core, best.selections[id]) }, reason: best.selections[id]?.itemId === selectionFor(source.build, id)?.itemId ? "Kept" : "Improves the selected build goals" }));
       return {
         name: "Optimized full build", score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots,
         statDeltas: [...new Set([...(goals.increase ?? []), ...(goals.protect ?? [])])].map((id) => ({ id, name: core.statName(id), delta: (finalStats[id] ?? 0) - (baseline[id] ?? 0) })),
@@ -159,6 +173,9 @@ export async function createOptimizerAdapter(deps = {}) {
         warnings: ["This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
         alternatives: search.alternatives.slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score })),
         build: best.evaluation.build,
+        attributes: clone(source.attributes ?? {}),
+        sourceKind: source.sourceKind,
+        objectiveBaseline: clone(objectiveBaseline),
       };
     },
   };
