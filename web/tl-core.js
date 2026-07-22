@@ -15,6 +15,7 @@ import {
   MASTERY_SYNERGY_RULES,
   PASSIVE_SKILL_RULES,
   PERK_PASSIVE_RULES,
+  SET_EXCLUSIVITY_GROUPS,
   SET_PASSIVE_RULES,
   STAT_EXPANSIONS,
   STAT_HARD_CAPS,
@@ -805,27 +806,32 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
       // totals so the card shows the actual values the engine applies (the
       // static bonus_passive text only describes them).
       const calcTotals = calc ? Object.fromEntries(calc.stats.map((row) => [row.id, { total: row.total }])) : null;
+      const suppressed = suppressedSetBreakpoints(activeSetCounts(allBuildSelectionEntries(build)));
       const bonuses = values(set.itemSetBonus).map((b) => {
         const req = Number(b.set_count || 0);
         const active = count >= req;
+        const isSuppressed = active && suppressed.has(`${set.id}:${req}`);
         const stats = values(b.bonus_stat).map((s) => `${statName(s.type)} ${formatStat(s.type, s.value)}`);
         const pass = values(b.bonus_passive).map((p) => p?.name ? (p.text ? `${plainInline(p.name)} — ${plainInline(p.text)}` : plainInline(p.name)) : plainInline(p?.text));
         let computed = [];
         const rule = SET_PASSIVE_RULES[set.id]?.[req];
-        if (rule && calcTotals) {
+        if (rule && calcTotals && !isSuppressed) {
           try {
             computed = rule.effect(calcTotals).map((row) => `${statName(row.statId)} ${formatSigned(row.value, row.statId)}`);
           } catch { computed = []; }
         }
         return {
           required: `${req} pc`,
-          active,
-          mark: active ? "✓" : "○",
-          opacity: active ? "1" : "0.58",
-          color: active ? "#7ee0a6" : "#8a795f",
+          active: active && !isSuppressed,
+          suppressed: isSuppressed,
+          mark: isSuppressed ? "✕" : active ? "✓" : "○",
+          opacity: active && !isSuppressed ? "1" : "0.58",
+          color: isSuppressed ? "#c9955a" : active ? "#7ee0a6" : "#8a795f",
           text: [...stats, ...pass].filter(Boolean).join(", ") || "Set bonus",
-          computedText: computed.length ? `Applied: ${computed.join(", ")}` : "",
-          hasComputed: computed.length > 0,
+          computedText: isSuppressed
+            ? "Not applied: a stronger exclusive set effect from another equipped set takes precedence"
+            : computed.length ? `Applied: ${computed.join(", ")}` : "",
+          hasComputed: isSuppressed || computed.length > 0,
         };
       });
       setInfo = { name: set.name, countLabel: `${count}/${members.length}`, bonuses };
@@ -1731,10 +1737,12 @@ export function calculateBuild(build, attributes, options = {}) {
 
   applyPhase(2);
   if (includeSetEffects) {
-    for (const { set, count } of activeSetCounts(selections)) {
+    const active = activeSetCounts(selections);
+    const suppressed = suppressedSetBreakpoints(active);
+    for (const { set, count } of active) {
       for (const bonus of values(set.itemSetBonus)) {
         const required = Number(bonus.set_count ?? bonus.setCount ?? 0);
-        if (!required || count < required) continue;
+        if (!required || count < required || suppressed.has(`${set.id}:${required}`)) continue;
         for (const row of values(bonus.bonus_stat ?? bonus.bonusStat)) add(row.type, row.value, `${set.name} Set`, "set_bonus");
       }
     }
@@ -1818,6 +1826,20 @@ function activeSetCounts(selections) {
   return [...counts].map(([setId, count]) => ({ set: indexes.itemSetById[setId], count })).filter((row) => row.set);
 }
 
+// "setId:pieces" keys of set breakpoints whose effect is suppressed because a
+// higher-precedence member of the same SET_EXCLUSIVITY_GROUPS group is also
+// active (e.g. Forgotten Assassin 2pc beats Lightning Strike 2pc evasion).
+export function suppressedSetBreakpoints(activeSets) {
+  const suppressed = new Set();
+  for (const group of Object.values(SET_EXCLUSIVITY_GROUPS)) {
+    const contenders = activeSets
+      .filter(({ set, count }) => group[set.id] && count >= group[set.id].pieces)
+      .sort((a, b) => group[b.set.id].precedence - group[a.set.id].precedence || a.set.id.localeCompare(b.set.id));
+    for (const { set } of contenders.slice(1)) suppressed.add(`${set.id}:${group[set.id].pieces}`);
+  }
+  return suppressed;
+}
+
 function applyQuestlogPhase(phase, build, selections, totalsObject, add, includeSetEffects = true) {
   for (const { slotId, selection, item } of selections) {
     const itemRule = ITEM_PASSIVE_RULES[item?.passives?.id];
@@ -1830,8 +1852,11 @@ function applyQuestlogPhase(phase, build, selections, totalsObject, add, include
     if (perkRule?.phase === phase && !alreadyAppliedAsItemPassive) for (const row of perkRule.effect(totalsObject())) add(row.statId, row.value, perk.passive.name, "skill_core", perk.grade, perk.passive.imageUrl);
   }
   if (includeSetEffects) {
-    for (const { set, count } of activeSetCounts(selections)) {
+    const active = activeSetCounts(selections);
+    const suppressed = suppressedSetBreakpoints(active);
+    for (const { set, count } of active) {
       for (const [required, rule] of Object.entries(SET_PASSIVE_RULES[set.id] ?? {})) {
+        if (suppressed.has(`${set.id}:${required}`)) continue;
         if (count >= Number(required) && rule.phase === phase) for (const row of rule.effect(totalsObject())) add(row.statId, row.value, set.name, "set_bonus");
       }
     }

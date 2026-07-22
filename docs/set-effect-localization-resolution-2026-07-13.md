@@ -92,6 +92,17 @@ range increase by 30, a faithful reading of the string. Retained as
   Evasion-increasing set effects" (also in ko). The static calculator currently
   has no cross-set exclusivity concept and would double-count if both sets were
   equipped; flagged as follow-up work, not fixed here.
+  **Resolved later on 2026-07-13**: `SET_EXCLUSIVITY_GROUPS`
+  (web/tl-questlog-rules.js) now groups the clause-carrying breakpoints —
+  `evasion` (Forgotten Assassin 2pc, Lightning Strike 2pc) and
+  `damage_over_time` (Sacred Vanquisher 2pc, Elder 2pc; a numeric no-op while
+  those effects stay combat-only) — and tl-core suppresses all but the
+  highest-precedence active member (FA 220 > LS 150). Membership is
+  clause-based: evasion sets without the clause (Dawn Mist, Dawn of Black
+  Lament, Ashen Oath) still stack. Questlog does not model the clause (its
+  rule table applies every set independently), so highest-value-wins is a
+  modeled assumption from the client strings. Regression coverage:
+  scripts/tests/set-exclusivity.test.mjs.
 
 ## Rule changes in this pass
 

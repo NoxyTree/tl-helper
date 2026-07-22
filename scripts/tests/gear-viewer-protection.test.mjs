@@ -79,7 +79,7 @@ test("hover cards omit skill-core potentials and present set effects clearly", a
   assert.doesNotMatch(core, /cores, hasCores|coreMoreLabel/);
   assert.match(html, />Set Effects</);
   assert.match(hoverCard, />Set Effects</);
-  assert.match(core, /mark: active \? "✓" : "○"/);
+  assert.match(core, /mark: isSuppressed \? "✕" : active \? "✓" : "○"/);
 });
 
 test("Heroic comparison never stacks duplicate effects", () => {
