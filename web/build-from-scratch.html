@@ -2919,7 +2919,9 @@ class Component extends DCLogic {
     const statImportance=(row)=>{
       const priorityIndex=s.priorities.indexOf(row.id);
       if(priorityIndex>=0)return priorityIndex;
-      return offFamilyWords.some(word=>String(row.name).includes(word))?200:100;
+      const name=String(row.name);
+      if(offFamilyWords.some(word=>name.includes(word)))return 200;
+      return familyWord&&name.includes(familyWord)?100:150; // own-family stats above the universal block
     };
     const dynamicRows=s.statTab==='gear'?gearRows:s.statTab==='sets'?setRows:allStats.filter(matchesTab).sort((a,b)=>statImportance(a)-statImportance(b));
     const prototypeRows=(this.STATS[s.statTab]||[]).map(row=>({name:row[0],formattedValue:row[1],id:'',legacyFav:row[2]}));
