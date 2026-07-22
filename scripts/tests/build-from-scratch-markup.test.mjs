@@ -57,7 +57,8 @@ test("owned Heroic builder uses the canonical item-specific data model", () => {
   assert.match(html, /Choose the exact owned rune, stat roll, and level/);
   assert.match(html, /Use only my Heroics/);
   assert.match(html, /Allow theoretical/);
-  assert.match(html, /No Heroics/);
+  // The "No Heroics" mode was retired — an optimized build always includes heroics.
+  assert.doesNotMatch(html, /id:'none', label:'No Heroics'/);
 });
 
 test("forge runs in a worker and remains cancellable", () => {

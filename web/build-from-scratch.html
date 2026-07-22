@@ -628,10 +628,6 @@
             </sc-for>
           </div>
           </sc-if>
-
-          <sc-if value="{{ heroicNoneNote }}" hint-placeholder-val="{{ false }}">
-            <div style="text-align:center;color:#8a795f;font-size:11px;padding:6px 4px 2px;">No Heroic equipment will be included in the build.</div>
-          </sc-if>
         </sc-if>
       </section>
 
@@ -1524,7 +1520,8 @@ class Component extends DCLogic {
       const source = await this.adapter.createScratchBuild();
       const statOptions = await this.adapter.listStats();
       let saved={};try{saved=JSON.parse(localStorage.getItem('tlhelper.builder.heroics.v1')||'{}')}catch{}
-      const heroics=saved.heroics||this.state.heroics,heroicMode=saved.heroicMode||this.state.heroicMode;
+      const heroics=saved.heroics||this.state.heroics;let heroicMode=saved.heroicMode||this.state.heroicMode;
+      if(heroicMode==='none')heroicMode='theoretical'; // retired mode — a build always needs heroics.
       const improved=new URLSearchParams(location.search).get('result')==='improved' ? handoff.loadImprovedResult(sessionStorage) : null;
       if(improved){
         const result=improved.result,attributes=result.optimizedAttributes||result.attributes||{};
@@ -1847,7 +1844,6 @@ class Component extends DCLogic {
   HERO_MODES = [
     { id:'owned', label:'Use only my Heroics', explain:'Configured Heroics may be equipped. The optimizer cannot invent another Heroic.' },
     { id:'theoretical', label:'Allow theoretical', explain:'The optimizer may recommend the strongest Heroic configuration that follows the game’s limits, even if you have not marked it as owned.' },
-    { id:'none', label:'No Heroics', explain:'The generated build excludes all Heroic equipment.' },
   ];
 
   heroicCatalog(group) {
@@ -3081,8 +3077,7 @@ class Component extends DCLogic {
         color: on ? '#ffcf8c' : '#8a795f' };
     });
     const heroicModeExplain = (this.HERO_MODES.find(m=>m.id===s.heroicMode)||{}).explain;
-    const heroicSlotsVisible = s.heroicMode !== 'none';
-    const heroicNoneNote = s.heroicMode === 'none';
+    const heroicSlotsVisible = true;
     const heroicSlots = this.HGROUPS.map(g => {
       const cfg = s.heroics[g.key];
       if (!cfg) return { group:g.key, label:g.label, empty:true, configured:false, add:()=>this.addHeroic(g.key) };
@@ -3297,7 +3292,7 @@ class Component extends DCLogic {
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
 
       heroicsEngaged: s.heroicsEngaged, heroicHasAny, heroicCount, showHeroicGateway, heroicPanelBorder,
-      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicNoneNote, heroicSlots,
+      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicSlots,
       engageHeroics: this.engageHeroics, noHeroics: this.noHeroics,
       drawerOpen, closeDrawer: this.closeDrawer, drawerBack: this.drawerBack, setDrawerSearch: this.setDrawerSearch,
       ...drawerVals,
