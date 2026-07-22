@@ -1,0 +1,42 @@
+## Vercel upload exclusions. The main clone carries local research/extraction
+## material that must never ship: mirror .gitignore here (Vercel does not read
+## .gitignore) so deploys from this folder upload only the application.
+.git
+node_modules/
+out/
+tools/
+bin/
+obj/
+src/**/bin/
+src/**/obj/
+*.log
+*.pid
+.env
+.env.local
+.env.example
+supabase/
+.wrangler/
+.bench/
+.agents/
+.codex/
+.claude/
+Output/
+design-handoff/
+data-build-baselines/
+data-build-receipts/
+fixtures/
+local-adviser/
+plans/
+as.json
+cm.json
+pp.json
+r2.json
+reddit_post.json
+post_body.md
+post_text.txt
+aes.txt
+oodle-data-shared.dll
+zlib-ng2.dll
+extraction-report.md
+mastery-node-images.md
+FIX-PLAN.md
