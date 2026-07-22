@@ -11,7 +11,7 @@ test("full-build optimizer is a standalone shared-shell page", () => {
   assert.match(html, /Configure everything, then improve/);
 });
 
-test("optimizer exposes source, goal, lock, and search controls", () => {
+test("optimizer exposes source, goal, lock, and automatic progressive search", () => {
   assert.match(html, /data-source="armory"/);
   assert.match(html, /data-source="questlog"/);
   assert.match(html, /href="\.\/build-from-scratch\.html"/);
@@ -19,8 +19,10 @@ test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /id="increase-picker"/);
   assert.match(html, /id="protect-picker"/);
   assert.match(html, /id="slot-locks"/);
-  assert.match(html, /data-value="fast"/);
-  assert.match(html, /data-value="thorough"/);
+  assert.doesNotMatch(html, /data-value="fast"/);
+  assert.doesNotMatch(html, /data-value="thorough"/);
+  assert.match(html, /automatically checks a wider candidate frontier/);
+  assert.match(html, /progressive:true/);
   assert.match(html, /id="cancel-optimizer"/);
 });
 
@@ -94,7 +96,9 @@ test("optimizer uses a strict adapter and never fabricates recommendations", () 
   assert.match(html, /importQuestlogBuild/);
   assert.match(html, /listStats/);
   assert.match(html, /tl-builder-worker\.js/);
-  assert.match(html, /worker\.postMessage\(\{type:"optimize"/);
+  assert.match(html, /ensureWorker\(\)\.postMessage\(\{type:"optimize"/);
+  assert.match(html, /preliminary-result/);
+  assert.match(html, /improved-result/);
   assert.match(html, /The page will never invent results/);
   assert.match(html, /returned an invalid result/);
   assert.doesNotMatch(html, /setTimeout\([^)]*renderResult/);

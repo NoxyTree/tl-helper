@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
-import { assembleWebDataManifest } from "../../web/tl-data-loader.js";
+import { assembleWebDataManifest, loadWebData } from "../../web/tl-data-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const manifestPath = path.join(root, "web", "data", "app-data.json");
@@ -55,4 +55,27 @@ test("manifest assembly rejects projection provenance mismatch", async () => {
     projection: "example",
     data: { items: [] },
   })), /gameBuild differs/);
+});
+
+test("browser loader refreshes the manifest and reuses content-addressed projections", async () => {
+  const manifest = {
+    schema: "tl-helper.web-data-manifest",
+    schemaVersion: 1,
+    dataSchemaVersion: 1,
+    gameBuild: "123",
+    generatedAtUtc: "2026-01-01T00:00:00.000Z",
+    projections: [{ id: "example", file: "projections/example.json", keys: ["items"], sha256: "abc123" }],
+  };
+  const projection = { schema: "tl-helper.web-data", schemaVersion: 1, gameBuild: "123", generatedAtUtc: manifest.generatedAtUtc, projection: "example", data: { items: [] } };
+  const calls = [];
+  const fetchImpl = async (url, options) => {
+    calls.push({ url: String(url), options });
+    return calls.length === 1
+      ? { ok: true, url: "https://example.test/data/app-data.json", json: async () => manifest }
+      : { ok: true, json: async () => projection };
+  };
+  await loadWebData("https://example.test/data/app-data.json", { fetchImpl });
+  assert.equal(calls[0].options.cache, "no-cache");
+  assert.equal(calls[1].options.cache, "force-cache");
+  assert.match(calls[1].url, /projections\/example\.json\?v=abc123$/);
 });

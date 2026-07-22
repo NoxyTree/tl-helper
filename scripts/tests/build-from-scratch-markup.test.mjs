@@ -23,7 +23,9 @@ test("setup uses real weapon, ranked goal modes, rules, and attribute contracts"
   assert.match(html, /statDisplayToRaw/);
   assert.match(html, /attributePointBudget:this\.ATTR_BUDGET/);
   assert.match(html, /ATTR_BUDGET = 59/);
-  assert.match(html, /depth:'thorough'/);
+  assert.match(html, /progressive:true/);
+  assert.match(html, /refinementBudgetMs:20000/);
+  assert.doesNotMatch(html, /depth:'thorough'/);
 });
 
 test("owned Heroic builder uses the canonical item-specific data model", () => {
@@ -48,6 +50,9 @@ test("forge runs in a worker and remains cancellable", () => {
   assert.match(html, /progressPhase/);
   assert.match(html, /Cancel/);
   assert.doesNotMatch(html, /setInterval\(/);
+  assert.match(html, /preliminary-result/);
+  assert.match(html, /improved-result/);
+  assert.match(html, /refinementStatus/);
 });
 
 test("result is calculated and inspectable rather than mocked", () => {

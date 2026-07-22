@@ -1,7 +1,45 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter, deriveObjectiveScales, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizerSearchProfile, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, retainBoundedSlotCandidates, scoreRankedGoals } from "../../web/tl-full-build-adapter.js";
+
+test("search profiles replace the unbounded public depth choice", () => {
+  assert.deepEqual(optimizerSearchProfile("fast"), optimizerSearchProfile("preview"));
+  assert.deepEqual(optimizerSearchProfile("thorough"), optimizerSearchProfile("refine"));
+  assert.ok(optimizerSearchProfile("preview").beamWidth < optimizerSearchProfile("refine").beamWidth);
+  assert.ok(optimizerSearchProfile("refine").beamWidth < 1000);
+});
+
+test("slot retention enforces its hard cap while preserving diverse seeds", () => {
+  const rows = Array.from({ length: 30 }, (_, index) => ({
+    id: `item-${index}`,
+    stats: { attack: 30 - index, endurance: index },
+    scoreHint: 30 - index,
+    setKeys: index >= 10 && index < 20 ? [`set-${index}`] : [],
+    heroicGroup: index === 25 ? "armor" : "",
+  }));
+  const retained = retainBoundedSlotCandidates({ ranked: rows, scratch: true, cap: 8, goalStatIds: ["attack", "endurance"] });
+  assert.equal(retained.length, 8);
+  assert.ok(retained.some((row) => row.id === "item-0"));
+  assert.ok(retained.some((row) => row.id === "item-29"));
+  assert.ok(retained.some((row) => row.heroicGroup === "armor"));
+  assert.ok(retained.some((row) => row.setKeys.length));
+});
+
+test("slot retention keeps every armour material category inside the bounded frontier", () => {
+  const materials = ["plate", "leather", "fabric", "mithril"];
+  const rows = Array.from({ length: 24 }, (_, index) => ({
+    id: `item-${index}`,
+    stats: { attack: 100 - index },
+    scoreHint: 100 - index,
+    materialCategory: index < materials.length ? materials[index] : "plate",
+    setKeys: [],
+    heroicGroup: "",
+  }));
+  const retained = retainBoundedSlotCandidates({ ranked: rows, scratch: true, cap: 8, goalStatIds: ["attack"] });
+  assert.equal(retained.length, 8);
+  assert.deepEqual(new Set(retained.map((row) => row.materialCategory)), new Set(materials));
+});
 
 test("composite goals preserve one goal weight across typed leaf totals", () => {
   const [goal] = expandCompositeGoals(normalizeRankedGoals({ increase: ["pvp_all_critical_defense"] }));
@@ -111,9 +149,14 @@ test("attribute seed retention keeps gear that only wins after a breakpoint", as
 });
 
 test("weapon constraints accept ordered or slot-keyed distinct pairings and reject invalid pairs", () => {
-  const core = { WEAPON_SLOTS: ["main_hand", "off_hand"], WEAPON_TYPES: ["staff", "dagger", "bow"] };
+  const core = {
+    WEAPON_SLOTS: ["main_hand", "off_hand"], WEAPON_TYPES: ["staff", "dagger", "bow"],
+    indexes: { itemById: { current_staff: { equipmentType: "staff" }, current_dagger: { equipmentType: "dagger" } } },
+  };
   assert.deepEqual(resolveWeaponTypeConstraints(core, { weaponTypes: ["staff", "dagger"] }), { main_hand: "staff", off_hand: "dagger" });
   assert.deepEqual(resolveWeaponTypeConstraints(core, { weaponTypes: { main_hand: "bow", off_hand: "dagger" } }), { main_hand: "bow", off_hand: "dagger" });
+  assert.deepEqual(resolveWeaponTypeConstraints(core, { sourceKind: "armory", build: { equipment: { main_hand: { itemId: "current_staff" }, off_hand: { itemId: "current_dagger" } } } }), { main_hand: "staff", off_hand: "dagger" });
+  assert.deepEqual(resolveWeaponTypeConstraints(core, { sourceKind: "scratch", build: { equipment: { main_hand: { itemId: "current_staff" }, off_hand: { itemId: "current_dagger" } } } }), {});
   assert.throws(() => resolveWeaponTypeConstraints(core, { weaponTypes: ["staff", "staff"] }), /must be different/);
   assert.throws(() => resolveWeaponTypeConstraints(core, { weaponTypes: ["staff"] }), /Choose both/);
   assert.throws(() => resolveWeaponTypeConstraints(core, { weaponTypes: ["staff", "future"] }), /Unknown weapon type/);
@@ -297,24 +340,52 @@ test("minimum item level excludes progression gear from scratch candidates", asy
   assert.ok(result.assumptions.includes("Equipment below level 50 was excluded."));
 });
 
-test("chosen main and off-hand weapon types are enforced during candidate generation", async () => {
+test("chosen weapon types seed material-aware scratch candidate scoring", async () => {
   const items = {
     staff: { id: "staff", name: "Staff", grade: 41, equipmentType: "staff" }, bow: { id: "bow", name: "Bow", grade: 41, equipmentType: "bow" },
     dagger: { id: "dagger", name: "Dagger", grade: 41, equipmentType: "dagger" }, sword: { id: "sword", name: "Sword", grade: 41, equipmentType: "sword" },
+    plate: { id: "plate", name: "Plate Helm", grade: 41, equipmentType: "head", armorCategory: "plate", directAttack: 1 },
+    fabric: { id: "fabric", name: "Fabric Helm", grade: 41, equipmentType: "head", armorCategory: "fabric", directAttack: 20 },
   };
   const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const weaponItems = [items.staff, items.bow, items.dagger, items.sword];
+  let sawRequestedPairDuringArmourScoring = false;
+  const itemAttack = (build, item) => {
+    if (!item || item.equipmentType !== "head") return item ? 1 : 0;
+    const main = items[build.equipment.main_hand.itemId]?.equipmentType;
+    const off = items[build.equipment.off_hand.itemId]?.equipmentType;
+    const materialBonus = item.armorCategory === "plate" && main === "staff" && off === "dagger" ? 100 : 0;
+    return item.directAttack + materialBonus;
+  };
   const core = {
     data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] }, indexes: { itemById: items, runeById: {} },
-    EQUIPMENT_SLOTS: [{ id: "main_hand", label: "Main" }, { id: "off_hand", label: "Off" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: ["main_hand", "off_hand"], WEAPON_TYPES: ["staff", "bow", "dagger", "sword"], HEROIC_GRADE: 51,
-    calculateBuild(build) { return { stats: [{ id: "attack", total: Object.values(build.equipment).filter((row) => row.itemId).length }] }; },
-    slotSelectionContribution(_slot, selection) { return { attack: selection?.itemId ? 1 : 0 }; }, slotItems: () => Object.values(items),
-    slotById: (id) => ({ id, label: id, types: core.WEAPON_TYPES }), emptyEquipmentSelection: empty, itemMaxLevel: () => 12, heroicSlotGroupForSlot: () => "",
+    EQUIPMENT_SLOTS: [{ id: "main_hand", label: "Main" }, { id: "off_hand", label: "Off" }, { id: "head", label: "Head" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: ["main_hand", "off_hand"], WEAPON_TYPES: ["staff", "bow", "dagger", "sword"], HEROIC_GRADE: 51,
+    calculateBuild(build) { return { stats: [{ id: "attack", total: itemAttack(build, items[build.equipment.head.itemId]) + Number(Boolean(build.equipment.main_hand.itemId)) + Number(Boolean(build.equipment.off_hand.itemId)) }] }; },
+    slotSelectionContribution(slot, selection, build) {
+      if (slot === "head") {
+        const main = items[build.equipment.main_hand.itemId]?.equipmentType;
+        const off = items[build.equipment.off_hand.itemId]?.equipmentType;
+        if (main === "staff" && off === "dagger") sawRequestedPairDuringArmourScoring = true;
+      }
+      return { attack: slot === "head" ? itemAttack(build, items[selection?.itemId]) : selection?.itemId ? 1 : 0 };
+    },
+    slotItems: (slot) => slot.id === "head" ? [items.plate, items.fabric] : weaponItems,
+    slotById: (id) => ({ id, label: id, types: id === "head" ? ["head"] : core.WEAPON_TYPES }), emptyEquipmentSelection: empty, itemMaxLevel: () => 12, heroicSlotGroupForSlot: () => "",
     statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff", label: (id) => id,
   };
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
-  const result = await adapter.optimize({ build: { build: { equipment: { main_hand: empty(), off_hand: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" }, sourceKind: "scratch", weaponTypes: ["staff", "dagger"], goals: { increase: ["attack"] }, rules: {} });
+  const result = await adapter.optimize({ build: { build: { equipment: { main_hand: empty(), off_hand: empty(), head: empty() }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "scratch" }, sourceKind: "scratch", weaponTypes: ["staff", "dagger"], goals: { increase: ["attack"] }, rules: {} });
+  assert.equal(sawRequestedPairDuringArmourScoring, true);
   assert.equal(result.build.equipment.main_hand.itemId, "staff");
   assert.equal(result.build.equipment.off_hand.itemId, "dagger");
+  assert.equal(result.build.equipment.head.itemId, "plate");
+
+  const improved = await adapter.optimize({
+    build: { build: { equipment: { main_hand: { ...empty(), itemId: "staff" }, off_hand: { ...empty(), itemId: "dagger" }, head: { ...empty(), itemId: "fabric" } }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "armory" },
+    sourceKind: "armory", goals: { increase: ["attack"] }, rules: {},
+  });
+  assert.equal(items[improved.build.equipment.main_hand.itemId].equipmentType, "staff");
+  assert.equal(items[improved.build.equipment.off_hand.itemId].equipmentType, "dagger");
 });
 
 test("saved Armory state is returned with build and attributes", async () => {

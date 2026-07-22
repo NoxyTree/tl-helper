@@ -5,7 +5,7 @@ import test from "node:test";
 
 const read = (relative) => readFile(new URL(`../../${relative}`, import.meta.url), "utf8");
 
-test("Cloudflare Pages serves the web app and production domain", async () => {
+test("legacy Cloudflare configuration remains valid for non-production previews", async () => {
   const config = await read("wrangler.toml");
   assert.match(config, /pages_build_output_dir\s*=\s*"\.\/web"/);
   assert.match(config, /https:\/\/tlhelper\.org/);
@@ -33,11 +33,14 @@ test("hosted Questlog adapter preserves the local adapter safety boundary", asyn
   assert.doesNotMatch(worker, /service[_-]?role/i);
 });
 
-test("production headers protect documents without freezing stable projection names", async () => {
+test("production headers protect documents and cache content-addressed projections", async () => {
   const headers = await read("web/_headers");
   assert.match(headers, /X-Content-Type-Options: nosniff/);
   assert.match(headers, /\/data\/projections\/\*/);
-  assert.match(headers, /\/data\/projections\/\*[\s\S]*max-age=300, must-revalidate/);
+  assert.match(headers, /\/data\/projections\/\*[\s\S]*max-age=31536000, immutable/);
+  const vercel = JSON.parse(await read("vercel.json"));
+  const projectionHeaders = vercel.headers.find((row) => row.source === "/data/projections/(.*)")?.headers ?? [];
+  assert.deepEqual(projectionHeaders, [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }]);
 });
 
 test("direct-upload artifact contains every projected icon", async () => {

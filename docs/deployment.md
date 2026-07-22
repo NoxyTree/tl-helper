@@ -1,17 +1,17 @@
 # TL-Helper public beta deployment
 
-The first production release is an anonymous, local-first Cloudflare Pages
-application at `https://tlhelper.org`. Supabase authentication and account sync
+The production release is an anonymous, local-first Vercel application at
+`https://tlhelper.org`. Supabase authentication and account sync
 are optional follow-up capabilities. They are not a prerequisite for creating,
 editing, auto-saving, or storing multiple builds in TL Helper.
 
 ## Production layout
 
-- `web/` is the static Pages output directory.
-- `functions/api/questlog/character.js` is the same-origin Questlog adapter.
-- `web/_headers` defines security and cache headers.
+- `web/` is the static Vercel output directory.
+- `api/questlog/character.js` is the same-origin Questlog adapter.
+- `vercel.json` defines the output directory plus security and cache headers.
 - `web/_redirects` serves the Armory at `/`.
-- `wrangler.toml` records the Pages output and canonical origin.
+- `wrangler.toml` and `functions/` remain available only for legacy Cloudflare previews.
 
 The function accepts only public HTTPS `questlog.gg` character-builder URLs,
 validates numeric build IDs, caps each upstream response at 8 MB, and never
@@ -43,41 +43,33 @@ Then verify in a browser:
 6. Open Tracker, Achievements, and Combat Lab and check for console errors.
 7. Test one valid and one rejected Questlog URL against the hosted endpoint.
 
-## First deployment
+## Production deployment
 
-The optimized game icon mirror is part of the Git release artifact. Cloudflare
-Pages may deploy from the repository's production branch or through Wrangler
-Direct Upload from a verified release machine. Both paths must contain every
-icon checked by `scripts/tests/deployment-contract.test.mjs`.
+The optimized game icon mirror is part of the Git release artifact. Vercel
+deploys the repository production branch with `web/` as its static output and
+the root `api/` directory as its serverless API. The deployment must contain
+every icon checked by `scripts/tests/deployment-contract.test.mjs`.
 
-This requires a Cloudflare account authenticated on the release machine:
+For a manual preview from an authenticated release machine:
 
 ```powershell
 npm ci
-npx wrangler login
-npx wrangler pages project create tl-helper --production-branch main
-npx wrangler pages deploy web --project-name tl-helper
+npx vercel
 ```
 
-Wrangler Direct Upload from the repository root compiles the root `functions/`
-directory and uploads the complete local `web/` artifact. Git-connected Pages
-builds also include the tracked icon mirror and Functions directory. Dashboard
-drag-and-drop does not deploy Pages Functions and must not be used. Confirm the
-deployed `/api/questlog/character` route before attaching the production
-domain.
-
-In the Pages dashboard, attach `tlhelper.org` as the custom domain. Do not
-change DNS until the preview URL passes the browser release gate.
+Confirm the preview URL, optimizer worker, immutable projection caching, and
+`/api/questlog/character` route before promoting it or merging to the Vercel
+production branch. `tlhelper.org` is the production custom domain.
 
 ## Supabase follow-up
 
-Do not add a service-role key to Pages. When account sync is implemented, only
+Do not add a service-role key to Vercel. When account sync is implemented, only
 the project URL and public anon key belong in browser-visible configuration.
 Row Level Security remains the authorization boundary. See
 `docs/supabase-setup.md`.
 
 ## Rollback
 
-Use the Cloudflare Pages deployment list to promote the last known-good
-deployment. Build data in browser storage is versioned independently, so a
+Use the Vercel deployment list to promote the last known-good deployment.
+Build data in browser storage is versioned independently, so a
 static rollback must not delete or rewrite user local storage.

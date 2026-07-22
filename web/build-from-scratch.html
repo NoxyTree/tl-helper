@@ -620,6 +620,7 @@
   <!-- ================= STATE 2: RESULT HUD ================= -->
   <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
   <main id="main-content" style="position:relative;z-index:3;display:grid;grid-template-columns:{{ resultCols }};gap:14px;align-items:start;padding:10px clamp(16px,2.2vw,34px) 56px;">
+    <div role="status" style="grid-column:1/-1;padding:9px 12px;border:1px solid rgba(126,224,166,.24);border-radius:10px;background:rgba(31,76,47,.1);color:#b9d6c1;font-size:10.5px;line-height:1.45;">{{ refinementStatus }}</div>
 
     <!-- ===== LEFT: EQUIPMENT CANVAS ===== -->
     <section style="min-width:0;animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
@@ -952,7 +953,7 @@ class Component extends DCLogic {
     resultCalc: null,
     engineReady: false,
     engineError: '',
-    progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
+    progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0, refinementStatus:'',
     rules: { endgame: true, heroic: false, traits: true, sets: true, runes: true, artifacts: true },
     openTip: null,
     heroicsEngaged: false,
@@ -977,7 +978,7 @@ class Component extends DCLogic {
       const statOptions = await this.adapter.listStats();
       let saved={};try{saved=JSON.parse(localStorage.getItem('tlhelper.builder.heroics.v1')||'{}')}catch{}
       const heroics=saved.heroics||this.state.heroics,heroicMode=saved.heroicMode||this.state.heroicMode;
-      this.setState({ source, statOptions, engineReady:true, heroics, heroicMode, heroicsEngaged:Boolean(saved.heroics) });
+      this.setState({ source, statOptions, engineReady:true, heroics, heroicMode, heroicsEngaged:Boolean(saved.heroics) }, () => this.ensureWorker());
     }).catch(error => this.setState({ engineError:String(error && error.message || error) }));
   }
 
@@ -1412,8 +1413,43 @@ class Component extends DCLogic {
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
         bestHeroicConfiguration:this.state.heroicMode==='theoretical',
         runes:{mode:this.state.rules.runes?'normal':'keep',chaosOwnershipRequired:true,normalDuplicateCap:3,chaosDuplicateCap:1},
-        artifacts:{mode:this.state.rules.artifacts?'sets':'keep'} }, depth:'thorough',
+        artifacts:{mode:this.state.rules.artifacts?'sets':'keep'} }, progressive:true, refinementBudgetMs:20000,
     };
+  }
+  applyWorkerResult(result, refinementStatus) {
+    const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false});
+    this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:100,refinementStatus});
+  }
+  ensureWorker() {
+    if(this._worker)return this._worker;
+    this._worker=new Worker('./tl-builder-worker.js',{type:'module'});
+    this._worker.onmessage=(event)=>{
+      const message=event.data||{};
+      if(message.type==='progress'){
+        const row=message.progress||{}, progress=Math.max(0,Math.min(100,Number(row.percent)||0));
+        const count=Number(String(row.detail||'').match(/[\d,]+/)?.[0]?.replaceAll(',',''))||this.state.candidates;
+        if(message.stage==='refine' && this.state.phase==='result') {
+          this.setState({candidates:count,refinementStatus:`Initial build ready. Refining in the background: ${row.detail||'checking additional legal loadouts'}.`});
+        } else {
+          const stepIndex=progress<35?0:progress<70?1:progress<90?2:3;
+          this.setState({progress:Math.round(progress),stepIndex,candidates:count,progressPhase:row.label||this.FORGE_PHASES[stepIndex].title,progressMsg:row.detail||'Evaluating complete loadouts…'});
+        }
+      }else if(message.type==='preliminary-result'){
+        this.applyWorkerResult(message.result,`Initial build ready in ${(Number(message.elapsedMs||0)/1000).toFixed(1)} seconds. Refining in the background.`);
+      }else if(message.type==='improved-result'){
+        this.applyWorkerResult(message.result,`A stronger legal build was found after ${(Number(message.elapsedMs||0)/1000).toFixed(1)} seconds. Finishing the search.`);
+      }else if(message.type==='complete'){
+        if(message.improved && message.result) this.applyWorkerResult(message.result,'');
+        this.setState({refinementStatus:`Search complete in ${(Number(message.elapsedMs||0)/1000).toFixed(1)} seconds.${message.improved?' A stronger build replaced the initial result.':message.timedOut?' The time limit was reached, so the best completed result is shown.':' No stronger legal build was found.'}`});
+      }else if(message.type==='cancelled'){
+        this.setState({phase:'setup'});
+      }else if(message.type==='error'){
+        this.setState({phase:'setup',engineError:message.message||'The optimizer stopped without a result.'});
+      }
+    };
+    this._worker.onerror=(event)=>{this._worker?.terminate();this._worker=null;this.setState({phase:'setup',engineError:event.message||'The optimizer worker stopped unexpectedly.'});};
+    this._worker.postMessage({type:'init'});
+    return this._worker;
   }
   forge = () => {
     if (!this.state.engineReady || !this.state.source || !this.state.priorities.length || !this.state.weaponTypes.main || !this.state.weaponTypes.off) {
@@ -1422,32 +1458,12 @@ class Component extends DCLogic {
     }
     let request;
     try{request=this.optimizerRequest();}catch(error){this.setState({engineError:error.message||String(error)});return;}
-    this.setState({ phase:'forging', progress:0, candidates:0, stepIndex:0, engineError:'',
+    this.setState({ phase:'forging', progress:0, candidates:0, stepIndex:0, engineError:'', refinementStatus:'',
       progressPhase:this.FORGE_PHASES[0].title, progressMsg:'Starting the optimizer worker…' });
-    this._worker?.terminate();
-    this._worker=new Worker('./tl-builder-worker.js',{type:'module'});
-    this._worker.onmessage=(event)=>{
-      const message=event.data||{};
-      if(message.type==='progress'){
-        const row=message.progress||{}, progress=Math.max(0,Math.min(100,Number(row.percent)||0));
-        const stepIndex=progress<35?0:progress<70?1:progress<90?2:3;
-        this.setState({progress:Math.round(progress),stepIndex,candidates:Number(String(row.detail||'').match(/[\d,]+/)?.[0]?.replaceAll(',',''))||this.state.candidates,
-          progressPhase:row.label||this.FORGE_PHASES[stepIndex].title,progressMsg:row.detail||'Evaluating complete loadouts…'});
-      }else if(message.type==='result'){
-        const result=message.result;
-        const resultCalc=this.core.calculateBuild(result.build,result.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false});
-        this._worker.terminate(); this._worker=null;
-        this.setState({result,resultCalc,source:{build:structuredClone(result.build),attributes:{...(result.optimizedAttributes||{})},sourceKind:'scratch',name:result.name},phase:'result',progress:100});
-      }else if(message.type==='cancelled'){
-        this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'});
-      }else if(message.type==='error'){
-        this._worker?.terminate(); this._worker=null; this.setState({phase:'setup',engineError:message.message||'The optimizer stopped without a result.'});
-      }
-    };
-    this._worker.postMessage({type:'optimize',request});
+    this.ensureWorker().postMessage({type:'optimize',request});
   };
-  cancelForge = () => { this._worker?.postMessage({type:'cancel'}); this._worker?.terminate(); this._worker=null; this.setState({phase:'setup'}); };
-  editGoals = () => this.setState({ phase:'setup' });
+  cancelForge = () => { this._worker?.postMessage({type:'cancel'}); this.setState({phase:'setup'}); };
+  editGoals = () => { this._worker?.postMessage({type:'cancel'}); this.setState({ phase:'setup' }); };
   refit = () => { this.forge(); };
   tuneStat(id,event) {
     const result=this.state.result,targetCaps=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.target!=null).map(goal=>[goal.id,goal.target]));
@@ -1993,7 +2009,7 @@ class Component extends DCLogic {
       togglePriorityPicker:this.togglePriorityPicker,closePriorityPicker:this.closePriorityPicker,setPrioritySearch:this.setPrioritySearch,clearPrioritySearch:this.clearPrioritySearch,priorityPickerKeyDown:this.priorityPickerKeyDown,endPriorityDrag:this.endPriorityDrag,
       ghostSlots, forge: this.forge,
 
-      progress: s.progress, progressMsg: s.progressMsg, progressPhase: s.progressPhase, candidates: s.candidates.toLocaleString(),
+      progress: s.progress, progressMsg: s.progressMsg, progressPhase: s.progressPhase, candidates: s.candidates.toLocaleString(), refinementStatus:s.refinementStatus||'Search complete.',
       forgeSteps, cancelForge: this.cancelForge, editGoals: this.editGoals, refit: this.refit,
 
       gearAll, weapons, artifacts,

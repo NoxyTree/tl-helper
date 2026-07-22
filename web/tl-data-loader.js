@@ -49,15 +49,19 @@ export async function loadWebData(source, options = {}) {
   let manifest = source;
   let baseUrl = options.baseUrl ?? "";
   if (typeof source === "string") {
-    const response = await fetchImpl(source, { cache: "no-store" });
+    const response = await fetchImpl(source, { cache: "no-cache" });
     if (!response.ok) throw new Error(`Failed to load data manifest: ${response.status}`);
     manifest = await response.json();
     baseUrl = response.url || source;
   }
   assert(manifest?.schema === WEB_DATA_MANIFEST_SCHEMA, "manifest schema is missing");
   return assembleWebDataManifest(manifest, async (descriptor) => {
-    const url = new URL(descriptor.file, new URL(baseUrl, globalThis.location?.href ?? "http://localhost/")).href;
-    const response = await fetchImpl(url, { cache: "no-store" });
+    const url = new URL(descriptor.file, new URL(baseUrl, globalThis.location?.href ?? "http://localhost/"));
+    // Projection bytes are content-addressed by the manifest hash. This lets
+    // the page and optimizer worker share the browser cache while a fresh
+    // manifest still discovers every new game-data build immediately.
+    url.searchParams.set("v", descriptor.sha256 ?? `${manifest.gameBuild}-${manifest.generatedAtUtc}`);
+    const response = await fetchImpl(url.href, { cache: "force-cache" });
     if (!response.ok) throw new Error(`Failed to load projection ${descriptor.id}: ${response.status}`);
     return response.json();
   });

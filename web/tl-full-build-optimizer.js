@@ -58,12 +58,13 @@ function objectiveVector(state, ids, statCaps) {
 }
 
 function dominates(a, b, ids, statCaps) {
-  const av = objectiveVector(a, ids, statCaps);
-  const bv = objectiveVector(b, ids, statCaps);
+  const av = a._objectiveVector ?? objectiveVector(a, ids, statCaps);
+  const bv = b._objectiveVector ?? objectiveVector(b, ids, statCaps);
   return av.every((value, index) => value >= bv[index]) && av.some((value, index) => value > bv[index]);
 }
 
 function heuristic(state, weights, statCaps) {
+  if (Number.isFinite(state._heuristic)) return state._heuristic;
   let score = number(state.hint);
   for (const [id, weight] of Object.entries(weights ?? {})) score += capped(state.stats[id], statCaps?.[id]) * number(weight);
   return score;
@@ -82,9 +83,23 @@ function diverseStates(states, statIds, limit, weights, statCaps) {
   if (ordered.length <= limit) return ordered;
   const retained = new Map();
   const add = (row) => { if (row) retained.set(row.key, row); };
-  const byStat = statIds.map((id) => [...states].sort((a, b) => capped(b.stats?.[id], statCaps?.[id]) - capped(a.stats?.[id], statCaps?.[id]) || stateOrder(a, b, weights, statCaps)));
-  for (const rows of byStat) add(rows[0]);
-  for (const rows of byStat) add(rows[1]);
+  const strongest = [];
+  const runnersUp = [];
+  for (const id of statIds) {
+    let first = null;
+    let second = null;
+    const compare = (a, b) => capped(b.stats?.[id], statCaps?.[id]) - capped(a.stats?.[id], statCaps?.[id]) || stateOrder(a, b, weights, statCaps);
+    for (const row of states) {
+      if (!first || compare(row, first) < 0) {
+        if (first?.key !== row.key) second = first;
+        first = row;
+      } else if (row.key !== first.key && (!second || compare(row, second) < 0)) second = row;
+    }
+    strongest.push(first);
+    runnersUp.push(second);
+  }
+  for (const row of strongest) add(row);
+  for (const row of runnersUp) add(row);
   for (const row of ordered) {
     if (retained.size >= limit) break;
     add(row);
@@ -94,8 +109,15 @@ function diverseStates(states, statIds, limit, weights, statCaps) {
 
 function prune(states, { beamWidth, paretoWidth, paretoStats, weights, statCaps }) {
   const frontiers = new Map();
+  for (const state of states) {
+    state._signature = signature(state);
+    state._objectiveVector = objectiveVector(state, paretoStats, statCaps);
+    let score = number(state.hint);
+    for (const [id, weight] of Object.entries(weights ?? {})) score += capped(state.stats[id], statCaps?.[id]) * number(weight);
+    state._heuristic = score;
+  }
   for (const state of states.sort((a, b) => a.key.localeCompare(b.key))) {
-    const sig = signature(state);
+    const sig = state._signature;
     const frontier = frontiers.get(sig) ?? [];
     if (frontier.some((other) => dominates(other, state, paretoStats, statCaps))) continue;
     const next = frontier.filter((other) => !dominates(state, other, paretoStats, statCaps)).concat(state);

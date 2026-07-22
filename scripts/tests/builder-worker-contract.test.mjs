@@ -6,10 +6,21 @@ const worker = await readFile(new URL("../../web/tl-builder-worker.js", import.m
 
 test("Builder worker owns optimization and forwards progress", () => {
   assert.match(worker, /createOptimizerAdapter/);
-  assert.match(worker, /adapter\.optimize/);
+  assert.match(worker, /engine\.optimize/);
   assert.match(worker, /onProgress/);
   assert.match(worker, /type: "progress"/);
-  assert.match(worker, /type: "result"/);
+  assert.match(worker, /type: "preliminary-result"/);
+  assert.match(worker, /type: "improved-result"/);
+  assert.match(worker, /type: "complete"/);
+  assert.match(worker, /depth: "preview"/);
+  assert.match(worker, /depth: "refine"/);
+});
+
+test("Builder worker reuses one initialized adapter and bounds refinement time", () => {
+  assert.match(worker, /adapterPromise \?\?=/);
+  assert.match(worker, /refinementBudgetMs/);
+  assert.match(worker, /shouldCancel/);
+  assert.match(worker, /type: "ready"/);
 });
 
 test("Builder worker supports cancellation and reports real errors", () => {

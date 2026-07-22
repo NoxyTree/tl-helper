@@ -234,7 +234,7 @@
           </div>
           <div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Use owned Chaos</button></div><p id="chaos-warning" class="warning hidden">Chaos runes are stronger and acquisition is chance-based. Only Chaos rune IDs already equipped in the source build are considered owned, with no more than one Chaos rune per item. Normal rune and stat choices may repeat across all three sockets.</p></div>
           <div class="mode-group"><span>Artifacts</span><div id="artifact-mode" class="segmented"><button type="button" data-value="keep" class="active">Keep current</button><button type="button" data-value="sets">Optimize sets</button></div></div>
-          <div class="mode-group"><span>Search depth</span><div id="search-depth" class="segmented"><button type="button" data-value="fast" class="active">Fast</button><button type="button" data-value="thorough">Thorough</button></div><p class="hint">Thorough searches a wider candidate frontier and may take longer.</p></div>
+          <div class="mode-group"><span>Search</span><p class="hint">A legal build appears first, then TL Helper automatically checks a wider candidate frontier for improvements.</p></div>
         </div></section>
 
         <section id="locks-panel" class="panel locks-panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">4. Lock slots</h2><span class="section-kicker">Optional</span></div><div class="panel-body"><div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">A locked slot keeps its current item, traits, runes, and configured effects.</p></div></section>
@@ -250,7 +250,7 @@
 
   <script type="module">
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", depth:"fast", worker:null, adapter:null, core:null, rulesData:null, persistence:null, statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], currentStats:{}, runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
     function renderLocks() {
       const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
@@ -261,7 +261,7 @@
 
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
-    selectButtonGroup("artifact-mode","artifactMode"); selectButtonGroup("search-depth","depth");
+    selectButtonGroup("artifact-mode","artifactMode");
     document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; await refreshCurrentStats(); renderLocks(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setView(view) {
@@ -349,7 +349,7 @@
       renderPickerOptions(root,key); updateReady();
     }
     function updateReady(){ $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length); }
-    function request() { return { build:state.build, sourceKind:state.source, goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:state.depth }; }
+    function request() { return { build:state.build, sourceKind:state.source, goals:{ priorities:state.increase.map((id,index)=>({id,rank:index+1,mode:"maximize"})), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:$("keep-heroics").checked, reconsiderHeroics:$("reconsider-heroics").checked, includeSetEffects:$("include-sets").checked, optimizeThreeTraits:$("optimize-traits").checked, bestHeroicConfiguration:$("best-heroic").checked, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, progressive:true, refinementBudgetMs:20000 }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Evaluating legal combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     function dollItem(loadout,slot) { const group=slot.startsWith("talistone")||slot.startsWith("gemstone")?loadout?.artifacts:loadout?.equipment; const row=Array.isArray(group)?group.find(item=>item.id===slot):group?.[slot]; if(row?.name)return { name:row.name, icon:row.imageUrl??row.icon??"" }; const item=state.core?.indexes?.itemById?.[row?.itemId]; return item?{ name:item.name, icon:item.imageUrl??"" }:null; }
@@ -382,28 +382,46 @@
       const loaded=state.persistence.loadArmoryPresets(localStorage,{currentGameBuild:state.core.data?.gameBuild??"unversioned"}); const presets=loaded.ok?loaded.data:[];
       state.persistence.saveArmoryPresets(localStorage,[...presets,snapshot],{gameBuild:state.core.data?.gameBuild??"unversioned"});
     }
-    function renderResult(result) {
+    function renderResult(result,status="Initial build ready. Refining in the background.") {
       if(!result || !Array.isArray(result.slots) || !Array.isArray(result.statDeltas)) throw new Error("The optimizer returned an invalid result. No recommendation was displayed.");
       state.result=result;
       const rows=result.slots.map(row=>`<tr><td>${esc(row.slot)}</td><td>${esc(row.current?.name??"Empty")}</td><td data-result-slot="${esc(row.slotId)}"><strong>${esc(row.recommended?.name??"Empty")}</strong></td><td class="reason">${esc(row.reason??"")}</td></tr>`).join("");
       const deltas=result.statDeltas.map(row=>`<div class="delta"><span>${esc(row.name)}</span><strong class="${Number(row.delta)<0?"negative":""}">${Number(row.delta)>0?"+":Number(row.delta)<0?"−":""}${esc(row.formattedDelta??Math.abs(Number(row.delta)))}</strong></div>`).join("");
       const notes=[...(result.explanations??[]),...(result.assumptions??[]),...(result.warnings??[])];
       const alternatives=(result.alternatives??[]).map(row=>`<div class="alternative"><strong>${esc(row.name)}</strong><div class="hint">${esc(row.summary)}</div></div>`).join("");
-      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong></div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
-      $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
+      $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Best completed result</div><strong>Your improved build</strong></div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">${esc(status)}</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">Fit score</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Near-optimal alternatives</h3>${alternatives}</div>`:""}</div></div>`;
+      $("edit-build-goals").onclick=()=>{ state.worker?.postMessage({type:"cancel"}); $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
       $("save-result-preset").onclick=()=>{ try{saveResultAsPreset(result);$("result-status").textContent="Saved as a new Armory preset.";}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
       $("use-result-build").onclick=()=>{ try{state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
-      bindResultHover(result); $("engine-status").textContent="Complete"; setView("result");
+      bindResultHover(result); $("engine-status").textContent="Refining"; setView("result");
+    }
+    function ensureWorker() {
+      if(state.worker)return state.worker;
+      const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
+      worker.onmessage=event=>{const message=event.data??{};
+        if(message.type==="progress"){
+          if(message.stage==="refine"&&state.result){const status=$("result-status");if(status)status.textContent=`Initial build ready. Refining in the background: ${message.progress?.detail??"checking more legal loadouts"}.`;}
+          else showProgress(message.progress);
+        }else if(message.type==="preliminary-result"){
+          renderResult(message.result,`Initial build ready in ${(Number(message.elapsedMs||0)/1000).toFixed(1)} seconds. Refining in the background.`);updateReady();
+        }else if(message.type==="improved-result"){
+          renderResult(message.result,`A stronger legal build was found after ${(Number(message.elapsedMs||0)/1000).toFixed(1)} seconds. Finishing the search.`);updateReady();
+        }else if(message.type==="complete"){
+          if(message.improved&&message.result)renderResult(message.result);
+          $("engine-status").textContent="Complete";const status=$("result-status");if(status)status.textContent=`Search complete in ${(Number(message.elapsedMs||0)/1000).toFixed(1)} seconds.${message.improved?" A stronger build replaced the initial result.":message.timedOut?" The time limit was reached, so the best completed result is shown.":" No stronger legal build was found."}`;updateReady();
+        }else if(message.type==="cancelled"){$("engine-status").textContent="Ready";setView("setup");updateReady();}
+        else if(message.type==="error"){setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}
+      };
+      worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
+      worker.postMessage({type:"init"});
+      return worker;
     }
     $("run-optimizer").addEventListener("click",()=>{
-      state.worker?.terminate(); $("run-optimizer").disabled=true; showProgress({percent:0,label:"Preparing your build",detail:"Starting the optimizer worker."});
-      const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
-      worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;renderResult(message.result);updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
-      worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
-      worker.postMessage({type:"optimize",request:request()});
+      $("run-optimizer").disabled=true; state.result=null; showProgress({percent:0,label:"Preparing your build",detail:"Starting the optimizer worker."});
+      ensureWorker().postMessage({type:"optimize",request:request()});
     });
-    $("cancel-optimizer").addEventListener("click",()=>{state.worker?.postMessage({type:"cancel"});state.worker?.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}); $("retry-engine").addEventListener("click",connectEngine);
-    connectEngine();
+    $("cancel-optimizer").addEventListener("click",()=>{state.worker?.postMessage({type:"cancel"});$("engine-status").textContent="Ready";setView("setup");updateReady();}); $("retry-engine").addEventListener("click",connectEngine);
+    connectEngine().then(()=>ensureWorker());
   </script>
 </body>
 </html>

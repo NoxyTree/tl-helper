@@ -12,6 +12,33 @@ const totalMap = (calc) => Object.fromEntries((calc?.stats ?? []).map((row) => [
 // priority during candidate pruning or final scoring.
 const RANK_DECAY = 0.05;
 
+export const OPTIMIZER_SEARCH_PROFILES = Object.freeze({
+  preview: Object.freeze({
+    id: "preview",
+    candidateCap: 8,
+    runeCandidateLimit: 5,
+    artifactBundleLimit: 8,
+    beamWidth: 160,
+    paretoWidth: 8,
+    attributePoolSize: 16,
+    runeRefinementLimit: 4,
+  }),
+  refine: Object.freeze({
+    id: "refine",
+    candidateCap: 14,
+    runeCandidateLimit: 7,
+    artifactBundleLimit: 20,
+    beamWidth: 400,
+    paretoWidth: 12,
+    attributePoolSize: 32,
+    runeRefinementLimit: 8,
+  }),
+});
+
+export function optimizerSearchProfile(depth) {
+  return ["refine", "thorough"].includes(depth) ? OPTIMIZER_SEARCH_PROFILES.refine : OPTIMIZER_SEARCH_PROFILES.preview;
+}
+
 export function normalizeRankedGoals(goals = {}) {
   const source = Array.isArray(goals.priorities) && goals.priorities.length ? goals.priorities : (goals.increase ?? []);
   const unique = new Map();
@@ -114,6 +141,60 @@ function componentWeightMap(rankedGoals, scales) {
   return weights;
 }
 
+export function retainBoundedSlotCandidates({
+  ranked,
+  currentRow = null,
+  scratch = false,
+  cap,
+  goalStatIds = [],
+  attributeStatIds = [],
+  preserveWeaponTypes = false,
+}) {
+  const hardCap = Math.max(1, Number(cap) || 1);
+  const retained = new Map();
+  const add = (row) => {
+    if (row && retained.size < hardCap && !retained.has(row.id)) retained.set(row.id, row);
+  };
+  if (!scratch) add(currentRow);
+
+  // Establish a strong legal path first, then spend the remaining bounded
+  // budget on material, objective, breakpoint, Heroic, set, and weapon diversity.
+  for (const row of ranked.slice(0, 2)) add(row);
+  const seenMaterials = new Set();
+  for (const row of ranked) {
+    if (!row.materialCategory || seenMaterials.has(row.materialCategory)) continue;
+    seenMaterials.add(row.materialCategory);
+    add(row);
+  }
+  add(ranked.find((row) => row.heroicGroup));
+  add(ranked.find((row) => row.setKeys?.length));
+  for (const statId of goalStatIds) add([...ranked].sort((a, b) => Number(b.stats?.[statId] ?? 0) - Number(a.stats?.[statId] ?? 0) || a.id.localeCompare(b.id))[0]);
+  for (const statId of attributeStatIds) add([...ranked].sort((a, b) => Number(b.stats?.[statId] ?? 0) - Number(a.stats?.[statId] ?? 0) || a.id.localeCompare(b.id))[0]);
+
+  const setQuota = Math.max(1, Math.floor(hardCap / 3));
+  const seenSets = new Set();
+  let setCount = 0;
+  for (const row of ranked) {
+    const setKey = row.setKeys?.[0];
+    if (!setKey || seenSets.has(setKey)) continue;
+    seenSets.add(setKey);
+    add(row);
+    setCount += 1;
+    if (setCount >= setQuota || retained.size >= hardCap) break;
+  }
+
+  if (preserveWeaponTypes) {
+    const seenTypes = new Set();
+    for (const row of ranked) {
+      if (!row.weaponType || row.heroicGroup || seenTypes.has(row.weaponType)) continue;
+      seenTypes.add(row.weaponType);
+      add(row);
+    }
+  }
+  for (const row of ranked) add(row);
+  return [...retained.values()];
+}
+
 function withCompositeTotals(stats, rankedGoals) {
   const result = { ...stats };
   for (const goal of rankedGoals) if (goal.components?.length > 1) result[goal.id] = goalValue(stats, goal);
@@ -187,10 +268,17 @@ function itemName(core, selection) {
 }
 
 export function resolveWeaponTypeConstraints(core, request = {}) {
-  const raw = request.weaponTypes ?? request.rules?.weaponTypes
+  let raw = request.weaponTypes ?? request.rules?.weaponTypes
     ?? ((request.mainWeaponType || request.offWeaponType) ? { main_hand: request.mainWeaponType, off_hand: request.offWeaponType } : null);
-  if (raw == null) return {};
   const slots = core.WEAPON_SLOTS ?? ["main_hand", "off_hand"];
+  if (raw == null && request.sourceKind !== "scratch") {
+    const build = request.build?.build ?? request.build;
+    const itemById = core.indexes?.itemById ?? {};
+    const main = itemById[build?.equipment?.[slots[0]]?.itemId]?.equipmentType;
+    const off = itemById[build?.equipment?.[slots[1]]?.itemId]?.equipmentType;
+    if (main && off) raw = { [slots[0]]: main, [slots[1]]: off };
+  }
+  if (raw == null) return {};
   const constraints = Array.isArray(raw) ? { [slots[0]]: raw[0], [slots[1]]: raw[1] } : { [slots[0]]: raw[slots[0]] ?? raw.main, [slots[1]]: raw[slots[1]] ?? raw.off };
   const main = String(constraints[slots[0]] ?? "").trim();
   const off = String(constraints[slots[1]] ?? "").trim();
@@ -432,6 +520,13 @@ export async function createOptimizerAdapter(deps = {}) {
     },
 
     async optimize(request, runtime = {}) {
+      const now = () => globalThis.performance?.now?.() ?? Date.now();
+      const assertRuntime = () => {
+        if (!runtime.signal?.aborted && runtime.shouldCancel?.() !== true) return;
+        throw new DOMException("Full-build optimization cancelled", "AbortError");
+      };
+      const startedAt = now();
+      const profile = optimizerSearchProfile(request.depth);
       const source = wrap(request.build);
       const scratch = request.sourceKind === "scratch" || request.build?.sourceKind === "scratch";
       const rules = request.rules ?? {};
@@ -448,8 +543,23 @@ export async function createOptimizerAdapter(deps = {}) {
       const lockedSlotIds = new Set(request.lockedSlotIds ?? []);
       const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};
-      const cap = request.depth === "thorough" ? 18 : 8;
-      const contribution = (slot, selection) => core.slotSelectionContribution(slot, selection, source.build, source.attributes, { includeSetEffects: false });
+      const cap = profile.candidateCap;
+      // Scratch builds start naked, but armour material bonuses depend on both
+      // selected weapon families. Seed a calculation-only context with one
+      // legal weapon of each requested family so preliminary armour scoring
+      // sees the same two-family material rule as exact finalist evaluation.
+      const contributionBuild = clone(source.build);
+      for (const slot of core.WEAPON_SLOTS ?? []) {
+        const requiredType = weaponTypeConstraints[slot];
+        if (!requiredType) continue;
+        const currentItem = core.indexes.itemById[contributionBuild.equipment?.[slot]?.itemId];
+        if (currentItem?.equipmentType === requiredType) continue;
+        const representative = core.slotItems(core.slotById(slot))
+          .filter((item) => item.equipmentType === requiredType)
+          .sort((a, b) => core.itemMaxLevel(b) - core.itemMaxLevel(a) || a.id.localeCompare(b.id))[0];
+        if (representative) contributionBuild.equipment[slot] = itemSelection(core, representative);
+      }
+      const contribution = (slot, selection) => core.slotSelectionContribution(slot, selection, contributionBuild, source.attributes, { includeSetEffects: false });
       const generationScales = request.objectiveScales && typeof request.objectiveScales === "object"
         ? Object.fromEntries(rankedGoals.map(({ id }) => [id, Math.max(1, Math.abs(Number(request.objectiveScales[id] ?? 0))) ]))
         : deriveObjectiveScales(core, rankedGoals, baseline);
@@ -458,6 +568,7 @@ export async function createOptimizerAdapter(deps = {}) {
       const candidateMeta = (slot, item) => ({
         heroicGroup: item?.grade === core.HEROIC_GRADE ? core.heroicSlotGroupForSlot(slot) : "",
         weaponType: core.WEAPON_SLOTS.includes(slot) ? item?.equipmentType ?? "" : "",
+        materialCategory: item?.armorCategory && item?.subCategory !== "cloak" ? item.armorCategory : "",
         setKeys: item?.setId ? [item.setId] : [],
         neutralHeroicCost: item?.grade === core.HEROIC_GRADE ? 1 : 0,
         neutralItemLevel: item ? core.itemMaxLevel(item) : 0,
@@ -465,8 +576,10 @@ export async function createOptimizerAdapter(deps = {}) {
       });
       const runeCandidatesByCategory = new Map();
       const optimizerRuneStatIds = new Set(optimizerStatIds(core));
+      const goalStatIds = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
 
       for (let slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
+        assertRuntime();
         const slot = slots[slotIndex];
         const current = selectionFor(source.build, slot);
         const currentItem = core.indexes.itemById[current?.itemId];
@@ -475,6 +588,7 @@ export async function createOptimizerAdapter(deps = {}) {
         if (lockedIndexes.has(slotIndex) || lockedSlotIds.has(slot) || keepCurrentHeroic) {
           if (requiredWeaponType && currentItem?.equipmentType !== requiredWeaponType) throw new Error(`Locked ${core.slotById(slot).label ?? slot} does not match the chosen ${requiredWeaponType} weapon type.`);
           candidatesBySlot[slot] = [{ id: current.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), locked: true, ...candidateMeta(slot, currentItem) }];
+          runtime.onProgress?.({ phase: "candidates", percent: 2 + 18 * (slotIndex + 1) / slots.length, label: "Preparing legal candidates", detail: `${slotIndex + 1} of ${slots.length} equipment slots prepared` });
           continue;
         }
         const rows = [];
@@ -494,7 +608,7 @@ export async function createOptimizerAdapter(deps = {}) {
             let runeRows = runeCandidatesByCategory.get(category);
             if (!runeRows) {
               const goalWeights = componentWeightMap(rankedGoals, generationScales);
-              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: request.depth === "thorough" ? 8 : 6 });
+              runeRows = generateRuneCandidates({ category, runes: core.data.runes, runeSynergies: core.data.runeSynergies, chaos: { mode: chaosMode, ownedIds: chaosOwned }, allowStat: (id) => optimizerRuneStatIds.has(id), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: profile.runeCandidateLimit });
               runeCandidatesByCategory.set(category, runeRows);
             }
             if (runeRows[0]) selection.runes = runeRows[0].selection;
@@ -502,27 +616,29 @@ export async function createOptimizerAdapter(deps = {}) {
           const stats = contribution(slot, selection);
           rows.push({ id: item.id, selection, stats, scoreHint: weight(stats), ...candidateMeta(slot, item) });
         }
-        const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), scoreHint: weight(contribution(slot, current)), ...candidateMeta(slot, currentItem) };
+        const currentStats = contribution(slot, current);
+        const currentRow = { id: current?.itemId || `empty:${slot}`, selection: clone(current), stats: currentStats, scoreHint: weight(currentStats), ...candidateMeta(slot, currentItem) };
         const ranked = rows.sort((a, b) => b.scoreHint - a.scoreHint
           || a.neutralHeroicCost - b.neutralHeroicCost
           || b.neutralItemLevel - a.neutralItemLevel
           || b.neutralGrade - a.neutralGrade
           || a.id.localeCompare(b.id));
-        const weaponTypeSeeds = core.WEAPON_SLOTS.includes(slot)
-          ? ranked.filter((row, index, all) => all.findIndex((other) => other.weaponType === row.weaponType && !other.heroicGroup) === index && !row.heroicGroup)
-          : [];
-        const attributeSeeds = attributePointBudget == null ? [] : ATTRIBUTE_IDS.flatMap((attributeId) => [...ranked]
-          .sort((a, b) => Number(b.stats?.[attributeId] ?? 0) - Number(a.stats?.[attributeId] ?? 0) || a.id.localeCompare(b.id)).slice(0, 2));
-        const goalSeeds = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))].flatMap((statId) => [...ranked]
-          .sort((a, b) => Number(b.stats?.[statId] ?? 0) - Number(a.stats?.[statId] ?? 0) || a.id.localeCompare(b.id)).slice(0, 2));
-        const retained = [...ranked.slice(0, cap), ...ranked.filter((row) => row.setKeys.length || row.heroicGroup), ...weaponTypeSeeds, ...attributeSeeds, ...goalSeeds];
-        candidatesBySlot[slot] = [...(scratch ? [] : [currentRow]), ...retained].filter((row, index, all) => all.findIndex((x) => x.id === row.id) === index);
+        candidatesBySlot[slot] = retainBoundedSlotCandidates({
+          ranked,
+          currentRow,
+          scratch,
+          cap,
+          goalStatIds,
+          attributeStatIds: attributePointBudget == null ? [] : ATTRIBUTE_IDS,
+          preserveWeaponTypes: core.WEAPON_SLOTS.includes(slot) && !requiredWeaponType,
+        });
+        runtime.onProgress?.({ phase: "candidates", percent: 2 + 18 * (slotIndex + 1) / slots.length, label: "Preparing legal candidates", detail: `${slotIndex + 1} of ${slots.length} equipment slots prepared` });
       }
 
       if (rules.artifacts?.mode && rules.artifacts.mode !== "keep") {
         const goalWeights = componentWeightMap(rankedGoals, generationScales);
-        const bundles = generateArtifactCandidates({ items: core.data.items, artifactSets: core.data.artifactSets, scoreItem: (item) => weight(core.itemStatContribution(item, item.equipmentType, core.itemMaxLevel(item), source.build, source.attributes)), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: request.depth === "thorough" ? 32 : 12 });
-        candidatesBySlot.artifact_bundle = bundles.map((row) => ({ id: row.key, selection: row, scoreHint: row.score, stateKeys: row.setState.map((set) => `${set.setId}:${set.count}`) }));
+        const bundles = generateArtifactCandidates({ items: core.data.items, artifactSets: core.data.artifactSets, scoreItem: (item) => weight(core.itemStatContribution(item, item.equipmentType, core.itemMaxLevel(item), source.build, source.attributes)), scoreStat: (id, value) => Number(goalWeights.get(id) ?? 0) * value, limit: profile.artifactBundleLimit });
+        candidatesBySlot.artifact_bundle = bundles.slice(0, profile.artifactBundleLimit).map((row) => ({ id: row.key, selection: row, scoreHint: row.score, stateKeys: row.setState.map((set) => `${set.setId}:${set.count}`) }));
         slots.push("artifact_bundle");
       }
 
@@ -534,11 +650,13 @@ export async function createOptimizerAdapter(deps = {}) {
       const protectedStats = Object.fromEntries((goals.protect ?? []).map((id) => [id, { baseline: baseline[id] ?? 0, allowedLossPercent: Number(request.protectTolerancePct ?? 0) }]));
       for (const goal of rankedGoals) if (goal.minimum != null) protectedStats[goal.id] = { ...(protectedStats[goal.id] ?? {}), min: goal.minimum };
       const attributeMinimums = Object.fromEntries(Object.entries(protectedStats).map(([id, rule]) => [id, rule.min ?? Number(rule.baseline ?? 0) * (1 - Number(rule.allowedLossPercent ?? 0) / 100)]));
-      const attributePoolSize = request.depth === "thorough" ? 64 : 48;
+      const candidatePreparationMs = now() - startedAt;
+      const attributePoolSize = profile.attributePoolSize;
       const provisionalAttributes = attributePointBudget == null ? source.attributes : balancedAllocation(attributePointBudget);
       const beamWeights = Object.fromEntries(componentWeightMap(rankedGoals, objectiveScales));
       const beamGoalStats = [...new Set(rankedGoals.flatMap((goal) => goal.components?.length ? goal.components : [goal.id]))];
       const beamStatCaps = objectiveStatCaps(rankedGoals);
+      const searchStartedAt = now();
       let search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: (selections) => {
         const build = applySelections(source.build, selections);
         const calc = core.calculateBuild(build, provisionalAttributes, { includeSetEffects: rules.includeSetEffects !== false });
@@ -548,16 +666,18 @@ export async function createOptimizerAdapter(deps = {}) {
         const itemId = candidate.selection?.itemId;
         if (!itemId) return true;
         return !Object.values(selections).some((selection) => selection?.itemId === itemId);
-      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: request.depth === "thorough" ? 1000 : 300, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      }, weights: beamWeights, statCaps: beamStatCaps, paretoStats: attributePointBudget == null ? beamGoalStats : [...beamGoalStats, ...ATTRIBUTE_IDS], protectedStats: attributePointBudget == null ? protectedStats : {}, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? 4 : attributePoolSize, frontierCount: attributePointBudget == null ? Math.min(24, attributePoolSize) : attributePoolSize, signal: runtime.signal, shouldCancel: runtime.shouldCancel, onProgress: (row) => runtime.onProgress?.({ phase: row.phase, percent: row.phase === "search" ? 20 + 30 * row.completedSlots / row.totalSlots : 50 + 15 * row.completed / row.total, label: row.phase === "search" ? "Searching legal loadouts" : "Calculating finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      const loadoutSearchMs = now() - searchStartedAt;
+      const exactStartedAt = now();
       if (attributePointBudget != null) {
         const exact = [];
         const preliminaryFrontier = search.frontier?.length ? search.frontier : search.alternatives;
         for (let index = 0; index < preliminaryFrontier.length; index += 1) {
-          if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
+          assertRuntime();
           const candidate = preliminaryFrontier[index];
           const optimized = runAttributeOptimizer({ core, build: candidate.evaluation.build, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, includeSetEffects: rules.includeSetEffects !== false, minimums: attributeMinimums });
           if (satisfiesProtectedStats(optimized.stats, protectedStats)) exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints } });
-          runtime.onProgress?.({ percent: 60 + 25 * (index + 1) / preliminaryFrontier.length, label: "Optimizing attribute points", detail: `${index + 1} of ${preliminaryFrontier.length} frontier loadouts` });
+          runtime.onProgress?.({ phase: "attributes", percent: 65 + 20 * (index + 1) / preliminaryFrontier.length, label: "Optimizing attribute points", detail: `${index + 1} of ${preliminaryFrontier.length} frontier loadouts` });
           if (index % 4 === 3) await new Promise((resolve) => setTimeout(resolve, 0));
         }
         const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
@@ -568,20 +688,21 @@ export async function createOptimizerAdapter(deps = {}) {
           || a.key.localeCompare(b.key);
         exact.sort(exactOrder);
         if (rules.runes?.mode && rules.runes.mode !== "keep" && runeCandidatesByCategory.size) {
-          const refinementTargets = diverseFinalists(exact, rankedGoals, request.depth === "thorough" ? 16 : 10);
+          const refinementTargets = diverseFinalists(exact, rankedGoals, profile.runeRefinementLimit);
           for (let index = 0; index < refinementTargets.length; index += 1) {
-            if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
+            assertRuntime();
             const candidate = refinementTargets[index];
             const refined = refineRuneConfiguration({ core, build: candidate.evaluation.build, attributes: candidate.evaluation.attributes, budget: attributePointBudget, rankedGoals, baseline: objectiveBaseline, scales: objectiveScales, minimums: attributeMinimums, includeSetEffects: rules.includeSetEffects !== false, runeCandidatesByCategory, lockedSlotIds, optimizeAttributes: runAttributeOptimizer });
             const exactIndex = exact.indexOf(candidate);
             exact[exactIndex] = { ...candidate, selections: { ...candidate.selections, ...clone(refined.build.equipment) }, evaluation: { ...candidate.evaluation, score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights } };
-            runtime.onProgress?.({ percent: 85 + 15 * (index + 1) / refinementTargets.length, label: "Refining rune synergies", detail: `${index + 1} of ${refinementTargets.length} diverse finalists` });
+            runtime.onProgress?.({ phase: "runes", percent: 85 + 15 * (index + 1) / refinementTargets.length, label: "Refining rune synergies", detail: `${index + 1} of ${refinementTargets.length} diverse finalists` });
             if (index % 2 === 1) await new Promise((resolve) => setTimeout(resolve, 0));
           }
           exact.sort(exactOrder);
         }
         search = { ...search, best: exact[0] ?? null, alternatives: exact.slice(0, 4), frontier: exact.slice(0, attributePoolSize), attributeFinalistsEvaluated: preliminaryFrontier.length };
       }
+      const exactEvaluationMs = now() - exactStartedAt;
       if (!search.best) throw new Error("No build satisfies the protected-stat constraints.");
       const best = search.best;
       const finalStats = best.evaluation.stats;
@@ -640,6 +761,17 @@ export async function createOptimizerAdapter(deps = {}) {
         tuningFrontier,
         tradeoffs,
         allStats,
+        searchMetrics: {
+          profile: profile.id,
+          elapsedMs: Math.round(now() - startedAt),
+          candidatePreparationMs: Math.round(candidatePreparationMs),
+          loadoutSearchMs: Math.round(loadoutSearchMs),
+          exactEvaluationMs: Math.round(exactEvaluationMs),
+          candidateCounts: Object.fromEntries(Object.entries(candidatesBySlot).map(([slot, rows]) => [slot, rows.length])),
+          searched: search.searched,
+          finalists: search.finalists,
+          attributeFinalistsEvaluated: search.attributeFinalistsEvaluated ?? 0,
+        },
       };
     },
   };
