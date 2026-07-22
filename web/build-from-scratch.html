@@ -1034,33 +1034,6 @@
           </div>
         </sc-for>
       </div>
-      <!-- Sets & runes summary -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
-        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
-          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
-        </div>
-        <div style="display:grid;gap:8px;">
-          <sc-for list="{{ setSummary }}" as="st" hint-placeholder-count="2">
-            <div style="padding:9px 11px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;">
-                <span style="color:#e5c88f;font-size:12px;font-weight:600;">{{ st.name }}</span>
-                <span style="color:#8a795f;font-size:10px;">{{ st.count }}</span>
-              </div>
-              <div style="margin-top:3px;color:#a4906d;font-size:10.5px;line-height:1.4;">{{ st.bonus }}</div>
-            </div>
-          </sc-for>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;">
-            <sc-for list="{{ runeChips }}" as="rc" hint-placeholder-count="4">
-              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid {{ rc.border }};border-radius:999px;background:rgba(0,0,0,.24);font-size:10px;color:#d9c8a5;"><span style="width:8px;height:8px;border-radius:50%;background:{{ rc.dot }};"></span>{{ rc.label }}</span>
-            </sc-for>
-          </div>
-          <sc-if value="{{ noActiveSystems }}" hint-placeholder-val="{{ false }}">
-            <div style="padding:10px 11px;border:1px dashed rgba(212,166,94,.18);border-radius:9px;color:#8a795f;font-size:10.5px;line-height:1.45;">No equipment set bonus or rune synergy is active in this loadout.</div>
-          </sc-if>
-        </div>
-      </div>
       <!-- Passive skills and mastery -->
       <sc-if value="{{ showCompactProgression }}" hint-placeholder-val="{{ false }}">
       <div style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
@@ -1109,8 +1082,45 @@
       </sc-if>
       <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:13px;align-items:start;margin-bottom:13px;">
+        <!-- Sets & Runes (beside the tuning panel) -->
+        <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+          <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+            <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
+            <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
+            <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
+          </div>
+          <div style="display:grid;gap:8px;">
+            <sc-for list="{{ setSummary }}" as="st" hint-placeholder-count="2">
+              <div style="padding:9px 11px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                  <span style="color:#e5c88f;font-size:12px;font-weight:600;">{{ st.name }}</span>
+                  <span style="flex:none;color:#8a795f;font-size:10px;">{{ st.count }}</span>
+                </div>
+                <div style="margin-top:3px;color:#a4906d;font-size:10.5px;line-height:1.4;">{{ st.bonus }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ hasRuneSynergies }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:4px;color:#8a795f;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Rune synergies</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:7px;">
+                <sc-for list="{{ runeChips }}" as="rc" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border:1px solid {{ rc.border }};border-radius:9px;background:rgba(0,0,0,.22);">
+                    <span style="flex:0 0 auto;width:7px;height:7px;margin-top:4px;border-radius:50%;background:{{ rc.dot }};box-shadow:0 0 6px {{ rc.dot }};"></span>
+                    <div style="min-width:0;">
+                      <div style="color:#8a795f;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">{{ rc.slot }}</div>
+                      <div style="margin-top:2px;color:#d9c8a5;font-size:10.5px;line-height:1.35;">{{ rc.statsText }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noActiveSystems }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:10px 11px;border:1px dashed rgba(212,166,94,.18);border-radius:9px;color:#8a795f;font-size:10.5px;line-height:1.45;">No equipment set bonus or rune synergy is active in this loadout.</div>
+            </sc-if>
+          </div>
+        </div>
       <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ false }}">
-        <div style="margin-bottom:13px;padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
+        <div style="padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
             <span style="flex:none;width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(185,140,240,.55);border-radius:9px;background:rgba(185,140,240,.12);color:#d8b8ff;font-size:14px;">✦</span>
             <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 15px Marcellus,serif;">Tune the tradeoff</div><div style="margin-top:2px;color:#8f7e9f;font-size:9.5px;line-height:1.45;">Drag any stat. Each slider snaps to a complete recalculated build retained from this Forge.</div></div>
@@ -1142,6 +1152,7 @@
           <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Sliders, − / + steps, typed targets, and the build list only select complete builds already recalculated by the optimizer.</div>
         </div>
       </sc-if>
+      </div>
       </sc-if>
 
       <div style="margin-top:8px;color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;">{{ activeTabName }}</div>
@@ -1694,10 +1705,10 @@ class Component extends DCLogic {
     { name:'Warden Bulwark', count:'3 / 3 pieces', bonus:'2pc: Endurance +90 · 3pc: incoming crit damage −4%' },
   ];
   RUNE_CHIPS = [
-    { label:'Magic Double Def ·6', dot:'#87acef', border:'rgba(135,172,239,.4)' },
-    { label:'PvP Crit Def ·4', dot:'#c984f1', border:'rgba(201,132,241,.4)' },
-    { label:'Melee Accuracy ·5', dot:'#f2c777', border:'rgba(242,199,119,.4)' },
-    { label:'All State Tol ·3', dot:'#7ee0a6', border:'rgba(126,224,166,.4)' },
+    { slot:'Off Hand', statsText:'+4 Dexterity · +3.5% Attack Speed', label:'Off Hand: +4 Dexterity · +3.5% Attack Speed', dot:'#87acef', border:'rgba(135,172,239,.4)' },
+    { slot:'Head', statsText:'+400 Max Health · +20 Boss Damage Reduction', label:'Head: +400 Max Health · +20 Boss Damage Reduction', dot:'#c984f1', border:'rgba(201,132,241,.4)' },
+    { slot:'Chest', statsText:'+2 Dexterity · +70 Ranged Defense', label:'Chest: +2 Dexterity · +70 Ranged Defense', dot:'#f2c777', border:'rgba(242,199,119,.4)' },
+    { slot:'Legs', statsText:'+2 Wisdom · +70 Magic Defense', label:'Legs: +2 Wisdom · +70 Magic Defense', dot:'#7ee0a6', border:'rgba(126,224,166,.4)' },
   ];
 
   RARITY = {
@@ -2650,7 +2661,10 @@ class Component extends DCLogic {
         color: (done || cur) ? '#e5c88f' : '#6f5f49' };
     });
 
-    const resultGearSlots=this.core?this.core.EQUIPMENT_SLOTS.map(row=>row.id).filter(id=>!['main_hand','off_hand'].includes(id)):[];
+    // Canonical display order for gear (mirrors the in-game equipment screen). Drives
+    // both the Equipment panel and the gearing guide; weapons render separately (bottom).
+    const gearDisplayOrder=['head','cloak','chest','hands','legs','feet','necklace','earring','ring_1','ring_2','bracelet','belt','brooch'];
+    const resultGearSlots=this.core?gearDisplayOrder.filter(id=>this.core.EQUIPMENT_SLOTS.some(r=>r.id===id)):[];
     const gearSource = s.result ? resultGearSlots.map(id=>this.resultItem(id)).filter(Boolean) : [...this.GEAR_LEFT, ...this.GEAR_RIGHT];
     const ownedSlotMap = {};
     const gearAll = gearSource.map(it => {
@@ -2787,11 +2801,16 @@ class Component extends DCLogic {
       return {name:set.name,count:set.equippedPieces+' / '+set.memberPieces+' pieces',bonus:bonuses.join(' · ')||'No set bonus active yet'};
     }) : this.SET_SUMMARY;
     const runeSynergies=s.resultCalc?.runeSynergies||{};
-    const runeChips=s.result ? Object.entries(runeSynergies).filter(([,synergy])=>Boolean(synergy)).map(([slotId,synergy],index)=>({
-      label:(this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId)+': '+(synergy.name||'Rune synergy')+Object.entries(synergy.stats||{}).map(([id,value])=>' · '+this.core.formatSigned(value,id)+' '+this.core.statName(id)).join(''),
-      dot:['#87acef','#c984f1','#f2c777','#7ee0a6'][index%4],
-      border:['rgba(135,172,239,.4)','rgba(201,132,241,.4)','rgba(242,199,119,.4)','rgba(126,224,166,.4)'][index%4],
-    })) : this.RUNE_CHIPS;
+    const runeChips=s.result ? Object.entries(runeSynergies).filter(([,synergy])=>Boolean(synergy)).map(([slotId,synergy],index)=>{
+      const slot=this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId;
+      const stats=Object.entries(synergy.stats||{}).map(([id,value])=>this.core.formatSigned(value,id)+' '+this.core.statName(id));
+      return {
+        slot, statsText:stats.join(' · '),
+        label:slot+': '+(synergy.name||'Rune synergy')+stats.map(s=>' · '+s).join(''),
+        dot:['#87acef','#c984f1','#f2c777','#7ee0a6'][index%4],
+        border:['rgba(135,172,239,.4)','rgba(201,132,241,.4)','rgba(242,199,119,.4)','rgba(126,224,166,.4)'][index%4],
+      };
+    }) : this.RUNE_CHIPS;
     const runeCount=selectedRows.reduce((sum,row)=>sum+(Array.isArray(row.runes)?row.runes.filter(rune=>rune?.runeId).length:0),0);
     const heroicCountResult=selectedItems.filter(item=>Number(item.grade)===Number(this.core?.HEROIC_GRADE)).length;
     const gearRows=s.result?[
@@ -2893,8 +2912,8 @@ class Component extends DCLogic {
     // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
     const acqMap=s.acquisition||{};
     const fmtNum=(n)=>this.core?.formatNumber?this.core.formatNumber(n):String(n);
-    // Guide lists items in the game's equipment-panel slot order (head→feet→accessories).
-    const slotOrder=Object.fromEntries((this.core?.EQUIPMENT_SLOTS||[]).map((row,i)=>[row.id,i]));
+    // Guide lists items in the same in-game equipment-panel order, weapons at the bottom.
+    const slotOrder=Object.fromEntries([...gearDisplayOrder,'main_hand','off_hand'].map((id,i)=>[id,i]));
     const guideItems=(s.result&&this.core)?Object.entries(s.result.build.equipment||{}).map(([slot,sel])=>{
       const itemId=sel&&sel.itemId; if(!itemId)return null;
       const item=this.core.indexes?.itemById?.[itemId]||{};
@@ -3185,7 +3204,7 @@ class Component extends DCLogic {
 
       gearAll, weapons, artifacts,
       moveHover: this.moveHover, leaveHover: this.leaveHover, closeAttr: () => this.setState({ openAttr: null }),
-      weaponStats, attrTracks, setSummary, runeChips, noActiveSystems:setSummary.length===0&&runeChips.length===0,
+      weaponStats, attrTracks, setSummary, runeChips, hasRuneSynergies:runeChips.length>0, noActiveSystems:setSummary.length===0&&runeChips.length===0,
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
       tuneCandidates, hasTuneCandidates:tuneCandidates.length>1, selectTuneCandidate:this.selectTuneCandidate,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
