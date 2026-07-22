@@ -1172,7 +1172,7 @@
           <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:9px;">
             <div style="flex:1;min-width:170px;">
               <div style="color:#f2c777;font:400 16px Marcellus,serif;">Where to get this gear</div>
-              <div style="margin-top:3px;color:#8a795f;font-size:10px;line-height:1.5;">Ordered by impact on your build, then by how quickly you can get each piece — farm it, buy it, or craft it.</div>
+              <div style="margin-top:3px;color:#8a795f;font-size:10px;line-height:1.5;">Each piece in equipment order, with where to get it — farm it, buy it, or craft it.</div>
             </div>
             <div style="flex:0 0 auto;padding:9px 14px;border:1px solid rgba(212,166,94,.22);border-radius:11px;background:rgba(26,20,13,.6);">
               <div style="color:#7d6b51;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;">Est. build cost</div>
@@ -2070,43 +2070,6 @@ class Component extends DCLogic {
       return Object.fromEntries(this.state.priorities.map(id=>[id,this.compareStatValue(calc,id)]));
     }catch{return null;}
   }
-  // Per-item impact for the gearing guide: how much of each favourited stat a
-  // piece provides, measured as the marginal drop in that priority's total when
-  // the slot is emptied, weighted by the priority's rank. Memoised per result so
-  // it runs its ~one-calc-per-slot pass only once, not on every guide re-render.
-  guideImpactScores(){
-    const s=this.state, r=s.result;
-    if(!r||!this.core||!r.build)return {};
-    const eq=r.build.equipment||{};
-    const sig=(r.name||'')+'|'+s.priorities.join(',')+'|'+Object.keys(eq).map(k=>k+':'+(eq[k]?.itemId||'')).join(',');
-    if(this._impactCache&&this._impactCache.sig===sig)return this._impactCache.scores;
-    const prios=s.priorities;
-    let scores={};
-    if(prios.length){
-      try{
-        const attrs=r.optimizedAttributes||r.attributes||{};
-        const opts={includeSetEffects:!!(s.rules&&s.rules.sets),optionalFallback:false,...(r.scenario?{scenario:r.scenario}:{})};
-        const fullCalc=s.resultCalc||this.core.calculateBuild(r.build,attrs,opts);
-        const fullVals=prios.map(id=>this.compareStatValue(fullCalc,id)||0);
-        const N=prios.length;
-        for(const [slot,sel] of Object.entries(eq)){
-          const itemId=sel&&sel.itemId; if(!itemId)continue;
-          const emptied=this.core.deepClone(r.build);
-          emptied.equipment[slot]=this.core.emptyEquipmentSelection();
-          let calc; try{calc=this.core.calculateBuild(emptied,attrs,opts);}catch{continue;}
-          let score=0;
-          prios.forEach((id,i)=>{
-            const full=fullVals[i]; if(!(full>0))return;
-            const without=this.compareStatValue(calc,id)||0;
-            score+=(N-i)*Math.max(0,(full-without)/full);
-          });
-          scores[itemId]=score;
-        }
-      }catch{scores={};}
-    }
-    this._impactCache={sig,scores};
-    return scores;
-  }
   openComparePanel = () => {
     try{
       const gameBuild=this.core.data?.gameBuild??'unversioned';
@@ -2908,7 +2871,8 @@ class Component extends DCLogic {
     // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
     const acqMap=s.acquisition||{};
     const fmtNum=(n)=>this.core?.formatNumber?this.core.formatNumber(n):String(n);
-    const impactScores=(s.result&&this.core)?this.guideImpactScores():{};
+    // Guide lists items in the game's equipment-panel slot order (head→feet→accessories).
+    const slotOrder=Object.fromEntries((this.core?.EQUIPMENT_SLOTS||[]).map((row,i)=>[row.id,i]));
     const guideItems=(s.result&&this.core)?Object.entries(s.result.build.equipment||{}).map(([slot,sel])=>{
       const itemId=sel&&sel.itemId; if(!itemId)return null;
       const item=this.core.indexes?.itemById?.[itemId]||{};
@@ -2927,7 +2891,6 @@ class Component extends DCLogic {
       if(bestProb>0)ease=Math.max(ease,40+bestProb*2);
       if(craftCostNum!=null)ease=Math.max(ease,62-Math.min(craftCostNum/500,20));
       if(ease===0)ease=30;
-      const impact=impactScores[itemId]||0;
       // Headline badge: the single best answer to "how do I get this?"
       const PAL={boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
       let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above',sourceLucent=false;
@@ -2939,9 +2902,9 @@ class Component extends DCLogic {
       const sourceColor=PAL[sourceCls].c,sourceBg=PAL[sourceCls].b;
       const sourcePlain=!sourceLucent;
       return {
-        itemId, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
+        itemId, slotId:slot, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
         image:item.imageUrl||'', hasImage:!!item.imageUrl,
-        impact, ease, marketPriceNum, craftCostNum,
+        ease, marketPriceNum, craftCostNum,
         sourceCls, sourceTag, sourceDetail, sourceColor, sourceBg, sourceLucent, sourcePlain,
         craftable:!!craft, notCraftable:!craft,
         craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
@@ -2956,8 +2919,8 @@ class Component extends DCLogic {
         marketOther:mp?(mp.error?'Price unavailable':(marketPriceNum==null?'Not tradeable':'')):'',
       };
     }).filter(Boolean):[];
-    // Impact first (most valuable to the character), ease as the tie-breaker.
-    guideItems.sort((a,b)=>(b.impact-a.impact)||(b.ease-a.ease)||a.name.localeCompare(b.name));
+    // Ordered to mirror the in-game equipment panel (head→feet→accessories).
+    guideItems.sort((a,b)=>((slotOrder[a.slotId]??99)-(slotOrder[b.slotId]??99))||a.name.localeCompare(b.name));
     const guideTotalLucent=guideItems.reduce((t,g)=>t+(g.marketPriceNum||0),0);
     const guideTotalSollant=guideItems.reduce((t,g)=>t+(g.craftCostNum||0),0);
     const guideHasLucent=guideItems.some(g=>g.marketPriceNum!=null);
