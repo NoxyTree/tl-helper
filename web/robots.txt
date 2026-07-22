@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /ItemHoverCard.dc.html
+Disallow: /combat-lab
 Disallow: /api/
 
 Sitemap: https://tlhelper.org/sitemap.xml

@@ -37,7 +37,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 
 | Layer | Current state | Entry point or evidence |
 | --- | --- | --- |
-| Web application | Armory, tracker, achievements, static build calculator, and first Combat Lab | `web/` |
+| Web application | Armory, tracker, achievements, static build calculator, and Gear Viewer | `web/` |
 | BuildSnapshot v1 | Immutable, versioned static-build contract used by Armory, tracker, and tests | `web/tl-build-snapshot.js` |
 | Static calculation regression | 69/69 assertions across 3 fixtures; 12/12 edge cases | `scripts/verify-reference-build.mjs`, `scripts/verify-edge-cases.mjs` |
 | Coverage audit | All four stated counts validate from the new data root | `node scripts/audit-questlog-coverage.mjs` |
@@ -59,7 +59,7 @@ confidence, and whether it is extracted, derived, modeled, or calibrated.
 | PvP modeled operations | Signed SDB−SDR, caller-constant Defense, Critical/Heavy resistance floors, glancing, and Heavy Chance−Evasion are isolated provenance-labeled operations; official mode caps remain distinct from modeled curves | `packages/combat-engine/src/pvp-models.mjs` |
 | PvP formula research | Four manual packages reduced to Heavy Evasion as the top PvP unknown plus small checks for current-cap constants, rounding, DoT crits, and block stacking | `docs/pvp-formula-research-2026-07-11.md` |
 | Test readiness | Exact no-test, passive-log, and deliberate-capture boundaries for every pending combat question | `docs/combat-testing-rundown.md` |
-| Combat Lab | Ability Damage plus a two-fighter PvP screen with automatic Questlog URL imports, local gear rendering, saved-build prefills, and visible-stat contest summaries | `web/combat-lab.html` |
+| Combat Lab | Implementation retained for research, but hidden and redirected out of the public release because its results are not consistent enough | `web/combat-lab.html` |
 | Skill-to-formula map | All 210 player skill sets covered: 130 exact, 51 derived, 29 unresolved | `docs/skill-formula-mapping.md` |
 | Combat-power parity | 1,280 source-aware item mappings; 161 unresolved; full aggregation remains unresolved | `plans/combat-simulator/combat-power-parity.md` |
 | Armory persistence | Versioned state and presets with legacy migration, corrupt recovery, and build mismatch warnings | `web/tl-persistence.js` |
@@ -114,8 +114,9 @@ combat-pipeline order, rounding, server tick behavior, threat coefficients, or
 all PvP modifiers. These are catalogued in
 `plans/combat-simulator/unknown-formulas.md` and must not be invented.
 
-The first trustworthy Combat Lab is now available at `web/combat-lab.html`.
-It uses saved BuildSnapshots, reviewed real ability rows, verified Epic and
+The Combat Lab implementation remains at `web/combat-lab.html` for research,
+but is hidden and redirected out of the public release. It uses saved
+BuildSnapshots, reviewed real ability rows, verified Epic and
 Heroic level mappings, Base Damage range endpoints, complete calculation
 traces, and stage-level precision. Its PvP matchup panel prefills visible stats
 from saved source and target builds, supports melee, ranged, and magic contests,
@@ -154,8 +155,8 @@ artifact immutably, exposes expression-only inspection by default, and requires
 an explicit opt-in for a caller-supplied Base Damage projection. The result is
 always marked pre-resolution with final combat precision unsupported.
 
-The first Milestone 3 user-facing slice is complete. The Combat Lab projects
-both ends of a selected source build's Base Damage range, maps only the
+The first Milestone 3 browser slice remains implemented but is not part of the
+public release. It projects both ends of a selected source build's Base Damage range, maps only the
 live-verified Epic and Heroic level windows, preserves both fixed-point traces,
 and exposes forced outcomes as descriptive but non-executable. Judgment
 Lightning is the simple-damage baseline: its displayed result is explicitly a
@@ -240,10 +241,8 @@ index, and decoded-versus-live parity evidence before application verification.
 1. Build the calibration hypothesis enumerator for multiplier, roll, and
    rounding candidates.
 2. Materialize the nine reviewed Heavy Attack skill/passive sources.
-3. Wire additional reviewed real abilities into the Combat Lab one case at a
-   time.
-4. Complete full manual Questlog panels for healer and ranged builds.
-5. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
+3. Complete full manual Questlog panels for healer and ranged builds.
+4. Implement the native `TLItemCombatPower` consumer and resolve aggregation.
 
 ## Read first next session
 

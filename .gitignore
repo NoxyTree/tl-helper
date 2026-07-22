@@ -32,3 +32,6 @@ supabase/.branches/
 /Output/
 /oodle-data-shared.dll
 /zlib-ng2.dll
+
+.vercel
+.env*

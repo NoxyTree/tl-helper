@@ -33,6 +33,20 @@ test("hosted Questlog adapter preserves the local adapter safety boundary", asyn
   assert.doesNotMatch(worker, /service[_-]?role/i);
 });
 
+test("both deployment targets expose the bounded market adapter", async () => {
+  const vercel = await read("api/market/prices.js");
+  const cloudflare = await read("functions/api/market/prices.js");
+  const shared = await read("packages/market-data/tldb-market.mjs");
+  assert.match(vercel, /createTldbMarketService/);
+  assert.match(cloudflare, /createTldbMarketService/);
+  assert.match(shared, /MAX_RESPONSE_BYTES = 2_000_000/);
+  assert.match(shared, /STALE_TTL_MS/);
+  assert.match(shared, /"20005"/);
+  assert.match(shared, /"50005"/);
+  assert.match(shared, /"60005"/);
+  assert.doesNotMatch(shared, /cookie|authorization/i);
+});
+
 test("production headers protect documents without freezing stable projection names", async () => {
   const headers = await read("web/_headers");
   assert.match(headers, /X-Content-Type-Options: nosniff/);
@@ -77,7 +91,6 @@ test("public pages expose production discovery and accessibility metadata", asyn
     ["web/index.html", "https://tlhelper.org/"],
     ["web/tracker.html", "https://tlhelper.org/tracker"],
     ["web/achievements.html", "https://tlhelper.org/achievements"],
-    ["web/combat-lab.html", "https://tlhelper.org/combat-lab"],
     ["web/privacy.html", "https://tlhelper.org/privacy"],
   ];
   for (const [file, canonical] of pages) {
@@ -99,9 +112,32 @@ test("search discovery files publish only the clean production pages", async () 
   const sitemap = await read("web/sitemap.xml");
   assert.match(robots, /Sitemap: https:\/\/tlhelper\.org\/sitemap\.xml/);
   assert.match(robots, /Disallow: \/api\//);
-  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/privacy"]) {
+  for (const route of ["/", "/tracker", "/achievements", "/privacy"]) {
     assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
   }
+  assert.ok(!sitemap.includes("/combat-lab"), "sitemap excludes hidden Combat Lab");
+  assert.match(robots, /Disallow: \/combat-lab/);
+});
+
+test("production routes keep Combat Lab out of the public release surface", async () => {
+  const redirects = await read("web/_redirects");
+  const headers = await read("web/_headers");
+  const vercel = JSON.parse(await read("vercel.json"));
+  const combatLab = await read("web/combat-lab.html");
+  const cloudflareRoute = await read("functions/combat-lab.js");
+
+  assert.match(redirects, /^\/combat-lab \/ 302$/m);
+  assert.match(redirects, /^\/combat-lab\.html \/ 302$/m);
+  assert.match(headers, /^\/combat-lab\*\s+[\s\S]*?X-Robots-Tag: noindex, nofollow/m);
+  assert.match(combatLab, /<meta name="robots" content="noindex, nofollow">/i);
+  assert.match(cloudflareRoute, /Response\.redirect\(new URL\("\/", request\.url\), 302\)/);
+  assert.deepEqual(
+    vercel.redirects.filter(({ source }) => source.startsWith("/combat-lab")),
+    [
+      { source: "/combat-lab", destination: "/", permanent: false },
+      { source: "/combat-lab.html", destination: "/", permanent: false },
+    ],
+  );
 });
 
 test("standalone pages use the shared application header", async () => {

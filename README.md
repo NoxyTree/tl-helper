@@ -75,11 +75,10 @@ Open:
 http://127.0.0.1:8790/index.html
 http://127.0.0.1:8790/tracker.html
 http://127.0.0.1:8790/achievements.html
-http://127.0.0.1:8790/combat-lab.html
 ```
 
-Use the bundled Node server rather than a generic static server. Combat Lab's
-Questlog URL importer uses its locked-down same-origin adapter.
+Use the bundled Node server rather than a generic static server so Questlog URL
+imports use the locked-down same-origin adapter.
 
 The Armory is a native TL-Helper build editor. A new visitor starts with an
 empty local build and can select equipment, skills, masteries, runes,

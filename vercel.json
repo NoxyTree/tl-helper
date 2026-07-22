@@ -4,6 +4,10 @@
   "buildCommand": null,
   "outputDirectory": "web",
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/combat-lab", "destination": "/", "permanent": false },
+    { "source": "/combat-lab.html", "destination": "/", "permanent": false }
+  ],
   "headers": [
     {
       "source": "/(.*)",

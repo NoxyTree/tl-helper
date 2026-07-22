@@ -58,6 +58,17 @@ test("hover cards show inherent stats separately and gear can filter exact item 
   assert.match(html, /if \(model\.hasStats\).*Stats.*statRows\(model\.stats\)/);
   assert.match(core, /name: statName\(statId\), formattedValue: formatStat\(statId, value\)/);
   assert.match(html, /grid-template-columns: 12px minmax\(0, 1fr\) auto/);
+  assert.match(html, /\.hc-stat-row\.core \{ grid-template-columns: minmax\(0, 1fr\) auto/);
+});
+
+test("Gear Viewer hover cards retain the shared Armory sections and spacing", async () => {
+  const hoverCard = await readFile(new URL("../../web/ItemHoverCard.dc.html", import.meta.url), "utf8");
+  for (const section of ["Stats", "Traits", "Heroic Trait", "Heroic Effects", "Runes", "Rune Synergy", "Set Effects"]) {
+    assert.ok(html.includes(section), `Gear Viewer is missing ${section}`);
+    assert.ok(hoverCard.includes(section), `shared hover is missing ${section}`);
+  }
+  assert.match(html, /\.hc-section \{ padding: 9px 14px; border-top: 1px solid rgba\(212, 166, 94, 0\.1\)/);
+  assert.match(html, /\.hc-title \{[^}]*letter-spacing: 0\.16em[^}]*margin-bottom: 5px/);
 });
 
 test("equipped labels do not interrupt item names and attribute effects nest beneath their parent", async () => {

@@ -15,3 +15,6 @@
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/combat-lab*
+  X-Robots-Tag: noindex, nofollow

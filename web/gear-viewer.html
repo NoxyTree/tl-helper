@@ -64,7 +64,8 @@
     table.gear th.item-col { text-align: left; }
     table.gear th .arrow { color: var(--tl-shell-gold); font-size: 10px; margin-left: 3px; }
     table.gear th.active-sort { color: #ffe9b8; }
-    table.gear td { padding: 6px 10px; border-bottom: 1px solid rgba(212, 166, 94, 0.07); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    table.gear td { padding: 6px 10px; border-bottom: 1px solid rgba(212, 166, 94, 0.07); background: #120d08; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    table.gear .meta-start { border-left: 1px solid rgba(212, 166, 94, 0.1); }
     table.gear tr:hover td { background: rgba(212, 166, 94, 0.05); }
     table.gear tr.equipped-row td { background: rgba(85, 213, 138, 0.045); border-top: 1px solid rgba(126, 224, 166, 0.24); border-bottom-color: rgba(126, 224, 166, 0.2); }
     table.gear tr.equipped-row td.item-cell-td, table.gear tr.equipped-row td.fav-cell { background: #10140d; }
@@ -93,21 +94,22 @@
     .equipped-mark { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid rgba(127, 214, 201, 0.55); border-radius: 999px; font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: #7fd6c9; vertical-align: middle; }
     .pinned-mark { color: #7ee0a6; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; }
     /* Item hover card (mirrors the Armory's ItemHoverCard) */
-    #hover-card { position: fixed; z-index: 80; width: min(340px, calc(100vw - 24px)); max-height: 86vh; overflow-y: auto; pointer-events: none; border: 1px solid rgba(212, 166, 94, 0.48); border-radius: 10px; background: linear-gradient(180deg, rgba(27, 20, 13, 0.995), rgba(11, 8, 5, 0.995)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.75); }
+    #hover-card { position: fixed; z-index: 80; width: 340px; max-width: calc(100vw - 24px); max-height: 86vh; overflow-y: auto; pointer-events: none; border: 1px solid rgba(212, 166, 94, 0.48); border-radius: 10px; background: linear-gradient(180deg, rgba(27, 20, 13, 0.995), rgba(11, 8, 5, 0.995)); box-shadow: 0 22px 55px rgba(0, 0, 0, 0.75); font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif; }
     #hover-card .hc-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
-    #hover-card .hc-icon { flex: none; width: 46px; height: 46px; border-radius: 9px; background-size: cover; background-position: center; background-color: #171209; border: 1px solid transparent; }
+    #hover-card .hc-icon { flex: none; width: 46px; height: 46px; border-radius: 9px; overflow: hidden; background-size: cover; background-position: center; background-color: #171209; border: 1px solid transparent; display: block; }
     #hover-card .hc-name { font-size: 15px; font-weight: 700; line-height: 1.2; }
     #hover-card .hc-meta { font-size: 10.5px; color: #9d8a68; margin-top: 3px; }
-    #hover-card .hc-section { padding: 10px 14px; border-top: 1px solid rgba(212, 166, 94, 0.16); }
-    #hover-card .hc-title { font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase; color: #cbb185; margin-bottom: 7px; }
+    #hover-card .hc-section { padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1); }
+    #hover-card .hc-title { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px; }
     #hover-card .hc-title.heroic { color: #ffb765; }
     #hover-card .hc-title.resonance { color: #cf9dff; }
     #hover-card .hc-line { font-size: 11.5px; color: #d9c8a5; line-height: 1.5; }
     #hover-card .hc-stat-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: baseline; column-gap: 5px; min-height: 19px; font-size: 12px; line-height: 1.45; }
+    #hover-card .hc-stat-row.core { grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; }
+    #hover-card .hc-stat-row.core .mark { display: none; }
     #hover-card .hc-stat-row .mark { color: #76654b; text-align: center; }
     #hover-card .hc-stat-row .stat-name { color: #cfc1a6; }
     #hover-card .hc-stat-row .stat-value { color: #f0e1c1; font-weight: 600; font-variant-numeric: tabular-nums; padding-left: 12px; }
-    #hover-card .hc-stat-row.core .mark { visibility: hidden; }
     #hover-card .hc-stat-row.extra .mark { color: #b8ab92; }
     #hover-card .hc-stat-row.trait .mark { color: #d4a65e; }
     #hover-card .hc-stat-row.resonance .mark, #hover-card .hc-stat-row.resonance .stat-name, #hover-card .hc-stat-row.resonance .stat-value { color: #cf9dff; }
@@ -128,6 +130,16 @@
     #hover-card .hc-effect-name { font-size: 11.5px; font-weight: 650; color: #e6d6b4; }
     #hover-card .hc-effect-name span { color: #8a795f; font-weight: 400; }
     #hover-card .hc-effect-text { font-size: 10.5px; line-height: 1.5; color: #a4906d; margin-top: 2px; }
+    #hover-card .hc-runes { display: grid; gap: 8px; }
+    #hover-card .hc-rune { display: flex; align-items: center; gap: 9px; }
+    #hover-card .hc-rune.empty { opacity: 0.5; }
+    #hover-card .hc-rune-icon { flex: none; position: relative; width: 34px; height: 34px; border-radius: 999px; background-size: cover; background-position: center; background-color: #171209; display: block; }
+    #hover-card .hc-rune-icon.empty { border: 1.5px dashed rgba(212, 166, 94, 0.3); }
+    #hover-card .hc-rune-level { position: absolute; right: -4px; bottom: -4px; font-size: 9px; font-weight: 700; color: #f3e9d4; background: rgba(10, 8, 5, 0.95); border-radius: 999px; padding: 0 4px; }
+    #hover-card .hc-rune-type { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; }
+    #hover-card .hc-rune-grade { margin-left: 6px; font-size: 9.5px; color: #8a795f; }
+    #hover-card .hc-rune-value { font-size: 11px; color: #d9c8a5; margin-top: 1px; font-variant-numeric: tabular-nums; }
+    #hover-card .hc-synergy { border-top-color: rgba(126, 224, 166, 0.22); background: rgba(85, 213, 138, 0.06); }
     #hover-card .hc-heroic-row { display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; line-height: 1.5; }
     #hover-card .hc-heroic-row .num { color: #8a795f; }
     #hover-card .hc-heroic-row .fill { flex: 1; border-bottom: 1px dotted rgba(255, 152, 45, 0.18); transform: translateY(-3px); }
@@ -151,7 +163,7 @@
   <a class="tl-skip-link" href="#main-content">Skip to gear viewer</a>
   <header class="tl-app-header">
     <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Gear Viewer</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./combat-lab.html">Combat Lab</a><span class="tl-app-nav-item is-active" aria-current="page">Gear Viewer</span><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><span class="tl-app-nav-item is-active" aria-current="page">Gear Viewer</span><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
     <div class="tl-app-header-end"><div class="build-stamp"><small>Game data build</small><strong id="game-build">Loading</strong></div></div>
   </header>
 
@@ -239,6 +251,8 @@
     const $ = (id) => document.getElementById(id);
     const FAVORITES_KEY = "tlhelper-gear-viewer-favorites-v1";
     const ROW_LIMIT = 120;
+    let marketByItemKey = new Map();
+    let marketSnapshotGeneratedAt = "";
 
     const state = {
       mode: "bare",
@@ -608,7 +622,7 @@
       $("table-head").innerHTML = `<tr>
         <th class="fav-col no-sort"></th>
         <th class="item-col ${state.sortKey === "name" ? "active-sort" : ""}" data-sort="name">Item${arrow("name")}</th>
-        <th data-sort="grade" class="${state.sortKey === "grade" ? "active-sort" : ""}">Grade${arrow("grade")}</th>
+        <th data-sort="grade" class="meta-start ${state.sortKey === "grade" ? "active-sort" : ""}">Grade${arrow("grade")}</th>
         <th data-sort="ilv" class="${state.sortKey === "ilv" ? "active-sort" : ""}">iLv${arrow("ilv")}</th>
         ${statHeads}
         ${state.protected.length ? `<th class="no-sort" title="Protected-stat change versus your equipped item">Guard</th>` : ""}
@@ -663,7 +677,7 @@
             <span><span class="name" style="color:${color}">${row.item.name}</span>
             <span class="sub"><span>${core.label(row.item.equipmentType)}</span>${row.isPinned ? `<span class="pinned-mark">● Currently equipped</span>` : equippedIds.has(row.item.id) ? `<span class="equipped-mark">equipped</span>` : ""}</span></span>
           </span></td>
-          <td style="color:${color}">${core.gradeName(row.item.grade)}</td>
+          <td class="meta-start" style="color:${color}">${core.gradeName(row.item.grade)}</td>
           <td>${row.level}</td>
           ${statCells}
           ${guardCell}
@@ -802,6 +816,11 @@
       core.slotCollectionForSlot(build, slotId)[slotId] = selection;
       const calc = core.calculateBuild(build, context.attributes, { includeSetEffects: state.includeSetEffects });
       const model = core.buildItemHoverModel(slotId, build, calc, { beforeCalc, preferredStatIds: [...state.columns, ...state.protected], optionalFallback: state.withTraits });
+      const market = marketByItemKey.get(itemId);
+      model.marketPrice = market?.minimumPrice ?? null;
+      model.marketQuantity = market?.quantity ?? null;
+      model.marketSnapshotGeneratedAt = marketSnapshotGeneratedAt;
+      model.hasMarketPrice = Number.isFinite(model.marketPrice) && model.marketPrice > 0;
       model.isPotential = Boolean(candidate?.potential);
       model.potentialAssumptions = candidate?.potential?.assumptions ?? null;
       hoverModelCache.set(key, model);
@@ -820,6 +839,7 @@
         ${model.hasIcon ? `<span class="hc-icon" style="background-image:url('${esc(model.icon)}');border-color:${model.nameColor}"></span>` : ""}
         <div style="min-width:0"><div class="hc-name" style="color:${model.nameColor}">${esc(model.name)}</div><div class="hc-meta">${esc(model.meta)}</div></div>
       </div>`);
+      if (model.hasMarketPrice) sections.push(`<div class="hc-section" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;padding-bottom:8px" title="TLDB snapshot generated ${esc(model.marketSnapshotGeneratedAt || "at an unknown time")}"><span style="color:#f6d391;font-weight:700;font-variant-numeric:tabular-nums">${esc(model.marketPrice.toLocaleString("en-GB"))} Lucent</span><span style="color:#75654d;font-size:10px">Last known from TLDB.</span></div>`);
       if (model.isPotential) sections.push(`<div class="hc-section" style="border-top-color:rgba(255,152,45,0.22);background:rgba(255,152,45,0.045)"><div class="hc-title heroic">Best possible configuration</div><div class="hc-effect-text">Candidate ceiling for the selected Fit goals. Uses 3 optimized traits, 1 Heroic trait, and max-level Heroic effects. Your equipped item is not changed.</div></div>`);
       if (model.hasStats) sections.push(`<div class="hc-section"><div class="hc-title">Stats</div>${statRows(model.stats)}${model.hasAttributeGains ? `<div class="hc-gain-hint">Hold <kbd>Shift</kbd> to show attribute gains</div>` : ""}</div>`);
       if (model.hasTraits) sections.push(`<div class="hc-section"><div class="hc-title">Traits</div>${statRows(model.traits, "trait")}</div>`);
@@ -829,6 +849,10 @@
       if (model.hasResonance) sections.push(`<div class="hc-section hc-resonance"><div class="resonance-selected"><div class="hc-title resonance">Trait Resonance</div>${statRows(model.resonance, "resonance")}${model.resonanceOptions.length > model.resonance.length ? `<div class="hc-gain-hint">Hold <kbd>R</kbd> to show all possibilities</div>` : ""}</div><div class="resonance-all"><div class="hc-title resonance">Possible Trait Resonances</div>${statRows(model.resonanceOptions, "resonance")}</div></div>`);
       if (model.hasEffects) sections.push(`<div class="hc-section">${model.effects.map((fx) =>
         `<div class="hc-effect">${fx.hasIcon ? `<span class="hc-effect-icon" style="background-image:url('${esc(fx.icon)}')"></span>` : ""}<div style="min-width:0"><div class="hc-effect-name"><span>${esc(fx.label)}</span> ${esc(fx.name)}</div><div class="hc-effect-text">${esc(fx.text)}</div></div></div>`).join("")}</div>`);
+      if (model.hasRunes) sections.push(`<div class="hc-section"><div class="hc-title" style="margin-bottom:7px">Runes</div><div class="hc-runes">${model.runes.map((rune) => rune.empty
+        ? `<div class="hc-rune empty"><span class="hc-rune-icon empty"></span><span style="font-size:10.5px;color:#6e5f49">Empty socket</span></div>`
+        : `<div class="hc-rune"><span class="hc-rune-icon" style="border:1.5px solid ${rune.typeColor};background-image:url('${esc(rune.icon)}');box-shadow:0 0 8px ${rune.typeColor}44"><b class="hc-rune-level" style="border:1px solid ${rune.typeColor}">${esc(rune.level)}</b></span><div style="min-width:0"><div><span class="hc-rune-type" style="color:${rune.typeColor}">${esc(rune.typeLabel)}</span><span class="hc-rune-grade">${esc(rune.gradeName)}</span></div><div class="hc-rune-value">${esc(rune.contribution)}</div></div></div>`).join("")}</div></div>`);
+      if (model.hasSynergy) sections.push(`<div class="hc-section hc-synergy"><div class="hc-title" style="color:#7ee0a6">◆ Rune Synergy · ${esc(model.synergyName)}</div>${model.synergyStats.map((text) => `<div style="font-size:11.5px;color:#b9e7cb;line-height:1.5">${esc(text)}</div>`).join("")}</div>`);
       if (model.hasSet) sections.push(`<div class="hc-section"><div class="hc-set-head"><span class="hc-title" style="margin:0">Set Effects</span><span class="hc-set-count">${esc(model.setInfo.countLabel)}</span></div><div class="hc-set-name">${esc(model.setInfo.name)}</div>${model.setInfo.bonuses.map((bonus) =>
         `<div class="hc-bonus ${bonus.active ? "active" : "inactive"}"><span class="req" style="color:${bonus.color}">${bonus.mark} ${esc(bonus.required)}</span><span class="txt">${esc(bonus.text)}${bonus.hasComputed ? `<i style="display:block;font-style:normal;color:${bonus.color}">${esc(bonus.computedText)}</i>` : ""}</span></div>`).join("")}</div>`);
       $("hover-card").innerHTML = sections.join("");
@@ -977,6 +1001,14 @@
     async function boot() {
       try {
         await core.initCore("./data/app-data.json");
+        try {
+          const marketResponse = await fetch("/api/market/prices?region=eu", { headers: { accept: "application/json" } });
+          if (marketResponse.ok) {
+            const market = await marketResponse.json();
+            marketByItemKey = new Map((market.items ?? []).filter((row) => row.itemKey).map((row) => [row.itemKey, row]));
+            marketSnapshotGeneratedAt = market.snapshotGeneratedAtUtc ?? "";
+          }
+        } catch { /* Market prices are optional enhancement data. */ }
       } catch (error) {
         $("status").innerHTML = `<span class="error">Failed to load game data: ${error.message}</span>`;
         return;

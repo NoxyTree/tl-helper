@@ -212,17 +212,30 @@
   white-space: nowrap;
 }
 
-/* Armory carries editable build identity plus creation actions. Keep those
-   controls on a deliberate second row instead of allowing them to overflow. */
+/* Keep the Armory controls in the main header row when there is room. */
 .tl-armory-header {
-  grid-template-columns: 200px minmax(330px, 1fr) auto;
-  row-gap: 8px;
+  grid-template-columns: 200px minmax(330px, 1fr) auto auto;
+  column-gap: clamp(14px, 2vw, 36px);
 }
 
 .tl-armory-header .tl-toolbar-actions {
-  grid-column: 1 / -1;
+  grid-column: auto;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+/* At narrower desktop widths, use a clearly separated toolbar row rather
+   than squeezing the navigation, identity fields, and actions together. */
+@media (max-width: 1500px) {
+  .tl-armory-header {
+    grid-template-columns: 200px minmax(330px, 1fr) auto;
+    row-gap: 8px;
+  }
+
+  .tl-armory-header .tl-toolbar-actions {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 900px) {
