@@ -2912,7 +2912,16 @@ class Component extends DCLogic {
       ...setSummary.map(row=>({name:row.name,formattedValue:row.count,id:''})),
       ...runeChips.map(row=>({name:row.label,formattedValue:'Active',id:''})),
     ]:[];
-    const dynamicRows=s.statTab==='gear'?gearRows:s.statTab==='sets'?setRows:allStats.filter(matchesTab);
+    // Stat-tab ordering: favourites (in priority order) lead, then stats for this
+    // build's damage family + universal stats, and off-family variants sink last.
+    const familyWord={magic:'Magic',melee:'Melee',range:'Ranged'}[this.presets?.weaponStatFamily?.(s.weaponTypes.main)]||null;
+    const offFamilyWords=['Magic','Melee','Ranged'].filter(word=>word!==familyWord);
+    const statImportance=(row)=>{
+      const priorityIndex=s.priorities.indexOf(row.id);
+      if(priorityIndex>=0)return priorityIndex;
+      return offFamilyWords.some(word=>String(row.name).includes(word))?200:100;
+    };
+    const dynamicRows=s.statTab==='gear'?gearRows:s.statTab==='sets'?setRows:allStats.filter(matchesTab).sort((a,b)=>statImportance(a)-statImportance(b));
     const prototypeRows=(this.STATS[s.statTab]||[]).map(row=>({name:row[0],formattedValue:row[1],id:'',legacyFav:row[2]}));
     const activeStats = (dynamicRows.length?dynamicRows:(s.result?[]:prototypeRows)).map(row => {
       const fav = favouriteIds.has(row.id)||Boolean(row.legacyFav);
@@ -3032,10 +3041,12 @@ class Component extends DCLogic {
       // Headline badge: the single best answer to "how do I get this?"
       const PAL={raid:{c:'#f0b866',b:'rgba(240,184,102,.14)'},boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
       let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above',sourceLucent=false;
+      // Badge priority: raid > boss > craft > market — a fetched auction price must
+      // never displace a craft/boss/raid identity; the price lives in the market line.
       if(raidKnown){sourceCls='raid';sourceTag='Raid';sourceDetail=raidHasDrop?(raid.raid||'Raid')+' · '+raidDropPct:(raid.raid||'Raid')+' store';}
       else if(bestProb>0){sourceCls='boss';sourceTag='Boss drop';const top=drops.slice().sort((a,b)=>b.probNum-a.probNum)[0];sourceDetail='Best '+top.prob+' · '+top.name;}
-      else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=fmtNum(marketPriceNum);sourceLucent=true;}
       else if(craft){sourceCls='craft';sourceTag='Craft';const ic=(craft.ingredients||[]).length;sourceDetail=ic?ic+' material'+(ic===1?'':'s'):'Craftable';}
+      else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=mp.inStock!=null?mp.inStock+' listed':'Auction house';}
       else if(mp&&mp.error){sourceDetail='Price unavailable';}
       else if(mp){sourceCls='market';sourceTag='Market';sourceDetail='Not tradeable';}
       const sourceColor=PAL[sourceCls].c,sourceBg=PAL[sourceCls].b;
@@ -3052,7 +3063,7 @@ class Component extends DCLogic {
         craftIngredients:craft?craft.ingredients.slice(0,6).map(i=>({qty:fmtNum(i.qty)+'×',name:i.name,gear:!!i.isGear})):[],
         dropsKnown:drops.length>0, noDrops:drops.length===0, drops,
         marketChecked:!!mp, marketUnchecked:!mp,
-        showMarketBlock:!!mp&&!sourceLucent,
+        showMarketBlock:!!mp,
         marketHasPrice:marketPriceNum!=null, marketNoPrice:!!mp&&marketPriceNum==null,
         marketPriceText:marketPriceNum!=null?fmtNum(marketPriceNum):'',
         marketStock:(marketPriceNum!=null&&mp.inStock!=null)?(mp.inStock+' listed'):'',
