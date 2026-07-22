@@ -263,8 +263,20 @@
                   <button onClick="{{ rl.select }}" aria-pressed="{{ rl.on }}" style="padding:6px 15px;border:1px solid {{ rl.border }};border-radius:7px;background:{{ rl.bg }};color:{{ rl.color }};cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.5);">{{ rl.name }}</button>
                 </sc-for>
               </div>
-              <span style="color:#75664f;font-size:9.5px;">tailors the suggested stats</span>
             </div>
+            <sc-if value="{{ hasPresets }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-bottom:13px;">
+                <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:7px;"><span style="color:#7d6b51;font-size:9px;letter-spacing:.16em;text-transform:uppercase;">Preset</span><span style="color:#75664f;font-size:9.5px;">loads a ranked build — fine-tune below</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  <sc-for list="{{ presetChips }}" as="ps" hint-placeholder-count="4">
+                    <button onClick="{{ ps.select }}" aria-pressed="{{ ps.on }}" style="padding:7px 13px;border:1px solid {{ ps.border }};border-radius:8px;background:{{ ps.bg }};color:{{ ps.color }};cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(126,224,166,.5);">{{ ps.name }}</button>
+                  </sc-for>
+                  <sc-for list="{{ comingSoonChips }}" as="cs" hint-placeholder-count="1">
+                    <span title="Not made yet" style="padding:7px 13px;border:1px dashed rgba(212,166,94,.2);border-radius:8px;background:rgba(0,0,0,.15);color:#6f5f49;font:600 11px 'Instrument Sans';">{{ cs.name }} · soon</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
             <div style="color:#7d6b51;font-size:9px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px;">Add a priority</div>
             <button onClick="{{ togglePriorityPicker }}" aria-label="Add a priority stat" aria-expanded="{{ priorityPickerOpen }}" style="width:100%;min-height:44px;display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid {{ priorityPickerBorder }};border-radius:9px;background:{{ priorityPickerBg }};color:#e6d6b4;cursor:pointer;text-align:left;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.65);">
               <span style="width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(242,199,119,.35);border-radius:6px;color:#f2c777;font-size:15px;">+</span>
@@ -1444,6 +1456,7 @@ class Component extends DCLogic {
     prioritySearch: '',
     priorityCategory: 'suggested',
     role: 'dps',
+    preset: null,
     openComposite: null,
     dragPriorityId: null,
     dragOverPriorityId: null,
@@ -2314,20 +2327,32 @@ class Component extends DCLogic {
   removePriority(id) { this.setState({ priorities: this.state.priorities.filter(p => p !== id) }); }
   addPriority(id) { if (!this.state.priorities.includes(id)) this.setState({ priorities: [...this.state.priorities, id] }); }
   togglePriorityStat(id) { if (this.state.priorities.includes(id)) this.removePriority(id); else this.addPriority(id); }
-  setRole = (role) => this.setState({ role, priorityCategory:'suggested' });
-  // Best-fit stat ids for the current weapon family + chosen role, seeded from the
-  // curated presets (boss-dps / support / frontline-tank), maximize goals first.
-  suggestedStatIds() {
+  setRole = (role) => this.setState({ role, preset:null, priorityCategory:'suggested' });
+  // Resolve a class preset's stats for the current weapon family, filtered to known
+  // pickable stats, order + de-duplicated.
+  resolvePresetStats(presetId) {
     const s=this.state;
-    if(!this.presets||!s.weaponTypes.main||!s.weaponTypes.off||!s.role)return [];
-    const rolePreset={dps:'boss-dps',healer:'support',tank:'frontline-tank'};
+    if(!this.presets||!s.weaponTypes.main||!presetId)return [];
     try{
       const family=this.presets.weaponStatFamily(s.weaponTypes.main);
-      const preset=this.presets.resolveOptimizerPreset(rolePreset[s.role]||'boss-dps',{family});
+      const resolved=this.presets.resolveClassPreset(s.role,presetId,{family});
+      if(!resolved)return [];
       const known=new Set(s.statOptions.map(o=>o.id));
       const seen=new Set();
-      return [...preset.maximize,...preset.floors.map(f=>f.id)].filter(id=>known.has(id)&&!seen.has(id)&&seen.add(id));
+      return resolved.stats.filter(id=>known.has(id)&&!seen.has(id)&&seen.add(id));
     }catch{return [];}
+  }
+  // Picking a preset fills the ranked priority list with its stats (in order).
+  applyClassPreset(presetId) {
+    const stats=this.resolvePresetStats(presetId);
+    if(!stats.length)return;
+    this.setState({ preset:presetId, priorities:stats, goalModes:{}, goalValues:{}, priorityCategory:'suggested', priorityPickerOpen:false });
+  }
+  // The Suggested picker category mirrors the active preset (for easy re-add).
+  suggestedStatIds() {
+    const s=this.state;
+    if(!s.weaponTypes.main||!s.weaponTypes.off||!s.preset)return [];
+    return this.resolvePresetStats(s.preset);
   }
   applyPreset(presetId) {
     if (!this.presets) return;
@@ -2676,9 +2701,15 @@ class Component extends DCLogic {
     const activeCategory=categoryDefs.find(row=>row[0]===activeCatId)||categoryDefs[0];
     const priorityResultTitle=query?'Search results':activeCategory[1];
     const priorityResultHint=query?'Matches are grouped by combat category.':activeCategory[2];
-    // Role selector (seeds the Suggested stats). Shown once both weapons are chosen.
-    const roleChips=[['dps','DPS'],['healer','Healer'],['tank','Tank']].map(([id,name])=>{const on=s.role===id;return {name,on,select:()=>this.setRole(id),
+    // Role -> Preset selector (Weapons -> Role -> Preset). Shown once both weapons are chosen.
+    const classRoles=this.presets?.CLASS_ROLES||[];
+    const roleChips=classRoles.map(r=>{const on=s.role===r.id;return {name:r.label,on,select:()=>this.setRole(r.id),
       border:on?'rgba(242,199,119,.6)':'rgba(212,166,94,.22)',bg:on?'linear-gradient(135deg,rgba(107,68,22,.42),rgba(32,23,13,.6))':'rgba(0,0,0,.2)',color:on?'#f6d391':'#a4906d'};});
+    const activeRole=classRoles.find(r=>r.id===s.role);
+    const presetChips=(activeRole?.presets||[]).map(p=>{const on=s.preset===p.id;return {name:p.label,on,select:()=>this.applyClassPreset(p.id),
+      border:on?'rgba(126,224,166,.55)':'rgba(212,166,94,.22)',bg:on?'linear-gradient(135deg,rgba(31,76,47,.4),rgba(20,15,10,.6))':'rgba(0,0,0,.2)',color:on?'#9fd9b4':'#c6b489'};});
+    const comingSoonChips=(activeRole?.comingSoon||[]).map(name=>({name}));
+    const hasPresets=presetChips.length>0;
 
     const ruleMeta = {
       endgame: ['Endgame equipment', 'Level 50+ catalogue only', 'Excludes levelling and starter equipment below level 50. Disable this only when you deliberately want the optimizer to consider the full progression catalogue.'],
@@ -3219,11 +3250,7 @@ class Component extends DCLogic {
       toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
       rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.filter(row=>!row.selected).length, ruleList, setControls,
-      roleChips, weaponsChosen, showWeaponGate:!weaponsChosen,
-      presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>{
-        const skillIcon=this.core?.indexes?.skillById?.[preset.iconSkillId]?.imageUrl||'';
-        return {label:preset.label,tagline:preset.tagline,hasIcon:Boolean(skillIcon),icon:skillIcon?`url(${skillIcon}) center/cover`:'',select:()=>this.applyPreset(preset.id)};
-      }),
+      roleChips, presetChips, comingSoonChips, hasPresets, weaponsChosen, showWeaponGate:!weaponsChosen,
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
       priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',

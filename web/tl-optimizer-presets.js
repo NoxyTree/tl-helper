@@ -133,7 +133,75 @@ export const OPTIMIZER_PRESETS = [
   },
 ];
 
+// Class/role presets (Weapons -> Role -> Preset flow). Stat ids are ranked
+// goals in list order; the "{family}" token resolves to the main weapon's damage
+// family (melee / range / magic) so DPS "Heavy Attack Chance" etc. augment to the
+// weapon's type. Content-neutral defensive/utility stats stay as written.
+export const CLASS_ROLES = [
+  {
+    id: "dps", label: "DPS",
+    presets: [
+      { id: "pvp-heavy-dps", label: "PvP Heavy Attack", stats: [
+        "skill_power_amplification", "pvp_{family}_double_attack", "double_damage_dealt_modifier", "attack_speed_modifier", "skill_cooldown_modifier",
+      ] },
+      { id: "pvp-crit-dps", label: "PvP Crit", stats: [
+        "skill_power_amplification", "pvp_{family}_critical_attack", "critical_damage_dealt_modifier", "attack_speed_modifier", "skill_cooldown_modifier",
+      ] },
+      { id: "pvp-evasion-dps", label: "PvP Evasion", stats: [
+        "pvp_all_evasion", "skill_power_amplification", "pvp_{family}_critical_attack", "critical_damage_dealt_modifier", "pvp_{family}_double_attack", "double_damage_dealt_modifier", "attack_speed_modifier", "skill_cooldown_modifier",
+      ] },
+      { id: "pve-dps", label: "PvE", stats: [
+        "skill_power_amplification", "{family}_double_attack", "double_damage_dealt_modifier", "{family}_critical_attack", "critical_damage_dealt_modifier", "attack_speed_modifier", "skill_cooldown_modifier",
+      ] },
+    ],
+  },
+  {
+    id: "tank", label: "Tank",
+    presets: [
+      { id: "pvp-endurance-tank", label: "PvP Endurance", stats: [
+        "pvp_all_critical_defense", "pvp_magic_double_defense", "skill_cooldown_modifier", "buff_given_duration_modifier", "collide_amplification",
+      ] },
+      { id: "pve-tank", label: "PvE", stats: [
+        "hp_max", "skill_cooldown_modifier", "buff_given_duration_modifier",
+      ] },
+    ],
+  },
+  {
+    id: "oracle", label: "Oracle",
+    presets: [
+      { id: "pvp-endurance-oracle", label: "PvP Endurance", stats: [
+        "shield_modifier", "pvp_all_critical_defense", "skill_cooldown_modifier", "buff_given_duration_modifier", "pvp_magic_double_defense",
+      ] },
+      { id: "pvp-evasion-oracle", label: "PvP Evasion", stats: [
+        "shield_modifier", "pvp_all_evasion", "skill_cooldown_modifier", "buff_given_duration_modifier", "pvp_all_double_defense",
+      ] },
+    ],
+    comingSoon: ["PvE"],
+  },
+  {
+    id: "seeker", label: "Seeker",
+    presets: [
+      { id: "pvp-endurance-seeker", label: "PvP Endurance", stats: [
+        "continuous_heal_modifier", "pvp_all_critical_defense", "skill_cooldown_modifier", "buff_given_duration_modifier", "pvp_magic_double_defense",
+      ] },
+      { id: "pvp-evasion-seeker", label: "PvP Evasion", stats: [
+        "continuous_heal_modifier", "pvp_all_evasion", "skill_cooldown_modifier", "buff_given_duration_modifier", "pvp_all_double_defense",
+      ] },
+    ],
+    comingSoon: ["PvE"],
+  },
+];
+
 const substitute = (id, family) => id.replaceAll("{family}", family);
+
+// Resolve a class preset's stat ids for a weapon family (melee/range/magic/all).
+export function resolveClassPreset(roleId, presetId, { family = "all" } = {}) {
+  const role = CLASS_ROLES.find((r) => r.id === roleId);
+  const preset = role?.presets.find((p) => p.id === presetId);
+  if (!preset) return null;
+  const resolvedFamily = ["melee", "range", "magic", "all"].includes(family) ? family : "all";
+  return { id: preset.id, label: preset.label, stats: preset.stats.map((id) => substitute(id, resolvedFamily)) };
+}
 
 export function resolveOptimizerPreset(presetId, { family = "all" } = {}) {
   const preset = OPTIMIZER_PRESETS.find((row) => row.id === presetId);
