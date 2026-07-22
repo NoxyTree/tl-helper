@@ -8,7 +8,8 @@ test("stat picker exposes every adapter stat through searchable categories witho
   assert.match(html, /aria-label="Add a priority stat"/);
   assert.match(html, /aria-label="Search all calculated stats"/);
   assert.match(html, /adapter\.listStats\(\)/);
-  assert.match(html, /s\.statOptions\.filter/);
+  // Every adapter stat stays in the pool; selecting marks it in place (no filtering-out/reflow).
+  assert.match(html, /s\.statOptions\.map/);
   assert.match(html, /statPickerCategory/);
   assert.match(html, /priorityCategories/);
   assert.match(html, /toggleComposite/);

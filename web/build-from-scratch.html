@@ -281,8 +281,8 @@
                       <sc-for list="{{ group.stats }}" as="q" hint-placeholder-count="12">
                         <div style="min-width:0;border:1px solid {{ q.border }};border-radius:8px;background:{{ q.bg }};overflow:hidden;">
                           <div style="display:flex;align-items:stretch;">
-                            <button onClick="{{ q.add }}" style="min-width:0;flex:1;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;background:transparent;color:#e6d6b4;cursor:pointer;text-align:left;" style-hover="background:rgba(107,68,22,.18);">
-                              <span style="flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:rgba(242,199,119,.09);color:#f2c777;font-size:14px;">+</span>
+                            <button onClick="{{ q.add }}" aria-pressed="{{ q.selected }}" aria-label="{{ q.addLabel }}" style="min-width:0;flex:1;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;background:transparent;color:{{ q.nameColor }};cursor:pointer;text-align:left;" style-hover="background:rgba(107,68,22,.18);">
+                              <span style="flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:{{ q.markBg }};color:{{ q.markColor }};font-size:14px;">{{ q.mark }}</span>
                               <span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;">{{ q.name }}</span>
                             </button>
                             <sc-if value="{{ q.composite }}" hint-placeholder-val="{{ false }}"><button onClick="{{ q.toggleComposite }}" aria-label="Show components for {{ q.name }}" aria-expanded="{{ q.compositeOpen }}" style="flex:0 0 auto;min-width:78px;padding:0 9px;border:0;border-left:1px solid rgba(185,140,240,.2);background:rgba(185,140,240,.05);color:#b98cf0;cursor:pointer;font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Composite {{ q.compositeCaret }}</button></sc-if>
@@ -2294,6 +2294,7 @@ class Component extends DCLogic {
   }
   removePriority(id) { this.setState({ priorities: this.state.priorities.filter(p => p !== id) }); }
   addPriority(id) { if (!this.state.priorities.includes(id)) this.setState({ priorities: [...this.state.priorities, id] }); }
+  togglePriorityStat(id) { if (this.state.priorities.includes(id)) this.removePriority(id); else this.addPriority(id); }
   applyPreset(presetId) {
     if (!this.presets) return;
     const family = this.presets.weaponStatFamily(this.state.weaponTypes.main);
@@ -2596,7 +2597,8 @@ class Component extends DCLogic {
         setGoalMode:(event)=>this.setGoalMode(id,event),setGoalValue:(event)=>this.setGoalValue(id,event),
         dragStart:(event)=>this.startPriorityDrag(id,event),dragOver:(event)=>this.dragOverPriority(id,event),drop:(event)=>this.dropPriority(id,event),reorderKey:(event)=>this.priorityReorderKey(id,event),remove: () => this.removePriority(id) };
     });
-    const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:this.isCompositeGoal(row.id)}));
+    // Keep every stat in a fixed position; selecting marks it in place (no reflow).
+    const poolList = s.statOptions.map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:this.isCompositeGoal(row.id),selected:s.priorities.includes(row.id)}));
     const categoryDefs = [
       ['featured','Featured','Common build goals and composite stats.'],
       ['offense','Offense','Damage, hit, critical and heavy attack stats.'],
@@ -2619,7 +2621,12 @@ class Component extends DCLogic {
       :s.priorityCategory==='featured'?poolList.filter(row=>this.isFeaturedStat(row)):poolList.filter(row=>row.category===s.priorityCategory);
     const groupOrder=Object.fromEntries(categoryDefs.map((row,index)=>[row[0],index]));
     const groupedPool=new Map();
-    for(const row of visiblePool){const key=query?row.category:(s.priorityCategory==='featured'?'featured':row.category);if(!groupedPool.has(key))groupedPool.set(key,[]);const expanded=s.openComposite===row.id;groupedPool.get(key).push({...row,compositeOpen:expanded,compositeCaret:expanded?'▲':'▼',border:expanded?'rgba(185,140,240,.38)':'rgba(212,166,94,.16)',bg:expanded?'rgba(185,140,240,.06)':'rgba(0,0,0,.22)',add:()=>this.addPriority(row.id),toggleComposite:()=>this.toggleComposite(row.id)});}
+    for(const row of visiblePool){const key=query?row.category:(s.priorityCategory==='featured'?'featured':row.category);if(!groupedPool.has(key))groupedPool.set(key,[]);const expanded=s.openComposite===row.id;groupedPool.get(key).push({...row,compositeOpen:expanded,compositeCaret:expanded?'▲':'▼',
+      border:row.selected?'rgba(126,224,166,.45)':(expanded?'rgba(185,140,240,.38)':'rgba(212,166,94,.16)'),
+      bg:row.selected?'rgba(126,224,166,.08)':(expanded?'rgba(185,140,240,.06)':'rgba(0,0,0,.22)'),
+      mark:row.selected?'✓':'+',markColor:row.selected?'#8fd6aa':'#f2c777',markBg:row.selected?'rgba(126,224,166,.16)':'rgba(242,199,119,.09)',
+      nameColor:row.selected?'#9fd9b4':'#e6d6b4',addLabel:row.selected?('Remove '+row.name+' from priorities'):('Add '+row.name+' to priorities'),
+      add:()=>this.togglePriorityStat(row.id),toggleComposite:()=>this.toggleComposite(row.id)});}
     const priorityGroups=[...groupedPool.entries()].sort((a,b)=>(groupOrder[a[0]]??99)-(groupOrder[b[0]]??99)).map(([id,stats],index)=>({name:query?(categoryDefs.find(row=>row[0]===id)?.[1]||'Other'):'',margin:index?'13px':'0',stats}));
     const activeCategory=categoryDefs.find(row=>row[0]===s.priorityCategory)||categoryDefs[0];
     const priorityResultTitle=query?'Search results':activeCategory[1];
@@ -3163,7 +3170,7 @@ class Component extends DCLogic {
       scenarioPartyTotal:s.scenario.partyTotal,scenarioPartyWithin4:s.scenario.partyWithin4,scenarioPartyAdditional4To16:s.scenario.partyAdditional4To16,scenarioAlliedNonpartyWithin4:s.scenario.alliedNonpartyWithin4,
       toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
-      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList, setControls,
+      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.filter(row=>!row.selected).length, ruleList, setControls,
       presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>{
         const skillIcon=this.core?.indexes?.skillById?.[preset.iconSkillId]?.imageUrl||'';
         return {label:preset.label,tagline:preset.tagline,hasIcon:Boolean(skillIcon),icon:skillIcon?`url(${skillIcon}) center/cover`:'',select:()=>this.applyPreset(preset.id)};
