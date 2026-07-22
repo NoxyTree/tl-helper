@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0c0a07">
+  <meta name="robots" content="noindex,nofollow">
+  <title>LLM Build Control | TL Helper</title>
+  <link rel="icon" href="./tl-logo.png" type="image/png">
+  <link rel="stylesheet" href="./tl-shell.css">
+  <style>
+    :root{color-scheme:dark;--gold:#e8b86a;--ink:#0c0a07;--panel:#151009;--line:rgba(232,184,106,.22);--muted:#9d8a68;--text:#f3e9d4;--blue:#72a9ff;--red:#e58d8d}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#2a1d0d 0,#0c0a07 42%,#070604 100%);color:var(--text);font:14px/1.55 "Instrument Sans",system-ui,sans-serif;min-height:100vh}
+    main{width:min(1500px,calc(100% - 32px));margin:28px auto 70px}.intro{display:flex;justify-content:space-between;gap:28px;align-items:end;margin-bottom:20px}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}h1{font:34px/1.08 Marcellus,serif;margin:8px 0;color:#f6d391}.lede{max-width:780px;margin:0;color:#b9a47e}.version{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.panel{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(24,18,11,.94),rgba(12,9,6,.97));box-shadow:0 20px 55px rgba(0,0,0,.35);overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}.panel-head h2{font:18px Marcellus,serif;margin:0;color:#f6d391}.panel-body{padding:16px 18px}
+    textarea{display:block;width:100%;min-height:610px;resize:vertical;border:1px solid rgba(114,169,255,.25);border-radius:10px;background:#080705;color:#dce9ff;padding:14px;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}textarea:focus{outline:2px solid rgba(114,169,255,.38);outline-offset:1px}.output{color:#d8eadf;border-color:rgba(107,200,143,.22)}
+    .actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}button{min-height:40px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:rgba(232,184,106,.08);color:#e6d6b4;font:600 12px inherit;cursor:pointer}button:hover{border-color:rgba(232,184,106,.55);color:#f6d391}button.primary{border-color:rgba(114,169,255,.55);background:rgba(114,169,255,.14);color:#dce9ff}button.danger{border-color:rgba(229,106,106,.3);color:var(--red)}button:disabled{opacity:.45;cursor:not-allowed}.status{margin-left:auto;color:var(--muted);font-size:11px}.status.error{color:var(--red)}.progress{height:4px;margin-top:12px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.progress>i{display:block;width:0;height:100%;background:linear-gradient(90deg,#72a9ff,#e8b86a);transition:width .2s ease}.help{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(232,184,106,.035);color:var(--muted);font-size:12px}.help code{color:#dce9ff}.help strong{color:#e6d6b4}
+    @media(max-width:950px){.workspace{grid-template-columns:1fr}.intro{align-items:start;flex-direction:column}textarea{min-height:440px}}
+  </style>
+</head>
+<body>
+  <a class="tl-skip-link" href="#main-content">Skip to LLM build control</a>
+  <header class="tl-app-header">
+    <a class="tl-app-brand" href="./index.html"><img src="./tl-logo.png" alt=""><span><strong>TL HELPER</strong><small>LLM Build Control</small></span></a>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a><a class="tl-app-nav-item is-active" href="./llm-build-control.html" aria-current="page">LLM Control</a><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+  </header>
+  <main id="main-content">
+    <div class="intro">
+      <div><div class="eyebrow">One request in · one result out</div><h1>LLM Build Control</h1><p class="lede">Submit a complete optimization request as JSON. TL Helper validates stat names, runs the real optimizer, reports achieved stats and set effects, and can save or activate the result without stepping through the visual form.</p></div>
+      <span class="version">Schema v1</span>
+    </div>
+    <div class="workspace">
+      <section class="panel" aria-labelledby="request-title">
+        <div class="panel-head"><h2 id="request-title">Structured request</h2><button id="reset-request" type="button">Reset example</button></div>
+        <div class="panel-body">
+          <textarea id="request-json" aria-label="LLM build request JSON" spellcheck="false"></textarea>
+          <div class="actions">
+            <button id="validate-request" type="button">Validate</button>
+            <button id="run-request" class="primary" type="button" disabled>Run optimizer</button>
+            <button id="cancel-request" class="danger" type="button" disabled>Cancel</button>
+            <span id="request-status" class="status" role="status">Loading calculation engine…</span>
+          </div>
+          <div class="progress" aria-hidden="true"><i id="progress-fill"></i></div>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="result-title">
+        <div class="panel-head"><h2 id="result-title">Structured result</h2><button id="copy-result" type="button" disabled>Copy result</button></div>
+        <div class="panel-body">
+          <textarea id="result-json" class="output" aria-label="Structured result JSON" readonly spellcheck="false">{
+  "ok": false,
+  "status": "waiting_for_request"
+}</textarea>
+          <div class="help"><strong>Stable contract:</strong> use human-readable stat names or exact stat IDs. Non-maximized goals require <code>value</code> in the same units shown by TL Helper. Set <code>output.savePresetAs</code> to save locally and <code>activateInArmory</code> to make the result current.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import * as core from "./tl-core.js";
+    import * as persistence from "./tl-persistence.js";
+    import { createOptimizerAdapter } from "./tl-full-build-adapter.js";
+    import {
+      DEFAULT_LLM_BUILD_REQUEST,
+      executeLlmBuildControl,
+      normalizeLlmBuildRequest,
+      parseLlmBuildRequest,
+    } from "./tl-llm-build-control.js";
+
+    const byId = (id) => document.getElementById(id);
+    const requestBox = byId("request-json");
+    const resultBox = byId("result-json");
+    const status = byId("request-status");
+    const runButton = byId("run-request");
+    const cancelButton = byId("cancel-request");
+    const copyButton = byId("copy-result");
+    const progressFill = byId("progress-fill");
+    let adapter = null;
+    let statOptions = [];
+    let controller = null;
+
+    function showStatus(message, error = false) {
+      status.textContent = message;
+      status.classList.toggle("error", error);
+    }
+    function showResult(value) {
+      resultBox.value = JSON.stringify(value, null, 2);
+      copyButton.disabled = false;
+    }
+    function example() {
+      requestBox.value = JSON.stringify(DEFAULT_LLM_BUILD_REQUEST, null, 2);
+    }
+    function validate() {
+      try {
+        const slots = (core.EQUIPMENT_SLOTS ?? []).map((row) => ({ id: row.id, name: row.name ?? row.label ?? core.label(row.id) }));
+        const normalized = normalizeLlmBuildRequest(parseLlmBuildRequest(requestBox.value), { statOptions, slotOptions: slots, core });
+        showResult({ ok: true, status: "valid", normalizedRequest: normalized });
+        showStatus("Request is valid.");
+        return true;
+      } catch (error) {
+        showResult({ ok: false, status: "invalid_request", error: error.message });
+        showStatus(error.message, true);
+        return false;
+      }
+    }
+    async function run() {
+      if (!adapter || !validate()) return;
+      controller?.abort();
+      controller = new AbortController();
+      runButton.disabled = true;
+      cancelButton.disabled = false;
+      progressFill.style.width = "0%";
+      showStatus("Starting optimizer…");
+      try {
+        const response = await executeLlmBuildControl(requestBox.value, {
+          adapter,
+          core,
+          persistence,
+          storage: localStorage,
+          signal: controller.signal,
+          onProgress: (progress) => {
+            const percent = Math.max(0, Math.min(100, Number(progress.percent) || 0));
+            progressFill.style.width = `${percent}%`;
+            showStatus(`${Math.round(percent)}% · ${progress.label ?? "Optimizing build"}`);
+          },
+          onPreliminary: () => showStatus("Finalizing mastery and passive skills…"),
+        });
+        progressFill.style.width = "100%";
+        showResult(response);
+        const saved = response.persistence?.preset?.name ? ` Saved “${response.persistence.preset.name}”.` : "";
+        const activated = response.persistence?.activated ? " Activated in Armory." : "";
+        const account = response.persistence?.account?.synced ? ` Synced to ${response.persistence.account.name}.` : "";
+        showStatus(`Optimization complete.${saved}${activated}${account}`);
+      } catch (error) {
+        const cancelled = error?.name === "AbortError";
+        showResult({ ok: false, status: cancelled ? "cancelled" : "optimizer_error", error: error.message });
+        showStatus(cancelled ? "Optimization cancelled." : error.message, !cancelled);
+      } finally {
+        controller = null;
+        runButton.disabled = false;
+        cancelButton.disabled = true;
+      }
+    }
+
+    byId("reset-request").addEventListener("click", () => { example(); validate(); });
+    byId("validate-request").addEventListener("click", validate);
+    runButton.addEventListener("click", run);
+    cancelButton.addEventListener("click", () => controller?.abort());
+    copyButton.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(resultBox.value); showStatus("Result copied."); }
+      catch { resultBox.select(); showStatus("Result selected; copy it manually."); }
+    });
+    requestBox.addEventListener("input", () => showStatus("Request changed; validate before running."));
+
+    example();
+    try {
+      adapter = await createOptimizerAdapter({ core, storage: localStorage });
+      statOptions = await adapter.listStats();
+      runButton.disabled = false;
+      showStatus(`Ready · ${statOptions.length} calculated stats available.`);
+    } catch (error) {
+      showResult({ ok: false, status: "engine_error", error: error.message });
+      showStatus(`Calculation engine unavailable: ${error.message}`, true);
+    }
+  </script>
+  <script type="module" src="./tl-account-menu.js"></script>
+</body>
+</html>

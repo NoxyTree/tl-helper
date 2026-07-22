@@ -1,0 +1,8 @@
+# Line-ending pins for byte-compared files. These paths are compared
+# byte-for-byte against freshly generated LF output (or against each other) by
+# scripts/tests/scenario-effect-catalog.test.mjs, optimizer-precache.test.mjs,
+# and combat-engine-web-sync.test.mjs, so they must check out with LF even on
+# core.autocrlf=true (CRLF) checkouts.
+web/data/** text=auto eol=lf
+packages/combat-engine/src/** text=auto eol=lf
+web/vendor/combat-engine/** text=auto eol=lf

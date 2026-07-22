@@ -68,6 +68,27 @@ export async function syncBuilds(client, storage, userId) {
   return merged;
 }
 
+/**
+ * Push one known local preset to the signed-in account immediately. Unlike the
+ * additive background merge, this path updates the matching cloud row when a
+ * caller explicitly replaces a preset with the same stable document id.
+ */
+export async function syncPresetToAccount(client, preset, { userId, gameBuild = "unversioned" } = {}) {
+  if (!client || !userId || !preset?.id || !isArmoryState(preset)) throw new TypeError("A client, user, and valid preset are required for account sync.");
+  const { data, error } = await client.from("builds").select("id, document").eq("user_id", userId).is("deleted_at", null).eq("kind", "preset");
+  if (error) throw error;
+  const existing = (data ?? []).find((row) => row.document?.id === preset.id) ?? null;
+  const cloudRow = buildRowFromLocal(preset, { userId, kind: "preset", gameBuild, name: clampName(preset.name) });
+  if (existing) {
+    const { error: updateError } = await client.from("builds").update(cloudRow).eq("id", existing.id);
+    if (updateError) throw updateError;
+    return { ok: true, action: "updated", remoteId: existing.id };
+  }
+  const { error: insertError } = await client.from("builds").insert([cloudRow]);
+  if (insertError) throw insertError;
+  return { ok: true, action: "created", remoteId: null };
+}
+
 /** Runs a full sync (builds + achievements) with injected deps. Never throws to callers. */
 export async function runSync({ client, storage, userId }) {
   if (!client || !storage || !userId) return { ok: false, reason: "missing-deps" };

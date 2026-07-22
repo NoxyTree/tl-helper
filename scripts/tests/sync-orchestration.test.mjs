@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runSync, syncAchievements, syncBuilds } from "../../web/tl-sync.js";
+import { runSync, syncAchievements, syncBuilds, syncPresetToAccount } from "../../web/tl-sync.js";
 import { saveArmoryPresets, loadArmoryPresets } from "../../web/tl-persistence.js";
 
 const ACH_KEY = "tl-achievement-tracker-progress-v1";
@@ -15,15 +15,20 @@ function mockStorage(seed = {}) {
 // thenable select builder, and upsert/insert that mutate the same arrays.
 function mockClient(seed = {}) {
   const tables = { achievement_progress: [...(seed.achievement_progress ?? [])], builds: [...(seed.builds ?? [])] };
-  const calls = { insert: 0, upsert: 0 };
+  const calls = { insert: 0, upsert: 0, update: 0 };
   const from = (name) => {
     const rows = tables[name];
     const filters = [];
+    let pendingUpdate = null;
     const builder = {
       select() { return builder; },
       is(col, val) { filters.push((r) => (r[col] ?? null) === val); return builder; },
       eq(col, val) { filters.push((r) => r[col] === val); return builder; },
-      then(resolve) { resolve({ data: rows.filter((r) => filters.every((f) => f(r))), error: null }); },
+      then(resolve) {
+        const matched = rows.filter((r) => filters.every((f) => f(r)));
+        if (pendingUpdate) for (const row of matched) Object.assign(row, pendingUpdate);
+        resolve({ data: matched, error: null });
+      },
       async upsert(newRows, opts) {
         calls.upsert += 1;
         const keys = String(opts?.onConflict ?? "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -34,6 +39,7 @@ function mockClient(seed = {}) {
         return { error: null };
       },
       async insert(newRows) { calls.insert += 1; for (const nr of newRows) rows.push({ ...nr, id: `uuid-${rows.length}` }); return { error: null }; },
+      update(row) { calls.update += 1; pendingUpdate = row; return builder; },
     };
     return builder;
   };
@@ -73,6 +79,18 @@ test("runSync is idempotent — a second run inserts nothing new", async () => {
   const afterFirst = client._tables.builds.length;
   await runSync({ client, storage, userId: "u1" });
   assert.equal(client._tables.builds.length, afterFirst, "no duplicate build rows on re-sync");
+});
+
+test("an explicitly saved account preset is created once and updated by stable document id", async () => {
+  const client = mockClient();
+  const first = armoryState("preset-account", "Account Tank");
+  assert.equal((await syncPresetToAccount(client, first, { userId: "u1", gameBuild: "g1" })).action, "created");
+  assert.equal(client._tables.builds.length, 1);
+  const changed = { ...first, name: "Account Tank Updated", build: { equipment: { main_hand: { itemId: "y" } } } };
+  assert.equal((await syncPresetToAccount(client, changed, { userId: "u1", gameBuild: "g1" })).action, "updated");
+  assert.equal(client._tables.builds.length, 1);
+  assert.equal(client._tables.builds[0].document.name, "Account Tank Updated");
+  assert.equal(client._calls.update, 1);
 });
 
 test("runSync surfaces a client error as {ok:false} without throwing", async () => {

@@ -567,6 +567,18 @@ export function importQuestlogBuild(payload) {
   const masteryBuild = payload?.masteryBuild ?? payload?.masteryData?.builds?.find((row) => row.id === sourceBuild.weaponSpecializationBuildId);
   build.masteries = Object.fromEntries(values(masteryBuild?.specialization).map((row) => [row.id, { level: Number(row.lvl ?? row.level ?? 1) }]));
   build.unifiedMasteries = Object.values(masteryBuild?.unified ?? {}).filter(Boolean);
+  // Questlog stores the selected Overall Mastery nodes but does not expose the
+  // character's numeric Overall Mastery Level. The selected nodes still prove
+  // the minimum unlock threshold needed by this build. Recording that minimum
+  // is conservative: it validates only the imported selections and does not
+  // unlock or add any higher-level node that Questlog did not select.
+  if (build.unifiedMasteries.length) {
+    const requiredLevels = build.unifiedMasteries.map((id) => Number(indexes.masteryById[id]?.requiredLevel));
+    if (requiredLevels.every((level) => Number.isInteger(level) && level >= 0)) {
+      build.overallMasteryLevel = Math.max(...requiredLevels);
+      build.overallMasteryLevelSource = "questlog_selected_nodes_minimum";
+    }
+  }
   return {
     profile: {
       name: character.name ?? build.name,

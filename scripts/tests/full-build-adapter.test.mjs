@@ -376,6 +376,43 @@ test("a composite-only protected stat blocks builds that drop its components", a
   await assert.rejects(() => glassAdapter.optimize({ build: source(), ...request }), /No build satisfies the protected or minimum stat constraints/);
 });
 
+test("existing-build minimums retain the verified unchanged source as a whole-build fallback", async () => {
+  const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
+  const items = {
+    oldHead: { id: "oldHead", name: "Old Head", grade: 41, equipmentType: "head", attack: 0, guard: 10 },
+    newHead: { id: "newHead", name: "New Head", grade: 41, equipmentType: "head", attack: 100, guard: 0 },
+    oldChest: { id: "oldChest", name: "Old Chest", grade: 41, equipmentType: "chest", attack: 0, guard: 10 },
+    newChest: { id: "newChest", name: "New Chest", grade: 41, equipmentType: "chest", attack: 100, guard: 0 },
+  };
+  const contribution = (selection) => {
+    const item = items[selection?.itemId];
+    return { attack: item?.attack ?? 0, guard: item?.guard ?? 0 };
+  };
+  const core = {
+    data: { gameBuild: "test", statLabels: { attack: "Attack", guard: "Guard" }, items: Object.values(items), runes: [], runeSynergies: [], itemSets: [], artifactSets: [] },
+    indexes: { itemById: items, runeById: {} }, EQUIPMENT_SLOTS: [{ id: "head", label: "Head" }, { id: "chest", label: "Chest" }], ARTIFACT_SLOTS: [], WEAPON_SLOTS: [], WEAPON_TYPES: [], HEROIC_GRADE: 51,
+    calculateBuild(build) {
+      const totals = Object.values(build.equipment).map(contribution).reduce((sum, row) => ({ attack: sum.attack + row.attack, guard: sum.guard + row.guard }), { attack: 0, guard: 0 });
+      return { stats: Object.entries(totals).map(([id, total]) => ({ id, total })) };
+    },
+    slotSelectionContribution(_slot, selection) { return contribution(selection); },
+    slotItems(slot) { return Object.values(items).filter((item) => item.equipmentType === slot.id); },
+    slotById: (id) => ({ id, label: id, types: [id] }), emptyEquipmentSelection: empty, itemMaxLevel: () => 80, heroicSlotGroupForSlot: () => "",
+    statName: (id) => id, formatStat: (_id, value) => String(value), statPageFor: () => "combat", gradeColor: () => "#fff",
+  };
+  const source = { build: { equipment: { head: { ...empty(), itemId: "oldHead" }, chest: { ...empty(), itemId: "oldChest" } }, artifacts: {}, supportSlots: {} }, attributes: {}, sourceKind: "armory" };
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const result = await adapter.optimize({
+    build: source,
+    sourceKind: "existing",
+    goals: { priorities: [{ id: "attack", rank: 1 }, { id: "guard", rank: 2, mode: "at_least", minimum: 20 }] },
+    rules: {},
+  });
+  assert.equal(result.goalResults.find((goal) => goal.id === "guard").minimumMet, true);
+  assert.equal(result.build.equipment.head.itemId, "oldHead");
+  assert.equal(result.build.equipment.chest.itemId, "oldChest");
+});
+
 test("minimum item level excludes progression gear from scratch candidates", async () => {
   const empty = () => ({ itemId: "", traits: [], heroicEffects: [], runes: [] });
   const items = {

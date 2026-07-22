@@ -1175,6 +1175,42 @@ export async function createOptimizerAdapter(deps = {}) {
       // enforces them only after attribute allocation, so floor-capable states
       // must survive the beam even while score-dominant states outrank them.
       minimumTargets: rankedGoals.filter((goal) => goal.minimum != null).map(({ id, components, minimum }) => ({ id, components, minimum })), setRoutes, structuralStateKeys, routeLegalityMetadataComplete: true, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching compatible loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      // An existing source build is always a legal whole-build candidate. Beam
+      // pruning works slot by slot and can otherwise discard that exact route
+      // when several simultaneous floors are only satisfied by their combined
+      // loadout (or when artifact bundle generation replaces the current set).
+      // Retaining the verified source prevents a false "No builds match" while
+      // still allowing any higher-scoring constraint-satisfying result to win.
+      if (!scratch && Object.keys(protectedStats).length) {
+        const sourceStats = withCompositeTotals(totalMap(sourceCalculation), constraintGoals);
+        if (satisfiesProtectedStats(sourceStats, protectedStats)) {
+          const sourceSelections = Object.fromEntries(core.EQUIPMENT_SLOTS.map((slot) => [slot.id, clone(selectionFor(source.build, slot.id))]));
+          const sourceCandidates = Object.fromEntries(core.EQUIPMENT_SLOTS.map((slot) => {
+            const selection = sourceSelections[slot.id];
+            const candidate = (candidatesBySlot[slot.id] ?? []).find((row) => row.selection?.itemId === selection?.itemId && JSON.stringify(row.selection) === JSON.stringify(selection));
+            return [slot.id, candidate ?? { selection }];
+          }));
+          const sourceRow = {
+            key: "source:unchanged",
+            selections: sourceSelections,
+            candidates: sourceCandidates,
+            evaluation: {
+              build: clone(source.build),
+              stats: sourceStats,
+              score: scoreRankedGoals(sourceStats, objectiveBaseline, objectiveScales, rankedGoals),
+              attributes: clone(source.attributes ?? {}),
+              activeAttributeBreakpoints: [],
+              legal: true,
+              blockingIssues: [],
+            },
+          };
+          const retained = [sourceRow, search.best, ...(search.alternatives ?? []), ...(search.frontier ?? [])]
+            .filter(Boolean)
+            .filter((row, index, rows) => rows.findIndex((candidate) => candidate.key === row.key) === index)
+            .sort(exactOrder);
+          search = { ...search, best: retained[0] ?? null, alternatives: retained.slice(0, 4), frontier: retained.slice(0, Math.max(24, profile.paretoWidth)) };
+        }
+      }
       const setRouteStages = { preliminary: search.setRouteMetrics ?? { requested: setRoutes.length, represented: 0, representedRouteIds: [] } };
       const structuralStateStages = { preliminary: search.structuralStateMetrics ?? { requested: structuralStateKeys.length, represented: 0, representedKeys: [] } };
       if (attributePointBudget != null) {
@@ -1327,7 +1363,7 @@ export async function createOptimizerAdapter(deps = {}) {
           name: scratch ? "Optimized build from scratch" : "Optimized full build", sourceKind: scratch ? "scratch" : "existing", masteryPending: !!preliminary, preliminary: !!preliminary, score: best.evaluation.score, scoreLabel: best.evaluation.score.toFixed(3), slots: outputSlots, loadout: { equipment: equipmentLoadout, artifacts: artifactLoadout },
           statDeltas: [...new Set([...rankedGoals.map(({ id }) => id), ...(goals.protect ?? [])])].map((id) => { const delta=(finalStats[id] ?? 0)-(objectiveBaseline[id] ?? 0); return { id, name:core.statName(id), delta, formattedDelta:core.formatStat(id,Math.abs(delta)) }; }),
           explanations: ["Finalists were recalculated through the complete build calculator.", rules.includeSetEffects === false ? "Set effects were excluded." : "Known set effects were included.", ...(best.evaluation.runeInsights ?? []).map((row) => row.text), ...goalResults.map((goal) => `${goal.name}: ${goal.value} at priority ${goal.rank}; normalized contribution ${goal.normalizedContribution >= 0 ? "+" : ""}${goal.normalizedContribution.toFixed(3)}${goal.components.length > 1 ? `; components ${goal.components.map((row) => `${row.name} ${row.formattedValue}`).join(", ")}` : ""}${goal.minimum == null ? "" : `; ${goal.target == null ? "minimum" : "target"} ${goal.minimum} ${goal.minimumMet ? "met" : "not met"}`}.`), ...(tradeoffs.length ? tradeoffs.map((row) => `Tradeoff: ${row.text}`) : ["No selected goal finished below the fixed objective baseline."])],
-          assumptions: ["Item Potentials are excluded from calculations and recommendations in this release; same-item selections are preserved.", ...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible."]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "The game allows repeated Equipment Skills, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
+          assumptions: ["Item Potentials are excluded from calculations and recommendations in this release; same-item selections are preserved.", ...(scratch ? [attributePointBudget == null ? "Built from a naked level baseline with no allocated attribute points." : `${attributePointBudget} available attribute point${attributePointBudget === 1 ? " was" : "s were"} redistributed across STR, DEX, INT, PER, and CON.`, "This is a theoretical catalogue build. Ownership and acquisition cost are not scored.", ...(progression ? [`Eight passive skills were selected at up to level ${progression.settings.skillLevelCap}.`, ...Object.entries(progression.summary.masteryPointsByWeapon).map(([weapon, points]) => `${core.label(weapon)} mastery uses ${points} of ${progression.settings.masteryPointsByWeapon[weapon]} available points.`)] : [])] : ["Weapon families were locked to the source build so its saved skills and mastery remain compatible.", ...(source.build.overallMasteryLevelSource === "questlog_selected_nodes_minimum" ? [`Questlog did not expose an Overall Mastery Level, so level ${source.build.overallMasteryLevel} was inferred as the minimum required by its selected Overall Mastery nodes.`] : [])]), ...(minimumItemLevel ? [`Equipment below level ${minimumItemLevel} was excluded.`] : []), ...(scenario == null ? ["Only decoded-proven persistent Skill Cores are optimized; conditional or unsupported cores receive no invented static value."] : [`Decoded scenario effects were scored at ${Number(finalCalculation.scenarioEffects?.targetDistanceMeters)}m${finalCalculation.scenarioEffects?.timeOfDay === "unspecified" ? " with time unspecified" : ` during ${finalCalculation.scenarioEffects?.timeOfDay}`}. Other conditional or unsupported effects received no invented value.`]), "The game allows repeated Equipment Skills, but exact scoring activates only one copy in the current fixed-level catalogue.", "Exactly three normal rune sockets are considered; normal rune rows may repeat.", "No more than one Chaos rune is used per item."],
           warnings: [...(preliminary ? ["Mastery and passive skills are still being finalized; this loadout and its stats may adjust when they complete."] : []), "This is a bounded search, so the result is the best loadout found rather than proof of the mathematical global optimum.", ...(rules.runes?.mode === "chaos" && !rules.runes.allowUnownedChaos ? [`Chaos suggestions are restricted to ${chaosOwned.length} equipped-owned rune ID(s).`] : [])],
           alternatives: (search.alternatives ?? []).slice(1).map((row, index) => ({ name: `Alternative ${index + 1}`, summary: `Fit ${row.evaluation.score.toFixed(3)}`, score: row.evaluation.score, ...(row.evaluation.progression ? { progression: clone(row.evaluation.progression) } : {}) })),
           build: best.evaluation.build,
