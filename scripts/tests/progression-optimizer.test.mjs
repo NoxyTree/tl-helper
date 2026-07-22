@@ -10,8 +10,8 @@ import {
   optimizeScratchProgression,
   PROVEN_REPRESENTABLE_UNIFIED_MASTERY_IDS,
   representableUnifiedMasteryIds,
-} from "../../web/tl-progression-optimizer.js";
-import { executeOptimizerTask, optimizeProgressionFinalistTask } from "../../web/tl-full-build-adapter.js";
+} from "../../web/optimizer/tl-progression-optimizer.js";
+import { executeOptimizerTask, optimizeProgressionFinalistTask } from "../../web/optimizer/tl-full-build-adapter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const data = await loadWebDataFromFile(path.join(root, "web", "data", "app-data.json"));

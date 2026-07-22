@@ -5,8 +5,8 @@ import { performance } from "node:perf_hooks";
 import { Worker as NodeWorker } from "node:worker_threads";
 
 import * as core from "../web/tl-core.js";
-import { createOptimizerAdapter } from "../web/tl-full-build-adapter.js";
-import { createOptimizerWorkerPool } from "../web/tl-optimizer-worker-pool.js";
+import { createOptimizerAdapter } from "../web/optimizer/tl-full-build-adapter.js";
+import { createOptimizerWorkerPool } from "../web/optimizer/tl-optimizer-worker-pool.js";
 import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const option = (name, fallback) => process.argv.find((row) => row.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;

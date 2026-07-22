@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   OptimizerWorkerPool,
   recommendedOptimizerWorkerCount,
-} from "../../web/tl-optimizer-worker-pool.js";
+} from "../../web/optimizer/tl-optimizer-worker-pool.js";
 
 class FakeWorker {
   constructor() {

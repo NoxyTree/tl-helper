@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import * as core from "../../web/tl-core.js";
-import { canonicalPrecacheRequest, loadPrecachedResult, precacheKey } from "../../web/tl-optimizer-precache.js";
+import { canonicalPrecacheRequest, loadPrecachedResult, precacheKey } from "../../web/optimizer/tl-optimizer-precache.js";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 import { optimizerEngineFingerprint } from "../lib/optimizer-engine-fingerprint.mjs";
 

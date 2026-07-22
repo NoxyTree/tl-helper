@@ -36,7 +36,10 @@ test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /id="increase-picker"/);
   assert.match(html, /id="protect-picker"/);
   assert.match(html, /id="slot-locks"/);
-  assert.match(html, /id="lock-heroics"[^>]+checked/);
+  assert.match(html, /id="heroic-policy"/);
+  assert.match(html, /value="keep_config" selected/);
+  assert.match(html, /value="keep_items"/);
+  assert.match(html, /value="replace_any"/);
   assert.match(html, /id="lock-all-slots"/);
   assert.match(html, /id="clear-slot-locks"/);
   assert.doesNotMatch(html, /id="search-depth"|data-value="fast"|data-value="thorough"/);
@@ -64,13 +67,13 @@ test("goal selection uses the structured Build from Scratch picker pattern", () 
 test("wanted stats support At least and Target minimums in display units", () => {
   assert.match(html, /data-goal-mode/);
   assert.match(html, /data-goal-value/);
-  assert.match(html, /\["at_least","At least"\]/);
-  assert.match(html, /\["target","Target"\]/);
+  assert.match(html, /\["at_least","At least — floor, still rewards more"\]/);
+  assert.match(html, /\["target","Target — floor, then stops"\]/);
   assert.match(html, /statDisplayToRaw\(id,Number\(displayValue\)\)/);
   assert.match(html, /minimum:mode==="at_least"\?value:null/);
   assert.match(html, /target:mode==="target"\?value:null/);
-  assert.match(html, /Hard floor · still rewarded above it/);
-  assert.match(html, /Hard floor · stops rewarding once reached/);
+  assert.match(html, /Hard floor · excess above it is still rewarded/);
+  assert.match(html, /Hard floor · stops rewarding past the value/);
   assert.match(html, /or switch it back to Maximize/);
   assert.match(html, /goalModes\[floor\.id\]="at_least"/);
   assert.match(html, /goalValues\[floor\.id\]=floor\.display/);
@@ -96,24 +99,24 @@ test("optimizer uses full-screen setup and loading before opening the shared res
   assert.match(html, /storeImprovedResult/);
   assert.match(html, /build-from-scratch\.html\?result=improved/);
   assert.doesNotMatch(html, /id="empty-state"/);
-  assert.match(html, /new Worker\("\.\/tl-builder-worker\.js"/);
+  assert.match(html, /new Worker\("\.\/optimizer\/tl-builder-worker\.js"/);
   assert.match(html, /message\.type==="progress"/);
   assert.match(html, /Complete-build search/);
 });
 
 test("improved results reuse the Build from Scratch result experience", () => {
-  assert.match(html, /import\("\.\/tl-optimizer-result-handoff\.js"\)/);
+  assert.match(html, /import\("\.\/optimizer\/tl-optimizer-result-handoff\.js"\)/);
   assert.match(html, /location\.href="\.\/build-from-scratch\.html\?result=improved"/);
   assert.doesNotMatch(html, /renderResult\(message\.result\)/);
 });
 
 test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
-  assert.match(html, /Lock equipped Heroics/);
+  assert.match(html, /Equipped Heroics/);
   assert.match(html, /includeSetEffects:true/);
   assert.match(html, /optimizeThreeTraits:true/);
   assert.match(html, /bestHeroicConfiguration:true/);
-  assert.match(html, /keepCurrentHeroics:lockHeroics/);
-  assert.match(html, /reconsiderHeroics:!lockHeroics/);
+  assert.match(html, /keepCurrentHeroics:heroicPolicy==="keep_config"/);
+  assert.match(html, /reconsiderHeroics:heroicPolicy==="replace_any"/);
   assert.match(html, /Item Potentials are excluded from calculations and recommendations/);
   assert.match(html, /Optimize normal/);
   assert.match(html, /Owned Chaos/);
@@ -125,7 +128,7 @@ test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
 });
 
 test("optimizer uses a strict adapter and never fabricates recommendations", () => {
-  assert.match(html, /import\("\.\/tl-full-build-adapter\.js"\)/);
+  assert.match(html, /import\("\.\/optimizer\/tl-full-build-adapter\.js"\)/);
   assert.match(html, /createOptimizerAdapter/);
   assert.match(html, /loadArmoryBuild/);
   assert.match(html, /importQuestlogBuild/);

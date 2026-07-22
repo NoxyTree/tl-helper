@@ -94,14 +94,14 @@ Recommended behavior: gate normal structured mastery, normal passive mastery, an
 
 `applySelections()` clones the complete source build and replaces equipment selections only. Skills, mastery, and unified mastery survive unchanged.
 
-- `web/tl-full-build-adapter.js:164-171`: carries source progression into candidate equipment.
-- `web/tl-full-build-adapter.js:591-599`: deliberately retains seeds for every weapon family.
-- `web/tl-full-build-adapter.js:627-631`: candidates are scored with the carried progression.
-- `web/tl-full-build-adapter.js:673`: the selected finalist is recalculated with the same incompatible progression.
+- `web/optimizer/tl-full-build-adapter.js:164-171`: carries source progression into candidate equipment.
+- `web/optimizer/tl-full-build-adapter.js:591-599`: deliberately retains seeds for every weapon family.
+- `web/optimizer/tl-full-build-adapter.js:627-631`: candidates are scored with the carried progression.
+- `web/optimizer/tl-full-build-adapter.js:673`: the selected finalist is recalculated with the same incompatible progression.
 
 This is a systematic scoring distortion, not only a display issue. A Staff passive can help a Bow/Dagger candidate survive beam pruning and can change its final score.
 
-Build from Scratch is correctly scoped to the selected weapon pair because it clears progression, allocates mastery only for the chosen pair, and selects passive skills only from `availableSkillsForWeapons(weapons)` in `web/tl-progression-optimizer.js:119-139`. It still inherits incomplete or incorrect effect rules from the shared calculator.
+Build from Scratch is correctly scoped to the selected weapon pair because it clears progression, allocates mastery only for the chosen pair, and selects passive skills only from `availableSkillsForWeapons(weapons)` in `web/optimizer/tl-progression-optimizer.js:119-139`. It still inherits incomplete or incorrect effect rules from the shared calculator.
 
 Recommended behavior for the ordinary optimizer: either lock weapon families when preserving source progression, or rebuild progression for every changed weapon pair. Silently retaining incompatible progression is invalid.
 
@@ -526,8 +526,8 @@ Add decoded fixtures for mastery node counts, stat joins, activation flags, pass
 - `web/tl-core.js`
 - `web/tl-questlog-rules.js`
 - `web/tl-build-snapshot.js`
-- `web/tl-progression-optimizer.js`
-- `web/tl-full-build-adapter.js`
+- `web/optimizer/tl-progression-optimizer.js`
+- `web/optimizer/tl-full-build-adapter.js`
 - `web/index.html`
 - `web/tracker.html`
 - `web/combat-lab.js`

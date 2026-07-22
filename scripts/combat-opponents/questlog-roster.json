@@ -1,0 +1,73 @@
+{
+  "schema": "tl-helper.questlog-opponent-roster",
+  "schemaVersion": 1,
+  "source": "Recent, high-rated public PvP builds from https://questlog.gg/throne-and-liberty/en/character-builder, selected 2026-07-17",
+  "entries": [
+    {
+      "id": "evasion-tank",
+      "label": "Evasion Tank",
+      "role": "tank",
+      "chassis": "evasion",
+      "characterSlug": "TsunamiWithTheSingleShot",
+      "buildId": "8166680",
+      "author": "Mour4SB",
+      "buildName": "TEST NIX Meta Build - PVP Evasion",
+      "blurb": "Dodge-stacked meta front-liner"
+    },
+    {
+      "id": "hit-tank",
+      "label": "Hit Tank",
+      "role": "tank",
+      "chassis": "hit",
+      "characterSlug": "MysteriesWithTheThunderousMortal",
+      "buildId": "8197308",
+      "author": "BladePK",
+      "buildName": "Evasion | NIX Build - More HIT",
+      "blurb": "Hit-leaning evasion crusader"
+    },
+    {
+      "id": "hit-melee-dps",
+      "label": "Hit Melee DPS",
+      "role": "dps",
+      "chassis": "hit",
+      "characterSlug": "TheMysteryOfTheWoolenDungeon",
+      "buildId": "8215841",
+      "author": "ReviK",
+      "buildName": "My Current In game Gear HIT",
+      "blurb": "Hit-stacked melee bruiser"
+    },
+    {
+      "id": "evasion-magic-dps",
+      "label": "Evasion Magic DPS",
+      "role": "dps",
+      "chassis": "evasion",
+      "characterSlug": "LegacyOfTheInfernalSeal",
+      "buildId": "8255167",
+      "author": "DankRNG",
+      "buildName": "Stolen Revik Eva",
+      "blurb": "Slippery staff/dagger spellblade"
+    },
+    {
+      "id": "hit-ranged-dps",
+      "label": "Hit Ranged DPS",
+      "role": "dps",
+      "chassis": "hit",
+      "characterSlug": "ManyDestructionLootDevotion",
+      "buildId": "8244627",
+      "author": "malpia",
+      "buildName": "Glas",
+      "blurb": "Glass-cannon crossbow burst"
+    },
+    {
+      "id": "pvp-healer",
+      "label": "PvP Healer",
+      "role": "healer",
+      "chassis": "endurance",
+      "characterSlug": "TheBloodOfTheThornyRavenous",
+      "buildId": "8023583",
+      "author": "saphy_3",
+      "buildName": "orb",
+      "blurb": "Endurance-walled arena support"
+    }
+  ]
+}

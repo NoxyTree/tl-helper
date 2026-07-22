@@ -8,13 +8,18 @@ const [builder, armory, masteryWheel] = await Promise.all([
   readFile(new URL("../../web/MasteryWheel.dc.html", import.meta.url), "utf8"),
 ]);
 
-test("Builder progression is split into dedicated Skills and Mastery result tabs", () => {
-  assert.match(builder, /\{ id:'skills',\s+name:'Skills'/);
-  assert.match(builder, /\{ id:'mastery',\s+name:'Mastery'/);
+test("Builder result view exposes Stats, Guide, and Skills primary tabs with Skills/Mastery sub-views", () => {
+  // Three primary tabs: Stats, Guide, then the progression tab (labelled Skills).
+  assert.match(builder, /\{id:'stats',name:'Stats'/);
+  assert.match(builder, /\{id:'guide',name:'Guide'/);
+  assert.match(builder, /id:'progression',name:'Skills'/);
+  // Skills and Mastery remain distinct views, now as sub-chips of the progression tab.
+  assert.match(builder, /\['skills','Skills'\],\['mastery','Mastery'\]/);
   assert.match(builder, /tabSkills:s\.statTab==='skills'/);
   assert.match(builder, /tabMastery:s\.statTab==='mastery'/);
   assert.match(builder, /showCompactProgression:false/);
-  assert.match(builder, /showResultOverview:!progressionTab/);
+  // The result overview renders whenever a build exists; view gating is per statTab.
+  assert.match(builder, /showResultOverview:!!s\.result/);
 });
 
 test("Armory and Builder render the same shared mastery wheel", () => {

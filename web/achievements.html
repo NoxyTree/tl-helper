@@ -152,7 +152,8 @@
           <div style="display: grid; gap: 4px;">
             <sc-for list="{{ achCategoryRows }}" as="cat" hint-placeholder-count="8">
               <button type="button" onClick="{{ cat.onClick }}" style="cursor: pointer; text-align: left; display: grid; gap: 5px; padding: 8px 10px; border-radius: 8px; border: 1px solid {{ cat.border }}; background: {{ cat.bg }};" style-hover="border-color: rgba(232, 184, 106, 0.45);">
-                <span style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <span aria-hidden="true" style="flex: 0 0 auto; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.28); background: {{ cat.glyphBg }}; display: grid; place-items: center; font: 400 10px Marcellus, serif; color: #cbb185;">{{ cat.monogram }}</span>
                   <span style="font-size: 12px; font-weight: 600; color: {{ cat.color }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ cat.name }}</span>
                   <span style="flex: 1;"></span>
                   <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ cat.countLabel }}</span>
@@ -203,6 +204,7 @@
         <div class="ach-card-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px;">
           <sc-for list="{{ achCards }}" as="card" hint-placeholder-count="9">
             <div onClick="{{ card.onOpen }}" role="button" tabIndex="0" style="cursor: pointer; display: flex; gap: 12px; align-items: flex-start; padding: 14px 14px 12px; border-radius: 10px; border: 1px solid {{ card.border }}; background: {{ card.bg }}; transition: border-color 0.12s ease;" style-hover="border-color: rgba(232, 184, 106, 0.55);">
+              <span aria-hidden="true" style="pointer-events: none; flex: 0 0 auto; width: 38px; height: 38px; border-radius: 9px; border: 1px solid rgba(212, 166, 94, 0.3); background: {{ card.glyphBg }}; display: grid; place-items: center; font: 400 16px Marcellus, serif; color: #cbb185;">{{ card.monogram }}</span>
               <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; gap: 7px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f;">
                   <span style="flex: none;">{{ card.group }}</span>
@@ -259,8 +261,13 @@
       </div>
 
       <div style="margin-top: 20px; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a795f;">{{ achDetailPath }}</div>
-      <h2 style="margin: 6px 0 2px; font-family: Marcellus, serif; font-size: 24px; font-weight: 400; color: #f6d391; letter-spacing: 0.02em;">{{ achDetailTitle }}</h2>
-      <div style="font-size: 10.5px; color: #8a795f;">Achievement #{{ achDetailId }}</div>
+      <div style="display: flex; align-items: center; gap: 13px; margin-top: 8px;">
+        <span aria-hidden="true" style="flex: 0 0 auto; width: 46px; height: 46px; border-radius: 11px; border: 1px solid rgba(212, 166, 94, 0.35); background: {{ achDetailGlyphBg }}; display: grid; place-items: center; font: 400 20px Marcellus, serif; color: #cbb185; box-shadow: 0 0 16px rgba(229, 200, 143, 0.12);">{{ achDetailMonogram }}</span>
+        <div style="min-width: 0;">
+          <h2 style="margin: 0; font-family: Marcellus, serif; font-size: 24px; font-weight: 400; color: #f6d391; letter-spacing: 0.02em;">{{ achDetailTitle }}</h2>
+          <div style="font-size: 10.5px; color: #8a795f;">Achievement #{{ achDetailId }}</div>
+        </div>
+      </div>
 
       <sc-if value="{{ achDetailHasDesc }}" hint-placeholder-val="{{ false }}">
         <p style="margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: #e6d6b4;">{{ achDetailDesc }}</p>
@@ -333,7 +340,8 @@ class Component extends DCLogic {
 
   async loadAchievements() {
     try {
-      const mod = await import("./data/achievements.js");
+      const [mod, glyphs] = await Promise.all([import("./data/achievements.js"), import("./tl-achievement-glyphs.js")]);
+      this.glyphFor = glyphs.achievementCategoryGlyph;
       let progress = {};
       try { progress = JSON.parse(localStorage.getItem(this.ACH_KEY) || "null") || {}; } catch {}
       this.setState({ achList: mod.TL_ACHIEVEMENTS || [], achLoaded: true, achProgress: progress });
@@ -345,6 +353,18 @@ class Component extends DCLogic {
 
   saveAchProgress() {
     try { localStorage.setItem(this.ACH_KEY, JSON.stringify(this.state.achProgress)); } catch {}
+  }
+
+  // Category glyph disc: game art where the mapping has a confident match,
+  // otherwise a letter monogram over the same dark disc. One background
+  // declaration serves both, so templates need no conditionals.
+  achGlyph(category) {
+    const icon = this.glyphFor ? this.glyphFor(category) : null;
+    const disc = "radial-gradient(circle at 36% 30%, #3a2c17, #14100a 72%)";
+    return {
+      glyphBg: icon ? `url(${icon}) center/cover, ${disc}` : disc,
+      monogram: icon ? "" : (String(category ?? "").replace(/[^A-Za-z0-9]/g, "").slice(0, 1).toUpperCase() || "?"),
+    };
   }
 
   achStageCount(a) { return Math.max(Array.isArray(a.stages) ? a.stages.length : 0, 1); }
@@ -446,6 +466,7 @@ class Component extends DCLogic {
       const p = c.total ? Math.round((c.done / c.total) * 100) : 0;
       return {
         name: c.name,
+        ...this.achGlyph(c.name),
         countLabel: `${c.done}/${c.total}`,
         pct: `${p}%`,
         color: activeCat ? "#f6d391" : "#cbb185",
@@ -475,8 +496,11 @@ class Component extends DCLogic {
       const stages = Array.isArray(detail.stages) && detail.stages.length ? detail.stages : [{ objective: "Complete this achievement", rewards: [] }];
       const done = this.achDone(detail);
       const stageIdxs = this.achStageIndexes(detail);
+      const detailGlyph = this.achGlyph(detail.category);
       detailVals = {
         achDetailOpen: true,
+        achDetailGlyphBg: detailGlyph.glyphBg,
+        achDetailMonogram: detailGlyph.monogram,
         achDetailPath: detail.categoryPath || `${detail.categoryGroup}/${detail.category}`,
         achDetailTitle: detail.title,
         achDetailId: detail.id,
@@ -559,6 +583,7 @@ class Component extends DCLogic {
           title: a.title,
           group: a.categoryGroup,
           category: a.category,
+          ...this.achGlyph(a.category),
           pct: `${Math.round((doneStages / n) * 100)}%`,
           stagesLabel: `${doneStages}/${n}`,
           titleColor: done ? "#f6d391" : "#e6d6b4",
@@ -577,5 +602,6 @@ class Component extends DCLogic {
 }
 </script>
   <script type="module" src="./tl-account-menu.js"></script>
+  <script type="module" src="./tl-support-link.js"></script>
 </body>
 </html>

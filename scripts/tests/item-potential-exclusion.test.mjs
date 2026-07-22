@@ -165,15 +165,17 @@ test("every calculation surface discloses the exclusion and Armory provides a re
   }
   assert.match(files["index.html"], /Item Potential \(excluded\)/);
   assert.match(files["index.html"], /all stat and skill outcomes are excluded from totals and recommendations/);
-  assert.match(files["index.html"], /potentialStatDisabled: true/);
-  assert.match(files["index.html"], /hasPotentialStats: potentialStatOptions\.length > 0 \|\| potentialSkills\.length > 0 \|\| \(isEquippedPreview && Boolean\(selection\.potentialId\)\)/);
+  // Item Potential outcomes are now selectable (equipped items only) and
+  // auto-apply, while remaining excluded from calculations.
+  assert.match(files["index.html"], /potentialStatDisabled: !isEquippedPreview/);
+  assert.match(files["index.html"], /hasPotentialStats: potentialOutcomeOptions\.length > 0 \|\| \(isEquippedPreview && Boolean\(selection\.potentialId\)\)/);
   assert.match(files["index.html"], /storedPotentialLabel/);
   assert.match(files["index.html"], /Clear stored Item Potential/);
   assert.match(files["index.html"], /onClearPotential: \(\) => isEquippedPreview && this\.setPotentialStat\(slot\.id, ""\)/);
 });
 
 test("same-item generated candidates preserve excluded stored potentials", async () => {
-  const adapter = await readFile(join(root, "web", "tl-full-build-adapter.js"), "utf8");
+  const adapter = await readFile(join(root, "web", "optimizer", "tl-full-build-adapter.js"), "utf8");
   const gear = await readFile(join(root, "web", "gear-viewer.html"), "utf8");
   assert.match(adapter, /item\.id === current\?\.itemId && current\?\.potentialId/);
   assert.match(adapter, /selection\.potentialId = current\.potentialId/);

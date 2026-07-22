@@ -6,7 +6,7 @@ import test from "node:test";
 
 import * as core from "../../web/tl-core.js";
 import { resolveBuildSnapshot } from "../../web/tl-build-snapshot.js";
-import { createOptimizerAdapter } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter } from "../../web/optimizer/tl-full-build-adapter.js";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -176,8 +176,8 @@ test("all public calculation surfaces use the shared set-aware engine and data m
     "full-build-optimizer.html",
     "build-from-scratch.html",
     "combat-lab.js",
-    "tl-full-build-adapter.js",
-    "tl-builder-worker.js",
+    "optimizer/tl-full-build-adapter.js",
+    "optimizer/tl-builder-worker.js",
   ].map(async (name) => [name, await readFile(path.join(root, "web", name), "utf8")] )));
 
   for (const name of ["index.html", "tracker.html", "gear-viewer.html"]) {
@@ -198,11 +198,11 @@ test("all public calculation surfaces use the shared set-aware engine and data m
   assert.match(files["build-from-scratch.html"], /setEffectBreakpointSummary\(breakpoint\)/);
   assert.match(files["index.html"], /artifactsVals\(calc\)/);
   assert.match(files["index.html"], /previewCalc\?\.setEffects\?\.sets/);
-  assert.match(files["tl-full-build-adapter.js"], /const evaluateBuild = \(selections\) => evaluateOptimizerBuildTask\(core, \{ selections \}, buildEvaluationContext\)/);
-  assert.match(files["tl-full-build-adapter.js"], /core\.calculateBuild\(build, context\.attributes \?\? \{\}, \{/);
-  assert.match(files["tl-full-build-adapter.js"], /core\.bindCombatScenarioToBuild\(scenario, build, weaponTypes\)/);
-  assert.match(files["tl-full-build-adapter.js"], /setEffects: clone\(finalCalculation\.setEffects\)/);
-  assert.match(files["tl-builder-worker.js"], /createOptimizerAdapter/);
+  assert.match(files["optimizer/tl-full-build-adapter.js"], /const evaluateBuild = \(selections\) => evaluateOptimizerBuildTask\(core, \{ selections \}, buildEvaluationContext\)/);
+  assert.match(files["optimizer/tl-full-build-adapter.js"], /core\.calculateBuild\(build, context\.attributes \?\? \{\}, \{/);
+  assert.match(files["optimizer/tl-full-build-adapter.js"], /core\.bindCombatScenarioToBuild\(scenario, build, weaponTypes\)/);
+  assert.match(files["optimizer/tl-full-build-adapter.js"], /setEffects: clone\(finalCalculation\.setEffects\)/);
+  assert.match(files["optimizer/tl-builder-worker.js"], /createOptimizerAdapter/);
 });
 
 test("the Nine Lives set exists in the same projection consumed by every page", () => {

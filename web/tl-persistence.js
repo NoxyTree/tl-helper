@@ -11,6 +11,7 @@ export const PERSISTENCE_VERSION = 1;
 export const ARMORY_STATE_KEY = "tlhelper-builder-state-v2";
 export const LEGACY_ARMORY_STATE_KEYS = ["tlhelper-builder-state-v1"];
 export const ARMORY_PRESETS_KEY = "tlhelper-builder-presets-v1";
+export const ARMORY_UNDO_KEY = "tlhelper-builder-undo-v1";
 
 export function encodeArmoryState(state, { gameBuild = "unversioned", savedAt = new Date().toISOString() } = {}) {
   assertArmoryState(state);
@@ -70,6 +71,35 @@ export function loadArmoryPresets(storage, {
 
 export function saveArmoryState(storage, state, options = {}) {
   storage.setItem(options.key ?? ARMORY_STATE_KEY, serializeArmoryState(state, options));
+}
+
+// Snapshot the live Armory state before an external flow (the optimizer's
+// "Use in Armory") overwrites it, so the replaced build stays recoverable.
+export function backupArmoryStateForUndo(storage, { key = ARMORY_STATE_KEY, undoKey = ARMORY_UNDO_KEY } = {}) {
+  const raw = storage.getItem(key);
+  if (raw == null) return false;
+  try {
+    storage.setItem(undoKey, raw);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function loadArmoryUndo(storage, { undoKey = ARMORY_UNDO_KEY, currentGameBuild = "unversioned" } = {}) {
+  const raw = storage.getItem(undoKey);
+  if (raw == null) return failure("empty", "No replaced build is stored.");
+  const result = parseArmoryState(raw, { currentGameBuild });
+  if (!result.ok) return result;
+  let savedAt = "";
+  try {
+    savedAt = String(JSON.parse(raw)?.savedAt ?? "");
+  } catch { /* legacy raw values simply have no timestamp */ }
+  return { ...result, savedAt };
+}
+
+export function clearArmoryUndo(storage, { undoKey = ARMORY_UNDO_KEY } = {}) {
+  storage.removeItem(undoKey);
 }
 
 export function saveArmoryPresets(storage, presets, options = {}) {

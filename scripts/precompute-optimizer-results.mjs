@@ -1,5 +1,5 @@
 // Generates the precomputed optimizer result cache consumed by
-// web/tl-optimizer-precache.js. Runs the real adapter at thorough depth for
+// web/optimizer/tl-optimizer-precache.js. Runs the real adapter at thorough depth for
 // each curated (preset, weapon-pair) cell, so a stored result is exactly what
 // the in-browser worker would produce for the same request (the engine is
 // deterministic). Resumable: existing entries whose key still matches are
@@ -15,10 +15,10 @@ import { performance } from "node:perf_hooks";
 import { Worker as NodeWorker } from "node:worker_threads";
 
 import * as core from "../web/tl-core.js";
-import { createOptimizerAdapter } from "../web/tl-full-build-adapter.js";
-import { createOptimizerWorkerPool } from "../web/tl-optimizer-worker-pool.js";
-import { canonicalPrecacheRequest, precacheKey } from "../web/tl-optimizer-precache.js";
-import { resolveOptimizerPreset, weaponStatFamily } from "../web/tl-optimizer-presets.js";
+import { createOptimizerAdapter } from "../web/optimizer/tl-full-build-adapter.js";
+import { createOptimizerWorkerPool } from "../web/optimizer/tl-optimizer-worker-pool.js";
+import { canonicalPrecacheRequest, precacheKey } from "../web/optimizer/tl-optimizer-precache.js";
+import { resolveOptimizerPreset, weaponStatFamily } from "../web/optimizer/tl-optimizer-presets.js";
 import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 import { optimizerEngineFingerprint } from "./lib/optimizer-engine-fingerprint.mjs";
 
@@ -30,6 +30,8 @@ const MATRIX = [
   { preset: "boss-dps", pairs: [["dagger", "sword2h"], ["crossbow", "dagger"], ["staff", "dagger"]] },
   { preset: "pvp-burst", pairs: [["sword2h", "dagger"], ["crossbow", "dagger"], ["staff", "dagger"]] },
   { preset: "pvp-evasion", pairs: [["sword", "dagger"], ["sword", "wand"]] },
+  { preset: "frontline-tank", pairs: [["sword", "wand"], ["sword", "dagger"]] },
+  { preset: "pvp-skirmisher", pairs: [["dagger", "sword"], ["staff", "dagger"]] },
   { preset: "support", pairs: [["wand", "orb"], ["wand", "sword"]] },
 ];
 

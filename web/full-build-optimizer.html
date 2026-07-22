@@ -106,11 +106,11 @@
     .toggle-row input { margin-top:2px; accent-color:var(--gold); }
     .toggle-row strong { display:block; color:#e3d4b5; font-size:12.5px; font-weight:600; }
     .toggle-row small { display:block; margin-top:2px; color:var(--muted); font-size:10.5px; line-height:1.4; }
-    .heroic-lock { display:grid; grid-template-columns:20px minmax(0,1fr); gap:9px; align-items:start; padding:12px; border:1px solid rgba(185,140,240,.4); border-radius:10px; background:linear-gradient(135deg,rgba(92,53,126,.16),rgba(9,7,5,.6)); cursor:pointer; }
-    .heroic-lock input { margin-top:3px; accent-color:#b98cf0; }
+    .heroic-lock { display:grid; gap:7px; padding:12px; border:1px solid rgba(185,140,240,.4); border-radius:10px; background:linear-gradient(135deg,rgba(92,53,126,.16),rgba(9,7,5,.6)); }
     .heroic-lock strong,.heroic-lock small { display:block; }
     .heroic-lock strong { color:#e8d7f5; font-size:12.5px; }
-    .heroic-lock small { margin-top:3px; color:#aa91bd; font-size:10px; line-height:1.4; }
+    .heroic-lock small { margin-top:2px; color:#aa91bd; font-size:10px; line-height:1.4; }
+    .heroic-lock select { width:100%; min-width:0; padding:8px 9px; border:1px solid rgba(185,140,240,.42); border-radius:8px; background:rgba(9,7,5,.7); color:#e8d7f5; font:inherit; font-size:11.5px; cursor:pointer; }
     .lock-toolbar { display:flex; gap:7px; margin:10px 0; }
     .lock-toolbar button { min-height:32px; flex:1; padding:6px 9px; border:1px solid rgba(212,166,94,.2); border-radius:7px; background:rgba(8,6,4,.5); color:#cdbb98; cursor:pointer; font-size:10px; }
     .lock-toolbar button:hover { border-color:rgba(242,199,119,.48); color:#f1d59e; }
@@ -254,10 +254,9 @@
         </div></section>
 
         <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
-          <div class="goal-block"><div class="goal-title"><span>Start from a preset</span><span>Ranked goals with calibrated floors · tune anything after</span></div><div id="goal-presets" class="picker-categories" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>
           <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Ranked priorities · drag to reorder</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
           <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
-          <p class="hint">Every wanted stat can also carry a minimum. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached. Values use the same units the game displays. Protected stats are hard constraints at their current value; the engine will reject a loadout that reduces one.</p>
+          <p class="hint">Every wanted stat can also carry a minimum. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more — a high-ranked At least goal can keep absorbing score far past its floor and starve lower priorities. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached, so use Target when "enough is enough" (for example Endurance 3,000). Values use the same units the game displays. Protected stats are hard constraints at their current value; the engine will reject a loadout that reduces one.</p>
         </div></section>
 
         <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">4. Optional choices</h2><span class="section-kicker">Defaults are recommended</span></div><div class="panel-body">
@@ -294,7 +293,11 @@
         </div></section>
 
         <section id="locks-panel" class="panel locks-panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">3. Keep equipment</h2><span class="section-kicker">Lock only what must stay</span></div><div class="panel-body">
-          <label class="heroic-lock"><input id="lock-heroics" type="checkbox" checked><span><strong>Lock equipped Heroics</strong><small id="heroic-lock-copy">Your equipped Heroic items and their exact configurations will stay.</small></span></label>
+          <label class="heroic-lock"><strong>Equipped Heroics</strong><select id="heroic-policy" aria-label="How to handle equipped Heroic items">
+            <option value="keep_config" selected>Keep items · keep exact traits &amp; effects</option>
+            <option value="keep_items">Keep items · re-optimize traits &amp; Heroic effects</option>
+            <option value="replace_any">Allow any legal Heroic · full re-optimization</option>
+          </select><small id="heroic-lock-copy">Your equipped Heroic items and their exact configurations will stay.</small></label>
           <div class="lock-toolbar"><button id="lock-all-slots" type="button">Lock all equipped</button><button id="clear-slot-locks" type="button">Clear slot locks</button></div>
           <div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">Tick any additional item you do not want replaced.</p>
         </div></section>
@@ -302,22 +305,23 @@
     </div>
     <section id="output" class="panel output-stage hidden" aria-live="polite">
       <div id="progress-state" class="progress-wrap hidden"><div class="progress-card"><div class="progress-sigil"><span>✦</span></div><div class="section-kicker">Improving your build</div><h2 id="progress-label">Preparing equipment</h2><p id="progress-detail">Checking compatible options for every slot.</p><div class="progress-head"><strong>Complete-build search</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><div class="progress-steps"><span class="progress-step active">Catalogue</span><span class="progress-step">Limits</span><span class="progress-step">Attributes</span><span class="progress-step">Assemble</span></div><button id="cancel-optimizer" class="secondary" type="button">Cancel and return</button></div></div>
-      <div id="error-state" class="result-empty hidden"><div><h2>Optimizer unavailable</h2><p id="error-message" class="error"></p><button id="retry-engine" class="secondary" type="button">Retry connection</button></div></div>
+      <div id="error-state" class="result-empty hidden"><div><h2>Optimizer unavailable</h2><p id="error-message" class="error"></p><div id="constraint-diagnostics" class="hidden" style="margin:14px auto 0;max-width:620px;text-align:left;"></div><button id="retry-engine" class="secondary" type="button">Retry connection</button></div></div>
       <div id="results-state" class="results hidden"></div>
     </section>
   </main>
   <div id="result-hover" class="hidden" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
-    import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./full-build-optimizer.js";
+    import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./optimizer/full-build-optimizer.js";
 
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
     const state = { source:"armory", build:null, result:null, increase:[], protect:[], goalModes:{}, goalValues:{}, currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
     const $ = id => document.getElementById(id);
     function syncHeroicLocks() {
-      const lockHeroics=$('lock-heroics').checked,heroicInputs=[...document.querySelectorAll('[data-heroic="true"]')];
-      heroicInputs.forEach(input=>{ if(lockHeroics){ if(input.dataset.forced!=="true") input.dataset.priorChecked=String(input.checked); input.dataset.forced="true"; input.checked=true; input.disabled=true; } else { input.disabled=false; if(input.dataset.forced==="true") input.checked=input.dataset.priorChecked==="true"; delete input.dataset.forced; delete input.dataset.priorChecked; } });
-      $('heroic-lock-copy').textContent=heroicInputs.length?`${heroicInputs.length} equipped Heroic${heroicInputs.length===1?" is":"s are"} ${lockHeroics?"locked with exact configurations":"eligible for replacement"}.`:'No Heroic equipment is currently equipped.';
+      const policy=$('heroic-policy').value,fullLock=policy==="keep_config",heroicInputs=[...document.querySelectorAll('[data-heroic="true"]')];
+      heroicInputs.forEach(input=>{ if(fullLock){ if(input.dataset.forced!=="true") input.dataset.priorChecked=String(input.checked); input.dataset.forced="true"; input.checked=true; input.disabled=true; } else { input.disabled=false; if(input.dataset.forced==="true") input.checked=input.dataset.priorChecked==="true"; delete input.dataset.forced; delete input.dataset.priorChecked; } });
+      const count=heroicInputs.length,plural=count===1?"":"s",verb=count===1?"is":"are";
+      $('heroic-lock-copy').textContent=count?(policy==="keep_config"?`${count} equipped Heroic${plural} ${verb} locked with exact traits and effects.`:policy==="keep_items"?`${count} equipped Heroic${plural} will stay, but their normal traits, Heroic trait, and Heroic effects will be re-optimized for your goals. Tick a slot below to keep that item's exact configuration instead.`:`${count} equipped Heroic${plural} ${verb} eligible for replacement by any legal Heroic.`):'No Heroic equipment is currently equipped.';
     }
     function renderLocks() {
       const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
@@ -336,7 +340,7 @@
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
     selectButtonGroup("artifact-mode","artifactMode");
-    $("lock-heroics").addEventListener("change",syncHeroicLocks);
+    $("heroic-policy").addEventListener("change",syncHeroicLocks);
     $("lock-all-slots").addEventListener("click",()=>document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=true;}));
     $("clear-slot-locks").addEventListener("click",()=>document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=false;}));
     document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); renderLocks(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
@@ -347,16 +351,65 @@
       $("progress-state").classList.toggle("hidden",view!=="progress"); $("results-state").classList.toggle("hidden",view!=="result"); $("error-state").classList.toggle("hidden",view!=="error");
       if(changed) window.scrollTo({top:0,behavior:"smooth"});
     }
-    function setEngineError(message) { $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("error-message").textContent=message; setView("error"); updateReady(); }
+    function setEngineError(message,constraintDiagnostics) {
+      $("engine-status").textContent="Unavailable"; $("source-status").textContent=message; $("error-message").textContent=message;
+      renderConstraintDiagnostics(constraintDiagnostics??null); setView("error"); updateReady();
+    }
+    // Turns "no builds match" into per-constraint rows: what was required, the
+    // best any evaluated build reached, and a one-click relaxation.
+    function renderConstraintDiagnostics(diagnostics) {
+      const root=$("constraint-diagnostics");
+      const conflicts=diagnostics?.conflicts??[],closestMisses=diagnostics?.closest?.misses??[];
+      const rows=conflicts.length?conflicts:closestMisses.map(miss=>({...miss,bestAchievable:miss.value,formattedBestAchievable:miss.formattedValue,kind:state.goalModes[miss.id]?"minimum":"protected",jointOnly:true}));
+      if(!rows.length){ root.classList.add("hidden"); root.innerHTML=""; return; }
+      const heading=conflicts.length?"These constraints cannot be met by any evaluated build:":"Each floor is reachable alone, but no single build meets them together. The closest build missed:";
+      root.innerHTML=`<div class="warning" style="margin:0;"><strong style="display:block;margin-bottom:6px;color:#f2c777;">${esc(heading)}</strong>${rows.map((row,index)=>{
+        const isGoalFloor=state.increase.includes(row.id)&&(state.goalModes[row.id]==="at_least"||state.goalModes[row.id]==="target");
+        const isProtected=state.protect.includes(row.id);
+        const suggestion=isGoalFloor?`Lower its ${state.goalModes[row.id]==="target"?"target":"floor"} to ${esc(row.formattedBestAchievable)}`:isProtected?`Stop protecting it`:"Relax it";
+        return `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid rgba(255,183,101,.14);"><span style="flex:1;min-width:200px;">${esc(row.name??row.id)} — needs ${esc(row.formattedRequired)}, best achievable ${esc(row.formattedBestAchievable)}</span>${(isGoalFloor||isProtected)?`<button type="button" class="secondary" data-relax-index="${index}" style="min-height:30px;padding:4px 10px;font-size:11px;">${suggestion}</button>`:""}</div>`;
+      }).join("")}<div style="margin-top:8px;font-size:10.5px;color:#a38c67;">Applying a suggestion returns you to setup with the constraint relaxed; run the optimizer again from there.</div></div>`;
+      root.classList.remove("hidden");
+      root.querySelectorAll("button[data-relax-index]").forEach(button=>button.onclick=()=>{
+        const row=rows[Number(button.dataset.relaxIndex)];
+        if(state.increase.includes(row.id)&&(state.goalModes[row.id]==="at_least"||state.goalModes[row.id]==="target")){
+          const display=parseFloat(String(row.formattedBestAchievable??"").replace(/,/g,""));
+          if(Number.isFinite(display)) state.goalValues[row.id]=display;
+        } else if(state.protect.includes(row.id)){
+          state.protect=state.protect.filter(id=>id!==row.id);
+        }
+        $("engine-status").textContent="Ready";
+        renderPicker($("increase-picker"),"increase"); renderPicker($("protect-picker"),"protect");
+        setView("setup"); updateReady();
+      });
+    }
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const [module,core,rulesData,persistence,handoff,presets] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-optimizer-result-handoff.js"),import("./tl-optimizer-presets.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff; state.presets=presets;
+        const [module,core,rulesData,persistence,handoff,presets,presetMeta,apiModule] = await Promise.all([import("./optimizer/tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./optimizer/tl-optimizer-result-handoff.js"),import("./optimizer/tl-optimizer-presets.js"),import("./tl-preset-meta.js"),import("./optimizer/tl-optimizer-api.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff; state.presets=presets; state.presetMeta=presetMeta;
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
         for(const method of ["createScratchBuild","loadArmoryBuild","importQuestlogBuild","listStats","currentStats","optimize"]) if(typeof adapter?.[method]!=="function") throw new Error(`Optimizer adapter is missing ${method}().`);
         state.adapter=adapter; state.statOptions=await adapter.listStats();
+        // Scriptable control surface for automation / an LLM driving the page.
+        // optimize() is routed through a throwaway Web Worker so the thorough
+        // search runs on the worker pool and never blocks the tab.
+        const runOptimizeViaWorker = (request, runtime = {}) => new Promise((resolve, reject) => {
+          const worker = new Worker("./optimizer/tl-builder-worker.js", { type: "module" });
+          const done = () => worker.terminate();
+          worker.onmessage = (event) => {
+            const message = event.data ?? {};
+            if (message.type === "progress") { runtime.onProgress?.(message.progress); return; }
+            if (message.type === "preliminary") { runtime.onPreliminary?.(message.result); return; }
+            if (message.type === "result") { done(); resolve(message.result); return; }
+            if (message.type === "cancelled") { done(); const error = new Error("Optimization cancelled."); error.name = "AbortError"; reject(error); return; }
+            if (message.type === "error") { done(); const error = new Error(message.message || "Optimizer error."); if (message.constraintDiagnostics) error.constraintDiagnostics = message.constraintDiagnostics; reject(error); return; }
+          };
+          worker.onerror = (event) => { done(); reject(new Error(event.message || "Optimizer worker failed.")); };
+          worker.postMessage({ type: "optimize", request });
+        });
+        try { window.tlHelper = apiModule.createOptimizerApi({ core, adapter, persistence, presetMeta, storage: localStorage, runOptimize: runOptimizeViaWorker }); } catch (apiError) { console.warn("tlHelper API unavailable:", apiError); }
         $("engine-status").textContent="Ready"; setView("setup");
         setupPicker("increase-picker","increase"); setupPicker("protect-picker","protect"); renderGoalPresets(); await loadArmory();
       } catch(error) { setEngineError(`The full-build calculation engine could not be loaded. ${error.message}`); }
@@ -458,7 +511,8 @@
       if(/defense|armou?r|endurance|evasion|resistance|reduction|block|damage taken|shield/.test(text)) return "defense";
       return "offense";
     }
-    const compositeComponents=id=>(state.rulesData?.STAT_EXPANSIONS?.[id]??[]).map(componentId=>({id:componentId,name:state.core?.statName(componentId)??componentId}));
+    // Context-split composites (Boss/PvP pairs) are single leaf goals, not min(boss,pvp) — no Composite badge.
+    const compositeComponents=id=>(state.rulesData?.CONTEXT_SPLIT_COMPOSITE_IDS?.has(id)?[]:(state.rulesData?.STAT_EXPANSIONS?.[id]??[])).map(componentId=>({id:componentId,name:state.core?.statName(componentId)??componentId}));
     function setupPicker(id,key) {
       const root=$(id); root.dataset.key=key; root.dataset.open="false"; root.dataset.category="featured";
       root.innerHTML=`<div class="goal-selected" aria-live="polite"></div><button class="picker-trigger" type="button" aria-expanded="false"><span class="picker-trigger-plus">+</span><span class="picker-trigger-label">Add a ${key==="increase"?"wanted":"protected"} stat</span><span class="picker-trigger-count"></span><span class="picker-trigger-caret">▼</span></button><div class="picker-menu hidden" role="dialog" aria-label="Choose a ${key==="increase"?"wanted":"protected"} stat"><input class="picker-search" type="search" aria-label="Search all calculated stats" placeholder="Search all calculated stats"><div class="picker-categories"></div><div class="picker-result-head"><strong>Featured</strong><span></span></div><div class="picker-results"></div><div class="picker-footer"><span>Select as many stats as matter to this build.</span><button class="picker-done" type="button">Done</button></div></div>`;
@@ -488,10 +542,10 @@
       selected.ondrop=event=>{const target=event.target.closest("[data-priority]"),source=state.dragPriorityId||event.dataTransfer?.getData("text/plain");if(!target||!source||target.dataset.priority===source)return;event.preventDefault();const next=state.increase.filter(id=>id!==source),targetIndex=next.indexOf(target.dataset.priority),rect=target.getBoundingClientRect(),after=event.clientY>rect.top+rect.height/2;next.splice(targetIndex+(after?1:0),0,source);state.increase=next;state.dragPriorityId="";renderPicker($("increase-picker"),"increase");};
       selected.onkeydown=event=>{const handle=event.target.closest("[data-drag-handle]");if(!handle||!["ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();movePriority(handle.dataset.dragHandle,event.key==="ArrowUp"?-1:1);};
     }
-    function goalModeCopy(mode,index) { return mode==="at_least"?"Hard floor · still rewarded above it":mode==="target"?"Hard floor · stops rewarding once reached":index===0?"Protected hardest; drag to change priority":"Maximized after higher-ranked goals"; }
+    function goalModeCopy(mode,index) { return mode==="at_least"?"Hard floor · excess above it is still rewarded and can starve lower goals — use Target to stop at the value":mode==="target"?"Hard floor · stops rewarding past the value, freeing score for lower goals":index===0?"Protected hardest; drag to change priority":"Maximized after higher-ranked goals"; }
     function goalModeRow(id,name,current) {
       const mode=state.goalModes[id]??"maximize",value=state.goalValues[id];
-      const options=[["maximize","Maximize"],["at_least","At least"],["target","Target"]].map(([optionId,label])=>`<option value="${optionId}"${mode===optionId?" selected":""}>${label}</option>`).join("");
+      const options=[["maximize","Maximize"],["at_least","At least — floor, still rewards more"],["target","Target — floor, then stops"]].map(([optionId,label])=>`<option value="${optionId}"${mode===optionId?" selected":""}>${label}</option>`).join("");
       return `<span class="goal-mode-row"><select data-goal-mode="${esc(id)}" aria-label="Goal mode for ${esc(name)}">${options}</select>${mode!=="maximize"?`<label class="goal-value">${mode==="target"?"Reach":"Floor"} <input type="number" min="0" step="any" data-goal-value="${esc(id)}" value="${value==null?"":esc(value)}" aria-invalid="${String(!Number.isFinite(Number(value))||value==null||value==="")}" aria-label="${mode==="target"?"Target value":"Minimum value"} for ${esc(name)}"></label><span class="goal-current">Current ${esc(current?.formattedValue??"0")}</span>`:""}</span>`;
     }
     function renderPicker(root,key) {
@@ -528,7 +582,7 @@
       root.innerHTML=state.presets.OPTIMIZER_PRESETS.map(preset=>`<button type="button" class="picker-category" data-preset="${esc(preset.id)}" title="${esc(preset.tagline)}">${esc(preset.label)}</button>`).join("");
       root.onclick=event=>{ const button=event.target.closest("button[data-preset]"); if(button) applyGoalPreset(button.dataset.preset); };
     }
-    function request() { const lockHeroics=$("lock-heroics").checked; return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>{ const mode=state.goalModes[id]??"maximize",displayValue=state.goalValues[id]; if(mode!=="maximize"&&!Number.isFinite(Number(displayValue))) throw new Error(`Enter a value for ${state.statOptions.find(row=>row.id===id)?.name??id} or switch it back to Maximize.`); const value=mode==="maximize"?null:state.core.statDisplayToRaw(id,Number(displayValue)); return {id,rank:index+1,mode,minimum:mode==="at_least"?value:null,target:mode==="target"?value:null}; }), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, keepCurrentHeroics:lockHeroics, reconsiderHeroics:!lockHeroics, includeSetEffects:true, optimizeThreeTraits:true, bestHeroicConfiguration:true, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:"refine" }; }
+    function request() { const heroicPolicy=$("heroic-policy").value; return { build:state.build, sourceKind:state.source, ...scenarioRequestFields(), goals:{ priorities:state.increase.map((id,index)=>{ const mode=state.goalModes[id]??"maximize",displayValue=state.goalValues[id]; if(mode!=="maximize"&&!Number.isFinite(Number(displayValue))) throw new Error(`Enter a value for ${state.statOptions.find(row=>row.id===id)?.name??id} or switch it back to Maximize.`); const value=mode==="maximize"?null:state.core.statDisplayToRaw(id,Number(displayValue)); return {id,rank:index+1,mode,minimum:mode==="at_least"?value:null,target:mode==="target"?value:null}; }), protect:state.protect }, locks:[...document.querySelectorAll("[data-slot]:checked")].map(node=>Number(node.dataset.slot)), rules:{ minimumItemLevel:$("endgame-only").checked?50:0, heroicPolicy, keepCurrentHeroics:heroicPolicy==="keep_config", reconsiderHeroics:heroicPolicy==="replace_any", includeSetEffects:true, optimizeThreeTraits:true, bestHeroicConfiguration:true, runes:{ mode:state.runeMode, chaosOwnershipRequired:true, normalDuplicateCap:3, chaosDuplicateCap:1 }, artifacts:{ mode:state.artifactMode } }, depth:"refine" }; }
     function showProgress(progress={}) { const value=Math.max(0,Math.min(100,Number(progress.percent)||0)); setView("progress"); $("engine-status").textContent="Searching"; $("progress-fill").style.width=`${value}%`; $("progress-percent").textContent=`${Math.round(value)}%`; $("progress-label").textContent=progress.label??"Searching loadouts"; $("progress-detail").textContent=progress.detail??"Checking complete equipment combinations."; const active=Math.min(3,Math.floor(value/25)); document.querySelectorAll(".progress-step").forEach((node,index)=>node.classList.toggle("active",index<=active)); }
     function openSharedResult(result) {
       const scenario=result.scenario??activeScenario(),scenarioNote=scenario?`Scenario scoring used ${formatOptimizerScenario(scenario)}. Conditional overlays remain separate from persistent static totals.`:"",assumptions=[...(result.assumptions??[])];
@@ -564,9 +618,12 @@
       return { profile:previous.ok?previous.data.profile:{name:result.name??"Optimized build",role:"Adventurer",server:""}, attributes:result.attributes??result.optimizedAttributes??{}, favoriteStatIds:[...state.increase], build:state.core.deepClone(result.build) };
     }
     function saveResultAsPreset(result) {
-      const snapshot={...resultSnapshot(result),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name:result.name??"Optimized build",createdAt:new Date().toISOString()};
-      const loaded=state.persistence.loadArmoryPresets(localStorage,{currentGameBuild:state.core.data?.gameBuild??"unversioned"}); const presets=loaded.ok?loaded.data:[];
-      state.persistence.saveArmoryPresets(localStorage,[...presets,snapshot],{gameBuild:state.core.data?.gameBuild??"unversioned"});
+      const gameBuild=state.core.data?.gameBuild??"unversioned";
+      const loaded=state.persistence.loadArmoryPresets(localStorage,{currentGameBuild:gameBuild}); const presets=loaded.ok?loaded.data:[];
+      const name=state.presetMeta.generatePresetName(state.core,{build:result.build,origin:"optimized",existingNames:presets.map(preset=>preset.name)});
+      const snapshot={...resultSnapshot(result),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name,origin:"optimized",createdAt:new Date().toISOString()};
+      state.persistence.saveArmoryPresets(localStorage,[...presets,snapshot],{gameBuild});
+      return name;
     }
     function renderResult(result) {
       if(!result || !Array.isArray(result.slots) || !Array.isArray(result.statDeltas)) throw new Error("The optimizer returned an invalid result. No recommendation was displayed.");
@@ -578,15 +635,15 @@
       const scenario=result.scenario??activeScenario(),scenarioDescription=formatOptimizerScenario(scenario),scenarioBadge=scenario?`<span class="scenario-score-badge">Scenario scoring · ${esc(scenarioDescription)}</span>`:"";
       $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong>${scenarioBadge}</div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">${scenario?`Scenario fit score · ${esc(scenarioDescription)}`:"Static fit score"}</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Other strong finalists</h3>${alternatives}</div>`:""}</div></div>`;
       $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
-      $("save-result-preset").onclick=()=>{ try{saveResultAsPreset(result);$("result-status").textContent="Saved as a new Armory preset.";}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
-      $("use-result-build").onclick=()=>{ try{state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
+      $("save-result-preset").onclick=()=>{ try{const savedName=saveResultAsPreset(result);$("result-status").textContent=`Saved as “${savedName}”. Your current Armory build is untouched.`;}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
+      $("use-result-build").onclick=()=>{ try{state.persistence.backupArmoryStateForUndo(localStorage); state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
       bindResultHover(result); $("engine-status").textContent="Complete"; setView("result");
     }
     $("run-optimizer").addEventListener("click",()=>{
       let optimizeRequest; try { optimizeRequest=request(); } catch(error){ $("run-hint").textContent=error.message; return; }
       state.worker?.terminate(); $("run-optimizer").disabled=true; const scenario=activeScenario(); showProgress({percent:0,label:"Preparing your build",detail:scenario?`Starting scenario scoring: ${formatOptimizerScenario(scenario)}.`:"Starting the static optimizer worker."});
-      const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
-      worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;try{openSharedResult(message.result);}catch(error){setEngineError(`The result could not be opened. ${error.message}`);}updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`);}};
+      const worker=new Worker("./optimizer/tl-builder-worker.js",{type:"module"}); state.worker=worker;
+      worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;try{openSharedResult(message.result);}catch(error){setEngineError(`The result could not be opened. ${error.message}`);}updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`,message.constraintDiagnostics);}};
       worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
       worker.postMessage({type:"optimize",request:optimizeRequest});
     });
@@ -594,5 +651,6 @@
     connectEngine();
   </script>
   <script type="module" src="./tl-account-menu.js"></script>
+  <script type="module" src="./tl-support-link.js"></script>
 </body>
 </html>

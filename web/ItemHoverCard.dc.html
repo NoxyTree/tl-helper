@@ -18,7 +18,17 @@
     </div>
   </div>
 
-  <sc-if value="{{ data.hasStats }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ data.hasContribution }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px;">Contribution to build</div>
+      <sc-for list="{{ data.contributionRows }}" as="row" hint-placeholder-count="3">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; min-height: 18px; align-items: baseline; font-size: 12px; line-height: 1.4;"><span style="color: #cfc1a6;">{{ row.name }}</span><strong style="color: {{ row.deltaColor }}; font-variant-numeric: tabular-nums;">{{ row.formattedValue }}</strong></div>
+      </sc-for>
+      <div style="margin-top: 5px; font-size: 8.5px; color: #75664f;">What this piece adds to your totals versus an empty slot.</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ data.showRawStats }}" hint-placeholder-val="{{ false }}">
     <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
       <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 5px;">Stats</div>
       <sc-for list="{{ data.stats }}" as="row" hint-placeholder-count="2">
@@ -82,31 +92,15 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ data.hasRunes }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ data.hasFilledRunes }}" hint-placeholder-val="{{ false }}">
     <div style="padding: 9px 14px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
-      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 7px;">Runes</div>
-      <div style="display: grid; gap: 8px;">
-        <sc-for list="{{ data.runes }}" as="rune" hint-placeholder-count="3">
-          <sc-if value="{{ rune.empty }}" hint-placeholder-val="{{ false }}">
-            <div style="display: flex; align-items: center; gap: 9px; opacity: 0.5;">
-              <span style="flex: none; width: 34px; height: 34px; border-radius: 999px; border: 1.5px dashed rgba(212, 166, 94, 0.3); display: block;"></span>
-              <span style="font-size: 10.5px; color: #6e5f49;">Empty socket</span>
-            </div>
-          </sc-if>
-          <sc-if value="{{ rune.filled }}" hint-placeholder-val="{{ false }}">
-            <div style="display: flex; align-items: center; gap: 9px;">
-              <span style="flex: none; position: relative; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid {{ rune.typeColor }}; background: url({{ rune.icon }}) center/cover, radial-gradient(circle at 35% 30%, #201810, #100c07); box-shadow: 0 0 8px {{ rune.typeColor }}44; display: block;">
-                <b style="position: absolute; right: -4px; bottom: -4px; font-style: normal; font-size: 9px; font-weight: 700; color: #f3e9d4; background: rgba(10, 8, 5, 0.95); border: 1px solid {{ rune.typeColor }}; border-radius: 999px; padding: 0 4px;">{{ rune.level }}</b>
-              </span>
-              <div style="min-width: 0;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: {{ rune.typeColor }};">{{ rune.typeLabel }}</span>
-                  <span style="font-size: 9.5px; color: #8a795f;">{{ rune.gradeName }} · {{ rune.maxLevelLabel }}</span>
-                </div>
-                <div style="font-size: 11px; color: #d9c8a5; margin-top: 1px; font-variant-numeric: tabular-nums;">{{ rune.contribution }}</div>
-              </div>
-            </div>
-          </sc-if>
+      <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185; margin-bottom: 6px;">Runes</div>
+      <div style="display: grid; gap: 4px;">
+        <sc-for list="{{ data.filledRuneSummary }}" as="rune" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: auto minmax(0,1fr); gap: 8px; align-items: baseline; font-size: 11px; line-height: 1.4;">
+            <span style="font-weight: 700; letter-spacing: 0.06em; color: {{ rune.typeColor }};">{{ rune.typeLabel }} · Lv {{ rune.level }}</span>
+            <span style="color: #d9c8a5; font-variant-numeric: tabular-nums; text-align: right;">{{ rune.contribution }}</span>
+          </div>
         </sc-for>
       </div>
     </div>
@@ -121,25 +115,26 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ data.hasSet }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ data.hasSetSummary }}" hint-placeholder-val="{{ false }}">
     <div style="padding: 9px 14px 11px; border-top: 1px solid rgba(212, 166, 94, 0.1);">
-      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
         <span style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbb185;">Set Effects</span>
-        <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ data.setInfo.countLabel }}</span>
+        <span style="font-size: 10px; color: #8a795f; font-variant-numeric: tabular-nums;">{{ data.setSummary.countLabel }}</span>
       </div>
-      <div style="color: #e5c88f; font-size: 12px; font-weight: 650; margin-bottom: 7px;">{{ data.setInfo.name }}</div>
-      <div style="display: grid; gap: 3px;">
-        <sc-for list="{{ data.setInfo.bonuses }}" as="bonus" hint-placeholder-count="2">
-          <div style="display: flex; gap: 8px; font-size: 11px; line-height: 1.45; opacity: {{ bonus.opacity }};">
-            <span style="flex: none; font-weight: 700; color: {{ bonus.color }}; font-variant-numeric: tabular-nums;">{{ bonus.mark }} {{ bonus.required }}</span>
-            <span style="color: #a4906d;">{{ bonus.text }}
-              <sc-if value="{{ bonus.hasComputed }}" hint-placeholder-val="{{ false }}">
-                <i style="display: block; font-style: normal; color: {{ bonus.color }}; font-variant-numeric: tabular-nums;">{{ bonus.computedText }}</i>
-              </sc-if>
-            </span>
-          </div>
-        </sc-for>
-      </div>
+      <div style="color: #e5c88f; font-size: 11.5px; font-weight: 650; margin-bottom: 5px;">{{ data.setSummary.name }}</div>
+      <sc-if value="{{ data.setSummary.hasActive }}" hint-placeholder-val="{{ false }}">
+        <div style="display: grid; gap: 3px;">
+          <sc-for list="{{ data.setSummary.activeBonuses }}" as="bonus" hint-placeholder-count="1">
+            <div style="display: flex; gap: 8px; font-size: 11px; line-height: 1.45;">
+              <span style="flex: none; font-weight: 700; color: {{ bonus.color }}; font-variant-numeric: tabular-nums;">{{ bonus.mark }} {{ bonus.required }}</span>
+              <span style="color: #a4906d;">{{ bonus.text }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ data.setSummary.hasInactive }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top: 4px; font-size: 9.5px; color: #75664f;">{{ data.setSummary.inactiveLabel }}</div>
+      </sc-if>
     </div>
   </sc-if>
 </div>

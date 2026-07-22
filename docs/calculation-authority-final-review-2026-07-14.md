@@ -313,8 +313,8 @@ These are explicit and do not silently enter exact item ranking:
 - `web/tl-social-scenario-effects.js`
 - `web/tl-social-scenario-controls.js`
 - `web/tl-scenario-effects.js`
-- `web/tl-full-build-adapter.js`
-- `web/tl-progression-optimizer.js`
+- `web/optimizer/tl-full-build-adapter.js`
+- `web/optimizer/tl-progression-optimizer.js`
 - `web/index.html`
 - `web/tracker.html`
 - `web/gear-viewer.html`

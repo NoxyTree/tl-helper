@@ -2,8 +2,8 @@ import { availableParallelism } from "node:os";
 import path from "node:path";
 import { Worker as NodeWorker } from "node:worker_threads";
 import * as core from "../web/tl-core.js";
-import { createOptimizerAdapter } from "../web/tl-full-build-adapter.js";
-import { createOptimizerWorkerPool } from "../web/tl-optimizer-worker-pool.js";
+import { createOptimizerAdapter } from "../web/optimizer/tl-full-build-adapter.js";
+import { createOptimizerWorkerPool } from "../web/optimizer/tl-optimizer-worker-pool.js";
 import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 const goals = process.argv.slice(2).length ? process.argv.slice(2) : ["pvp_melee_accuracy", "pvp_range_accuracy", "pvp_magic_accuracy"];

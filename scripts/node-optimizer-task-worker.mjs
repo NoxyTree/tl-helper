@@ -2,7 +2,7 @@ import { parentPort } from "node:worker_threads";
 import path from "node:path";
 
 import * as core from "../web/tl-core.js";
-import { executeOptimizerTask } from "../web/tl-full-build-adapter.js";
+import { executeOptimizerTask } from "../web/optimizer/tl-full-build-adapter.js";
 import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 
 let batch = null;

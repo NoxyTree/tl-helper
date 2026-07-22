@@ -16,6 +16,7 @@ import {
   PASSIVE_SKILL_RULES,
   PERK_PASSIVE_RULES,
   SET_EXCLUSIVITY_GROUPS,
+  CONTEXT_SPLIT_COMPOSITE_IDS,
   SET_PASSIVE_RULES,
   STAT_EXPANSIONS,
   STAT_HARD_CAPS,
@@ -1072,7 +1073,13 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     level: effect.level,
     levelKnown: effect.levelKnown,
     maxLevel: effect.maxLevel,
-    text: `${effect.name} ${effect.formattedValue}`,
+    // Imports without a confirmed level must not present the base roll as the
+    // equipped value; renderers show this base-to-max range instead.
+    baseValue: formatSigned(effect.baseValue, effect.statId),
+    maxValue: formatSigned(effect.maxValue, effect.statId),
+    text: effect.levelKnown
+      ? `${effect.name} ${effect.formattedValue}`
+      : `${effect.name} level unknown · base ${formatSigned(effect.baseValue, effect.statId)} · max ${formatSigned(effect.maxValue, effect.statId)}`,
   }));
 
   const typeColors = { attack: "#e56a6a", defense: "#72a9ff", assist: "#55d58a" };
@@ -1142,11 +1149,42 @@ export function buildItemHoverModel(slotId, build, calc, options = {}) {
     }
   }
 
+  // Comparative contribution: what this equipped piece adds to the build's
+  // totals versus an empty slot (set-aware). This is the "what the item gives"
+  // view; it supersedes the raw stat block when attributes are available.
+  let contributionRows = [];
+  if (options.attributes) {
+    const contribution = slotSelectionContribution(slotId, selection, build, options.attributes, { includeSetEffects: true });
+    contributionRows = Object.entries(contribution)
+      .map(([statId, value]) => ({ statId, value: Number(value) || 0 }))
+      .filter((row) => Math.abs(row.value) > 1e-9)
+      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value) || a.statId.localeCompare(b.statId))
+      .slice(0, 12)
+      .map((row) => ({ statId: row.statId, name: statName(row.statId), value: row.value, formattedValue: formatSigned(row.value, row.statId), deltaColor: row.value >= 0 ? "#8fd6aa" : "#e08a7a" }));
+  }
+
+  // One-line summaries keep the card compact: filled runes only, active set
+  // breakpoints only (with a count of the rest).
+  const filledRuneSummary = filledRunes.map((rune) => ({ typeLabel: rune.typeLabel, typeColor: rune.typeColor, contribution: rune.contribution, level: rune.level }));
+  const activeSetBonuses = setInfo ? setInfo.bonuses.filter((bonus) => bonus.active) : [];
+  const inactiveSetCount = setInfo ? setInfo.bonuses.length - activeSetBonuses.length : 0;
+  const setSummary = setInfo ? {
+    name: setInfo.name,
+    countLabel: setInfo.countLabel,
+    activeBonuses: activeSetBonuses,
+    hasActive: activeSetBonuses.length > 0,
+    inactiveLabel: inactiveSetCount > 0 ? `+${inactiveSetCount} inactive breakpoint${inactiveSetCount === 1 ? "" : "s"}` : "",
+    hasInactive: inactiveSetCount > 0,
+  } : null;
+
   return {
     name: item.name, nameColor: color, icon: item.imageUrl ?? "", hasIcon: Boolean(item.imageUrl),
     meta: `${gradeName(item.grade)} · ${label(item.equipmentType)} · Lv ${level}`,
     headBg: `linear-gradient(180deg, ${color}26, transparent)`, headBorder: `2px solid ${color}`,
-    stats, hasStats: stats.length > 0, hasAttributeGains: stats.some((row) => row.hasChildren),
+    contributionRows, hasContribution: contributionRows.length > 0,
+    filledRuneSummary, hasFilledRunes: filledRuneSummary.length > 0,
+    setSummary, hasSetSummary: Boolean(setSummary),
+    stats, hasStats: stats.length > 0, showRawStats: contributionRows.length === 0 && stats.length > 0, hasAttributeGains: stats.some((row) => row.hasChildren),
     traits, hasTraits: traits.length > 0,
     unique, hasUnique: unique.length > 0,
     heroicEffects, hasHeroicEffects: heroicEffects.length > 0,
@@ -3337,6 +3375,22 @@ export function itemStatContribution(item, slotId, level, build, attributes, opt
 
 export function statTotal(calc, statId) {
   return calc.stats.find((row) => row.id === statId)?.total ?? 0;
+}
+
+// Composite ratings such as PvP Endurance are only as strong as their weakest
+// typed component. Mirrors the optimizer's component-minimum (component totals
+// in calc.stats already include expanded umbrella contributions and hard caps).
+export function compositeStatBreakdown(calc, statId) {
+  // Context-split composites (Boss/PvP pairs) are shown as their own single total,
+  // not min(boss, pvp) — a build only plays one context. See CONTEXT_SPLIT_COMPOSITE_IDS.
+  if (CONTEXT_SPLIT_COMPOSITE_IDS.has(statId)) return null;
+  const componentIds = STAT_EXPANSIONS[statId] ?? [];
+  if (componentIds.length < 2) return null;
+  const components = componentIds.map((id) => ({ id, total: statTotal(calc, id) }));
+  return {
+    total: Math.min(...components.map((component) => component.total)),
+    components,
+  };
 }
 
 // ---------- validation ----------

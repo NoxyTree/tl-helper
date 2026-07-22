@@ -337,8 +337,8 @@ lines.push("");
 lines.push("- `web/data/projections/equipment.json`: 78-set projection and all 151 descriptions/breakpoints for Steam build 24118850.");
 lines.push("- `web/tl-questlog-rules.js`: current static set formula registry and stat unit conversions.");
 lines.push("- `web/tl-core.js`: ordered calculation phases, canonical set-effect trace, explicit unsupported registry, and exclusivity application.");
-lines.push("- `web/tl-full-build-adapter.js`: direct candidate ranking, set-completion hints, and complete finalist calculation.");
-lines.push("- `web/tl-full-build-optimizer.js`: deterministic bounded beam pruning followed by complete evaluation of retained finalists.");
+lines.push("- `web/optimizer/tl-full-build-adapter.js`: direct candidate ranking, set-completion hints, and complete finalist calculation.");
+lines.push("- `web/optimizer/tl-full-build-optimizer.js`: deterministic bounded beam pruning followed by complete evaluation of retained finalists.");
 lines.push("- `D:/TL_Data/decoded/24118850/tables`: decoded set joins and abnormal-state evidence used by the localization resolution review.");
 lines.push("");
 lines.push("## Release state and remaining work");
@@ -370,7 +370,7 @@ lines.push("- Reference-build and edge-case verification remain release gates af
 lines.push("");
 lines.push("## Review handoff");
 lines.push("");
-lines.push("A reviewing agent should read this document, `STATUS.md` source-of-truth hierarchy, `docs/set-effect-localization-resolution-2026-07-13.md`, `web/tl-questlog-rules.js`, `web/tl-core.js`, `web/tl-full-build-adapter.js`, and `web/tl-full-build-optimizer.js`. Preserve data-backed, derived, modeled, and unsupported stages, and do not promote conditional combat effects into static totals without evidence.");
+lines.push("A reviewing agent should read this document, `STATUS.md` source-of-truth hierarchy, `docs/set-effect-localization-resolution-2026-07-13.md`, `web/tl-questlog-rules.js`, `web/tl-core.js`, `web/optimizer/tl-full-build-adapter.js`, and `web/optimizer/tl-full-build-optimizer.js`. Preserve data-backed, derived, modeled, and unsupported stages, and do not promote conditional combat effects into static totals without evidence.");
 lines.push("");
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });

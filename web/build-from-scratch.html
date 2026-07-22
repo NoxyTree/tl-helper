@@ -75,7 +75,7 @@
       <div class="tl-app-status-group">
         <div class="tl-app-status">
           <div class="tl-app-status-label">Weapon Set</div>
-          <div class="tl-app-status-value">{{ weaponSetLabel }}</div>
+          <div class="tl-app-status-value" style="display:flex;align-items:center;gap:6px;"><sc-for list="{{ weaponSetIcons }}" as="wi" hint-placeholder-count="2"><span aria-hidden="true" style="flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:1px solid rgba(242,199,119,.4);background:{{ wi.icon }};"></span></sc-for><span>{{ weaponSetLabel }}</span></div>
         </div>
         <div class="tl-app-status">
           <div class="tl-app-status-label">Combat Power</div>
@@ -109,10 +109,64 @@
       <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
         <button onClick="{{ editGoals }}" style="display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';letter-spacing:.06em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;"><span style="font-size:15px;">⚙</span> Edit build goals</button>
         <sc-if value="{{ resultActionsReady }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ openComparePanel }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(114,169,255,.4);border-radius:10px;background:rgba(16,20,28,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(114,169,255,.7);color:#dce9ff;">Compare</button>
           <button onClick="{{ saveResult }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">Save as preset</button>
           <button onClick="{{ useResult }}" style="min-height:44px;padding:0 18px;color:#0b0805;border:1px solid #f2c777;border-radius:10px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 12px 'Instrument Sans';">Use in Armory</button>
         </sc-if>
         <sc-if value="{{ masteryPending }}" hint-placeholder-val="{{ false }}"><span role="status" style="display:inline-flex;align-items:center;gap:6px;color:#f6d391;font-size:11px;"><span style="width:9px;height:9px;border:2px solid rgba(246,211,145,.35);border-top-color:#f6d391;border-radius:50%;display:inline-block;animation:tlSpin .8s linear infinite;"></span>Save &amp; Use unlock once mastery is finalized</span></sc-if>
+        <sc-if value="{{ savePanelOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-basis:100%;display:flex;justify-content:flex-end;">
+            <div role="dialog" aria-label="Save result as preset" style="display:grid;gap:9px;padding:14px;border:1px solid rgba(232,184,106,.42);border-radius:10px;background:rgba(17,13,8,.97);min-width:min(360px,90vw);box-shadow:0 16px 44px rgba(0,0,0,.55);">
+              <label style="display:grid;gap:4px;font:600 10px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;color:#a38c67;">Preset name
+                <input value="{{ saveName }}" onInput="{{ setSaveName }}" spellcheck="false" style="border:1px solid rgba(232,184,106,.4);border-radius:7px;background:rgba(8,6,4,.65);color:#f3e9d4;font:400 13px 'Instrument Sans';padding:8px 9px;letter-spacing:0;text-transform:none;">
+              </label>
+              <sc-if value="{{ hasSaveChoices }}" hint-placeholder-val="{{ false }}">
+                <label style="display:grid;gap:4px;font:600 10px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;color:#a38c67;">Save mode
+                  <select value="{{ replaceTargetId }}" onChange="{{ setReplaceTarget }}" style="border:1px solid rgba(232,184,106,.4);border-radius:7px;background:rgba(8,6,4,.65);color:#f3e9d4;font:400 12px 'Instrument Sans';padding:8px 9px;letter-spacing:0;text-transform:none;">
+                    <option value="">Save as a new preset</option>
+                    <sc-for list="{{ savePresetChoices }}" as="choice" hint-placeholder-count="3"><option value="{{ choice.id }}">Replace: {{ choice.name }}</option></sc-for>
+                  </select>
+                </label>
+              </sc-if>
+              <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button onClick="{{ closeSavePanel }}" style="min-height:36px;padding:0 13px;color:#9d8a68;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:transparent;cursor:pointer;font:600 11px 'Instrument Sans';">Cancel</button>
+                <button onClick="{{ confirmSaveResult }}" style="min-height:36px;padding:0 14px;color:#0b0805;border:1px solid #f2c777;border-radius:8px;background:linear-gradient(135deg,#f6d391,#c98b39);cursor:pointer;font:700 11px 'Instrument Sans';">{{ confirmSaveLabel }}</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ comparePanelOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-basis:100%;display:flex;justify-content:flex-end;">
+            <div role="dialog" aria-label="Compare builds" style="display:grid;gap:10px;padding:14px;border:1px solid rgba(114,169,255,.4);border-radius:10px;background:rgba(11,14,20,.97);min-width:min(560px,92vw);box-shadow:0 16px 44px rgba(0,0,0,.55);">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <strong style="color:#dce9ff;font:400 14px Marcellus,serif;">Priority stats · nothing is saved by comparing</strong>
+                <button onClick="{{ closeComparePanel }}" style="min-height:30px;padding:0 11px;color:#8397b5;border:1px solid rgba(114,169,255,.3);border-radius:7px;background:transparent;cursor:pointer;font:600 11px 'Instrument Sans';">Close</button>
+              </div>
+              <sc-if value="{{ hasComparePresets }}" hint-placeholder-val="{{ false }}">
+                <label style="display:grid;gap:4px;font:600 9.5px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;color:#8397b5;">Compare against preset
+                  <select value="{{ compareTargetId }}" onChange="{{ setCompareTarget }}" style="min-height:32px;padding:5px 8px;border:1px solid rgba(114,169,255,.35);border-radius:7px;background:rgba(0,0,0,.4);color:#dce9ff;font:400 12px 'Instrument Sans';letter-spacing:0;text-transform:none;">
+                    <sc-for list="{{ comparePresetChoices }}" as="choice" hint-placeholder-count="3"><option value="{{ choice.id }}">{{ choice.name }}</option></sc-for>
+                  </select>
+                </label>
+              </sc-if>
+              <div style="overflow-x:auto;">
+                <div style="display:grid;grid-template-columns:minmax(150px,1.4fr) repeat(3,minmax(105px,1fr));gap:6px 10px;align-items:baseline;min-width:480px;">
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8397b5;">Stat</span>
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8397b5;text-align:right;">Current Armory</span>
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8397b5;text-align:right;">Preset</span>
+                  <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#f2c777;text-align:right;">This result</span>
+                  <sc-for list="{{ compareRows }}" as="row" hint-placeholder-count="5">
+                    <span style="font-size:11px;color:#d8c9ab;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.rank }}. {{ row.name }}</span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;font-size:11.5px;color:#e6d6b4;">{{ row.armory }} <small style="color:{{ row.armoryDeltaColor }};font-size:9px;">{{ row.armoryDelta }}</small></span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;font-size:11.5px;color:#e6d6b4;">{{ row.preset }} <small style="color:{{ row.presetDeltaColor }};font-size:9px;">{{ row.presetDelta }}</small></span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums;font-size:12px;color:#f2c777;">{{ row.result }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="font-size:9px;color:#687991;line-height:1.5;">Deltas show how this result compares with each stored build (green = result is higher). Stored builds use persistent static totals; a scenario-scored result may differ in-scenario.</div>
+            </div>
+          </div>
+        </sc-if>
         <sc-if value="{{ resultActionMessage }}" hint-placeholder-val="{{ false }}"><span role="status" style="flex-basis:100%;color:#7ee0a6;font-size:10px;text-align:right;">{{ resultActionMessage }}</span></sc-if>
       </div>
     </sc-if>
@@ -158,17 +212,6 @@
           <span style="margin-left:auto;color:#6f5f49;font-size:10px;letter-spacing:.06em;text-transform:uppercase;">Drag to reorder</span>
         </div>
         <p style="margin:0 0 14px;color:#8a795f;font-size:11.5px;line-height:1.5;">The optimizer weights these in order. Priority 1 is protected hardest. These become your <strong style="color:#e5c88f;">favourite stats</strong> on the result screen.</p>
-        <div style="margin:0 0 14px;padding:11px 12px;border:1px solid rgba(185,140,240,.22);border-radius:11px;background:rgba(185,140,240,.05);">
-          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
-            <span style="color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Start from a preset</span>
-            <span style="color:#75664f;font-size:9.5px;">Replaces the list below. Floors keep the baseline meta builds never give up — tune anything after.</span>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            <sc-for list="{{ presetChips }}" as="chip" hint-placeholder-count="4">
-              <button onClick="{{ chip.select }}" title="{{ chip.tagline }}" style="padding:7px 11px;border:1px solid rgba(185,140,240,.35);border-radius:8px;background:rgba(185,140,240,.08);color:#d9c9ea;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(185,140,240,.7);color:#efe4fb;">{{ chip.label }}</button>
-            </sc-for>
-          </div>
-        </div>
         <div style="display:grid;gap:8px;">
           <sc-for list="{{ rankedList }}" as="p" hint-placeholder-count="5">
             <div draggable="true" tabindex="0" onDragStart="{{ p.dragStart }}" onDragEnd="{{ endPriorityDrag }}" onDragOver="{{ p.dragOver }}" onDrop="{{ p.drop }}" onKeyDown="{{ p.reorderKey }}" aria-label="Drag to reorder {{ p.name }}. Use arrow keys for keyboard reordering." style="position:relative;display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid {{ p.border }};border-radius:11px;background:{{ p.bg }};opacity:{{ p.opacity }};cursor:grab;transition:border-color .12s ease,background .12s ease,opacity .12s ease;">
@@ -206,6 +249,34 @@
         </div>
         <sc-if value="{{ hasPool }}" hint-placeholder-val="{{ true }}">
           <div style="margin-top:14px;padding-top:13px;border-top:1px dotted rgba(212,166,94,.2);">
+            <sc-if value="{{ showWeaponGate }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:10px;padding:13px 14px;border:1px dashed rgba(242,199,119,.32);border-radius:11px;background:rgba(0,0,0,.2);">
+                <span style="flex:0 0 auto;width:26px;height:26px;display:grid;place-items:center;border:1px solid rgba(242,199,119,.4);border-radius:7px;color:#f2c777;font-size:14px;">⚔</span>
+                <span style="color:#b3a488;font-size:11px;line-height:1.45;">Pick your <strong style="color:#e5c88f;">two weapons</strong> above first — then we'll suggest the best stats for your build.</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ weaponsChosen }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;flex-wrap:wrap;">
+              <span style="color:#7d6b51;font-size:9px;letter-spacing:.16em;text-transform:uppercase;">Your role</span>
+              <div style="display:inline-flex;gap:5px;padding:3px;border:1px solid rgba(212,166,94,.18);border-radius:9px;background:rgba(0,0,0,.24);">
+                <sc-for list="{{ roleChips }}" as="rl" hint-placeholder-count="3">
+                  <button onClick="{{ rl.select }}" aria-pressed="{{ rl.on }}" style="padding:6px 15px;border:1px solid {{ rl.border }};border-radius:7px;background:{{ rl.bg }};color:{{ rl.color }};cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.5);">{{ rl.name }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ hasPresets }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-bottom:13px;">
+                <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:7px;"><span style="color:#7d6b51;font-size:9px;letter-spacing:.16em;text-transform:uppercase;">Preset</span><span style="color:#75664f;font-size:9.5px;">loads a ranked build — fine-tune below</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  <sc-for list="{{ presetChips }}" as="ps" hint-placeholder-count="4">
+                    <button onClick="{{ ps.select }}" aria-pressed="{{ ps.on }}" style="padding:7px 13px;border:1px solid {{ ps.border }};border-radius:8px;background:{{ ps.bg }};color:{{ ps.color }};cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(126,224,166,.5);">{{ ps.name }}</button>
+                  </sc-for>
+                  <sc-for list="{{ comingSoonChips }}" as="cs" hint-placeholder-count="1">
+                    <span title="Not made yet" style="padding:7px 13px;border:1px dashed rgba(212,166,94,.2);border-radius:8px;background:rgba(0,0,0,.15);color:#6f5f49;font:600 11px 'Instrument Sans';">{{ cs.name }} · soon</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
             <div style="color:#7d6b51;font-size:9px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px;">Add a priority</div>
             <button onClick="{{ togglePriorityPicker }}" aria-label="Add a priority stat" aria-expanded="{{ priorityPickerOpen }}" style="width:100%;min-height:44px;display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid {{ priorityPickerBorder }};border-radius:9px;background:{{ priorityPickerBg }};color:#e6d6b4;cursor:pointer;text-align:left;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.65);">
               <span style="width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(242,199,119,.35);border-radius:6px;color:#f2c777;font-size:15px;">+</span>
@@ -238,9 +309,10 @@
                       <sc-for list="{{ group.stats }}" as="q" hint-placeholder-count="12">
                         <div style="min-width:0;border:1px solid {{ q.border }};border-radius:8px;background:{{ q.bg }};overflow:hidden;">
                           <div style="display:flex;align-items:stretch;">
-                            <button onClick="{{ q.add }}" style="min-width:0;flex:1;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;background:transparent;color:#e6d6b4;cursor:pointer;text-align:left;" style-hover="background:rgba(107,68,22,.18);">
-                              <span style="flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:rgba(242,199,119,.09);color:#f2c777;font-size:14px;">+</span>
-                              <span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;">{{ q.name }}</span>
+                            <button onClick="{{ q.add }}" aria-pressed="{{ q.selected }}" aria-label="{{ q.addLabel }}" style="min-width:0;flex:1;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;background:transparent;color:{{ q.nameColor }};cursor:pointer;text-align:left;" style-hover="background:rgba(107,68,22,.18);">
+                              <span style="flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:{{ q.markBg }};color:{{ q.markColor }};font-size:14px;">{{ q.mark }}</span>
+                              <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;">{{ q.name }}</span>
+                              <sc-if value="{{ q.showTag }}" hint-placeholder-val="{{ false }}"><span style="flex:0 0 auto;margin-left:auto;padding:1px 6px;border:1px solid rgba(242,199,119,.35);border-radius:999px;background:rgba(242,199,119,.1);color:#f2c777;font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Suggested</span></sc-if>
                             </button>
                             <sc-if value="{{ q.composite }}" hint-placeholder-val="{{ false }}"><button onClick="{{ q.toggleComposite }}" aria-label="Show components for {{ q.name }}" aria-expanded="{{ q.compositeOpen }}" style="flex:0 0 auto;min-width:78px;padding:0 9px;border:0;border-left:1px solid rgba(185,140,240,.2);background:rgba(185,140,240,.05);color:#b98cf0;cursor:pointer;font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Composite {{ q.compositeCaret }}</button></sc-if>
                           </div>
@@ -261,6 +333,7 @@
                   <button onClick="{{ closePriorityPicker }}" style="padding:7px 13px;border:1px solid rgba(242,199,119,.4);border-radius:8px;background:rgba(107,68,22,.2);color:#e5c88f;cursor:pointer;font-size:10.5px;font-weight:700;">Done</button>
                 </div>
               </div>
+            </sc-if>
             </sc-if>
           </div>
         </sc-if>
@@ -290,6 +363,33 @@
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ setControls.visible }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:12px;padding:13px;border:1px solid rgba(212,166,94,.18);border-radius:11px;background:rgba(0,0,0,.18);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;">
+              <span style="color:#e6d6b4;font-size:12px;font-weight:600;">Set preferences</span>
+              <span style="color:#6f5f49;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;">How the search treats set bonuses</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 14px;align-items:center;">
+              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Require a set
+                <select value="{{ setControls.requireValue }}" onChange="{{ setControls.setRequire }}" style="color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(212,166,94,.3);border-radius:6px;padding:6px 8px;font-size:11px;">
+                  <option value="">No specific set required</option>
+                  <sc-for list="{{ setControls.requireOptions }}" as="opt" hint-placeholder-count="4"><option value="{{ opt.id }}">{{ opt.name }}</option></sc-for>
+                </select>
+              </label>
+              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Minimum active set bonuses
+                <input type="number" min="0" step="1" value="{{ setControls.minimum }}" onInput="{{ setControls.setMinimum }}" aria-label="Minimum active set bonuses" style="color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(212,166,94,.3);border-radius:6px;padding:6px 8px;font-size:11px;">
+              </label>
+              <button type="button" onClick="{{ setControls.togglePrefer }}" aria-pressed="{{ setControls.preferOn }}" style="display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;cursor:pointer;padding:4px 0;">
+                <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ setControls.prefer.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ setControls.prefer.knob }};width:16px;height:16px;border-radius:50%;background:{{ setControls.prefer.knobColor }};"></span></span>
+                <span style="color:#e6d6b4;font-size:11.5px;">Prefer set effects <span style="display:block;color:#8a795f;font-size:9.5px;">Break ties toward more active sets</span></span>
+              </button>
+              <button type="button" onClick="{{ setControls.toggleNoBreak }}" aria-pressed="{{ setControls.noBreakOn }}" style="display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;cursor:pointer;padding:4px 0;">
+                <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ setControls.noBreak.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ setControls.noBreak.knob }};width:16px;height:16px;border-radius:50%;background:{{ setControls.noBreak.knobColor }};"></span></span>
+                <span style="color:#e6d6b4;font-size:11.5px;">Never break a set <span style="display:block;color:#8a795f;font-size:9.5px;">Reject builds with partial sets</span></span>
+              </button>
+            </div>
+          </div>
+        </sc-if>
       </section>
 
       <!-- Combat scenario -->
@@ -407,7 +507,7 @@
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Attribute Budget</h2>
           <span style="margin-left:auto;color:#f2c777;font:400 20px Marcellus,serif;">{{ attrBudget }}<span style="color:#6f5f49;font-family:'Instrument Sans';font-size:11px;"> pts</span></span>
         </div>
-        <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached.</p>
+        <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more — a high-ranked At least goal can keep absorbing score far past its floor and starve lower priorities. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached — use it when "enough is enough".</p>
       </section>
 
       <!-- Passive skills and mastery -->
@@ -428,7 +528,7 @@
           </label>
           <sc-for list="{{ progressionWeapons }}" as="weapon" hint-placeholder-count="2">
             <label style="display:grid;gap:6px;padding:11px 12px;border:1px solid {{ weapon.border }};border-radius:10px;background:rgba(0,0,0,.22);">
-              <span style="display:flex;justify-content:space-between;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><span>{{ weapon.name }} Mastery</span><span style="color:#d8b8ff;">{{ weapon.value }}/220</span></span>
+              <span style="display:flex;align-items:center;gap:8px;color:#cbb9dc;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;"><sc-if value="{{ weapon.hasIcon }}"><span aria-hidden="true" style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(185,140,240,.32);background:{{ weapon.icon }};"></span></sc-if><span>{{ weapon.name }} Mastery</span><span style="margin-left:auto;color:#d8b8ff;">{{ weapon.value }}/220</span></span>
               <input type="number" min="0" max="220" step="1" value="{{ weapon.value }}" onInput="{{ weapon.change }}" disabled="{{ weapon.disabled }}" aria-label="Available {{ weapon.name }} Mastery points" style="width:100%;height:36px;padding:6px 9px;border:1px solid rgba(185,140,240,.28);border-radius:7px;background:#0b080d;color:#eadcf2;font:600 12px 'Instrument Sans';">
               <span style="color:#75687e;font-size:9px;line-height:1.4;">The optimizer may spend up to this many available points on this weapon.</span>
             </label>
@@ -528,10 +628,6 @@
             </sc-for>
           </div>
           </sc-if>
-
-          <sc-if value="{{ heroicNoneNote }}" hint-placeholder-val="{{ false }}">
-            <div style="text-align:center;color:#8a795f;font-size:11px;padding:6px 4px 2px;">No Heroic equipment will be included in the build.</div>
-          </sc-if>
         </sc-if>
       </section>
 
@@ -590,19 +686,15 @@
           </div>
           <button onClick="{{ closeDrawer }}" style="flex:0 0 auto;width:34px;height:34px;border:1px solid rgba(212,166,94,.28);border-radius:9px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:14px;" style-hover="border-color:rgba(229,124,114,.6);color:#e57c72;">✕</button>
         </div>
-        <div style="display:flex;gap:6px;margin-top:14px;">
-          <sc-for list="{{ drawerSteps }}" as="ds" hint-placeholder-count="3">
-            <div style="flex:1;">
-              <div style="height:3px;border-radius:2px;background:{{ ds.bar }};"></div>
-              <div style="margin-top:6px;color:{{ ds.color }};font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">{{ ds.n }} · {{ ds.label }}</div>
-            </div>
-          </sc-for>
+        <div style="margin-top:6px;color:#8a795f;font-size:10.5px;line-height:1.4;">
+          <sc-if value="{{ drawerPickMode }}" hint-placeholder-val="{{ true }}">Pick the Heroic you own — its traits prefill so you only adjust what differs.</sc-if>
+          <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">Prefilled to typical max rolls · tweak any tier, level or rune to match your real item.</sc-if>
         </div>
       </div>
 
       <div style="flex:1;overflow-y:auto;padding:18px 20px;">
-        <!-- STEP 1 -->
-        <sc-if value="{{ drawerStep1 }}" hint-placeholder-val="{{ true }}">
+        <!-- PICK: choose which Heroic you own -->
+        <sc-if value="{{ drawerPickMode }}" hint-placeholder-val="{{ true }}">
           <input value="{{ drawerSearch }}" onInput="{{ setDrawerSearch }}" placeholder="Search Heroic equipment by name…" style="width:100%;padding:11px 13px;border:1px solid rgba(212,166,94,.26);border-radius:10px;background:rgba(7,5,3,.76);color:#f3e9d4;font:13px 'Instrument Sans';margin-bottom:12px;">
           <sc-if value="{{ drawerWeaponNote }}" hint-placeholder-val="{{ false }}">
             <div style="margin-bottom:10px;padding:8px 11px;border-left:2px solid rgba(185,140,240,.5);background:rgba(126,86,196,.08);color:#c9b7e6;font-size:10.5px;line-height:1.5;">Filtered to your <strong>{{ drawerWeaponFamilies }}</strong> pairing. Incompatible weapon types are hidden.</div>
@@ -622,23 +714,24 @@
           </div>
         </sc-if>
 
-        <!-- STEP 2 -->
-        <sc-if value="{{ drawerStep2 }}" hint-placeholder-val="{{ false }}">
+        <!-- CONFIG: recreate the owned item (single scroll, prefilled) -->
+        <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
           <!-- A. Selected item -->
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;padding:10px 12px;border:1px solid rgba(255,183,101,.3);border-radius:11px;background:rgba(255,152,45,.05);">
             <span style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,183,101,.7);background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);"></span>
             <div style="min-width:0;flex:1;">
-              <div style="color:#ffcf8c;font-size:13px;font-weight:700;">{{ draftName }}</div>
-              <div style="color:#a4906d;font-size:10px;">{{ draftMeta }} · {{ draftSlot }} · Set: {{ draftSet }}</div>
-              <div style="margin-top:2px;color:#8a795f;font-size:9.5px;">{{ draftInherent }}</div>
+              <div style="color:#ffcf8c;font-size:13.5px;font-weight:700;">{{ draftName }}</div>
+              <div style="color:#a4906d;font-size:10.5px;">{{ draftMeta }} · {{ draftSlot }} · Set: {{ draftSet }}</div>
+              <div style="margin-top:2px;color:#8a795f;font-size:10px;">{{ draftInherent }}</div>
             </div>
             <sc-if value="{{ showLevelSelect }}" hint-placeholder-val="{{ false }}">
-              <select value="{{ draftLevel }}" onChange="{{ onLevel }}" style="flex:0 0 auto;padding:7px 9px;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#f3e9d4;font:600 11px 'Instrument Sans';">
+              <select value="{{ draftLevel }}" onChange="{{ onLevel }}" style="flex:0 0 auto;padding:7px 9px;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#f3e9d4;font:600 12px 'Instrument Sans';">
                 <sc-for list="{{ levelOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
               </select>
             </sc-if>
+            <button onClick="{{ changeDraftItem }}" style="flex:0 0 auto;min-height:32px;padding:0 12px;border:1px solid rgba(212,166,94,.32);border-radius:8px;background:rgba(0,0,0,.28);color:#d8c6a5;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">Change</button>
           </div>
-          <div style="color:#6f5f49;font-size:9.5px;margin-bottom:16px;">Recreate the exact item you own. Nothing is auto-maximized — set your real tiers and levels.</div>
+          <div style="color:#6f5f49;font-size:10px;margin-bottom:16px;line-height:1.5;">Traits prefill at max tier — <strong style="color:#8a795f;">adjust any that don't match your item</strong>. Effect roll levels stay Unknown until you set them.</div>
 
           <!-- B. Normal traits -->
           <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;"><span style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Owned Traits</span><span style="color:{{ traitCountColor }};font-size:10.5px;font-weight:600;">{{ traitCount }} / 3</span></div>
@@ -691,8 +784,8 @@
                   <span style="flex:0 0 auto;min-width:44px;text-align:right;color:#ffb765;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;">{{ ef.value }}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:7px;">
-                  <button onClick="{{ ef.setKnown }}" style="padding:4px 9px;border:1px solid {{ ef.kBorder }};border-radius:6px;background:{{ ef.kBg }};color:{{ ef.kColor }};cursor:pointer;font:700 8.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;">Known</button>
-                  <button onClick="{{ ef.setUnknown }}" style="padding:4px 9px;border:1px solid {{ ef.uBorder }};border-radius:6px;background:{{ ef.uBg }};color:{{ ef.uColor }};cursor:pointer;font:700 8.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;">Unknown</button>
+                  <button onClick="{{ ef.setKnown }}" style="padding:4px 9px;border:1px solid {{ ef.kBorder }};border-radius:6px;background:{{ ef.kBg }};color:{{ ef.kColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;min-height:28px;padding:0 11px;">Known</button>
+                  <button onClick="{{ ef.setUnknown }}" style="padding:4px 9px;border:1px solid {{ ef.uBorder }};border-radius:6px;background:{{ ef.uBg }};color:{{ ef.uColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;min-height:28px;padding:0 11px;">Unknown</button>
                   <span style="flex:1;"></span>
                   <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ true }}">
                     <button onClick="{{ ef.dec }}" style="width:24px;height:24px;border:1px solid rgba(212,166,94,.3);border-radius:6px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:13px;">−</button>
@@ -735,11 +828,11 @@
             <sc-for list="{{ runeRows }}" as="rr" hint-placeholder-count="3">
               <div style="display:flex;align-items:center;gap:7px;padding:8px 9px;border:1px solid rgba(212,166,94,.16);border-radius:10px;background:rgba(0,0,0,.2);">
                 <span style="flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:1.5px solid {{ rr.typeColor }};"></span>
-                <select value="{{ rr.runeId }}" onChange="{{ rr.onKind }}" style="flex:0 0 auto;width:96px;padding:6px 6px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 10px 'Instrument Sans';">
+                <select value="{{ rr.runeId }}" onChange="{{ rr.onKind }}" style="flex:0 0 auto;width:104px;padding:7px 7px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 11.5px 'Instrument Sans';">
                   <sc-for list="{{ rr.runeOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                 </select>
                 <sc-if value="{{ rr.hasRune }}" hint-placeholder-val="{{ true }}">
-                  <select value="{{ rr.statId }}" onChange="{{ rr.onStat }}" style="flex:1;min-width:0;padding:6px 6px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 10px 'Instrument Sans';">
+                  <select value="{{ rr.statId }}" onChange="{{ rr.onStat }}" style="flex:1;min-width:0;padding:7px 7px;border:1px solid rgba(212,166,94,.24);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 11.5px 'Instrument Sans';">
                     <sc-for list="{{ rr.statOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                   </select>
                   <button onClick="{{ rr.dec }}" style="flex:0 0 auto;width:22px;height:22px;border:1px solid rgba(212,166,94,.3);border-radius:6px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:12px;">−</button>
@@ -756,28 +849,8 @@
           <div style="margin-top:8px;padding:7px 10px;border-left:2px solid rgba(126,224,166,.4);background:rgba(31,76,47,.1);color:#a9c9b3;font-size:10px;">◆ Rune Synergy · {{ runeSynergy }}</div>
         </sc-if>
 
-        <!-- STEP 3 -->
-        <sc-if value="{{ drawerStep3 }}" hint-placeholder-val="{{ false }}">
-          <div style="color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Review · this exact item locks into your build</div>
-          <div style="border:1px solid rgba(255,183,101,.45);border-radius:11px;background:linear-gradient(180deg, rgba(27,20,13,.99), rgba(11,8,5,.99));overflow:hidden;">
-            <div style="display:flex;align-items:center;gap:11px;padding:13px 15px;border-top:2px solid #ffb765;background:linear-gradient(180deg, rgba(255,152,45,.12), transparent);">
-              <span style="flex:0 0 auto;width:46px;height:46px;border-radius:9px;border:1px solid #ffb765;background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);"></span>
-              <div style="min-width:0;"><div style="color:#ffb765;font-size:15px;font-weight:700;">{{ draftName }}</div><div style="color:#9d8a68;font-size:10.5px;margin-top:2px;">{{ draftMeta }} · {{ draftSlot }}</div></div>
-            </div>
-            <div style="padding:10px 15px;border-top:1px solid rgba(212,166,94,.1);"><div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cbb185;margin-bottom:5px;">Traits</div>
-              <sc-for list="{{ draftTraitRows }}" as="r" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:12px 1fr auto;gap:5px;font-size:12px;min-height:19px;align-items:baseline;"><span style="color:#d4a65e;">◆</span><span style="color:#cfc1a6;">{{ r.name }}</span><strong style="color:#f0e1c1;">{{ r.tier }}</strong></div></sc-for>
-            </div>
-            <div style="padding:10px 15px;border-top:1px solid rgba(255,152,45,.18);background:rgba(255,152,45,.035);"><div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#ffb765;margin-bottom:5px;">Heroic</div>
-              <div style="font-size:12px;color:#d9c8a5;">★ {{ draftHeroicTrait }}</div>
-              <sc-for list="{{ draftEffectRows }}" as="e" hint-placeholder-count="2"><div style="display:flex;gap:8px;font-size:11.5px;margin-top:3px;"><span style="color:#d9c8a5;flex:1;">{{ e.name }}</span><span style="color:#ffb765;font-weight:600;">{{ e.level }}</span></div></sc-for>
-            </div>
-            <div style="padding:10px 15px 12px;border-top:1px solid rgba(212,166,94,.1);"><div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cbb185;margin-bottom:6px;">Runes · Resonance {{ draftResonance }}</div>
-              <div style="display:flex;flex-wrap:wrap;gap:7px;">
-                <sc-for list="{{ draftRuneChips }}" as="rc" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid {{ rc.border }};border-radius:999px;font-size:9.5px;color:#d9c8a5;"><span style="width:8px;height:8px;border-radius:50%;background:{{ rc.dot }};"></span>{{ rc.label }}</span></sc-for>
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:12px;padding:10px 12px;border:1px solid rgba(126,224,166,.3);border-radius:10px;background:rgba(31,76,47,.12);color:#a9c9b3;font-size:10.5px;line-height:1.5;"><span style="color:#7ee0a6;">🔒</span><span>This item, its traits, Heroic effects, effect levels, resonance and runes lock into the build and are never replaced.</span></div>
+        <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;margin-top:16px;padding:10px 12px;border:1px solid rgba(126,224,166,.3);border-radius:10px;background:rgba(31,76,47,.12);color:#a9c9b3;font-size:10.5px;line-height:1.5;"><span style="color:#7ee0a6;">🔒</span><span>This exact item — traits, Heroic effects, effect levels, resonance and runes — locks into your build and is never replaced.</span></div>
         </sc-if>
       </div>
 
@@ -786,8 +859,13 @@
           <div style="margin-bottom:10px;padding:8px 11px;border-left:2px solid #e57c72;background:rgba(82,28,24,.14);color:#e6b0aa;font-size:10.5px;line-height:1.45;">{{ drawerWarning }}</div>
         </sc-if>
         <div style="display:flex;gap:9px;">
-          <button onClick="{{ drawerBack }}" style="min-height:46px;padding:0 18px;border:1px solid rgba(212,166,94,.3);border-radius:11px;background:rgba(0,0,0,.28);color:#cbb185;cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">{{ drawerBackLabel }}</button>
-          <button onClick="{{ drawerPrimary }}" style="flex:1;min-height:46px;border:1px solid {{ drawerPrimaryBorder }};border-radius:11px;background:{{ drawerPrimaryBg }};color:{{ drawerPrimaryColor }};cursor:{{ drawerPrimaryCursor }};font:400 16px Marcellus,serif;">{{ drawerPrimaryLabel }}</button>
+          <button onClick="{{ closeDrawer }}" style="min-height:46px;padding:0 18px;border:1px solid rgba(212,166,94,.3);border-radius:11px;background:rgba(0,0,0,.28);color:#cbb185;cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">Cancel</button>
+          <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ drawerPrimary }}" style="flex:1;min-height:46px;border:1px solid {{ drawerPrimaryBorder }};border-radius:11px;background:{{ drawerPrimaryBg }};color:{{ drawerPrimaryColor }};cursor:{{ drawerPrimaryCursor }};font:400 16px Marcellus,serif;">{{ drawerPrimaryLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ drawerPickMode }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;color:#6f5f49;font-size:11px;font-style:italic;">Select a Heroic above to configure it</div>
+          </sc-if>
         </div>
       </div>
     </div>
@@ -800,7 +878,7 @@
 
     <!-- ===== LEFT: EQUIPMENT CANVAS ===== -->
     <sc-if value="{{ showResultOverview }}" hint-placeholder-val="{{ true }}">
-    <section style="min-width:0;animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
+    <section style="min-width:0;grid-column:{{ eqCol }};animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
         <h2 style="margin:0;color:#ead8b7;font:400 17px Marcellus,serif;">Equipment</h2>
         <span style="color:#6f5f49;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Hover · click to lock</span>
@@ -808,15 +886,14 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
         <sc-for list="{{ gearAll }}" as="it" hint-placeholder-count="10">
-          <div onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden;padding:8px;border:1px solid {{ it.cardBorder }};border-radius:11px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
-            <span style="position:relative;flex:0 0 auto;width:60px;height:60px;border-radius:50%;border:2px solid {{ it.ring }};background:{{ it.icon }};box-shadow:0 0 14px {{ it.glow }};">
+          <div onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0;padding:10px 6px;border:1px solid {{ it.cardBorder }};border-radius:12px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
+            <span style="position:relative;flex:0 0 auto;width:56px;height:56px;border-radius:50%;border:2px solid {{ it.ring }};background:{{ it.icon }};box-shadow:0 0 14px {{ it.glow }};">
               <b style="position:absolute;right:-3px;bottom:-3px;min-width:18px;padding:0 3px;font-style:normal;font-size:8.5px;font-weight:700;color:#f3e2bd;background:rgba(10,8,5,.95);border:1px solid {{ it.ring }};border-radius:7px;">{{ it.level }}</b>
               <sc-if value="{{ it.locked }}" hint-placeholder-val="{{ false }}"><b style="position:absolute;left:-5px;top:-5px;width:20px;height:20px;font-style:normal;display:grid;place-items:center;font-size:10px;color:#0b0805;background:#f2c777;border-radius:50%;box-shadow:0 0 8px rgba(242,199,119,.6);">🔒</b></sc-if>
             </span>
-            <span style="min-width:0;flex:1;overflow:hidden;">
-              <span style="display:block;color:#7d6b51;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;">{{ it.slotLabel }}</span>
-              <span style="display:block;margin-top:2px;color:{{ it.nameColor }};font-size:12px;font-weight:600;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
-              <span style="display:block;margin-top:2px;color:#8a795f;font-size:9.5px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.topStat }}</span>
+            <span style="min-width:0;width:100%;">
+              <span style="display:block;color:#7d6b51;font-size:7px;letter-spacing:.1em;text-transform:uppercase;">{{ it.slotLabel }}</span>
+              <span style="margin-top:1px;color:{{ it.nameColor }};font-size:11px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ it.name }}</span>
             </span>
           </div>
         </sc-for>
@@ -829,7 +906,7 @@
             <span style="position:relative;width:52px;height:52px;border-radius:50%;border:2px solid {{ w.ring }};background:{{ w.icon }};box-shadow:0 0 11px {{ w.glow }};"><sc-if value="{{ w.locked }}" hint-placeholder-val="{{ false }}"><b style="position:absolute;left:-5px;top:-5px;width:20px;height:20px;font-style:normal;display:grid;place-items:center;font-size:10px;color:#0b0805;background:#f2c777;border-radius:50%;">🔒</b></sc-if></span>
             <span style="min-width:0;">
               <span style="display:block;color:#7d6b51;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;">{{ w.role }}</span>
-              <span style="display:block;margin-top:2px;color:{{ w.name_color }};font:400 15px Marcellus,serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ w.name }}</span>
+              <span style="margin-top:2px;color:{{ w.name_color }};font:400 15px Marcellus,serif;line-height:1.15;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ w.name }}</span>
             </span>
             <span style="text-align:right;color:#a89472;font-size:11.5px;font-variant-numeric:tabular-nums;">{{ w.dmg }}</span>
           </div>
@@ -848,28 +925,37 @@
         </div>
         <button onClick="{{ refit }}" style="margin-left:auto;min-height:36px;padding:0 13px;color:#e6d6b4;border:1px solid rgba(212,166,94,.35);border-radius:9px;background:rgba(28,21,13,.6);cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.05em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;">↻ {{ refitLabel }}</button>
       </div>
-    </section>
 
-    <!-- ===== CENTER: CHARACTER PRESENTATION ===== -->
-    <section style="min-width:0;animation:tlRise .5s ease .08s both;display:grid;gap:13px;">
+      </section>
 
-      <!-- Weapons block -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
-        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
-          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Weapons</span>
-          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
-        </div>
-        <sc-for list="{{ weaponStats }}" as="s" hint-placeholder-count="5">
-          <div style="display:flex;align-items:baseline;gap:10px;padding:5px 0;">
-            <sc-if value="{{ s.tag }}" hint-placeholder-val="{{ false }}"><span style="color:#d49a45;font-size:11px;font-weight:600;">{{ s.tag }}</span></sc-if>
-            <span style="color:#b3a488;font-size:12.5px;">{{ s.name }}</span>
-            <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.16);transform:translateY(-3px);"></span>
-            <span style="color:#f0e1c1;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;">{{ s.value }}</span>
-          </div>
+        </sc-if>
+
+    <!-- ===== RIGHT: STAT SCREEN (tabs: Guide / Stats / Progression) ===== -->
+    <section style="min-width:0;grid-column:{{ mainCol }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
+      <div style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
+        <sc-for list="{{ primaryTabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
         </sc-for>
       </div>
-
+      <sc-if value="{{ showStatsSubchips }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">
+          <sc-for list="{{ statSubChips }}" as="c" hint-placeholder-count="7">
+            <button onClick="{{ c.select }}" style="padding:5px 11px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showProgressionSubchips }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:5px;margin-bottom:13px;">
+          <sc-for list="{{ progressionSubChips }}" as="c" hint-placeholder-count="2">
+            <button onClick="{{ c.select }}" style="padding:5px 14px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10.5px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <!-- Weapons / Attributes / Sets & Runes (Summary sub-chip, in-panel) -->
+      <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;gap:13px;margin-bottom:14px;">
+      <!-- Attributes | Favourite Stats (two halves) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:13px;align-items:start;margin-bottom:13px;">
       <!-- Attribute tracks (stacked) -->
       <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 6px;">
@@ -925,7 +1011,60 @@
           </sc-for>
         </div>
       </div>
-
+      <!-- Tune the tradeoff (beside Attributes) -->
+      <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            <span style="flex:none;width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(185,140,240,.55);border-radius:9px;background:rgba(185,140,240,.12);color:#d8b8ff;font-size:14px;">✦</span>
+            <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 15px Marcellus,serif;">Tune the tradeoff</div><div style="margin-top:2px;color:#8f7e9f;font-size:9.5px;line-height:1.45;">Drag any stat. Each slider snaps to a complete recalculated build retained from this Forge.</div></div>
+            <span style="flex:none;padding:4px 7px;border:1px solid rgba(126,224,166,.25);border-radius:999px;color:#8fd6aa;background:rgba(31,76,47,.1);font-size:8px;letter-spacing:.08em;text-transform:uppercase;">{{ tuningCount }} tradeoff builds</span>
+          </div>
+          <div style="display:grid;gap:9px;">
+            <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
+              <label style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:8px 10px;border:1px solid {{ row.border }};border-radius:10px;background:{{ row.bg }};transition:border-color .22s ease,background .22s ease,transform .22s ease;">
+                <span style="min-width:0;color:#d8c9ab;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.name }} <small style="color:#8f7e9f;font-size:8px;font-weight:500;letter-spacing:.04em;">{{ row.capLabel }}</small></span>
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <button type="button" onClick="{{ row.dec }}" aria-label="Lower {{ row.name }} to the previous retained build" title="Previous retained build" style="width:24px;height:24px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:13px;line-height:1;">−</button>
+                  <strong style="min-width:64px;text-align:right;color:#f2c777;font:400 16px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
+                  <button type="button" onClick="{{ row.inc }}" aria-label="Raise {{ row.name }} to the next retained build" title="Next retained build" style="width:24px;height:24px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:13px;line-height:1;">+</button>
+                </span>
+                <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" onKeyDown="{{ row.rangeKey }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
+                <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.minimumLabel }}</span>
+                  <span style="flex:0 0 auto;color:#8f7e9f;font-size:8px;letter-spacing:.06em;text-transform:uppercase;">{{ row.optionsLabel }}</span>
+                  <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.maximumLabel }}</span>
+                </div>
+              </label>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasTuneCandidates }}" hint-placeholder-val="{{ false }}">
+            <label style="display:grid;gap:4px;margin-top:9px;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#8f7e9f;">Jump to a retained build
+              <select value="" onChange="{{ selectTuneCandidate }}" aria-label="Choose a retained tradeoff build by its stat totals" style="min-height:30px;padding:5px 7px;border:1px solid rgba(185,140,240,.35);border-radius:7px;background:rgba(0,0,0,.4);color:#e6d6f2;font-size:10px;letter-spacing:0;text-transform:none;">
+                <option value="">Choose by stat totals…</option>
+                <sc-for list="{{ tuneCandidates }}" as="cand" hint-placeholder-count="5"><option value="{{ cand.id }}">{{ cand.label }}</option></sc-for>
+              </select>
+            </label>
+          </sc-if>
+          <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Sliders, − / + steps, typed targets, and the build list only select complete builds already recalculated by the optimizer.</div>
+        </div>
+      </sc-if>
+      </div>
+      <!-- Weapons block -->
+      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+        <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
+          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Weapons</span>
+          <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
+        </div>
+        <sc-for list="{{ weaponStats }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;align-items:baseline;gap:10px;padding:5px 0;">
+            <sc-if value="{{ s.tag }}" hint-placeholder-val="{{ false }}"><span style="color:#d49a45;font-size:11px;font-weight:600;">{{ s.tag }}</span></sc-if>
+            <span style="color:#b3a488;font-size:12.5px;">{{ s.name }}</span>
+            <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.16);transform:translateY(-3px);"></span>
+            <span style="color:#f0e1c1;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;">{{ s.value }}</span>
+          </div>
+        </sc-for>
+      </div>
       <!-- Passive skills and mastery -->
       <sc-if value="{{ showCompactProgression }}" hint-placeholder-val="{{ false }}">
       <div style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
@@ -970,92 +1109,71 @@
         <div style="margin-top:9px;color:#74677d;font-size:8.5px;line-height:1.45;">Every permanent mastery and passive contribution is included in the stat source breakdown. Conditional combat-only effects remain visible here but are not invented as always-on totals.</div>
       </div>
       </sc-if>
-
-      <!-- Sets & runes summary -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+      </div>
+      </sc-if>
+      <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:13px;align-items:start;margin-bottom:13px;">
+        <!-- Sets & Runes (beside the tuning panel) -->
+        <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+          <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
+            <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
+            <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
+            <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
+          </div>
+          <div style="display:grid;gap:8px;">
+            <sc-for list="{{ setSummary }}" as="st" hint-placeholder-count="2">
+              <div style="padding:9px 11px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                  <span style="color:#e5c88f;font-size:12px;font-weight:600;">{{ st.name }}</span>
+                  <span style="flex:none;color:#8a795f;font-size:10px;">{{ st.count }}</span>
+                </div>
+                <div style="margin-top:3px;color:#a4906d;font-size:10.5px;line-height:1.4;">{{ st.bonus }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ hasRuneSynergies }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:4px;color:#8a795f;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Rune synergies</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:7px;">
+                <sc-for list="{{ runeChips }}" as="rc" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border:1px solid {{ rc.border }};border-radius:9px;background:rgba(0,0,0,.22);">
+                    <span style="flex:0 0 auto;width:7px;height:7px;margin-top:4px;border-radius:50%;background:{{ rc.dot }};box-shadow:0 0 6px {{ rc.dot }};"></span>
+                    <div style="min-width:0;">
+                      <div style="color:#8a795f;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">{{ rc.slot }}</div>
+                      <div style="margin-top:2px;color:#d9c8a5;font-size:10.5px;line-height:1.35;">{{ rc.statsText }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noActiveSystems }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:10px 11px;border:1px dashed rgba(212,166,94,.18);border-radius:9px;color:#8a795f;font-size:10.5px;line-height:1.45;">No equipment set bonus or rune synergy is active in this loadout.</div>
+            </sc-if>
+          </div>
+        </div>
+      <!-- Favourite Stats (beside Sets & Runes) -->
+      <div style="border:1px solid rgba(242,199,119,.32);border-radius:14px;background:linear-gradient(180deg, rgba(30,22,13,.82), rgba(13,10,7,.92));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
           <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
-          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
+          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Favourite Stats</span>
           <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
         </div>
         <div style="display:grid;gap:8px;">
-          <sc-for list="{{ setSummary }}" as="st" hint-placeholder-count="2">
-            <div style="padding:9px 11px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;">
-                <span style="color:#e5c88f;font-size:12px;font-weight:600;">{{ st.name }}</span>
-                <span style="color:#8a795f;font-size:10px;">{{ st.count }}</span>
-              </div>
-              <div style="margin-top:3px;color:#a4906d;font-size:10.5px;line-height:1.4;">{{ st.bonus }}</div>
-            </div>
-          </sc-for>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;">
-            <sc-for list="{{ runeChips }}" as="rc" hint-placeholder-count="4">
-              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid {{ rc.border }};border-radius:999px;background:rgba(0,0,0,.24);font-size:10px;color:#d9c8a5;"><span style="width:8px;height:8px;border-radius:50%;background:{{ rc.dot }};"></span>{{ rc.label }}</span>
-            </sc-for>
-          </div>
-          <sc-if value="{{ noActiveSystems }}" hint-placeholder-val="{{ false }}">
-            <div style="padding:10px 11px;border:1px dashed rgba(212,166,94,.18);border-radius:9px;color:#8a795f;font-size:10.5px;line-height:1.45;">No equipment set bonus or rune synergy is active in this loadout.</div>
-          </sc-if>
-        </div>
-      </div>
-    </section>
-    </sc-if>
-
-    <!-- ===== RIGHT: STAT SCREEN ===== -->
-    <section style="min-width:0;grid-column:{{ statsSpan }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
-      <div style="display:flex;gap:3px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);overflow-x:auto;margin-bottom:13px;">
-        <sc-for list="{{ statTabs }}" as="t" hint-placeholder-count="10">
-          <button onClick="{{ t.select }}" title="{{ t.name }}" style="flex:1;min-width:58px;display:grid;justify-items:center;gap:3px;padding:8px 4px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};cursor:pointer;">
-            <span style="width:16px;height:16px;border-radius:{{ t.shape }};border:1.5px solid {{ t.mark }};background:{{ t.fill }};transform:{{ t.rot }};"></span>
-            <span style="color:{{ t.color }};font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;">{{ t.short }}</span>
-          </button>
-        </sc-for>
-      </div>
-      <sc-if value="{{ showStatOverview }}" hint-placeholder-val="{{ true }}">
-      <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ false }}">
-        <div style="margin-bottom:13px;padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:13px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
-          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
-            <span style="flex:none;width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(185,140,240,.55);border-radius:9px;background:rgba(185,140,240,.12);color:#d8b8ff;font-size:14px;">✦</span>
-            <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 15px Marcellus,serif;">Tune the tradeoff</div><div style="margin-top:2px;color:#8f7e9f;font-size:9.5px;line-height:1.45;">Drag any stat. Each slider snaps to a complete recalculated build retained from this Forge.</div></div>
-            <span style="flex:none;padding:4px 7px;border:1px solid rgba(126,224,166,.25);border-radius:999px;color:#8fd6aa;background:rgba(31,76,47,.1);font-size:8px;letter-spacing:.08em;text-transform:uppercase;">{{ tuningCount }} tradeoff builds</span>
-          </div>
-          <div style="display:grid;gap:9px;">
-            <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
-              <label style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:8px 10px;border:1px solid {{ row.border }};border-radius:10px;background:{{ row.bg }};transition:border-color .22s ease,background .22s ease,transform .22s ease;">
-                <span style="min-width:0;color:#d8c9ab;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.name }} <small style="color:#8f7e9f;font-size:8px;font-weight:500;letter-spacing:.04em;">{{ row.capLabel }}</small></span>
-                <strong style="color:#f2c777;font:400 15px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
-                <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
-                <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.minimumLabel }}</span><span style="text-align:right;color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.maximumLabel }}</span>
-              </label>
-            </sc-for>
-          </div>
-          <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Slider changes only select complete builds already recalculated by the optimizer.</div>
-        </div>
-      </sc-if>
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
-          <span style="color:#f2c777;font-size:11px;">★</span>
-          <span style="color:#e5c88f;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Favourite Stats</span>
-          <span style="color:#6f5f49;font-size:9px;">from your priorities</span>
-        </div>
-        <div style="display:grid;gap:8px;">
-          <sc-for list="{{ favourites }}" as="f" hint-placeholder-count="3">
-            <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:10px 12px;box-shadow:inset 0 0 24px rgba(242,199,119,.05);">
+          <sc-for list="{{ favourites }}" as="f" hint-placeholder-count="7">
+            <div style="border:1px solid rgba(242,199,119,.4);border-radius:11px;background:linear-gradient(135deg, rgba(107,68,22,.28), rgba(28,21,13,.7));padding:9px 12px;">
               <div style="display:flex;align-items:center;gap:9px;">
                 <span style="flex:0 0 auto;width:20px;height:20px;display:grid;place-items:center;color:#0b0805;background:#f2c777;border-radius:6px;font-size:10px;font-weight:800;">{{ f.rank }}</span>
-                <span style="color:#f6e6c3;font-size:12.5px;font-weight:600;">{{ f.name }}</span><small style="color:#8f7e9f;font-size:8px;">{{ f.capLabel }}</small>
+                <span style="min-width:0;color:#f6e6c3;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
                 <span style="flex:1;"></span>
                 <span style="color:#f2c777;font:400 18px Marcellus,serif;font-variant-numeric:tabular-nums;">{{ f.value }}</span>
               </div>
               <sc-if value="{{ f.composite }}" hint-placeholder-val="{{ false }}">
-                <div style="display:grid;gap:3px;margin-top:8px;padding-top:8px;border-top:1px dotted rgba(242,199,119,.22);">
+                <div style="display:grid;gap:3px;margin-top:7px;padding-top:7px;border-top:1px dotted rgba(242,199,119,.22);">
                   <sc-for list="{{ f.parts }}" as="pt" hint-placeholder-count="3">
-                    <div style="display:flex;align-items:baseline;gap:9px;font-size:11px;">
+                    <div style="display:flex;align-items:baseline;gap:8px;font-size:10.5px;">
                       <span style="color:{{ pt.dot }};font-size:8px;">◆</span>
-                      <span style="color:#cfc1a6;">{{ pt.name }}</span>
-                      <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.12);transform:translateY(-3px);"></span>
+                      <span style="min-width:0;color:#cfc1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pt.name }}</span>
+                      <span style="flex:1;"></span>
                       <span style="color:{{ pt.color }};font-weight:600;font-variant-numeric:tabular-nums;">{{ pt.value }}</span>
-                      <sc-if value="{{ pt.weak }}" hint-placeholder-val="{{ false }}"><span style="color:#e57c72;font-size:8px;letter-spacing:.06em;text-transform:uppercase;">headline</span></sc-if>
                     </div>
                   </sc-for>
                 </div>
@@ -1064,14 +1182,16 @@
           </sc-for>
         </div>
       </div>
+      </div>
+      </sc-if>
 
       <div style="margin-top:8px;color:#8b7a5d;font-size:10px;letter-spacing:.14em;text-transform:uppercase;">{{ activeTabName }}</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 22px;margin-top:8px;">
         <sc-for list="{{ activeStats }}" as="s" hint-placeholder-count="12">
-          <div style="min-width:0;border-radius:7px;background:{{ s.bg }};">
-          <button onClick="{{ s.toggleSources }}" disabled="{{ s.noSources }}" aria-expanded="{{ s.sourceOpen }}" title="{{ s.sourceTitle }}" style="width:100%;display:flex;align-items:baseline;gap:8px;min-height:29px;padding:0 6px;border:0;border-radius:6px;background:transparent;cursor:{{ s.sourceCursor }};text-align:left;">
-            <sc-if value="{{ s.fav }}" hint-placeholder-val="{{ false }}"><span style="color:#f2c777;font-size:9px;">★</span></sc-if>
+          <div style="min-width:0;border-radius:8px;background:{{ s.bg }};box-shadow:{{ s.favAccent }};">
+          <button onClick="{{ s.toggleSources }}" disabled="{{ s.noSources }}" aria-expanded="{{ s.sourceOpen }}" title="{{ s.sourceTitle }}" style="width:100%;display:flex;align-items:center;gap:8px;min-height:32px;padding:4px 10px;border:0;border-radius:8px;background:transparent;cursor:{{ s.sourceCursor }};text-align:left;">
+            <sc-if value="{{ s.fav }}" hint-placeholder-val="{{ false }}"><span style="flex:0 0 auto;color:#f2c777;font-size:10px;">★</span></sc-if>
             <span style="color:{{ s.name_color }};font-size:12px;">{{ s.name }}</span>
             <span style="flex:1;border-bottom:1px dotted rgba(212,166,94,.1);transform:translateY(-3px);"></span>
             <span style="color:{{ s.value_color }};font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;">{{ s.value }}</span>
@@ -1085,6 +1205,116 @@
           </div>
         </sc-for>
       </div>
+      </sc-if>
+
+      <!-- ===== GEARING GUIDE ===== -->
+      <sc-if value="{{ tabGuide }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:tlRise .24s ease both;">
+          <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:9px;">
+            <div style="flex:1;min-width:170px;">
+              <div style="color:#f2c777;font:400 16px Marcellus,serif;">Where to get this gear</div>
+              <div style="margin-top:3px;color:#8a795f;font-size:10px;line-height:1.5;">Each piece in equipment order, with where to get it — farm it, buy it, or craft it.</div>
+            </div>
+            <div style="flex:0 0 auto;padding:9px 14px;border:1px solid rgba(212,166,94,.22);border-radius:11px;background:rgba(26,20,13,.6);">
+              <div style="color:#7d6b51;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;">Est. build cost</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                <sc-if value="{{ guideHasLucent }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:4px;color:#d8b8ff;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="15" height="15" style="display:block;">{{ guideCostLucent }}</span></sc-if>
+                <sc-if value="{{ guideNoLucent }}" hint-placeholder-val="{{ false }}"><span style="color:#a68fc4;font-size:12px;font-style:italic;">Check prices</span></sc-if>
+                <span style="color:#6f5f49;font-size:12px;">+</span>
+                <span style="color:#8fd6aa;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;">{{ guideCostSollant }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">
+            <select value="{{ marketRegion }}" onChange="{{ setMarketRegion }}" aria-label="Auction house region" style="padding:6px 8px;border:1px solid rgba(185,140,240,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 10.5px 'Instrument Sans';">
+              <option value="na-f">Americas</option><option value="eu-f">Europe</option><option value="as-f">Asia</option>
+            </select>
+            <button onClick="{{ checkMarketPrices }}" style="min-height:30px;padding:0 13px;border:1px solid rgba(185,140,240,.4);border-radius:8px;background:rgba(159,86,214,.14);color:#d8b8ff;cursor:pointer;font:600 10.5px 'Instrument Sans';" style-hover="border-color:#c9a2f2;">{{ marketButtonLabel }}</button>
+          </div>
+          <sc-if value="{{ guideReady }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));align-items:stretch;">
+            <sc-for list="{{ guideItems }}" as="g" hint-placeholder-count="10">
+              <div style="display:flex;flex-direction:column;border:1px solid rgba(212,166,94,.22);border-radius:12px;background:linear-gradient(180deg,rgba(26,20,13,.74),rgba(12,9,6,.9));padding:13px;">
+                <!-- Item header: icon, name/slot, headline source badge -->
+                <div style="display:flex;align-items:center;gap:11px;">
+                  <span style="flex:0 0 auto;width:48px;height:48px;border-radius:11px;border:1px solid rgba(242,199,119,.4);background:radial-gradient(circle at 40% 30%,#2a2013,#120d07);overflow:hidden;display:grid;place-items:center;">
+                    <sc-if value="{{ g.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:44px;height:44px;background:url({{ g.image }}) center/contain no-repeat;"></span></sc-if>
+                  </span>
+                  <div style="min-width:0;flex:1;">
+                    <div style="color:#7d6b51;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;">{{ g.slot }}</div>
+                    <div style="margin-top:2px;color:#f6e6c3;font-size:14px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.name }}</div>
+                  </div>
+                  <div style="flex:0 0 auto;text-align:right;">
+                    <span style="display:inline-block;padding:3px 9px;border-radius:999px;background:{{ g.sourceBg }};color:{{ g.sourceColor }};font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">{{ g.sourceTag }}</span>
+                    <div style="margin-top:4px;color:#a9997a;font-size:10px;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:flex-end;gap:3px;"><sc-if value="{{ g.sourceLucent }}" hint-placeholder-val="{{ false }}"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="12" height="12" style="display:block;"></sc-if>{{ g.sourceDetail }}</div>
+                  </div>
+                </div>
+                <!-- Raid: heroic gear — Calanthia raid drop + raid-store stone purchase -->
+                <sc-if value="{{ g.raidKnown }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
+                    <div style="color:#f0b866;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;">{{ g.raidLabel }}</div>
+                    <sc-if value="{{ g.raidHasDrop }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="flex:0 0 auto;width:22px;height:22px;border-radius:6px;border:1px solid rgba(240,184,102,.4);background:radial-gradient(circle at 40% 30%,#3a2c14,#150f07);display:grid;place-items:center;color:#f0b866;font-size:12px;">⚔</span>
+                        <span style="color:#f0dcc0;font-size:12px;">Drops from the raid</span>
+                        <span style="flex:1;"></span>
+                        <span style="padding:2px 9px;border:1px solid rgba(240,184,102,.35);border-radius:999px;background:rgba(240,184,102,.1);color:#f0c680;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ g.raidDropPct }}</span>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ g.raidHasStore }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="flex:0 0 auto;width:22px;height:22px;border-radius:6px;border:1px solid rgba(240,184,102,.4);background:radial-gradient(circle at 40% 30%,#3a2c14,#150f07);display:grid;place-items:center;color:#f0b866;font-size:12px;">◈</span>
+                        <span style="min-width:0;color:#f0dcc0;font-size:12px;">Buy with <span style="color:#f0c680;font-weight:600;">{{ g.raidStoreCurrency }}</span></span>
+                      </div>
+                      <div style="margin-top:3px;margin-left:30px;color:#8a795f;font-size:10px;">at the {{ g.raidMerchant }}</div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+                <!-- Drops: boss chips, best-first -->
+                <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
+                    <div style="color:#e0a86b;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;">Drops from</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                      <sc-for list="{{ g.drops }}" as="d" hint-placeholder-count="3">
+                        <div style="display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border:1px solid rgba(224,168,107,.22);border-radius:9px;background:rgba(58,42,23,.35);">
+                          <span style="flex:0 0 auto;width:30px;height:30px;border-radius:7px;border:1px solid rgba(224,168,107,.4);background:radial-gradient(circle at 40% 30%,#3a2a17,#140e08);overflow:hidden;display:grid;place-items:center;">
+                            <sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ true }}"><span style="width:30px;height:30px;background:url({{ d.image }}) center/cover no-repeat;"></span></sc-if>
+                          </span>
+                          <span style="display:flex;flex-direction:column;line-height:1.15;">
+                            <span style="max-width:150px;color:#f0dcc0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ d.name }}</span>
+                            <sc-if value="{{ d.hasProb }}" hint-placeholder-val="{{ true }}"><span style="color:#e8b57c;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ d.prob }}</span></sc-if>
+                          </span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <!-- Craft: cost + ingredient list -->
+                <sc-if value="{{ g.craftable }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:7px;"><span style="color:#8fd6aa;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Craft</span><span style="color:#f0e1c1;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;">{{ g.craftCost }}</span><sc-if value="{{ g.craftUpgrade }}" hint-placeholder-val="{{ false }}"><span style="color:#f2c777;font-size:10px;">{{ g.craftUpgrade }}</span></sc-if></div>
+                    <div style="display:grid;gap:4px;">
+                      <sc-for list="{{ g.craftIngredients }}" as="ing" hint-placeholder-count="4"><div style="display:flex;gap:8px;font-size:10.5px;line-height:1.35;"><span style="flex:0 0 auto;min-width:38px;color:#f2c777;font-weight:700;font-variant-numeric:tabular-nums;">{{ ing.qty }}</span><span style="min-width:0;color:#c6b489;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ing.name }}</span></div></sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <!-- Market: shown when a price is fetched, unless the headline badge already carries it -->
+                <sc-if value="{{ g.showMarketBlock }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;align-items:center;gap:9px;margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.12);">
+                    <span style="flex:0 0 auto;color:#b98cf0;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Market</span>
+                    <span style="flex:1;"></span>
+                    <sc-if value="{{ g.marketHasPrice }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:4px;color:#d8b8ff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="13" height="13" style="display:block;">{{ g.marketPriceText }}</span><sc-if value="{{ g.marketStock }}" hint-placeholder-val="{{ true }}"><span style="color:#7d6b51;font-size:10px;">{{ g.marketStock }}</span></sc-if></sc-if>
+                    <sc-if value="{{ g.marketNoPrice }}" hint-placeholder-val="{{ false }}"><span style="color:#6f5f49;font-size:10px;font-style:italic;">{{ g.marketOther }}</span></sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ guideNotReady }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px;border:1px dashed rgba(212,166,94,.2);border-radius:10px;color:#8a795f;font-size:10.5px;text-align:center;">Loading item sourcing…</div>
+          </sc-if>
+        </div>
       </sc-if>
 
       <sc-if value="{{ tabSkills }}" hint-placeholder-val="{{ false }}">
@@ -1211,6 +1441,10 @@ class Component extends DCLogic {
   state = {
     phase: 'setup',
     statTab: 'summary',
+    acquisition: null,
+    marketPrices: {},
+    marketRegion: 'na-f',
+    marketBusy: false,
     locked: {},
     hover: null,
     openAttr: null,
@@ -1220,7 +1454,9 @@ class Component extends DCLogic {
     statOptions: [],
     priorityPickerOpen: false,
     prioritySearch: '',
-    priorityCategory: 'featured',
+    priorityCategory: 'suggested',
+    role: 'dps',
+    preset: null,
     openComposite: null,
     dragPriorityId: null,
     dragOverPriorityId: null,
@@ -1241,11 +1477,21 @@ class Component extends DCLogic {
     resultOrigin: 'scratch',
     resultReturnUrl: './full-build-optimizer.html',
     resultActionMessage: '',
+    savePanelOpen: false,
+    saveName: '',
+    replaceTargetId: '',
+    savePresetChoices: [],
+    comparePanelOpen: false,
+    compareTargetId: '',
+    comparePresetChoices: [],
+    compareArmory: null,
+    comparePreset: null,
     kept: {},
     engineReady: false,
     engineError: '',
     progress: 0, progressMsg: '', progressPhase: '', candidates: 0, stepIndex: 0,
     rules: { endgame: true, heroic: true, traits: true, sets: true, runes: true, artifacts: true },
+    setRules: { require: '', prefer: false, allowBreaking: true, minimumActiveBonuses: 0 },
     openTip: null,
     heroicsEngaged: false,
     heroicMode: 'theoretical',
@@ -1259,8 +1505,12 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._onResize();
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets]) => {
+    // Gearing-guide sourcing (craftable/codex now; drops+market later). Non-blocking; guide degrades if absent.
+    // no-cache: revalidate so a freshly-built acquisition.json (same URL) is picked up rather than served stale from cache.
+    fetch('./data/projections/acquisition.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(a=>{ if(a&&a.items) this.setState({ acquisition:a.items }); }).catch(()=>{});
+    Promise.all([import('./tl-core.js'), import('./optimizer/tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./optimizer/tl-build-tuner.js'), import('./tl-persistence.js'), import('./optimizer/tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./optimizer/tl-optimizer-presets.js'), import('./tl-preset-meta.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets, presetMeta]) => {
       this.core = core;
+      this.presetMeta = presetMeta;
       this.rulesData = rulesData;
       this.tuner = tuner;
       this.persistence = persistence;
@@ -1274,7 +1524,8 @@ class Component extends DCLogic {
       const source = await this.adapter.createScratchBuild();
       const statOptions = await this.adapter.listStats();
       let saved={};try{saved=JSON.parse(localStorage.getItem('tlhelper.builder.heroics.v1')||'{}')}catch{}
-      const heroics=saved.heroics||this.state.heroics,heroicMode=saved.heroicMode||this.state.heroicMode;
+      const heroics=saved.heroics||this.state.heroics;let heroicMode=saved.heroicMode||this.state.heroicMode;
+      if(heroicMode==='none')heroicMode='theoretical'; // retired mode — a build always needs heroics.
       const improved=new URLSearchParams(location.search).get('result')==='improved' ? handoff.loadImprovedResult(sessionStorage) : null;
       if(improved){
         const result=improved.result,attributes=result.optimizedAttributes||result.attributes||{};
@@ -1427,6 +1678,7 @@ class Component extends DCLogic {
   ];
 
   STAT_TABS = [
+    { id:'guide',   name:'Gearing Guide', short:'Guide', shape:'20%',  rot:'none' },
     { id:'summary', name:'Summary',      short:'Sum',  shape:'50%',   rot:'none' },
     { id:'attack',  name:'Attack',       short:'Atk',  shape:'0',     rot:'rotate(45deg)' },
     { id:'defense', name:'Defense',      short:'Def',  shape:'40% 40% 50% 50%', rot:'none' },
@@ -1486,10 +1738,10 @@ class Component extends DCLogic {
     { name:'Warden Bulwark', count:'3 / 3 pieces', bonus:'2pc: Endurance +90 · 3pc: incoming crit damage −4%' },
   ];
   RUNE_CHIPS = [
-    { label:'Magic Double Def ·6', dot:'#87acef', border:'rgba(135,172,239,.4)' },
-    { label:'PvP Crit Def ·4', dot:'#c984f1', border:'rgba(201,132,241,.4)' },
-    { label:'Melee Accuracy ·5', dot:'#f2c777', border:'rgba(242,199,119,.4)' },
-    { label:'All State Tol ·3', dot:'#7ee0a6', border:'rgba(126,224,166,.4)' },
+    { slot:'Off Hand', statsText:'+4 Dexterity · +3.5% Attack Speed', label:'Off Hand: +4 Dexterity · +3.5% Attack Speed', dot:'#87acef', border:'rgba(135,172,239,.4)' },
+    { slot:'Head', statsText:'+400 Max Health · +20 Boss Damage Reduction', label:'Head: +400 Max Health · +20 Boss Damage Reduction', dot:'#c984f1', border:'rgba(201,132,241,.4)' },
+    { slot:'Chest', statsText:'+2 Dexterity · +70 Ranged Defense', label:'Chest: +2 Dexterity · +70 Ranged Defense', dot:'#f2c777', border:'rgba(242,199,119,.4)' },
+    { slot:'Legs', statsText:'+2 Wisdom · +70 Magic Defense', label:'Legs: +2 Wisdom · +70 Magic Defense', dot:'#7ee0a6', border:'rgba(126,224,166,.4)' },
   ];
 
   RARITY = {
@@ -1596,7 +1848,6 @@ class Component extends DCLogic {
   HERO_MODES = [
     { id:'owned', label:'Use only my Heroics', explain:'Configured Heroics may be equipped. The optimizer cannot invent another Heroic.' },
     { id:'theoretical', label:'Allow theoretical', explain:'The optimizer may recommend the strongest Heroic configuration that follows the game’s limits, even if you have not marked it as owned.' },
-    { id:'none', label:'No Heroics', explain:'The generated build excludes all Heroic equipment.' },
   ];
 
   heroicCatalog(group) {
@@ -1650,21 +1901,45 @@ class Component extends DCLogic {
     resonance:cfg.resonance?{...cfg.resonance}:null, runes:cfg.runes.map(r=>({...r})) } } }); }
   removeHeroic(group) { const h={...this.state.heroics}; h[group]=null;this.persistHeroics(h,this.state.heroicMode);this.setState({ heroics:h }); }
   closeDrawer = () => this.setState({ drawer:null });
+  setMarketRegion = (e) => this.setState({ marketRegion:e.target.value, marketPrices:{} });
+  // Live auction-house prices via the same-origin questlog proxy (functions/api/questlog/market.js).
+  // Degrades silently where the proxy isn't deployed (e.g. static local dev).
+  checkMarketPrices = async () => {
+    const s=this.state; if(s.marketBusy||!s.result) return;
+    const ids=[...new Set(Object.values(s.result.build.equipment||{}).map(e=>e&&e.itemId).filter(Boolean))];
+    const region=s.marketRegion||'na-f';
+    this.setState({ marketBusy:true });
+    const prices={...s.marketPrices};
+    await Promise.all(ids.map(async id=>{
+      try{ const r=await fetch(`./api/questlog/market?item=${encodeURIComponent(id)}&region=${region}`);
+        if(r.ok){ const j=await r.json(); prices[id]={ minPrice:j.minPrice, inStock:j.inStock }; } else { prices[id]={ error:true }; } }
+      catch{ prices[id]={ error:true }; }
+    }));
+    this.setState({ marketPrices:prices, marketBusy:false });
+  };
   patchDrawer(p) { this.setState({ drawer:{ ...this.state.drawer, ...p } }); }
   patchDraft(p) { const d=this.state.drawer; this.setState({ drawer:{ ...d, draft:{ ...d.draft, ...p } } }); }
   setDrawerSearch = (e) => this.patchDrawer({ search:e.target.value });
   curItem() { const d=this.state.drawer; return this.findHeroic(d.group, d.draft.itemId); }
   selectDraftItem(item) {
-    // Owned recreation: conservative defaults, nothing auto-maximized. Effects start "unknown" (level 0).
+    // Fast recreation: prefill the 3 owned traits from the item's own pool at max tier
+    // (most owned Heroics are maxed — you just adjust what differs), and prefill the Heroic
+    // trait. Effect ROLL levels still start "unknown" — that's an axis we genuinely can't assume.
+    const its=item.itemStats||{};
+    const traits=Object.keys(its.traits||{}).slice(0,3).map(statId=>({ statId, tier:this.tierMax(its.traits[statId]) }));
+    const uKeys=Object.keys(its.uniqueTraits||{});
+    const uniqueTrait=uKeys.length?{ statId:uKeys[0], tier:this.tierMax(its.uniqueTraits[uKeys[0]]) }:null;
     const usedEffects=new Set();
     const heroicEffects = Array.from({length:this.heroicEffectGroupCount(item)},(_,groupIndex) => {
       const option=this.heroicEffectOptions(item,groupIndex).find(row=>!usedEffects.has(row.statId));
       if(option)usedEffects.add(option.statId);
       return { statId:option?.statId||'', level:0, levelKnown:false };
     });
-    this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits:[], uniqueTrait:null,
+    this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits, uniqueTrait,
       heroicEffects, resonance:null, runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] });
   }
+  // Return to the item picker, discarding the current draft config for this slot.
+  changeDraftItem() { this.patchDraft({ ...this.emptyDraft(this.state.drawer.group) }); }
   setDraftLevel = (e) => this.patchDraft({ level:Number(e.target.value) });
   addTraitRow() { const d=this.state.drawer.draft; const item=this.curItem(); if (d.traits.length>=3) return;
     const used=d.traits.map(t=>t.statId); const next=Object.keys(item.itemStats.traits).find(s=>!used.includes(s));
@@ -1706,7 +1981,7 @@ class Component extends DCLogic {
     const item = this.findHeroic(group, cfg.itemId) || {};
     const inh = item.inherentByLevel ? [{ name:'Item Level', value:'Lv ' + (cfg.level || (this.getItemLevels(item).at(-1)||'')) }, { name:(item.inherentByLevel[cfg.level]||Object.values(item.inherentByLevel)[0]||''), value:'' }] : [];
     const unique=cfg.uniqueTrait?[{name:this.statLabel(cfg.uniqueTrait.statId),formattedValue:this.core.formatStat(cfg.uniqueTrait.statId,this.tierVal(item.itemStats?.uniqueTraits?.[cfg.uniqueTrait.statId],cfg.uniqueTrait.tier))}]:[];
-    const heroicEffects=cfg.heroicEffects.map((e,i)=>{const option=this.heroicEffectOptions(item,i).find(row=>row.statId===e.statId);const value=this.heroicEffectValue(option,e.levelKnown?e.level:0);return {groupNumber:i+1,name:this.statLabel(e.statId),value:this.core.formatSigned(value,e.statId),level:e.level,levelKnown:e.levelKnown};});
+    const heroicEffects=cfg.heroicEffects.map((e,i)=>{const option=this.heroicEffectOptions(item,i).find(row=>row.statId===e.statId);const value=this.heroicEffectValue(option,e.levelKnown?e.level:0);return {groupNumber:i+1,name:this.statLabel(e.statId),value:this.core.formatSigned(value,e.statId),level:e.level,levelKnown:e.levelKnown,baseValue:this.core.formatSigned(this.heroicEffectValue(option,0),e.statId),maxValue:this.core.formatSigned(this.heroicEffectValue(option,option?.maxLevel??0),e.statId)};});
     return { name:item.name, meta:this.itemMeta(item), slotLabel:item.slotLabel, rarity:'heroic', slot:'heroic_'+group,
       imageUrl:item.imageUrl||'',stats:inh,traits:cfg.traits.map(t=>({name:this.statLabel(t.statId),value:this.core.formatStat(t.statId,this.tierVal(item.itemStats?.traits?.[t.statId],t.tier))})),unique,heroicEffects,
       runes: cfg.runes.filter(r=>r.runeId).map(r => { const rn=this.runeById(item, r.runeId);
@@ -1761,7 +2036,7 @@ class Component extends DCLogic {
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
         bestHeroicConfiguration:this.state.heroicMode==='theoretical', allowUnownedHeroics:this.state.heroicMode==='theoretical',
         runes:{mode:this.state.rules.runes?'normal':'keep',chaosOwnershipRequired:true,normalDuplicateCap:3,chaosDuplicateCap:1},
-        artifacts:{mode:this.state.rules.artifacts?'sets':'keep'} }, depth:'thorough',
+        artifacts:{mode:this.state.rules.artifacts?'sets':'keep'}, ...(this.state.rules.sets?{sets:this.setRulesForRequest()}:{}) }, depth:'thorough',
       ...(scenario?{scenario}:{}),
     };
   }
@@ -1781,13 +2056,13 @@ class Component extends DCLogic {
   // falls through to the live worker path.
   forgeWithPrecache = async (request) => {
     try{
-      const precache=await import('./tl-optimizer-precache.js');
+      const precache=await import('./optimizer/tl-optimizer-precache.js');
       const cached=await precache.loadPrecachedResult(request,{gameBuild:this.core.data.gameBuild});
       if(cached && this.state.phase==='forging'){this.applyForgeResult(structuredClone(cached),false);return;}
     }catch{}
     if(this.state.phase!=='forging')return;
     this._worker?.terminate();
-    this._worker=new Worker('./tl-builder-worker.js',{type:'module'});
+    this._worker=new Worker('./optimizer/tl-builder-worker.js',{type:'module'});
     this._worker.onmessage=(event)=>{
       const message=event.data||{};
       if(message.type==='progress'){
@@ -1841,26 +2116,144 @@ class Component extends DCLogic {
     const loaded=this.persistence.loadArmoryState(localStorage,{currentGameBuild:gameBuild});
     return {profile:loaded.ok?loaded.data.profile:{name:this.state.result?.name??'Optimized build',role:'Adventurer',server:''},attributes:{...(this.state.result?.optimizedAttributes||this.state.result?.attributes||{})},favoriteStatIds:[...this.state.priorities],build:this.core.deepClone(this.state.result.build)};
   }
+  loadPresetList() {
+    const gameBuild=this.core.data?.gameBuild??'unversioned';
+    const loaded=this.persistence.loadArmoryPresets(localStorage,{currentGameBuild:gameBuild});
+    return { gameBuild, presets:loaded.ok?loaded.data:[] };
+  }
+  // Side-by-side compare: current Armory build vs a chosen preset vs this
+  // result, on the ranked priority stats. Static persistent totals for the
+  // stored builds; the result column reuses its own goalResults.
+  compareStatValue(calc,id) {
+    const composite=this.core.compositeStatBreakdown?.(calc,id);
+    return composite?composite.total:this.core.statTotal(calc,id);
+  }
+  compareColumnFor(stored) {
+    if(!stored?.build)return null;
+    try{
+      const calc=this.core.calculateBuild(stored.build,stored.attributes??{},{includeSetEffects:true});
+      return Object.fromEntries(this.state.priorities.map(id=>[id,this.compareStatValue(calc,id)]));
+    }catch{return null;}
+  }
+  openComparePanel = () => {
+    try{
+      const gameBuild=this.core.data?.gameBuild??'unversioned';
+      const armory=this.persistence.loadArmoryState(localStorage,{currentGameBuild:gameBuild});
+      const { presets }=this.loadPresetList();
+      this.setState({
+        comparePanelOpen:true,
+        compareTargetId:presets[0]?.id??'',
+        comparePresetChoices:presets.map(preset=>({id:preset.id,name:preset.name})),
+        compareArmory:armory.ok?this.compareColumnFor(armory.data):null,
+        comparePreset:presets[0]?this.compareColumnFor(presets[0]):null,
+        resultActionMessage:'',
+      });
+    }catch{this.setState({resultActionMessage:'Comparison data is unavailable in this browser.'});}
+  };
+  closeComparePanel = () => this.setState({comparePanelOpen:false});
+  setCompareTarget = (event) => {
+    const compareTargetId=event.target.value;
+    const { presets }=this.loadPresetList();
+    const target=presets.find(preset=>preset.id===compareTargetId);
+    this.setState({compareTargetId,comparePreset:target?this.compareColumnFor(target):null});
+  };
+  defaultResultPresetName(existingNames) {
+    const label=this.state.resultOrigin==='improved'?'Optimized':'Forged';
+    return this.presetMeta.generatePresetName(this.core,{build:this.state.result.build,origin:'optimized',label,existingNames});
+  }
   saveResult = () => {
     try{
-      const gameBuild=this.core.data?.gameBuild??'unversioned',snapshot={...this.resultSnapshot(),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name:this.state.result?.name??'Optimized build',createdAt:new Date().toISOString()};
-      const loaded=this.persistence.loadArmoryPresets(localStorage,{currentGameBuild:gameBuild});
-      this.persistence.saveArmoryPresets(localStorage,[...(loaded.ok?loaded.data:[]),snapshot],{gameBuild});
-      this.setState({resultActionMessage:'Saved as a new Armory preset.'});
+      const { presets }=this.loadPresetList();
+      this.setState({
+        savePanelOpen:true,
+        saveName:this.defaultResultPresetName(presets.map(preset=>preset.name)),
+        replaceTargetId:'',
+        savePresetChoices:presets.map(preset=>({id:preset.id,name:preset.name})),
+        resultActionMessage:'',
+      });
+    }catch{this.setState({resultActionMessage:'Presets are unavailable in this browser.'});}
+  };
+  closeSavePanel = () => this.setState({savePanelOpen:false});
+  setSaveName = (event) => this.setState({saveName:event.target.value});
+  setReplaceTarget = (event) => {
+    const replaceTargetId=event.target.value;
+    const target=this.state.savePresetChoices.find(choice=>choice.id===replaceTargetId);
+    this.setState({replaceTargetId, ...(target?{saveName:target.name}:{})});
+  };
+  confirmSaveResult = () => {
+    try{
+      const { gameBuild, presets }=this.loadPresetList();
+      const requested=String(this.state.saveName??'').trim();
+      const replaceId=this.state.replaceTargetId;
+      if(replaceId){
+        const targetIndex=presets.findIndex(preset=>preset.id===replaceId);
+        if(targetIndex<0){this.setState({resultActionMessage:'That preset no longer exists.',savePanelOpen:false});return;}
+        const otherNames=presets.filter(preset=>preset.id!==replaceId).map(preset=>preset.name);
+        const name=this.presetMeta.uniqueName(requested||presets[targetIndex].name,otherNames);
+        const replaced=[...presets];
+        replaced[targetIndex]={...this.resultSnapshot(),id:replaceId,name,origin:'optimized',createdAt:presets[targetIndex].createdAt??new Date().toISOString(),updatedAt:new Date().toISOString()};
+        this.persistence.saveArmoryPresets(localStorage,replaced,{gameBuild});
+        this.setState({savePanelOpen:false,resultActionMessage:`Replaced “${name}”. Your current Armory build is untouched.`});
+        return;
+      }
+      const name=this.presetMeta.uniqueName(requested||this.defaultResultPresetName(presets.map(preset=>preset.name)),presets.map(preset=>preset.name));
+      const snapshot={...this.resultSnapshot(),id:`preset-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name,origin:'optimized',createdAt:new Date().toISOString()};
+      this.persistence.saveArmoryPresets(localStorage,[...presets,snapshot],{gameBuild});
+      this.setState({savePanelOpen:false,resultActionMessage:`Saved as “${name}”. Your current Armory build is untouched.`});
     }catch{this.setState({resultActionMessage:'The preset could not be saved in this browser.'});}
   };
   useResult = () => {
     try{
+      this.persistence.backupArmoryStateForUndo(localStorage);
       this.persistence.saveArmoryState(localStorage,this.resultSnapshot(),{gameBuild:this.core.data?.gameBuild??'unversioned'});
       location.href='./index.html';
     }catch{this.setState({resultActionMessage:'The build could not be saved in this browser.'});}
   };
-  tuneStat(id,event) {
+  tuneContext() {
     const result=this.state.result,targetCaps=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.target!=null).map(goal=>[goal.id,goal.target]));
     const frontier=this.tuner?.paretoTuneFrontier(result?.tuningFrontier||[],this.state.priorities,48,targetCaps)||[];
     const floors=Object.fromEntries((result?.goalResults||[]).filter(goal=>goal.minimum!=null).map(goal=>[goal.id,goal.minimum]));
-    const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,Number(event.target.value),floors);
-    if(!candidate)return;
+    return { result, frontier, floors };
+  }
+  tuneStat(id,event) { this.tuneStatToValue(id,Number(event.target.value)); }
+  tuneStatInput(id,event) {
+    const display=Number(String(event.target.value).replace(/,/g,''));
+    if(!Number.isFinite(display))return;
+    this.tuneStatToValue(id,this.core.statDisplayToRaw(id,display));
+  }
+  // Step to the next distinct retained-candidate value so keyboard and button
+  // steps always land on a different complete build (a tiny numeric step can
+  // otherwise snap back to the same candidate and feel unresponsive).
+  tuneStatStep(id,direction) {
+    const {frontier}=this.tuneContext();
+    const values=[...new Set(frontier.map(candidate=>Number(candidate.goalValues?.[id])||0))].sort((a,b)=>a-b);
+    const current=Number(this.state.result?.goalResults?.find(goal=>goal.id===id)?.value)||0;
+    const next=direction>0?values.find(value=>value>current):[...values].reverse().find(value=>value<current);
+    if(next==null)return;
+    this.tuneStatToValue(id,next);
+  }
+  tuneRangeKey(id,event) {
+    const step={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[event.key];
+    if(step){event.preventDefault();this.tuneStatStep(id,step);return;}
+    if(event.key==='Home'||event.key==='End'){
+      event.preventDefault();
+      const {frontier}=this.tuneContext();
+      const values=frontier.map(candidate=>Number(candidate.goalValues?.[id])||0);
+      if(values.length)this.tuneStatToValue(id,event.key==='Home'?Math.min(...values):Math.max(...values));
+    }
+  }
+  selectTuneCandidate = (event) => {
+    const {frontier}=this.tuneContext();
+    const candidate=frontier.find(row=>String(row.id)===event.target.value);
+    if(candidate)this.applyTuneCandidate(candidate);
+  };
+  tuneStatToValue(id,rawTarget) {
+    const {frontier,floors}=this.tuneContext();
+    const candidate=this.tuner?.selectLinkedTuneCandidate(frontier,this.state.priorities,id,rawTarget,floors);
+    if(candidate)this.applyTuneCandidate(candidate);
+  }
+  applyTuneCandidate(candidate) {
+    const result=this.state.result;
     const resultCalc=this.core.calculateBuild(candidate.build,candidate.optimizedAttributes||{},{includeSetEffects:this.state.rules.sets,optionalFallback:false,...(result.scenario?{scenario:result.scenario}:{})});
     if(resultCalc.status?.state!=='legal'||(result.scenario&&resultCalc.scenarioEffects?.status!=='applied'))return;
     const totals=Object.fromEntries((resultCalc.scenarioStats??resultCalc.stats??[]).map(row=>[row.id,Number(row.total)||0]));
@@ -1933,6 +2326,34 @@ class Component extends DCLogic {
   }
   removePriority(id) { this.setState({ priorities: this.state.priorities.filter(p => p !== id) }); }
   addPriority(id) { if (!this.state.priorities.includes(id)) this.setState({ priorities: [...this.state.priorities, id] }); }
+  togglePriorityStat(id) { if (this.state.priorities.includes(id)) this.removePriority(id); else this.addPriority(id); }
+  setRole = (role) => this.setState({ role, preset:null, priorityCategory:'suggested' });
+  // Resolve a class preset's stats for the current weapon family, filtered to known
+  // pickable stats, order + de-duplicated.
+  resolvePresetStats(presetId) {
+    const s=this.state;
+    if(!this.presets||!s.weaponTypes.main||!presetId)return [];
+    try{
+      const family=this.presets.weaponStatFamily(s.weaponTypes.main);
+      const resolved=this.presets.resolveClassPreset(s.role,presetId,{family});
+      if(!resolved)return [];
+      const known=new Set(s.statOptions.map(o=>o.id));
+      const seen=new Set();
+      return resolved.stats.filter(id=>known.has(id)&&!seen.has(id)&&seen.add(id));
+    }catch{return [];}
+  }
+  // Picking a preset fills the ranked priority list with its stats (in order).
+  applyClassPreset(presetId) {
+    const stats=this.resolvePresetStats(presetId);
+    if(!stats.length)return;
+    this.setState({ preset:presetId, priorities:stats, goalModes:{}, goalValues:{}, priorityCategory:'suggested', priorityPickerOpen:false });
+  }
+  // The Suggested picker category mirrors the active preset (for easy re-add).
+  suggestedStatIds() {
+    const s=this.state;
+    if(!s.weaponTypes.main||!s.weaponTypes.off||!s.preset)return [];
+    return this.resolvePresetStats(s.preset);
+  }
   applyPreset(presetId) {
     if (!this.presets) return;
     const family = this.presets.weaponStatFamily(this.state.weaponTypes.main);
@@ -1954,7 +2375,9 @@ class Component extends DCLogic {
   clearPrioritySearch = () => this.setState({ prioritySearch:'' });
   priorityPickerKeyDown = (event) => { if(event.key==='Escape')this.closePriorityPicker(); };
   toggleComposite(id) { this.setState({ openComposite:this.state.openComposite===id?null:id }); }
-  compositeComponents(id) { return (this.rulesData?.STAT_EXPANSIONS?.[id]||[]).map(componentId=>({id:componentId,name:this.statLabel(componentId)})); }
+  // Context-split composites (Boss/PvP pairs) are treated as single leaf goals, not min(boss,pvp).
+  isCompositeGoal(id){ if(this.rulesData?.CONTEXT_SPLIT_COMPOSITE_IDS?.has(id))return false; return (this.rulesData?.STAT_EXPANSIONS?.[id]||[]).length>1; }
+  compositeComponents(id) { if(!this.isCompositeGoal(id))return []; return (this.rulesData?.STAT_EXPANSIONS?.[id]||[]).map(componentId=>({id:componentId,name:this.statLabel(componentId)})); }
   statPickerCategory(row) {
     const id=String(row?.id||'').toLowerCase(),name=String(row?.name||'').toLowerCase(),text=id+' '+name;
     if(['str','dex','int','per','con'].includes(id))return 'attributes';
@@ -1973,6 +2396,23 @@ class Component extends DCLogic {
       || /^(max health|damage reduction|cooldown speed|buff duration|attack speed|block chance|pvp endurance|pvp evasion|pvp hit chance|pvp heavy attack)/i.test(row.name);
   }
   toggleRule(k) { const value=!this.state.rules[k]; this.setState({ rules: { ...this.state.rules, [k]: value }, ...(k==='heroic'?{heroicMode:value?'theoretical':'owned'}:{}) }); }
+  toggleSetRule(k) { this.setState({ setRules: { ...this.state.setRules, [k]: !this.state.setRules[k] } }); }
+  setSetRequire = (event) => this.setState({ setRules: { ...this.state.setRules, require: event.target.value } });
+  setSetMinimum = (event) => { const n=Math.max(0,Math.trunc(Number(event.target.value)||0)); this.setState({ setRules: { ...this.state.setRules, minimumActiveBonuses: n } }); };
+  setRulesForRequest() {
+    const s=this.state.setRules; const out={};
+    if(s.require) out.require=s.require;
+    if(s.prefer) out.prefer=true;
+    if(s.allowBreaking===false) out.allowBreaking=false;
+    if(Number(s.minimumActiveBonuses)>0) out.minimumActiveBonuses=Math.trunc(Number(s.minimumActiveBonuses));
+    return out;
+  }
+  setCatalogue() {
+    if(this._setCatalogue?.length) return this._setCatalogue;
+    const sets=(this.core?.data?.itemSets ?? []).map(set=>({ id:set.id, name:set.name })).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    if(sets.length) this._setCatalogue=sets; // only cache once core data is loaded
+    return sets;
+  }
   toggleScenario = () => this.setState({scenario:{...this.state.scenario,enabled:!this.state.scenario.enabled}});
   setScenarioDistance = (event) => this.setState({scenario:{...this.state.scenario,distance:event.target.value}});
   setScenarioTimeOfDay = (event) => this.setState({scenario:{...this.state.scenario,timeOfDay:event.target.value}});
@@ -2056,6 +2496,18 @@ class Component extends DCLogic {
   }
   setGoalMode(id,event) { this.setState({goalModes:{...this.state.goalModes,[id]:event.target.value}}); }
   setGoalValue(id,event) { const value=event.target.value;this.setState({goalValues:{...this.state.goalValues,[id]:value===''?null:Number(value)}}); }
+  // Representative catalogue icon for a weapon family: the highest-grade item
+  // of that equipmentType (deterministic tie-break by id). Icons are mirrored
+  // locally by scripts/mirror-icons.mjs, so this never leaves the origin.
+  weaponFamilyIcon(type) {
+    if(!this.core||!type)return '';
+    this._familyIcons=this._familyIcons||{};
+    if(type in this._familyIcons)return this._familyIcons[type];
+    const best=(this.core.data?.items||[])
+      .filter(item=>item.equipmentType===type&&item.imageUrl)
+      .sort((a,b)=>(Number(b.grade)||0)-(Number(a.grade)||0)||String(a.id).localeCompare(String(b.id)))[0];
+    return this._familyIcons[type]=best?.imageUrl||'';
+  }
   setWeaponType(role,event) {
     const value=event.target.value;
     const weaponTypes={...this.state.weaponTypes,[role]:value};
@@ -2164,16 +2616,19 @@ class Component extends DCLogic {
       const slotId=role==='main'?'main_hand':'off_hand';
       const selected=s.weaponTypes[role];
       const types=this.core?this.core.slotById(slotId).types:[];
+      const familyIcon=selected?this.weaponFamilyIcon(selected):'';
       return { role:role==='main'?'Main weapon':'Off-hand weapon', value:selected, name:selected?this.core.label(selected):'Choose weapon', ariaLabel:role==='main'?'Main weapon family':'Off-hand weapon family',
         options:types.filter(type=>type!==s.weaponTypes[role==='main'?'off':'main']).map(type=>({id:type,label:this.core.label(type)})),
         family:selected?(this.core.label(selected)+' family locked for this search'):'Choose a weapon family', name_color:selected?'#f2c777':'#8a795f',
         border:selected?'rgba(242,199,119,.65)':'rgba(212,166,94,.24)', bg:'rgba(0,0,0,.24)',
-        icon:'radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)',glow:'rgba(229,200,143,.16)',change:(event)=>this.setWeaponType(role,event) };
+        icon:familyIcon?`url(${familyIcon}) center/78% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`:'radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)',glow:'rgba(229,200,143,.16)',change:(event)=>this.setWeaponType(role,event) };
     });
     const progressionWeapons=['main','off'].map(role=>{
       const weapon=s.weaponTypes[role];
       const value=weapon ? Number(s.progression.masteryPointsByWeapon[weapon] ?? this.core?.MASTERY_POINT_BUDGET ?? 220) : 0;
+      const familyIcon=weapon?this.weaponFamilyIcon(weapon):'';
       return {weapon,name:weapon?(this.core?.label(weapon)||weapon):(role==='main'?'Main weapon':'Off-hand weapon'),value,disabled:!weapon,
+        hasIcon:Boolean(familyIcon),icon:familyIcon?`url(${familyIcon}) center/contain no-repeat, radial-gradient(circle at 35% 30%,#241a2e,#0e0a13 72%)`:'',
         border:weapon?'rgba(185,140,240,.3)':'rgba(120,105,128,.14)',change:(event)=>this.setMasteryPoints(weapon,event)};
     });
     const passiveLevelOptions=[
@@ -2186,8 +2641,8 @@ class Component extends DCLogic {
 
     const rankedList = s.priorities.map((id, i) => {
       const option=s.statOptions.find(row=>row.id===id);
-      const components=this.rulesData?.STAT_EXPANSIONS?.[id]||[];
-      const d = {name:option?.name||this.statLabel(id),hint:components.length>1?'Optimizes all included stats together.':'Maximized after higher-ranked goals.',composite:components.length>1};
+      const isComposite=this.isCompositeGoal(id);
+      const d = {name:option?.name||this.statLabel(id),hint:isComposite?'Optimizes all included stats together.':'Maximized after higher-ranked goals.',composite:isComposite};
       const top = i === 0;
       const dragging=s.dragPriorityId===id,dropTarget=s.dragOverPriorityId===id&&!dragging;
       return { id, rank: i + 1, name: d.name, hint: d.hint, composite: !!d.composite, components:this.compositeComponents(id),compositeOpen:s.openComposite===id,compositeCaret:s.openComposite===id?'▲':'▼',toggleComposite:()=>this.toggleComposite(id),
@@ -2196,13 +2651,19 @@ class Component extends DCLogic {
         dropBefore:dropTarget&&!s.dragInsertAfter,dropAfter:dropTarget&&s.dragInsertAfter,
         rank_color: top ? '#0b0805' : '#f2c777', rank_bg: top ? '#f2c777' : 'rgba(0,0,0,.3)',
         rank_border: top ? '#f2c777' : 'rgba(242,199,119,.4)',
-        goalMode:s.goalModes[id]||'maximize',goalModeOptions:[{id:'maximize',label:'Maximize'},{id:'at_least',label:'At least'},{id:'target',label:'Target'}],
+        goalMode:s.goalModes[id]||'maximize',goalModeOptions:[{id:'maximize',label:'Maximize'},{id:'at_least',label:'At least — floor, still rewards more'},{id:'target',label:'Target — floor, then stops'}],
         hasGoalValue:(s.goalModes[id]||'maximize')!=='maximize',goalValue:s.goalValues[id]??'',valueLabel:(s.goalModes[id]||'maximize')==='target'?'Reach':'Floor',
         setGoalMode:(event)=>this.setGoalMode(id,event),setGoalValue:(event)=>this.setGoalValue(id,event),
         dragStart:(event)=>this.startPriorityDrag(id,event),dragOver:(event)=>this.dragOverPriority(id,event),drop:(event)=>this.dropPriority(id,event),reorderKey:(event)=>this.priorityReorderKey(id,event),remove: () => this.removePriority(id) };
     });
-    const poolList = s.statOptions.filter(row=>!s.priorities.includes(row.id)).map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:(this.rulesData?.STAT_EXPANSIONS?.[row.id]||[]).length>1}));
+    // Weapon + role aware suggestions (seeded from the curated presets). Needs both weapons.
+    const weaponsChosen=!!(s.weaponTypes.main&&s.weaponTypes.off);
+    const suggestedIds=this.suggestedStatIds();
+    const suggestedSet=new Set(suggestedIds);
+    // Keep every stat in a fixed position; selecting marks it in place (no reflow).
+    const poolList = s.statOptions.map(row=>({id:row.id,name:row.name,category:this.statPickerCategory(row),components:this.compositeComponents(row.id),composite:this.isCompositeGoal(row.id),selected:s.priorities.includes(row.id),suggested:suggestedSet.has(row.id)}));
     const categoryDefs = [
+      ...(suggestedIds.length?[['suggested','Suggested','Best-fit stats for your weapon and role — start here.']]:[]),
       ['featured','Featured','Common build goals and composite stats.'],
       ['offense','Offense','Damage, hit, critical and heavy attack stats.'],
       ['defense','Defense','Mitigation, endurance, evasion and blocking.'],
@@ -2215,20 +2676,40 @@ class Component extends DCLogic {
       ['species','Enemy Types','Humanoid, wildkin, demon, undead and construct.'],
       ['attributes','Attributes','Strength, Dexterity, Wisdom, Perception and Fortitude.'],
     ];
-    const categoryCount=(id)=>id==='featured'?poolList.filter(row=>this.isFeaturedStat(row)).length:poolList.filter(row=>row.category===id).length;
-    const priorityCategories=categoryDefs.map(([id,name,hint])=>{const active=!s.prioritySearch&&s.priorityCategory===id;return{id,name,hint,count:categoryCount(id),active,
+    const catIds=categoryDefs.map(c=>c[0]);
+    const activeCatId=catIds.includes(s.priorityCategory)?s.priorityCategory:(catIds[0]||'featured');
+    const categoryCount=(id)=>id==='suggested'?suggestedIds.length:id==='featured'?poolList.filter(row=>this.isFeaturedStat(row)).length:poolList.filter(row=>row.category===id).length;
+    const priorityCategories=categoryDefs.map(([id,name,hint])=>{const active=!s.prioritySearch&&activeCatId===id;return{id,name,hint,count:categoryCount(id),active,
       border:active?'rgba(242,199,119,.58)':'rgba(212,166,94,.16)',bg:active?'rgba(107,68,22,.26)':'rgba(0,0,0,.2)',color:active?'#f6d391':'#b3a488',
       select:()=>this.setState({priorityCategory:id,prioritySearch:''})};});
     const query=s.prioritySearch.trim().toLowerCase();
     const visiblePool=query?poolList.filter(row=>(row.name+' '+row.id.replaceAll('_',' ')).toLowerCase().includes(query))
-      :s.priorityCategory==='featured'?poolList.filter(row=>this.isFeaturedStat(row)):poolList.filter(row=>row.category===s.priorityCategory);
+      :activeCatId==='suggested'?suggestedIds.map(id=>poolList.find(r=>r.id===id)).filter(Boolean)
+      :activeCatId==='featured'?poolList.filter(row=>this.isFeaturedStat(row)):poolList.filter(row=>row.category===activeCatId);
     const groupOrder=Object.fromEntries(categoryDefs.map((row,index)=>[row[0],index]));
     const groupedPool=new Map();
-    for(const row of visiblePool){const key=query?row.category:(s.priorityCategory==='featured'?'featured':row.category);if(!groupedPool.has(key))groupedPool.set(key,[]);const expanded=s.openComposite===row.id;groupedPool.get(key).push({...row,compositeOpen:expanded,compositeCaret:expanded?'▲':'▼',border:expanded?'rgba(185,140,240,.38)':'rgba(212,166,94,.16)',bg:expanded?'rgba(185,140,240,.06)':'rgba(0,0,0,.22)',add:()=>this.addPriority(row.id),toggleComposite:()=>this.toggleComposite(row.id)});}
+    // In the Suggested view every row is suggested, so the badge would be noise — hide it there.
+    const showSuggestedBadge=activeCatId!=='suggested';
+    for(const row of visiblePool){const key=query?row.category:(activeCatId==='suggested'?'suggested':activeCatId==='featured'?'featured':row.category);if(!groupedPool.has(key))groupedPool.set(key,[]);const expanded=s.openComposite===row.id;groupedPool.get(key).push({...row,compositeOpen:expanded,compositeCaret:expanded?'▲':'▼',
+      border:row.selected?'rgba(126,224,166,.45)':(row.suggested?'rgba(242,199,119,.4)':(expanded?'rgba(185,140,240,.38)':'rgba(212,166,94,.16)')),
+      bg:row.selected?'rgba(126,224,166,.08)':(row.suggested&&showSuggestedBadge?'rgba(242,199,119,.06)':(expanded?'rgba(185,140,240,.06)':'rgba(0,0,0,.22)')),
+      mark:row.selected?'✓':'+',markColor:row.selected?'#8fd6aa':'#f2c777',markBg:row.selected?'rgba(126,224,166,.16)':'rgba(242,199,119,.09)',
+      nameColor:row.selected?'#9fd9b4':'#e6d6b4',addLabel:row.selected?('Remove '+row.name+' from priorities'):('Add '+row.name+' to priorities'),
+      showTag:row.suggested&&showSuggestedBadge&&!row.selected,
+      add:()=>this.togglePriorityStat(row.id),toggleComposite:()=>this.toggleComposite(row.id)});}
     const priorityGroups=[...groupedPool.entries()].sort((a,b)=>(groupOrder[a[0]]??99)-(groupOrder[b[0]]??99)).map(([id,stats],index)=>({name:query?(categoryDefs.find(row=>row[0]===id)?.[1]||'Other'):'',margin:index?'13px':'0',stats}));
-    const activeCategory=categoryDefs.find(row=>row[0]===s.priorityCategory)||categoryDefs[0];
+    const activeCategory=categoryDefs.find(row=>row[0]===activeCatId)||categoryDefs[0];
     const priorityResultTitle=query?'Search results':activeCategory[1];
     const priorityResultHint=query?'Matches are grouped by combat category.':activeCategory[2];
+    // Role -> Preset selector (Weapons -> Role -> Preset). Shown once both weapons are chosen.
+    const classRoles=this.presets?.CLASS_ROLES||[];
+    const roleChips=classRoles.map(r=>{const on=s.role===r.id;return {name:r.label,on,select:()=>this.setRole(r.id),
+      border:on?'rgba(242,199,119,.6)':'rgba(212,166,94,.22)',bg:on?'linear-gradient(135deg,rgba(107,68,22,.42),rgba(32,23,13,.6))':'rgba(0,0,0,.2)',color:on?'#f6d391':'#a4906d'};});
+    const activeRole=classRoles.find(r=>r.id===s.role);
+    const presetChips=(activeRole?.presets||[]).map(p=>{const on=s.preset===p.id;return {name:p.label,on,select:()=>this.applyClassPreset(p.id),
+      border:on?'rgba(126,224,166,.55)':'rgba(212,166,94,.22)',bg:on?'linear-gradient(135deg,rgba(31,76,47,.4),rgba(20,15,10,.6))':'rgba(0,0,0,.2)',color:on?'#9fd9b4':'#c6b489'};});
+    const comingSoonChips=(activeRole?.comingSoon||[]).map(name=>({name}));
+    const hasPresets=presetChips.length>0;
 
     const ruleMeta = {
       endgame: ['Endgame equipment', 'Level 50+ catalogue only', 'Excludes levelling and starter equipment below level 50. Disable this only when you deliberately want the optimizer to consider the full progression catalogue.'],
@@ -2247,13 +2728,29 @@ class Component extends DCLogic {
         knob: on ? '18px' : '2px', knob_color: on ? '#0b0805' : '#8a795f' };
     });
 
+    const setRules = s.setRules;
+    const setToggle = (on) => ({ track: on ? 'linear-gradient(90deg,#a9702a,#f2c777)' : 'rgba(120,105,80,.35)', knob: on ? '18px' : '2px', knobColor: on ? '#0b0805' : '#8a795f' });
+    const setControls = {
+      visible: s.rules.sets,
+      requireValue: setRules.require,
+      requireOptions: this.setCatalogue(),
+      setRequire: this.setSetRequire,
+      minimum: String(setRules.minimumActiveBonuses || 0),
+      setMinimum: this.setSetMinimum,
+      prefer: setToggle(setRules.prefer), preferOn: setRules.prefer, togglePrefer: () => this.toggleSetRule('prefer'),
+      noBreak: setToggle(setRules.allowBreaking === false), noBreakOn: setRules.allowBreaking === false, toggleNoBreak: () => this.toggleSetRule('allowBreaking'),
+    };
+
     const forgeSteps = this.FORGE_PHASES.map((f, i) => {
       const done = i < s.stepIndex, cur = i === s.stepIndex;
       return { label: f.label, bar: done ? '#f2c777' : cur ? 'linear-gradient(90deg,#a9702a,#f2c777)' : 'rgba(120,105,80,.3)',
         color: (done || cur) ? '#e5c88f' : '#6f5f49' };
     });
 
-    const resultGearSlots=this.core?this.core.EQUIPMENT_SLOTS.map(row=>row.id).filter(id=>!['main_hand','off_hand'].includes(id)):[];
+    // Canonical display order for gear (mirrors the in-game equipment screen). Drives
+    // both the Equipment panel and the gearing guide; weapons render separately (bottom).
+    const gearDisplayOrder=['head','cloak','chest','hands','legs','feet','necklace','earring','ring_1','ring_2','bracelet','belt','brooch'];
+    const resultGearSlots=this.core?gearDisplayOrder.filter(id=>this.core.EQUIPMENT_SLOTS.some(r=>r.id===id)):[];
     const gearSource = s.result ? resultGearSlots.map(id=>this.resultItem(id)).filter(Boolean) : [...this.GEAR_LEFT, ...this.GEAR_RIGHT];
     const ownedSlotMap = {};
     const gearAll = gearSource.map(it => {
@@ -2325,15 +2822,27 @@ class Component extends DCLogic {
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{},range=tuningRanges[id]||{minimum:Number(goal.value)||0,maximum:Number(goal.value)||0};
       const rawValue=Number(goal.value)||0,span=Math.max(0,Number(range.maximum)-Number(range.minimum));
       const capLabel=goal.formattedTarget?`Target ${goal.formattedTarget}`:goal.formattedMinimum?`Floor ${goal.formattedMinimum}`:goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP diff 4,500 / -3,000':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC diff 1,800 / -1,200':'';
-      return{id,name:goal.name||this.statLabel(id),capLabel,value:goal.formattedValue||this.core.formatStat(id,rawValue),rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event)};
+      const formattedValue=goal.formattedValue||this.core.formatStat(id,rawValue);
+      const parsedDisplay=parseFloat(String(formattedValue).replace(/,/g,''));
+      const optionCount=new Set(tuningFrontier.map(c=>String(this.core.formatStat(id,Number(c.goalValues?.[id])||0)))).size;
+      return{id,name:goal.name||this.statLabel(id),capLabel,value:formattedValue,rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),optionsLabel:(optionCount||1)+' option'+((optionCount||1)===1?'':'s'),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event),
+        displayValue:Number.isFinite(parsedDisplay)?parsedDisplay:rawValue,
+        numeric:(event)=>this.tuneStatInput(id,event),
+        rangeKey:(event)=>this.tuneRangeKey(id,event),
+        dec:()=>this.tuneStatStep(id,-1),
+        inc:()=>this.tuneStatStep(id,1)};
     });
+    const tuneCandidates=tuningFrontier.slice(0,24).map(candidate=>({
+      id:String(candidate.id),
+      label:s.priorities.slice(0,3).map(statId=>`${this.statLabel(statId)} ${this.core.formatStat(statId,Number(candidate.goalValues?.[statId])||0)}`).join(' · '),
+    }));
 
     const favourites = s.priorities.map((id, i) => {
       const goal=s.result?.goalResults?.find(row=>row.id===id)||{};
       const stat=s.statOptions.find(row=>row.id===id);
       const parts=(goal.components||[]).map(component=>({name:component.name,value:component.formattedValue,weak:Number(component.value)===Number(goal.value),color:Number(component.value)===Number(goal.value)?'#e57c72':'#e5c88f',dot:Number(component.value)===Number(goal.value)?'#e57c72':'#b98cf0'}));
       const capLabel=goal.formattedTarget?`Target ${goal.formattedTarget}`:goal.formattedMinimum?`Floor ${goal.formattedMinimum}`:goal.formattedHardCap?`Hard cap ${goal.formattedHardCap}`:id.startsWith('pvp_')&&/accuracy|critical_defense|double_attack|double_defense/.test(id)?'General PvP difference cap':/collide|stun|bind|sleep|silence|weaken|blind|petrification/.test(id)?'General PvP CC difference cap':'';
-      return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),capLabel,value:goal.formattedValue||'Queued',composite:parts.length>1,parts};
+      return {rank:i+1,name:goal.name||stat?.name||this.statLabel(id),capLabel,value:goal.formattedValue||'Queued',composite:this.isCompositeGoal(id)&&parts.length>1,parts};
     });
 
     const statTabs = this.STAT_TABS.map(t => {
@@ -2344,6 +2853,25 @@ class Component extends DCLogic {
         select: () => this.setState({ statTab: t.id }) };
     });
     const activeTab = this.STAT_TABS.find(t => t.id === s.statTab) || this.STAT_TABS[0];
+    // Guide-centric result panel: the gearing Guide is the default, prominent view;
+    // Weapons/Attributes/Sets, the tradeoff sliders and the stat breakdown live under
+    // a Stats subtab, and Skills/Mastery under Progression. Equipment + favourite stats
+    // sit in the persistent left column, so those aren't tabs here.
+    const STAT_GROUP={summary:'stats',attack:'stats',defense:'stats',utility:'stats',pvp:'stats',boss:'stats',gear:'stats',sets:'stats',skills:'progression',mastery:'progression',guide:'guide'};
+    const resultView=STAT_GROUP[s.statTab]||'guide';
+    const primaryTabs=[{id:'stats',name:'Stats',dflt:'summary'},{id:'guide',name:'Guide',dflt:'guide'},{id:'progression',name:'Skills',dflt:'skills'}].map(p=>{
+      const on=resultView===p.id;
+      return { name:p.name, on, border:on?'rgba(242,199,119,.55)':'rgba(212,166,94,.14)', bg:on?'linear-gradient(135deg, rgba(107,68,22,.4), rgba(32,23,13,.6))':'transparent', color:on?'#f6d391':'#8a795f',
+        select:()=>this.setState({ statTab:p.dflt }) };
+    });
+    const subChip=(id,name)=>({ name, on:s.statTab===id, border:s.statTab===id?'rgba(242,199,119,.5)':'rgba(212,166,94,.2)', bg:s.statTab===id?'rgba(107,68,22,.32)':'rgba(0,0,0,.24)', color:s.statTab===id?'#f6d391':'#a4906d', select:()=>this.setState({ statTab:id }) });
+    const statSubChips=[['summary','Summary'],['attack','Attack'],['defense','Defense'],['utility','Utility'],['pvp','PvP'],['boss','Boss'],['gear','Gear'],['sets','Sets & Runes']].map(([id,name])=>subChip(id,name));
+    const progressionSubChips=[['skills','Skills'],['mastery','Mastery']].map(([id,name])=>subChip(id,name));
+    const showStatsSubchips=resultView==='stats';
+    const showProgressionSubchips=resultView==='progression';
+    // Weapons/Attributes/Sets + tradeoff sliders live on the Summary sub-chip; the
+    // other category chips (Attack/Defense/…) show just the filtered stat table.
+    const showStatsExtras=s.statTab==='summary';
     const allStats=s.result?.allStats||[];
     const favouriteIds=new Set(s.priorities);
     const matchesTab=(row)=>{const name=String(row.name).toLowerCase(),group=String(row.group).toLowerCase();if(s.statTab==='pvp'||s.statTab==='boss')return group===s.statTab;if(s.statTab==='attack')return /attack|accuracy|hit chance|critical|damage dealt|penetration|range/.test(name)&&!/(evasion|resistance|reduction)/.test(name);if(s.statTab==='defense')return /health|defense|evasion|endurance|resistance|reduction|block/.test(name);if(s.statTab==='utility')return !['pvp','boss'].includes(group)&&/speed|duration|mana|healing|cost|recovery|control|chance/.test(name);if(s.statTab==='gear'||s.statTab==='sets')return false;return favouriteIds.has(row.id)||['hp_max','cost_max','damage_reduction','block_chance','move_speed','skill_cooldown_modifier','attack_speed_modifier'].includes(row.id);};
@@ -2360,11 +2888,16 @@ class Component extends DCLogic {
       return {name:set.name,count:set.equippedPieces+' / '+set.memberPieces+' pieces',bonus:bonuses.join(' · ')||'No set bonus active yet'};
     }) : this.SET_SUMMARY;
     const runeSynergies=s.resultCalc?.runeSynergies||{};
-    const runeChips=s.result ? Object.entries(runeSynergies).filter(([,synergy])=>Boolean(synergy)).map(([slotId,synergy],index)=>({
-      label:(this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId)+': '+(synergy.name||'Rune synergy')+Object.entries(synergy.stats||{}).map(([id,value])=>' · '+this.core.formatSigned(value,id)+' '+this.core.statName(id)).join(''),
-      dot:['#87acef','#c984f1','#f2c777','#7ee0a6'][index%4],
-      border:['rgba(135,172,239,.4)','rgba(201,132,241,.4)','rgba(242,199,119,.4)','rgba(126,224,166,.4)'][index%4],
-    })) : this.RUNE_CHIPS;
+    const runeChips=s.result ? Object.entries(runeSynergies).filter(([,synergy])=>Boolean(synergy)).map(([slotId,synergy],index)=>{
+      const slot=this.core?.slotById?.(slotId)?.label||this.core?.label?.(slotId)||slotId;
+      const stats=Object.entries(synergy.stats||{}).map(([id,value])=>this.core.formatSigned(value,id)+' '+this.core.statName(id));
+      return {
+        slot, statsText:stats.join(' · '),
+        label:slot+': '+(synergy.name||'Rune synergy')+stats.map(s=>' · '+s).join(''),
+        dot:['#87acef','#c984f1','#f2c777','#7ee0a6'][index%4],
+        border:['rgba(135,172,239,.4)','rgba(201,132,241,.4)','rgba(242,199,119,.4)','rgba(126,224,166,.4)'][index%4],
+      };
+    }) : this.RUNE_CHIPS;
     const runeCount=selectedRows.reduce((sum,row)=>sum+(Array.isArray(row.runes)?row.runes.filter(rune=>rune?.runeId).length:0),0);
     const heroicCountResult=selectedItems.filter(item=>Number(item.grade)===Number(this.core?.HEROIC_GRADE)).length;
     const gearRows=s.result?[
@@ -2379,7 +2912,18 @@ class Component extends DCLogic {
       ...setSummary.map(row=>({name:row.name,formattedValue:row.count,id:''})),
       ...runeChips.map(row=>({name:row.label,formattedValue:'Active',id:''})),
     ]:[];
-    const dynamicRows=s.statTab==='gear'?gearRows:s.statTab==='sets'?setRows:allStats.filter(matchesTab);
+    // Stat-tab ordering: favourites (in priority order) lead, then stats for this
+    // build's damage family + universal stats, and off-family variants sink last.
+    const familyWord={magic:'Magic',melee:'Melee',range:'Ranged'}[this.presets?.weaponStatFamily?.(s.weaponTypes.main)]||null;
+    const offFamilyWords=['Magic','Melee','Ranged'].filter(word=>word!==familyWord);
+    const statImportance=(row)=>{
+      const priorityIndex=s.priorities.indexOf(row.id);
+      if(priorityIndex>=0)return priorityIndex;
+      const name=String(row.name);
+      if(offFamilyWords.some(word=>name.includes(word)))return 200;
+      return familyWord&&name.includes(familyWord)?100:150; // own-family stats above the universal block
+    };
+    const dynamicRows=s.statTab==='gear'?gearRows:s.statTab==='sets'?setRows:allStats.filter(matchesTab).sort((a,b)=>statImportance(a)-statImportance(b));
     const prototypeRows=(this.STATS[s.statTab]||[]).map(row=>({name:row[0],formattedValue:row[1],id:'',legacyFav:row[2]}));
     const activeStats = (dynamicRows.length?dynamicRows:(s.result?[]:prototypeRows)).map(row => {
       const fav = favouriteIds.has(row.id)||Boolean(row.legacyFav);
@@ -2387,7 +2931,8 @@ class Component extends DCLogic {
       const sources=(calcRow?.sources||[]).slice().sort((a,b)=>Math.abs(Number(b.value)||0)-Math.abs(Number(a.value)||0)).map(source=>({name:source.sourceLabel||source.name||source.type,value:this.core.formatSigned(source.value,row.id),color:Number(source.value)<0?'#e57c72':'#9fd8b5'}));
       const sourceOpen=Boolean(row.id)&&s.openStatSource===row.id&&sources.length>0;
       return { name:row.name, value:row.formattedValue, fav,hasSources:sources.length>0,noSources:sources.length===0,sourceOpen,sources,sourceCaret:sourceOpen?'Less':'More',sourceCursor:sources.length?'pointer':'default',sourceTitle:sources.length?'Show every source contributing to '+row.name:'No source breakdown available',toggleSources:()=>this.toggleStatSources(row.id),
-        bg: fav ? 'rgba(242,199,119,.09)' : 'transparent',
+        bg: fav ? 'linear-gradient(90deg, rgba(242,199,119,.14), rgba(242,199,119,.04))' : 'transparent',
+        favAccent: fav ? 'inset 3px 0 0 rgba(242,199,119,.75)' : 'none',
         name_color: fav ? '#f6e6c3' : '#c1af8c', value_color: fav ? '#f2c777' : '#eadfc4' };
     });
 
@@ -2455,9 +3000,89 @@ class Component extends DCLogic {
     const vw = s.vw;
     const setupCols = vw <= 820 ? '1fr' : 'minmax(0,1.6fr) minmax(0,.9fr)';
     const twoCol = vw <= 1350 && vw > 820;
-    const resultCols = vw <= 820 ? '1fr' : twoCol ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr) minmax(0,1.12fr)';
+    // Guide-centric result: left column = Equipment + favourite stats; right column = the tab panel (Guide default).
+    // Weapons/Attributes/Sets sit under the tab panel in the right column, shown only on the Stats subtab.
+    const narrowResult = vw <= 900;
+    const resultCols = narrowResult ? '1fr' : 'minmax(0,408px) minmax(0,1fr)';
+    const eqCol = narrowResult ? '1 / -1' : '1';
+    const mainCol = narrowResult ? '1 / -1' : '2';
     const progressionTab=s.statTab==='skills'||s.statTab==='mastery';
-    const statsSpan = progressionTab||twoCol ? '1 / -1' : 'auto';
+    const guideTab=s.statTab==='guide';
+    // Gearing guide: join each equipped gear/weapon to its acquisition sourcing.
+    const acqMap=s.acquisition||{};
+    const fmtNum=(n)=>this.core?.formatNumber?this.core.formatNumber(n):String(n);
+    // Guide lists items in the same in-game equipment-panel order, weapons at the bottom.
+    const slotOrder=Object.fromEntries([...gearDisplayOrder,'main_hand','off_hand'].map((id,i)=>[id,i]));
+    const guideItems=(s.result&&this.core)?Object.entries(s.result.build.equipment||{}).map(([slot,sel])=>{
+      const itemId=sel&&sel.itemId; if(!itemId)return null;
+      const item=this.core.indexes?.itemById?.[itemId]||{};
+      const acq=acqMap[itemId]||{}; const craft=acq.craftable;
+      const nameOf=(id)=>this.core.indexes?.itemById?.[id]?.name||id;
+      const mp=s.marketPrices?.[itemId];
+      const dropList=Array.isArray(acq.dropsFrom)?acq.dropsFrom:[];
+      const drops=dropList.slice(0,4).map(d=>({name:d.location, probNum:d.probability?d.probability*100:0, prob:d.probability?(d.probability*100).toFixed(1)+'%':'', hasProb:!!d.probability, image:d.image||'', hasImage:!!d.image}));
+      const bestProb=drops.reduce((m,d)=>Math.max(m,d.probNum),0);
+      const marketPriceNum=(mp&&!mp.error&&mp.minPrice!=null)?mp.minPrice:null;
+      const craftCostNum=craft?(craft.costSollant||0):null;
+      // Ease of acquisition (higher = quicker/cheaper). Cheap market buys and
+      // high drop-rate farmables lead; low-rate drops and pricey buys trail.
+      let ease=0;
+      if(marketPriceNum!=null)ease=Math.max(ease,90-Math.min(marketPriceNum/100,45));
+      if(bestProb>0)ease=Math.max(ease,40+bestProb*2);
+      if(craftCostNum!=null)ease=Math.max(ease,62-Math.min(craftCostNum/500,20));
+      if(ease===0)ease=30;
+      // Raid heroic sourcing (Calanthia raid drop + raid-store stone purchase).
+      const raid=acq.raid||null;
+      const raidKnown=!!raid;
+      const raidLabel=raid?((raid.raid||'Raid')+' raid'):'';
+      const raidHasDrop=!!(raid&&raid.drop);
+      const raidDropPct=raidHasDrop?(raid.drop.prob*100).toFixed(1)+'%':'';
+      const raidHasStore=!!(raid&&raid.store);
+      const raidStoreCurrency=raidHasStore?(raid.store.currencyName||'raid stones'):'';
+      const raidMerchant=raidHasStore?(raid.store.merchant||''):'';
+      // Headline badge: the single best answer to "how do I get this?"
+      const PAL={raid:{c:'#f0b866',b:'rgba(240,184,102,.14)'},boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
+      let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above',sourceLucent=false;
+      // Badge priority: raid > boss > craft > market — a fetched auction price must
+      // never displace a craft/boss/raid identity; the price lives in the market line.
+      if(raidKnown){sourceCls='raid';sourceTag='Raid';sourceDetail=raidHasDrop?(raid.raid||'Raid')+' · '+raidDropPct:(raid.raid||'Raid')+' store';}
+      else if(bestProb>0){sourceCls='boss';sourceTag='Boss drop';const top=drops.slice().sort((a,b)=>b.probNum-a.probNum)[0];sourceDetail='Best '+top.prob+' · '+top.name;}
+      else if(craft){sourceCls='craft';sourceTag='Craft';const ic=(craft.ingredients||[]).length;sourceDetail=ic?ic+' material'+(ic===1?'':'s'):'Craftable';}
+      else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=mp.inStock!=null?mp.inStock+' listed':'Auction house';}
+      else if(mp&&mp.error){sourceDetail='Price unavailable';}
+      else if(mp){sourceCls='market';sourceTag='Market';sourceDetail='Not tradeable';}
+      const sourceColor=PAL[sourceCls].c,sourceBg=PAL[sourceCls].b;
+      const sourcePlain=!sourceLucent;
+      return {
+        itemId, slotId:slot, name:item.name||itemId, slot:(item.equipmentType?this.core.label(item.equipmentType):slot),
+        image:item.imageUrl||'', hasImage:!!item.imageUrl,
+        ease, marketPriceNum, craftCostNum,
+        sourceCls, sourceTag, sourceDetail, sourceColor, sourceBg, sourceLucent, sourcePlain,
+        raidKnown, raidLabel, raidHasDrop, raidDropPct, raidHasStore, raidStoreCurrency, raidMerchant,
+        craftable:!!craft, notCraftable:!craft,
+        craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
+        craftUpgrade:craft&&craft.upgradeFrom&&craft.upgradeFrom.length?('Upgrade from '+craft.upgradeFrom.map(nameOf).join(', ')):'',
+        craftIngredients:craft?craft.ingredients.slice(0,6).map(i=>({qty:fmtNum(i.qty)+'×',name:i.name,gear:!!i.isGear})):[],
+        dropsKnown:drops.length>0, noDrops:drops.length===0, drops,
+        marketChecked:!!mp, marketUnchecked:!mp,
+        showMarketBlock:!!mp,
+        marketHasPrice:marketPriceNum!=null, marketNoPrice:!!mp&&marketPriceNum==null,
+        marketPriceText:marketPriceNum!=null?fmtNum(marketPriceNum):'',
+        marketStock:(marketPriceNum!=null&&mp.inStock!=null)?(mp.inStock+' listed'):'',
+        marketOther:mp?(mp.error?'Price unavailable':(marketPriceNum==null?'Not tradeable':'')):'',
+      };
+    }).filter(Boolean):[];
+    // Ordered to mirror the in-game equipment panel (head→feet→accessories).
+    guideItems.sort((a,b)=>((slotOrder[a.slotId]??99)-(slotOrder[b.slotId]??99))||a.name.localeCompare(b.name));
+    const guideTotalLucent=guideItems.reduce((t,g)=>t+(g.marketPriceNum||0),0);
+    const guideTotalSollant=guideItems.reduce((t,g)=>t+(g.craftCostNum||0),0);
+    const guideHasLucent=guideItems.some(g=>g.marketPriceNum!=null);
+    const guideNoLucent=!guideHasLucent;
+    const guideCostLucent=guideHasLucent?fmtNum(guideTotalLucent):'';
+    const guideCostSollant=fmtNum(guideTotalSollant)+' Sollant';
+    const guideSourcedCount=guideItems.filter(g=>g.craftable).length;
+    const guideReady=!!s.acquisition;
+    const statsSpan = narrowResult ? '1 / -1' : 'auto';
 
     // ---------- My Heroics ----------
     const heroicCount = Object.values(s.heroics).filter(Boolean).length;
@@ -2471,8 +3096,7 @@ class Component extends DCLogic {
         color: on ? '#ffcf8c' : '#8a795f' };
     });
     const heroicModeExplain = (this.HERO_MODES.find(m=>m.id===s.heroicMode)||{}).explain;
-    const heroicSlotsVisible = s.heroicMode !== 'none';
-    const heroicNoneNote = s.heroicMode === 'none';
+    const heroicSlotsVisible = true;
     const heroicSlots = this.HGROUPS.map(g => {
       const cfg = s.heroics[g.key];
       if (!cfg) return { group:g.key, label:g.label, empty:true, configured:false, add:()=>this.addHeroic(g.key) };
@@ -2498,11 +3122,12 @@ class Component extends DCLogic {
       const group = dr.group; const draft = dr.draft; const item = this.findHeroic(group, draft.itemId);
       const gmeta = this.HGROUPS.find(g=>g.key===group);
       const chaosUsed = draft.runes.filter(r=>r.chaos).length;
-      const step1Valid = !!draft.itemId;
+      const pickMode = !draft.itemId;
+      const configMode = !!draft.itemId;
       const effectsOk = draft.heroicEffects.every(e=>!!e.statId);
       const uniqueRequired=Object.keys(item?.itemStats?.uniqueTraits||{}).length>0;
-      const step2Valid = draft.traits.length===3 && (!uniqueRequired || !!draft.uniqueTrait) && effectsOk && chaosUsed<=1;
-      const valid = dr.step===1 ? step1Valid : dr.step===2 ? step2Valid : true;
+      const configValid = draft.traits.length===3 && (!uniqueRequired || !!draft.uniqueTrait) && effectsOk && chaosUsed<=1;
+      const valid = configMode && configValid;
       let list = this.heroicCatalog(group);
       if (group==='weapon') list = list.filter(it => [s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).includes(it.wtype));
       if (dr.search) { const q=dr.search.toLowerCase(); list = list.filter(it => it.name.toLowerCase().includes(q)); }
@@ -2514,11 +3139,6 @@ class Component extends DCLogic {
         select:()=>this.selectDraftItem(it),
         enter:(e)=>this.setHover({ name:it.name, meta:this.itemMeta(it), rarity:'heroic', slot:'pick',
           stats:[{name:invText(it),value:''}], traits:Object.keys(it.itemStats.traits||{}).slice(0,3).map(sid=>({name:this.statLabel(sid),value:'owned?'})) }, e) }));
-      const drawerSteps = [['1','Choose'],['2','Configure'],['3','Review']].map((st,i)=>{
-        const idx=i+1; const done=idx<dr.step; const cur=idx===dr.step;
-        return { n:st[0], label:st[1], bar: done?'#ffb765':cur?'linear-gradient(90deg,#a9702a,#ffb765)':'rgba(120,105,80,.3)', color:(done||cur)?'#ffcf8c':'#6f5f49' };
-      });
-
       let showLevelSelect=false, levelOptions=[], normalTraitRows=[], canAddTrait=false,
           hasUnique=false, uniqueOptions=[], uniqueStat='', uniqueTierOptions=[], uniqueTierVal='', uniqueValue='', hasUniqueSel=false,
           effectRows=[], resonanceOptions=[], resonanceStat='', resonanceTierOptions=[], resonanceValue='', hasResonanceSel=false,
@@ -2581,15 +3201,15 @@ class Component extends DCLogic {
         runeSynergy = syn ? (syn[0].charAt(0).toUpperCase()+syn[0].slice(1)+' Resonance active · '+syn[1]+' sockets') : 'No synergy — mix of rune types';
       }
       let warning='';
-      if(dr.step===2){
+      if(configMode){
         if(draft.traits.length!==3) warning='Select exactly 3 owned traits ('+draft.traits.length+'/3).';
         else if(uniqueRequired&&!draft.uniqueTrait) warning='Choose the Heroic trait.';
         else if(chaosUsed>1) warning='Only one Chaos rune may be used on an item.';
       }
       drawerVals = {
-        drawerTitle: gmeta.title, drawerStep1:dr.step===1, drawerStep2:dr.step===2, drawerStep3:dr.step===3,
+        drawerTitle: gmeta.title, drawerPickMode:pickMode, drawerConfigMode:configMode, changeDraftItem:()=>this.changeDraftItem(),
         drawerWeaponFamilies:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core.label(type)).join(' + '),
-        drawerSteps, drawerSearch:dr.search, drawerWeaponNote:group==='weapon', drawerItems,
+        drawerSearch:dr.search, drawerWeaponNote:group==='weapon', drawerItems,
         draftName:item?item.name:'', draftMeta:item?this.itemMeta(item):'', draftSlot:item?item.slotLabel:'',
         draftSet:item?item.setName:'—', draftInherent:item?(item.inherentByLevel[draft.level]||invText(item)):'',
         showLevelSelect, draftLevel:String(draft.level||''), levelOptions, onLevel:this.setDraftLevel,
@@ -2603,15 +3223,15 @@ class Component extends DCLogic {
         draftTraitRows: item ? draft.traits.map(t=>({name:this.statLabel(t.statId), tier:'T'+t.tier+' · '+this.core.formatStat(t.statId,this.tierVal(item.itemStats.traits[t.statId],t.tier))})) : [],
         draftHeroicTrait: draft.uniqueTrait ? (this.statLabel(draft.uniqueTrait.statId)+' · T'+draft.uniqueTrait.tier) : '—',
         draftEffectRows: item ? draft.heroicEffects.map((e,i)=>{ const opt=this.heroicEffectOptions(item,i).find(o=>o.statId===e.statId);
-          return { name:this.statLabel(e.statId), level: e.levelKnown ? ('Lv '+e.level+' · '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,e.level))) : 'Unknown · base '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,0)) }; }) : [],
+          return { name:this.statLabel(e.statId), level: e.levelKnown ? ('Lv '+e.level+' · '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,e.level))) : 'Level unknown · base '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,0))+' · max '+this.core.formatStat(e.statId,this.heroicEffectValue(opt,opt?.maxLevel??0)) }; }) : [],
         draftResonance: draft.resonance ? (this.statLabel(draft.resonance.statId)+' T'+draft.resonance.tier) : 'None',
         draftRuneChips: item ? draft.runes.map(r=>{ const rune=r.runeId?this.runeById(item,r.runeId):null;
           return { label: rune ? (this.statLabel(r.statId)+' Lv'+r.level+(r.chaos?' · Chaos':'')) : 'Empty socket',
             dot: rune ? (r.chaos?'#ffb765':this.RUNE_TYPE_COLOR[rune.runeType]) : '#3a3228', border:'rgba(212,166,94,.28)' }; }) : [],
-        drawerWarning:warning, drawerBackLabel:dr.step>1?'Back':'Cancel', drawerPrimaryLabel:dr.step<3?'Next':'Use this Heroic',
+        drawerWarning:warning, drawerPrimaryLabel:'Save this Heroic',
         drawerPrimaryBorder:valid?'rgba(255,183,101,.65)':'rgba(212,166,94,.18)', drawerPrimaryBg:valid?'linear-gradient(135deg, rgba(150,86,24,.5), rgba(56,38,16,.7))':'rgba(0,0,0,.25)',
         drawerPrimaryColor:valid?'#ffe6ac':'#5a4d3a', drawerPrimaryCursor:valid?'pointer':'not-allowed',
-        drawerPrimary:()=>{ if(!valid) return; if(dr.step<3) this.drawerNext(); else this.useHeroic(); },
+        drawerPrimary:()=>{ if(valid) this.useHeroic(); },
       };
     }
 
@@ -2627,7 +3247,13 @@ class Component extends DCLogic {
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
       masteryPending:!!s.masteryPending, resultActionsReady:isResult&&!s.masteryPending,
-      setupCols, resultCols, statsSpan,showResultOverview:!progressionTab,showStatOverview:!progressionTab,tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose', hasEngineError:!!s.engineError, engineError:s.engineError,
+      setupCols, resultCols, statsSpan, eqCol, mainCol, showResultOverview:!!s.result,showStatOverview:resultView==='stats',showStatsView:resultView==='stats',tabSkills:s.statTab==='skills',tabMastery:s.statTab==='mastery',
+      tabGuide:guideTab, guideItems, guideSourcedCount, guideTotalCount:guideItems.length, guideReady, guideNotReady:!s.acquisition,
+      guideCostLucent, guideCostSollant, guideHasLucent, guideNoLucent,
+      marketBusy:s.marketBusy, marketRegion:s.marketRegion, checkMarketPrices:this.checkMarketPrices, setMarketRegion:this.setMarketRegion,
+      marketButtonLabel:s.marketBusy?'Checking…':'Check market prices', weaponSetLabel:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core?.label(type)||type).join(' · ')||'Choose',
+      weaponSetIcons:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.weaponFamilyIcon(type)).filter(Boolean).map(icon=>({icon:`url(${icon}) center/82% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`})),
+      hasEngineError:!!s.engineError, engineError:s.engineError,
 
       weaponSlots, progressionWeapons, passiveLevelCap:String(s.progression.skillLevelCap),passiveLevelOptions,setPassiveLevelCap:this.setPassiveLevelCap,
       overallMasteryLevel:String(s.progression.overallMasteryLevel),overallMasteryLevelOptions,setOverallMasteryLevel:this.setOverallMasteryLevel,
@@ -2637,8 +3263,8 @@ class Component extends DCLogic {
       scenarioPartyTotal:s.scenario.partyTotal,scenarioPartyWithin4:s.scenario.partyWithin4,scenarioPartyAdditional4To16:s.scenario.partyAdditional4To16,scenarioAlliedNonpartyWithin4:s.scenario.alliedNonpartyWithin4,
       toggleScenario:this.toggleScenario,setScenarioDistance:this.setScenarioDistance,setScenarioTimeOfDay:this.setScenarioTimeOfDay,setScenarioHealthPercent:this.setScenarioHealthPercent,setScenarioManaPercent:this.setScenarioManaPercent,setScenarioMotionMode:this.setScenarioMotionMode,setScenarioStationaryBand:this.setScenarioStationaryBand,setScenarioMovingBand:this.setScenarioMovingBand,setScenarioPriorStationaryBand:this.setScenarioPriorStationaryBand,setScenarioEventMode:this.setScenarioEventMode,setScenarioEventWeaponType:this.setScenarioEventWeaponType,setScenarioPartyTotal:this.setScenarioPartyTotal,setScenarioPartyWithin4:this.setScenarioPartyWithin4,setScenarioPartyAdditional4To16:this.setScenarioPartyAdditional4To16,setScenarioAlliedNonpartyWithin4:this.setScenarioAlliedNonpartyWithin4,
       scenarioBorder:s.scenario.enabled?'rgba(135,172,239,.55)':'rgba(135,172,239,.2)',scenarioBg:s.scenario.enabled?'rgba(65,92,136,.16)':'rgba(0,0,0,.2)',scenarioTrack:s.scenario.enabled?'linear-gradient(90deg,#527ab8,#b8d0ff)':'rgba(95,111,135,.35)',scenarioKnob:s.scenario.enabled?'16px':'2px',
-      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.length, ruleList,
-      presetChips:(this.presets?.OPTIMIZER_PRESETS??[]).map(preset=>({label:preset.label,tagline:preset.tagline,select:()=>this.applyPreset(preset.id)})),
+      rankedList, poolList, hasPool: poolList.length > 0, poolCount:poolList.filter(row=>!row.selected).length, ruleList, setControls,
+      roleChips, presetChips, comingSoonChips, hasPresets, weaponsChosen, showWeaponGate:!weaponsChosen,
       priorityPickerOpen:s.priorityPickerOpen, prioritySearch:s.prioritySearch, hasPrioritySearch:Boolean(query), priorityCategories, priorityGroups,
       priorityResultTitle, priorityResultHint, priorityResultCount:visiblePool.length, noPriorityResults:visiblePool.length===0,
       priorityPickerBorder:s.priorityPickerOpen?'rgba(242,199,119,.58)':'rgba(212,166,94,.28)',priorityPickerBg:s.priorityPickerOpen?'rgba(107,68,22,.18)':'#0b0806',priorityPickerCaret:s.priorityPickerOpen?'▲':'▼',
@@ -2648,18 +3274,44 @@ class Component extends DCLogic {
       progress: s.progress, progressMsg: s.progressMsg, progressPhase: s.progressPhase, candidates: s.candidates.toLocaleString(),
       forgeSteps, cancelForge: this.cancelForge, editGoals: this.editGoals, refit: this.refit, refitLabel:s.resultOrigin==='improved'?'Edit improve rules':'Re-forge unlocked',
       saveResult:this.saveResult,useResult:this.useResult,resultActionMessage:s.resultActionMessage,
+      savePanelOpen:s.savePanelOpen,saveName:s.saveName,replaceTargetId:s.replaceTargetId,savePresetChoices:s.savePresetChoices,
+      hasSaveChoices:s.savePresetChoices.length>0,confirmSaveLabel:s.replaceTargetId?'Replace preset':'Save new preset',
+      closeSavePanel:this.closeSavePanel,setSaveName:this.setSaveName,setReplaceTarget:this.setReplaceTarget,confirmSaveResult:this.confirmSaveResult,
+      comparePanelOpen:s.comparePanelOpen,openComparePanel:this.openComparePanel,closeComparePanel:this.closeComparePanel,setCompareTarget:this.setCompareTarget,
+      compareTargetId:s.compareTargetId,comparePresetChoices:s.comparePresetChoices,hasComparePresets:s.comparePresetChoices.length>0,
+      hasCompareArmory:Boolean(s.compareArmory),
+      compareRows:s.comparePanelOpen?s.priorities.map((id,index)=>{
+        const goal=s.result?.goalResults?.find(row=>row.id===id)||{};
+        const resultValue=Number(goal.value)||0;
+        const cellFor=(column)=>{
+          if(!column||column[id]==null)return {text:'—',delta:'',deltaColor:'#695d70'};
+          const value=Number(column[id])||0;
+          const delta=resultValue-value;
+          return {
+            text:this.core.formatStat(id,value),
+            delta:delta===0?'±0':`${delta>0?'+':'−'}${this.core.formatStat(id,Math.abs(delta))}`,
+            deltaColor:delta>0?'#7ee0a6':delta<0?'#e57c72':'#8a795f',
+          };
+        };
+        const armory=cellFor(s.compareArmory),preset=cellFor(s.comparePreset);
+        return {rank:index+1,name:goal.name||this.statLabel(id),result:this.core.formatStat(id,resultValue),
+          armory:armory.text,armoryDelta:armory.delta,armoryDeltaColor:armory.deltaColor,
+          preset:preset.text,presetDelta:preset.delta,presetDeltaColor:preset.deltaColor};
+      }):[],
 
       gearAll, weapons, artifacts,
       moveHover: this.moveHover, leaveHover: this.leaveHover, closeAttr: () => this.setState({ openAttr: null }),
-      weaponStats, attrTracks, setSummary, runeChips, noActiveSystems:setSummary.length===0&&runeChips.length===0,
+      weaponStats, attrTracks, setSummary, runeChips, hasRuneSynergies:runeChips.length>0, noActiveSystems:setSummary.length===0&&runeChips.length===0,
       hasTuning:tuningFrontier.length>1&&tuningRows.length>=2, tuningCount:tuningFrontier.length, tuningRows,
+      tuneCandidates, hasTuneCandidates:tuneCandidates.length>1, selectTuneCandidate:this.selectTuneCandidate,
       favourites, statTabs, activeTabName: activeTab.name, activeStats,
+      primaryTabs, statSubChips, progressionSubChips, showStatsSubchips, showProgressionSubchips, showStatsExtras,
       hasProgression,showCompactProgression:false,passiveSkills,passiveSkillCount:passiveSkills.length,passiveBudgetPct:`${Math.min(100,passiveSkills.length/8*100)}%`,resultPassiveCards,resultPassiveEmpty:Array.from({length:Math.max(0,8-resultPassiveCards.length)},(_,index)=>({id:index})),resultSkillFocus,hasResultSkillFocus:Boolean(resultSkillFocus),masteryPanel,masteryGroups,overallMasteries,hasOverallMastery:overallMasteries.length>0,hasNoOverallMastery:overallMasteries.length===0,overallMasteryCount:overallMasteries.length,resultOverallMasteryLevel,
 
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
 
       heroicsEngaged: s.heroicsEngaged, heroicHasAny, heroicCount, showHeroicGateway, heroicPanelBorder,
-      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicNoneNote, heroicSlots,
+      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicSlots,
       engageHeroics: this.engageHeroics, noHeroics: this.noHeroics,
       drawerOpen, closeDrawer: this.closeDrawer, drawerBack: this.drawerBack, setDrawerSearch: this.setDrawerSearch,
       ...drawerVals,
@@ -2668,5 +3320,6 @@ class Component extends DCLogic {
 }
 </script>
   <script type="module" src="./tl-account-menu.js"></script>
+  <script type="module" src="./tl-support-link.js"></script>
 </body>
 </html>
