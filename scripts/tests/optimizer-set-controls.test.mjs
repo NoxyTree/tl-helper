@@ -6,8 +6,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { setEffectSummary } from "../../web/tl-full-build-adapter.js";
-import { optimizeFullBuild } from "../../web/tl-full-build-optimizer.js";
+import { setEffectSummary } from "../../web/optimizer/tl-full-build-adapter.js";
+import { optimizeFullBuild } from "../../web/optimizer/tl-full-build-optimizer.js";
 
 test("setEffectSummary counts active bonuses and flags partial (broken) sets", () => {
   const calc = { setEffects: { sets: [

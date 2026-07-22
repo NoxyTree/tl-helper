@@ -1508,7 +1508,7 @@ class Component extends DCLogic {
     // Gearing-guide sourcing (craftable/codex now; drops+market later). Non-blocking; guide degrades if absent.
     // no-cache: revalidate so a freshly-built acquisition.json (same URL) is picked up rather than served stale from cache.
     fetch('./data/projections/acquisition.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(a=>{ if(a&&a.items) this.setState({ acquisition:a.items }); }).catch(()=>{});
-    Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js'), import('./tl-preset-meta.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets, presetMeta]) => {
+    Promise.all([import('./tl-core.js'), import('./optimizer/tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./optimizer/tl-build-tuner.js'), import('./tl-persistence.js'), import('./optimizer/tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./optimizer/tl-optimizer-presets.js'), import('./tl-preset-meta.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets, presetMeta]) => {
       this.core = core;
       this.presetMeta = presetMeta;
       this.rulesData = rulesData;
@@ -2056,13 +2056,13 @@ class Component extends DCLogic {
   // falls through to the live worker path.
   forgeWithPrecache = async (request) => {
     try{
-      const precache=await import('./tl-optimizer-precache.js');
+      const precache=await import('./optimizer/tl-optimizer-precache.js');
       const cached=await precache.loadPrecachedResult(request,{gameBuild:this.core.data.gameBuild});
       if(cached && this.state.phase==='forging'){this.applyForgeResult(structuredClone(cached),false);return;}
     }catch{}
     if(this.state.phase!=='forging')return;
     this._worker?.terminate();
-    this._worker=new Worker('./tl-builder-worker.js',{type:'module'});
+    this._worker=new Worker('./optimizer/tl-builder-worker.js',{type:'module'});
     this._worker.onmessage=(event)=>{
       const message=event.data||{};
       if(message.type==='progress'){

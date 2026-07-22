@@ -227,9 +227,9 @@ wording.
 3. **The optimizer claim is directionally right but overstated.** The audit says
    completed sets "can therefore be removed before exact finalist calculation."
    True in principle, but candidate generation *always* retains set-bearing items
-   ([`tl-full-build-adapter.js:535`](../web/tl-full-build-adapter.js#L535)) and
+   ([`tl-full-build-adapter.js:535`](../web/optimizer/tl-full-build-adapter.js#L535)) and
    the beam is bucketed by set-count signature
-   ([`tl-full-build-optimizer.js:46`](../web/tl-full-build-optimizer.js#L46)).
+   ([`tl-full-build-optimizer.js:46`](../web/optimizer/tl-full-build-optimizer.js#L46)).
    The real failure is the final `beamWidth` heuristic cut ranking partial-set
    states on set-free stats — a **beam-width-dependent** loss, not an
    unconditional one (§10).
@@ -374,20 +374,20 @@ damage_reduction_penetration = z("damage_reduction_penetration", 40)   # proc st
 ## 10. Recommended optimizer-search correction
 
 **Defect (confirmed):**
-[`tl-full-build-adapter.js:469`](../web/tl-full-build-adapter.js#L469) builds
+[`tl-full-build-adapter.js:469`](../web/optimizer/tl-full-build-adapter.js#L469) builds
 every candidate's `stats` with `{ includeSetEffects: false }`, and
 `scoreHint`/`weight` derive from those set-free stats
-([`:520`](../web/tl-full-build-adapter.js#L520)). The optimizer prunes the beam
+([`:520`](../web/optimizer/tl-full-build-adapter.js#L520)). The optimizer prunes the beam
 using exactly these stats
-([`tl-full-build-optimizer.js:66-70`](../web/tl-full-build-optimizer.js#L66) and
+([`tl-full-build-optimizer.js:66-70`](../web/optimizer/tl-full-build-optimizer.js#L66) and
 `:212`), and exact `evaluate()` runs only on survivors
-([`:222`](../web/tl-full-build-optimizer.js#L222)). A partial-set state therefore
+([`:222`](../web/optimizer/tl-full-build-optimizer.js#L222)). A partial-set state therefore
 carries **none** of the value it would unlock on completion.
 
 **Mitigations already present (why it is not unconditional):** candidates with
 `setKeys` are always retained per slot
-([`:535`](../web/tl-full-build-adapter.js#L535)), and the beam is bucketed by a
-set-count `signature` ([`tl-full-build-optimizer.js:42-49`](../web/tl-full-build-optimizer.js#L42)),
+([`:535`](../web/optimizer/tl-full-build-adapter.js#L535)), and the beam is bucketed by a
+set-count `signature` ([`tl-full-build-optimizer.js:42-49`](../web/optimizer/tl-full-build-optimizer.js#L42)),
 so partial-set states are not Pareto-dominated by set-free states inside a
 bucket. The loss occurs only at the final `diverseStates(..., beamWidth)` cut
 (`:106`), which ranks across buckets by the set-free heuristic — so narrow beams
@@ -489,9 +489,9 @@ WHERE table_name='TLItemEquip' AND row_id='chest_plate_aa_t2_set_003';          
 - [`web/tl-questlog-rules.js:51`](../web/tl-questlog-rules.js#L51) — `SET_PASSIVE_RULES` (all rule bodies incl. the 5 errors)
 - [`web/tl-questlog-rules.js:47`](../web/tl-questlog-rules.js#L47) — Skilled Veteran double-apply comment
 - `web/tl-core.js` — `calculateBuild` / phased set-rule application (exact authority)
-- [`web/tl-full-build-adapter.js:469`](../web/tl-full-build-adapter.js#L469) — candidate stats built `includeSetEffects:false`
-- [`web/tl-full-build-adapter.js:520`](../web/tl-full-build-adapter.js#L520), [`:535`](../web/tl-full-build-adapter.js#L535) — `scoreHint`; set/heroic candidate retention
-- [`web/tl-full-build-optimizer.js:42`](../web/tl-full-build-optimizer.js#L42), [`:66`](../web/tl-full-build-optimizer.js#L66), [`:106`](../web/tl-full-build-optimizer.js#L106), [`:212`](../web/tl-full-build-optimizer.js#L212), [`:222`](../web/tl-full-build-optimizer.js#L222) — signature bucketing, heuristic, beam cut, exact evaluate
+- [`web/optimizer/tl-full-build-adapter.js:469`](../web/optimizer/tl-full-build-adapter.js#L469) — candidate stats built `includeSetEffects:false`
+- [`web/optimizer/tl-full-build-adapter.js:520`](../web/optimizer/tl-full-build-adapter.js#L520), [`:535`](../web/optimizer/tl-full-build-adapter.js#L535) — `scoreHint`; set/heroic candidate retention
+- [`web/optimizer/tl-full-build-optimizer.js:42`](../web/optimizer/tl-full-build-optimizer.js#L42), [`:66`](../web/optimizer/tl-full-build-optimizer.js#L66), [`:106`](../web/optimizer/tl-full-build-optimizer.js#L106), [`:212`](../web/optimizer/tl-full-build-optimizer.js#L212), [`:222`](../web/optimizer/tl-full-build-optimizer.js#L222) — signature bucketing, heuristic, beam cut, exact evaluate
 - `web/data/projections/equipment.json` — 78 sets / 151 breakpoints
 - [`scripts/audit-set-effects.mjs`](../scripts/audit-set-effects.mjs) — existing audit generator (projection+rules only; no warehouse read)
 

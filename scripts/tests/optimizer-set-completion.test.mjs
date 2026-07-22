@@ -10,8 +10,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { applySetCompletionHints, deriveRelevantSetRoutes, deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
-import { optimizeFullBuild } from "../../web/tl-full-build-optimizer.js";
+import { applySetCompletionHints, deriveRelevantSetRoutes, deriveSetCompletionHints, normalizeRankedGoals, expandCompositeGoals } from "../../web/optimizer/tl-full-build-adapter.js";
+import { optimizeFullBuild } from "../../web/optimizer/tl-full-build-optimizer.js";
 
 function canonicalScenario({ motion = { state: "unspecified" }, eventHistory = { state: "unspecified" } } = {}) {
   return {

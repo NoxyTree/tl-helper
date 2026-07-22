@@ -3,7 +3,7 @@ import path from "node:path";
 import test from "node:test";
 
 import * as core from "../../web/tl-core.js";
-import { OPTIMIZER_PRESETS, resolveOptimizerPreset, weaponStatFamily } from "../../web/tl-optimizer-presets.js";
+import { OPTIMIZER_PRESETS, resolveOptimizerPreset, weaponStatFamily } from "../../web/optimizer/tl-optimizer-presets.js";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 
 const FAMILIES = ["melee", "range", "magic", "all"];

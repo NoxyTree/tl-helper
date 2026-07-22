@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BUILDER_RESULT_TABS, normalizeStatGroups, renderCompactAttributeTracks, renderDenseStatLedger, renderGearResultAccess, renderSystemsResultAccess } from "../../web/tl-builder-result-view.js";
+import { BUILDER_RESULT_TABS, normalizeStatGroups, renderCompactAttributeTracks, renderDenseStatLedger, renderGearResultAccess, renderSystemsResultAccess } from "../../web/optimizer/tl-builder-result-view.js";
 
 test("compact tracks show allocation, final total, milestones, and active bonuses without breakpoint cards", () => {
   const html = renderCompactAttributeTracks({ optimizedAttributes: { str: 20 }, allStats: [{ id: "str", value: 50 }], activeAttributeBreakpoints: [{ attributeId: "str", threshold: 50, bonuses: [{ name: "Heavy Attack", formattedValue: "+100" }] }] });

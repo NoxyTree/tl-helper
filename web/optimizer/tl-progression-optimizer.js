@@ -1,5 +1,5 @@
-import { PASSIVE_EFFECT_CONTRACT } from "./tl-passive-effect-contract.js";
-import { SOCIAL_EFFECT_DEFINITIONS } from "./tl-social-scenario-effects.js";
+import { PASSIVE_EFFECT_CONTRACT } from "../tl-passive-effect-contract.js";
+import { SOCIAL_EFFECT_DEFINITIONS } from "../tl-social-scenario-effects.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 

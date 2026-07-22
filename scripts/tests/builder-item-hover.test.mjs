@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { builderHoverPosition, renderBuilderItemHover } from "../../web/tl-builder-item-hover.js";
+import { builderHoverPosition, renderBuilderItemHover } from "../../web/optimizer/tl-builder-item-hover.js";
 
 const model = {
   name: "Heroic Coat", nameColor: "#f90", meta: "Heroic · Chest · Lv 12", headBorder: "2px solid #f90", headBg: "#111",

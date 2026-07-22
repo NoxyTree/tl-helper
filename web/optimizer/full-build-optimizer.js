@@ -1,15 +1,15 @@
-import { formatSourceMotion, scenarioSourceMotion, sourceMotionFromControls } from "./tl-motion-scenario-controls.js";
+import { formatSourceMotion, scenarioSourceMotion, sourceMotionFromControls } from "../tl-motion-scenario-controls.js";
 import {
   formatSourceEventHistory,
   scenarioSourceEventHistory,
   sourceEventHistoryFromControls,
-} from "./tl-event-scenario-controls.js";
+} from "../tl-event-scenario-controls.js";
 import {
   formatSourceSocial,
   scenarioSourceParty,
   scenarioSourceProximity,
   sourceSocialFromControls,
-} from "./tl-social-scenario-controls.js";
+} from "../tl-social-scenario-controls.js";
 
 export const OPTIMIZER_RESOURCE_BPS_SCALE = 10000;
 

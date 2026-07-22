@@ -5,7 +5,7 @@ import test from "node:test";
 const [gear, optimizer, optimizerHelper, scratch] = await Promise.all([
   readFile(new URL("../../web/gear-viewer.html", import.meta.url), "utf8"),
   readFile(new URL("../../web/full-build-optimizer.html", import.meta.url), "utf8"),
-  readFile(new URL("../../web/full-build-optimizer.js", import.meta.url), "utf8"),
+  readFile(new URL("../../web/optimizer/full-build-optimizer.js", import.meta.url), "utf8"),
   readFile(new URL("../../web/build-from-scratch.html", import.meta.url), "utf8"),
 ]);
 

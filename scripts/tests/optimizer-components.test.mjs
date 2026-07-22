@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { generateArtifactCandidates, generateRuneCandidates } from "../../web/tl-optimizer-components.js";
+import { generateArtifactCandidates, generateRuneCandidates } from "../../web/optimizer/tl-optimizer-components.js";
 
 const rune = (id, type, stat, value = 10, maxLevel = 1, grade = 31) => ({
   id, name: id, runeType: type, equipmentCategory: "weapon", grade,

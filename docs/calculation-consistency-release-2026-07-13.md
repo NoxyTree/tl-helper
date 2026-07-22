@@ -185,8 +185,8 @@ These are search-completeness improvements, not known errors in the totals of a 
 - `docs/set-effect-localization-resolution-2026-07-13.md`
 - `web/tl-core.js`
 - `web/tl-questlog-rules.js`
-- `web/tl-full-build-adapter.js`
-- `web/tl-full-build-optimizer.js`
+- `web/optimizer/tl-full-build-adapter.js`
+- `web/optimizer/tl-full-build-optimizer.js`
 - `web/gear-viewer.html`
 - `scripts/tests/canonical-set-effects.test.mjs`
 - `scripts/tests/calculation-surface-parity.test.mjs`

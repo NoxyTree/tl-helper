@@ -105,7 +105,7 @@ requests are precomputed offline and served statically:
 - `scripts/precompute-optimizer-results.mjs` runs the real adapter at
   thorough depth over a curated preset × weapon-pair matrix into
   `web/data/optimizer-precache/`.
-- `web/tl-optimizer-precache.js` canonicalizes a scratch request (null on
+- `web/optimizer/tl-optimizer-precache.js` canonicalizes a scratch request (null on
   anything the cache cannot represent: existing gear, locked slots,
   scenarios, non-default rules) and looks up by SHA-256 key.
 - `build-from-scratch.html` consults the cache before spawning the worker;

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 import * as core from "../../web/tl-core.js";
-import { createOptimizerAdapter } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter } from "../../web/optimizer/tl-full-build-adapter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const data = await loadWebDataFromFile(path.join(root, "web", "data", "app-data.json"));

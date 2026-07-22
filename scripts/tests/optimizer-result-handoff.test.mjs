@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IMPROVED_RESULT_HANDOFF_KEY, keptSlotsFromResult, loadImprovedResult, storeImprovedResult } from "../../web/tl-optimizer-result-handoff.js";
+import { IMPROVED_RESULT_HANDOFF_KEY, keptSlotsFromResult, loadImprovedResult, storeImprovedResult } from "../../web/optimizer/tl-optimizer-result-handoff.js";
 
 function storage() {
   const values = new Map();

@@ -1,4 +1,4 @@
-import { normalizeCombatScenario } from "./vendor/combat-engine/combat-scenario.mjs";
+import { normalizeCombatScenario } from "../vendor/combat-engine/combat-scenario.mjs";
 
 export const IMPROVED_RESULT_HANDOFF_KEY = "tlhelper.optimizer.improved-result.v2";
 export const IMPROVED_RESULT_HANDOFF_SCHEMA_VERSION = 2;

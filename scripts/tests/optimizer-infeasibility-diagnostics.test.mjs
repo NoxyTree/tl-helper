@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import * as core from "../../web/tl-core.js";
-import { createOptimizerAdapter } from "../../web/tl-full-build-adapter.js";
+import { createOptimizerAdapter } from "../../web/optimizer/tl-full-build-adapter.js";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");

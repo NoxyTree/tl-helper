@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const worker = await readFile(new URL("../../web/tl-builder-worker.js", import.meta.url), "utf8");
+const worker = await readFile(new URL("../../web/optimizer/tl-builder-worker.js", import.meta.url), "utf8");
 
 test("Builder worker owns optimization and forwards progress", () => {
   assert.match(worker, /createOptimizerAdapter/);

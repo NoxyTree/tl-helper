@@ -1,8 +1,8 @@
-import * as core from "./tl-core.js";
+import * as core from "../tl-core.js";
 import { executeOptimizerTask } from "./tl-full-build-adapter.js";
 
 let batch = null;
-const ready = core.data ? Promise.resolve() : core.initCore("./data/app-data.json");
+const ready = core.data ? Promise.resolve() : core.initCore(new URL("../data/app-data.json", import.meta.url).href);
 
 self.onmessage = async (event) => {
   const message = event.data ?? {};

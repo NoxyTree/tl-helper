@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { paretoTuneFrontier, selectLinkedTuneCandidate, tuneRanges } from "../../web/tl-build-tuner.js";
+import { paretoTuneFrontier, selectLinkedTuneCandidate, tuneRanges } from "../../web/optimizer/tl-build-tuner.js";
 
 const candidates = [
   { id: "guard", score: 3, goalValues: { endurance: 4400, hit: 700, cooldown: 48 } },

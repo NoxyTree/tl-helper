@@ -99,13 +99,13 @@ test("optimizer uses full-screen setup and loading before opening the shared res
   assert.match(html, /storeImprovedResult/);
   assert.match(html, /build-from-scratch\.html\?result=improved/);
   assert.doesNotMatch(html, /id="empty-state"/);
-  assert.match(html, /new Worker\("\.\/tl-builder-worker\.js"/);
+  assert.match(html, /new Worker\("\.\/optimizer\/tl-builder-worker\.js"/);
   assert.match(html, /message\.type==="progress"/);
   assert.match(html, /Complete-build search/);
 });
 
 test("improved results reuse the Build from Scratch result experience", () => {
-  assert.match(html, /import\("\.\/tl-optimizer-result-handoff\.js"\)/);
+  assert.match(html, /import\("\.\/optimizer\/tl-optimizer-result-handoff\.js"\)/);
   assert.match(html, /location\.href="\.\/build-from-scratch\.html\?result=improved"/);
   assert.doesNotMatch(html, /renderResult\(message\.result\)/);
 });
@@ -128,7 +128,7 @@ test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
 });
 
 test("optimizer uses a strict adapter and never fabricates recommendations", () => {
-  assert.match(html, /import\("\.\/tl-full-build-adapter\.js"\)/);
+  assert.match(html, /import\("\.\/optimizer\/tl-full-build-adapter\.js"\)/);
   assert.match(html, /createOptimizerAdapter/);
   assert.match(html, /loadArmoryBuild/);
   assert.match(html, /importQuestlogBuild/);

@@ -175,7 +175,7 @@ test("every calculation surface discloses the exclusion and Armory provides a re
 });
 
 test("same-item generated candidates preserve excluded stored potentials", async () => {
-  const adapter = await readFile(join(root, "web", "tl-full-build-adapter.js"), "utf8");
+  const adapter = await readFile(join(root, "web", "optimizer", "tl-full-build-adapter.js"), "utf8");
   const gear = await readFile(join(root, "web", "gear-viewer.html"), "utf8");
   assert.match(adapter, /item\.id === current\?\.itemId && current\?\.potentialId/);
   assert.match(adapter, /selection\.potentialId = current\.potentialId/);

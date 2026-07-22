@@ -1,11 +1,11 @@
-import * as coreDefault from "./tl-core.js";
-import { loadArmoryState as loadStateDefault } from "./tl-persistence.js";
-import { optimizeHeroicPotential } from "./tl-heroic-potential.js";
+import * as coreDefault from "../tl-core.js";
+import { loadArmoryState as loadStateDefault } from "../tl-persistence.js";
+import { optimizeHeroicPotential } from "../tl-heroic-potential.js";
 import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimizer-components.js";
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
 import { optimizeScratchProgression } from "./tl-progression-optimizer.js";
-import { ATTRIBUTE_BREAKPOINTS, SET_PASSIVE_RULES, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue, goalCompositeComponents } from "./tl-questlog-rules.js";
-import { evaluateScenarioEffects } from "./tl-scenario-effects.js";
+import { ATTRIBUTE_BREAKPOINTS, SET_PASSIVE_RULES, STAT_EXPANSIONS, STAT_HARD_CAPS, allocatedAttributeValue, goalCompositeComponents } from "../tl-questlog-rules.js";
+import { evaluateScenarioEffects } from "../tl-scenario-effects.js";
 
 const clone = (value) => globalThis.structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
 const totalMap = (calc) => Object.fromEntries((calc?.scenarioStats ?? calc?.stats ?? []).map((row) => [row.id, Number(row.total) || 0]));
@@ -857,7 +857,7 @@ export async function createOptimizerAdapter(deps = {}) {
   const optimizerTaskPool = deps.optimizerTaskPool ?? null;
   const canonicalAttributeOptimizer = deps.optimizeAttributeAllocation == null;
   const canonicalProgressionOptimizer = deps.optimizeScratchProgression == null;
-  if (!core.data) await core.initCore(deps.dataSource ?? "./data/app-data.json");
+  if (!core.data) await core.initCore(deps.dataSource ?? new URL("../data/app-data.json", import.meta.url).href);
 
   const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name, sourceKind: payload.sourceKind ?? "armory" });
   const calculate = (wrapped, includeSetEffects = true, scenario = null) => core.calculateBuild(

@@ -312,7 +312,7 @@
   <div id="result-hover" class="hidden" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
-    import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./full-build-optimizer.js";
+    import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./optimizer/full-build-optimizer.js";
 
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
     const state = { source:"armory", build:null, result:null, increase:[], protect:[], goalModes:{}, goalValues:{}, currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
@@ -386,7 +386,7 @@
     async function connectEngine() {
       $("engine-status").textContent="Connecting";
       try {
-        const [module,core,rulesData,persistence,handoff,presets,presetMeta,apiModule] = await Promise.all([import("./tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./tl-optimizer-result-handoff.js"),import("./tl-optimizer-presets.js"),import("./tl-preset-meta.js"),import("./tl-optimizer-api.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff; state.presets=presets; state.presetMeta=presetMeta;
+        const [module,core,rulesData,persistence,handoff,presets,presetMeta,apiModule] = await Promise.all([import("./optimizer/tl-full-build-adapter.js"),import("./tl-core.js"),import("./tl-questlog-rules.js"),import("./tl-persistence.js"),import("./optimizer/tl-optimizer-result-handoff.js"),import("./optimizer/tl-optimizer-presets.js"),import("./tl-preset-meta.js"),import("./optimizer/tl-optimizer-api.js")]); state.core=core; state.rulesData=rulesData; state.persistence=persistence; state.handoff=handoff; state.presets=presets; state.presetMeta=presetMeta;
         const factory = module.createOptimizerAdapter ?? module.default;
         if(typeof factory!=="function") throw new Error("The optimizer module does not export createOptimizerAdapter().");
         const adapter = await factory();
@@ -396,7 +396,7 @@
         // optimize() is routed through a throwaway Web Worker so the thorough
         // search runs on the worker pool and never blocks the tab.
         const runOptimizeViaWorker = (request, runtime = {}) => new Promise((resolve, reject) => {
-          const worker = new Worker("./tl-builder-worker.js", { type: "module" });
+          const worker = new Worker("./optimizer/tl-builder-worker.js", { type: "module" });
           const done = () => worker.terminate();
           worker.onmessage = (event) => {
             const message = event.data ?? {};
@@ -642,7 +642,7 @@
     $("run-optimizer").addEventListener("click",()=>{
       let optimizeRequest; try { optimizeRequest=request(); } catch(error){ $("run-hint").textContent=error.message; return; }
       state.worker?.terminate(); $("run-optimizer").disabled=true; const scenario=activeScenario(); showProgress({percent:0,label:"Preparing your build",detail:scenario?`Starting scenario scoring: ${formatOptimizerScenario(scenario)}.`:"Starting the static optimizer worker."});
-      const worker=new Worker("./tl-builder-worker.js",{type:"module"}); state.worker=worker;
+      const worker=new Worker("./optimizer/tl-builder-worker.js",{type:"module"}); state.worker=worker;
       worker.onmessage=event=>{const message=event.data??{};if(message.type==="progress")showProgress(message.progress);else if(message.type==="result"){worker.terminate();state.worker=null;try{openSharedResult(message.result);}catch(error){setEngineError(`The result could not be opened. ${error.message}`);}updateReady();}else if(message.type==="cancelled"){worker.terminate();state.worker=null;$("engine-status").textContent="Ready";setView("setup");updateReady();}else if(message.type==="error"){worker.terminate();state.worker=null;setEngineError(`The search stopped without a result. ${message.message??"Unknown optimizer error."}`,message.constraintDiagnostics);}};
       worker.onerror=event=>{worker.terminate();state.worker=null;setEngineError(`The optimizer worker stopped unexpectedly. ${event.message??""}`);};
       worker.postMessage({type:"optimize",request:optimizeRequest});

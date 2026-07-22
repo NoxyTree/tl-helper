@@ -102,9 +102,9 @@ All exposed controls call the state a selected-timestamp or evaluation-instant r
 - `web/tl-core.js`
 - `web/gear-viewer.html`
 - `web/full-build-optimizer.html`
-- `web/full-build-optimizer.js`
+- `web/optimizer/full-build-optimizer.js`
 - `web/build-from-scratch.html`
-- `web/tl-optimizer-result-handoff.js`
+- `web/optimizer/tl-optimizer-result-handoff.js`
 - `scripts/lib/scenario-effect-catalog.mjs`
 - `web/data/scenario-effects.json`
 

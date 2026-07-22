@@ -6,7 +6,7 @@ import {
   optimizerScenarioOptions,
   parseOptionalPercentageBps,
   scenarioSourceResourceBps,
-} from "../../web/full-build-optimizer.js";
+} from "../../web/optimizer/full-build-optimizer.js";
 
 test("optional percentage inputs become exact basis points", () => {
   assert.equal(parseOptionalPercentageBps(""), null);

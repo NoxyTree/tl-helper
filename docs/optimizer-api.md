@@ -4,7 +4,7 @@ A scriptable control surface so automation — or an LLM driving the page — ca
 the whole optimize → inspect → save → activate lifecycle without operating
 individual browser controls. It is exposed on **`window.tlHelper`** by the Build
 Optimizer page (`full-build-optimizer.html`) once the engine has loaded, and is
-implemented by `web/tl-optimizer-api.js` (pure, dependency-injected; unit-tested
+implemented by `web/optimizer/tl-optimizer-api.js` (pure, dependency-injected; unit-tested
 in `scripts/tests/optimizer-api.test.mjs`).
 
 It operates on the same local-first storage the Armory uses, so it is scoped to

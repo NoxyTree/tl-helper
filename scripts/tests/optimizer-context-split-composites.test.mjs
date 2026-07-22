@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import * as core from "../../web/tl-core.js";
-import { expandCompositeGoals } from "../../web/tl-full-build-adapter.js";
+import { expandCompositeGoals } from "../../web/optimizer/tl-full-build-adapter.js";
 import { CONTEXT_SPLIT_COMPOSITE_IDS, STAT_EXPANSIONS, goalCompositeComponents } from "../../web/tl-questlog-rules.js";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 

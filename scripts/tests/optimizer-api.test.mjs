@@ -11,7 +11,7 @@ import test from "node:test";
 import * as core from "../../web/tl-core.js";
 import * as persistence from "../../web/tl-persistence.js";
 import * as presetMeta from "../../web/tl-preset-meta.js";
-import { createOptimizerApi } from "../../web/tl-optimizer-api.js";
+import { createOptimizerApi } from "../../web/optimizer/tl-optimizer-api.js";
 import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");

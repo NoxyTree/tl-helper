@@ -62,7 +62,7 @@ test("owned Heroic builder uses the canonical item-specific data model", () => {
 });
 
 test("forge runs in a worker and remains cancellable", () => {
-  assert.match(html, /new Worker\('\.\/tl-builder-worker\.js'/);
+  assert.match(html, /new Worker\('\.\/optimizer\/tl-builder-worker\.js'/);
   assert.match(html, /postMessage\(\{type:'optimize'/);
   assert.match(html, /postMessage\(\{type:'cancel'/);
   assert.match(html, /progressPhase/);

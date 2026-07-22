@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { calculateBuild, createInitialBuild, initCore } from "../../web/tl-core.js";
-import { optimizeFullBuild } from "../../web/tl-full-build-optimizer.js";
+import { optimizeFullBuild } from "../../web/optimizer/tl-full-build-optimizer.js";
 import { SET_EXCLUSIVITY_GROUPS, SET_PASSIVE_RULES } from "../../web/tl-questlog-rules.js";
 
 const FA = "set_aa_T2_leather_004";
