@@ -1208,6 +1208,27 @@
                     <div style="margin-top:4px;color:#a9997a;font-size:10px;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:flex-end;gap:3px;"><sc-if value="{{ g.sourceLucent }}" hint-placeholder-val="{{ false }}"><img src="./assets/icons/common/lucent.webp" alt="Lucent" width="12" height="12" style="display:block;"></sc-if>{{ g.sourceDetail }}</div>
                   </div>
                 </div>
+                <!-- Raid: heroic gear — Calanthia raid drop + raid-store stone purchase -->
+                <sc-if value="{{ g.raidKnown }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
+                    <div style="color:#f0b866;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;">{{ g.raidLabel }}</div>
+                    <sc-if value="{{ g.raidHasDrop }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="flex:0 0 auto;width:22px;height:22px;border-radius:6px;border:1px solid rgba(240,184,102,.4);background:radial-gradient(circle at 40% 30%,#3a2c14,#150f07);display:grid;place-items:center;color:#f0b866;font-size:12px;">⚔</span>
+                        <span style="color:#f0dcc0;font-size:12px;">Drops from the raid</span>
+                        <span style="flex:1;"></span>
+                        <span style="padding:2px 9px;border:1px solid rgba(240,184,102,.35);border-radius:999px;background:rgba(240,184,102,.1);color:#f0c680;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ g.raidDropPct }}</span>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ g.raidHasStore }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="flex:0 0 auto;width:22px;height:22px;border-radius:6px;border:1px solid rgba(240,184,102,.4);background:radial-gradient(circle at 40% 30%,#3a2c14,#150f07);display:grid;place-items:center;color:#f0b866;font-size:12px;">◈</span>
+                        <span style="min-width:0;color:#f0dcc0;font-size:12px;">Buy with <span style="color:#f0c680;font-weight:600;">{{ g.raidStoreCurrency }}</span></span>
+                      </div>
+                      <div style="margin-top:3px;margin-left:30px;color:#8a795f;font-size:10px;">at the {{ g.raidMerchant }}</div>
+                    </sc-if>
+                  </div>
+                </sc-if>
                 <!-- Drops: boss chips, best-first -->
                 <sc-if value="{{ g.dropsKnown }}" hint-placeholder-val="{{ true }}">
                   <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(212,166,94,.1);">
@@ -1442,7 +1463,8 @@ class Component extends DCLogic {
     window.addEventListener('resize', this._onResize);
     this._onResize();
     // Gearing-guide sourcing (craftable/codex now; drops+market later). Non-blocking; guide degrades if absent.
-    fetch('./data/projections/acquisition.json').then(r=>r.ok?r.json():null).then(a=>{ if(a&&a.items) this.setState({ acquisition:a.items }); }).catch(()=>{});
+    // no-cache: revalidate so a freshly-built acquisition.json (same URL) is picked up rather than served stale from cache.
+    fetch('./data/projections/acquisition.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(a=>{ if(a&&a.items) this.setState({ acquisition:a.items }); }).catch(()=>{});
     Promise.all([import('./tl-core.js'), import('./tl-full-build-adapter.js'), import('./tl-questlog-rules.js'), import('./tl-build-tuner.js'), import('./tl-persistence.js'), import('./tl-optimizer-result-handoff.js'), import('./tl-motion-scenario-controls.js'), import('./tl-event-scenario-controls.js'), import('./tl-social-scenario-controls.js'), import('./tl-scenario-effects.js'), import('./tl-optimizer-presets.js'), import('./tl-preset-meta.js')]).then(async ([core, adapterModule, rulesData, tuner, persistence, handoff, motionControls, eventControls, socialControls, scenarioEffects, presets, presetMeta]) => {
       this.core = core;
       this.presetMeta = presetMeta;
@@ -2891,10 +2913,20 @@ class Component extends DCLogic {
       if(bestProb>0)ease=Math.max(ease,40+bestProb*2);
       if(craftCostNum!=null)ease=Math.max(ease,62-Math.min(craftCostNum/500,20));
       if(ease===0)ease=30;
+      // Raid heroic sourcing (Calanthia raid drop + raid-store stone purchase).
+      const raid=acq.raid||null;
+      const raidKnown=!!raid;
+      const raidLabel=raid?((raid.raid||'Raid')+' raid'):'';
+      const raidHasDrop=!!(raid&&raid.drop);
+      const raidDropPct=raidHasDrop?(raid.drop.prob*100).toFixed(1)+'%':'';
+      const raidHasStore=!!(raid&&raid.store);
+      const raidStoreCurrency=raidHasStore?(raid.store.currencyName||'raid stones'):'';
+      const raidMerchant=raidHasStore?(raid.store.merchant||''):'';
       // Headline badge: the single best answer to "how do I get this?"
-      const PAL={boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
+      const PAL={raid:{c:'#f0b866',b:'rgba(240,184,102,.14)'},boss:{c:'#e8b57c',b:'rgba(255,152,45,.12)'},market:{c:'#d8b8ff',b:'rgba(159,86,214,.16)'},craft:{c:'#8fd6aa',b:'rgba(76,175,120,.14)'}};
       let sourceCls='market',sourceTag='Market',sourceDetail='Check prices above',sourceLucent=false;
-      if(bestProb>0){sourceCls='boss';sourceTag='Boss drop';const top=drops.slice().sort((a,b)=>b.probNum-a.probNum)[0];sourceDetail='Best '+top.prob+' · '+top.name;}
+      if(raidKnown){sourceCls='raid';sourceTag='Raid';sourceDetail=raidHasDrop?(raid.raid||'Raid')+' · '+raidDropPct:(raid.raid||'Raid')+' store';}
+      else if(bestProb>0){sourceCls='boss';sourceTag='Boss drop';const top=drops.slice().sort((a,b)=>b.probNum-a.probNum)[0];sourceDetail='Best '+top.prob+' · '+top.name;}
       else if(marketPriceNum!=null){sourceCls='market';sourceTag='Market';sourceDetail=fmtNum(marketPriceNum);sourceLucent=true;}
       else if(craft){sourceCls='craft';sourceTag='Craft';const ic=(craft.ingredients||[]).length;sourceDetail=ic?ic+' material'+(ic===1?'':'s'):'Craftable';}
       else if(mp&&mp.error){sourceDetail='Price unavailable';}
@@ -2906,6 +2938,7 @@ class Component extends DCLogic {
         image:item.imageUrl||'', hasImage:!!item.imageUrl,
         ease, marketPriceNum, craftCostNum,
         sourceCls, sourceTag, sourceDetail, sourceColor, sourceBg, sourceLucent, sourcePlain,
+        raidKnown, raidLabel, raidHasDrop, raidDropPct, raidHasStore, raidStoreCurrency, raidMerchant,
         craftable:!!craft, notCraftable:!craft,
         craftCost:craft?fmtNum(craft.costSollant)+' Sollant':'',
         craftUpgrade:craft&&craft.upgradeFrom&&craft.upgradeFrom.length?('Upgrade from '+craft.upgradeFrom.map(nameOf).join(', ')):'',

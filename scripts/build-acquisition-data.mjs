@@ -27,18 +27,22 @@ const LOCALE_CSV = path.join(EXTRACT_ROOT, "localization", "csv", "en.csv");
 const outArg = process.argv.indexOf("--out");
 const OUT = outArg >= 0 ? process.argv[outArg + 1] : path.join(repoRoot, "web", "data", "projections", "acquisition.json");
 
-// ---- localization: `<id>_UIName` -> display name ---------------------------
+// ---- localization ----------------------------------------------------------
+// `names`: `<id>_UIName` -> display name (item names). `byKey`: raw Key ->
+// Translation (for string-table refs like a shop merchant's TEXT_RES_* key).
 function loadNames() {
   const names = {};
+  const byKey = {};
   const text = readFileSync(LOCALE_CSV, "utf8");
   for (const line of text.split(/\r?\n/)) {
     // Namespace,Key,Hash,Translation — Translation may contain commas, so match greedily on the tail.
     const m = line.match(/^[^,]*,([^,]+),[^,]*,(.*)$/);
     if (!m) continue;
+    byKey[m[1]] = m[2];
     const key = m[1].match(/^(.+)_UIName$/);
     if (key) names[key[1]] = m[2];
   }
-  return names;
+  return { names, byKey };
 }
 
 // Ingredient RowName is `<itemId>_<quantity>` (verified across recipes).
@@ -54,7 +58,7 @@ function main() {
   const appName = Object.fromEntries(eq.data.items.map((i) => [i.id, i.name]));
   const gearIds = new Set(eq.data.items.map((i) => i.id));
   const isGear = (id) => gearIds.has(id);
-  const names = loadNames();
+  const { names, byKey } = loadNames();
   const displayName = (id) => appName[id] ?? names[id];
 
   const craft = decodeTable(path.join(TABLE_DIR, "TLCraftingRecipe.uasset")).rows;
@@ -65,7 +69,7 @@ function main() {
   const drops = existsSync(dropsPath) ? JSON.parse(readFileSync(dropsPath, "utf8")).items ?? {} : {};
 
   const items = {};
-  const ensure = (id) => (items[id] ??= { craftable: null, codex: null, dropsFrom: [], market: null });
+  const ensure = (id) => (items[id] ??= { craftable: null, codex: null, dropsFrom: [], raid: null, market: null });
 
   // Craftable From
   for (const row of Object.values(craft)) {
@@ -114,6 +118,54 @@ function main() {
     ensure(id).dropsFrom = (rec.dropsFrom ?? []).map((d) => ({ ...d, image: iconToLocal(d.icon), icon: undefined }));
   }
 
+  // Raid sourcing: the Calanthia raid heroic gear drops from the raid's equipment
+  // boxes AND is bought with "stones" at the raid store. Two facets:
+  //   - drop  : TLItemLotteryUnit rows RaidBox_Equip_Unic_* — {item, prob/1e7}
+  //   - store : TLShop (catalog_fixed catalog_fix_Raid*) -> TLShopCatalogFixed
+  //             product.item_id, priced in the currency from TLShopLooks
+  //             ExchangeItemList (Raid_stone_01 = "Entropy Shard: Calanthia").
+  // The per-item shard cost is server-side (absent from the client tables), so
+  // only the currency + merchant are surfaced, never a fabricated price.
+  const tbl = (n) => decodeTable(path.join(TABLE_DIR, n)).rows;
+  const raidDrop = {}; // itemId -> best in-box probability (fraction)
+  for (const row of Object.values(tbl("TLItemLotteryUnit.uasset"))) {
+    if (!/RaidBox_Equip_Unic/i.test(row.Name ?? "")) continue;
+    for (const e of row.ItemLotteryUnitEntry ?? []) {
+      if (gearIds.has(e.item)) raidDrop[e.item] = Math.max(raidDrop[e.item] ?? 0, (Number(e.prob) || 0) / 1e7);
+    }
+  }
+  const shopLooks = tbl("TLShopLooks.uasset");
+  const catalog = Object.values(tbl("TLShopCatalogFixed.uasset"));
+  const raidStore = {}; // itemId -> { currencyId, currencyName, merchant, shop }
+  for (const shop of Object.values(tbl("TLShop.uasset"))) {
+    const catalogId = shop.catalog_fixed ?? "";
+    if (!/^catalog_fix_Raid/i.test(catalogId)) continue;
+    const looks = shopLooks[String(shop.num)];
+    const currencyId = looks?.ExchangeItemList?.[0] ?? null;
+    const currencyName = currencyId ? (names[currencyId] ?? currencyId) : null;
+    const merchant = byKey[looks?.UIName?.key] ?? null;
+    for (const row of catalog) {
+      if (String(row.id) !== String(catalogId)) continue;
+      const iid = row.product?.item_id;
+      if (gearIds.has(iid)) raidStore[iid] = { currencyId, currencyName, merchant, shop: shop.id ?? shop.Name ?? null };
+    }
+  }
+  // Raid name: the currency is "Entropy Shard: Calanthia"; take the suffix after ": ".
+  const raidNameFrom = (store) => {
+    const c = store?.currencyName ?? "";
+    const m = c.match(/:\s*(.+)$/);
+    return m ? m[1].trim() : "the raid";
+  };
+  for (const id of new Set([...Object.keys(raidDrop), ...Object.keys(raidStore)])) {
+    if (!gearIds.has(id)) continue;
+    const store = raidStore[id] ?? null;
+    ensure(id).raid = {
+      raid: raidNameFrom(store),
+      drop: raidDrop[id] != null ? { prob: raidDrop[id] } : null,
+      store: store ? { currencyId: store.currencyId, currencyName: store.currencyName, merchant: store.merchant } : null,
+    };
+  }
+
   const gameBuild = String(process.env.TL_STEAM_BUILD ?? eq.gameBuild ?? "").trim();
   const generatedAtUtc = process.env.TL_GENERATED_AT_UTC?.trim() || new Date().toISOString();
 
@@ -121,6 +173,7 @@ function main() {
   const craftableCount = Object.values(items).filter((i) => i.craftable).length;
   const codexCount = Object.values(items).filter((i) => i.codex).length;
   const dropsCount = Object.values(items).filter((i) => i.dropsFrom.length).length;
+  const raidCount = Object.values(items).filter((i) => i.raid).length;
 
   const out = {
     schema: "tl-helper.acquisition",
@@ -134,6 +187,7 @@ function main() {
       withCraftable: craftableCount,
       withCodex: codexCount,
       withDrops: dropsCount,
+      withRaid: raidCount,
       withAnySource: Object.keys(items).length,
       dropsFromResolved: Object.keys(drops).length > 0,
       marketIsClientFetched: true,
@@ -144,7 +198,7 @@ function main() {
   mkdirSync(path.dirname(OUT), { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
   console.log(`acquisition.json written -> ${OUT}`);
-  console.log(`  gameBuild ${gameBuild}, ${Object.keys(items).length} items sourced (craftable ${craftableCount}, codex ${codexCount}) of ${totalGear}`);
+  console.log(`  gameBuild ${gameBuild}, ${Object.keys(items).length} items sourced (craftable ${craftableCount}, codex ${codexCount}, raid ${raidCount}) of ${totalGear}`);
 }
 
 main();
