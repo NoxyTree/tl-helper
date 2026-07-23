@@ -12,6 +12,8 @@ import {
   resolveCombatLabHealing,
   resolveCustomExpectedPvpDamage,
   resolveExpectedPvpDamage,
+  resolveKitPacketExpectedPvpDamage,
+  resolveKitPacketSelection,
   resolvePvpMatchup,
   TIER_MAPPINGS,
 } from "../../web/combat-lab-model.js";
@@ -133,6 +135,84 @@ test("Combat Lab supports a provenance-labeled generic 100 percent weapon packet
   assert.equal(result.preResolutionRange.minimum, "400");
   assert.equal(result.precision.coefficientRange, "modeled_user_input_100_percent_weapon_packet");
   assert.equal(result.completeness.isFinalCombatOutcome, false);
+});
+
+const kitPacket = Object.freeze({
+  name: "Test Strike",
+  weapon: "sword",
+  mappingClass: "exact",
+  levels: {
+    "1": { coefficient: "2.0000", flatAdd: "10", cooldown: 12 },
+    "5": { coefficient: "2.5000", flatAdd: "50", cooldown: 12 },
+  },
+  traitOverrides: {
+    "trait-a": {
+      name: "Test Strike - Variant",
+      mappingClass: "derived",
+      levels: { "5": { coefficient: "3.0000", flatAdd: "60" } },
+    },
+    "trait-b": {
+      name: "Test Strike - Other Variant",
+      mappingClass: "derived",
+      levels: { "1": { coefficient: "2.2000", flatAdd: "12" } },
+    },
+  },
+  unverifiedDamageTraits: ["trait-c"],
+});
+
+test("Kit packet selection applies the honest-level rule without substituting higher levels", () => {
+  assert.equal(resolveKitPacketSelection({ packet: { ...kitPacket, levels: { "5": kitPacket.levels["5"] } }, skillLevel: 4 }), null);
+  const clamped = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 4 });
+  assert.equal(clamped.packetLevel, 1);
+  assert.equal(clamped.coefficient, "2.0000");
+  assert.equal(clamped.mappingClass, "exact");
+  assert.equal(clamped.specApplied, null);
+  assert.equal(clamped.specUnverified, false);
+});
+
+test("Kit packet selection replaces the primary hit only for one validated override", () => {
+  const applied = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 5, specializationIds: ["trait-a"] });
+  assert.equal(applied.coefficient, "3.0000");
+  assert.equal(applied.flatAdd, "60");
+  assert.equal(applied.cooldown, 12);
+  assert.equal(applied.mappingClass, "derived");
+  assert.equal(applied.specApplied, "Test Strike - Variant");
+  assert.equal(applied.specUnverified, false);
+
+  const belowOverride = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 4, specializationIds: ["trait-a"] });
+  assert.equal(belowOverride.coefficient, "2.0000");
+  assert.equal(belowOverride.specApplied, null);
+  assert.equal(belowOverride.specUnverified, true);
+
+  const ambiguous = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 5, specializationIds: ["trait-a", "trait-b"] });
+  assert.equal(ambiguous.coefficient, "2.5000");
+  assert.equal(ambiguous.specApplied, null);
+  assert.equal(ambiguous.specUnverified, true);
+
+  const unverified = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 5, specializationIds: ["trait-c"] });
+  assert.equal(unverified.coefficient, "2.5000");
+  assert.equal(unverified.specUnverified, true);
+});
+
+test("Kit packet expected damage scales the primary hit into the modeled pre-Defense pipeline", () => {
+  const contest = {
+    pvpMode: "general", attackType: "melee",
+    hit: "1200", evasion: "1000", criticalHit: "1500", endurance: "1000",
+    heavyAttackChance: "700", heavyAttackEvasion: "300", skillDamageBoost: "500",
+    skillDamageResistance: "200", criticalDamage: "35", criticalDamageResistance: "10",
+    heavyDamage: "25", heavyDamageResistance: "10",
+  };
+  const result = resolveKitPacketExpectedPvpDamage({
+    ...contest, minimum: "400", maximum: "700",
+    coefficient: "2.5000", flatAdd: "50", mappingClass: "exact",
+  });
+  assert.equal(result.preResolutionRange.minimum, "1050");
+  assert.equal(result.preResolutionRange.maximum, "1800");
+  assert.equal(result.precision.coefficientRange, "kit_packet_exact_primary_component");
+  assert.equal(result.completeness.isFinalCombatOutcome, false);
+  const generic = resolveCustomExpectedPvpDamage({ ...contest, minimum: "1050", maximum: "1800" });
+  assert.equal(result.expectedDamage, generic.expectedDamage);
+  assert.throws(() => resolveKitPacketExpectedPvpDamage({ ...contest, minimum: "400", maximum: "700", coefficient: "-1", flatAdd: "0" }), /non-negative/);
 });
 
 test("Combat Lab keeps Distortion Veil shield magnitude explicitly non-final", () => {

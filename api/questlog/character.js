@@ -79,7 +79,9 @@ function parseQuestlogCharacterUrl(input) {
   const marker = parts.indexOf("character-builder");
   const slug = marker >= 0 ? parts[marker + 1] : null;
   if (!slug) throw inputError("The link does not contain a Questlog character slug.");
-  const buildId = url.searchParams.get("buildId");
+  // Questlog's own share links use "build-id"; older TL Helper links use
+  // "buildId". Both select the same single build.
+  const buildId = url.searchParams.get("buildId") ?? url.searchParams.get("build-id");
   if (buildId !== null && !/^\d+$/.test(buildId)) throw inputError("Questlog buildId must be numeric.");
   const characterSlug = decodeURIComponent(slug);
   const canonical = new URL(`https://${url.hostname.toLowerCase()}/throne-and-liberty/en/character-builder/${encodeURIComponent(characterSlug)}`);

@@ -10,6 +10,11 @@ test("parses locale-independent Questlog character links and exact build IDs", (
   });
 });
 
+test("accepts Questlog's own build-id parameter spelling", () => {
+  assert.equal(parseQuestlogCharacterUrl("https://questlog.gg/throne-and-liberty/en/character-builder/TestSlug?build-id=8215841").buildId, "8215841");
+  assert.throws(() => parseQuestlogCharacterUrl("https://questlog.gg/throne-and-liberty/en/character-builder/Test?build-id=nope"), /numeric/);
+});
+
 test("rejects arbitrary proxy hosts and malformed build IDs", () => {
   assert.throws(() => parseQuestlogCharacterUrl("https://example.com/character-builder/Test"), /questlog\.gg/);
   assert.throws(() => parseQuestlogCharacterUrl("https://questlog.gg/throne-and-liberty/en/character-builder/Test?buildId=nope"), /numeric/);

@@ -12,6 +12,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8792", "--directory", "web"],
       "port": 8792
+    },
+    {
+      "name": "tl-web-api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-web.mjs", "web", "8790"],
+      "port": 8790
     }
   ]
 }

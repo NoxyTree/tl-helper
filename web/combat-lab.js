@@ -15,6 +15,8 @@ import {
   resolveCombatLabHealing,
   resolveCustomExpectedPvpDamage,
   resolveExpectedPvpDamage,
+  resolveKitPacketExpectedPvpDamage,
+  resolveKitPacketSelection,
   resolveKitRotationPacket,
   resolvePvpMatchup,
   resolvePvpTradeVerdict,
@@ -171,10 +173,17 @@ function populateStaticOptions() {
   state.data.abilities.forEach((ability) => ui.ability.add(new Option(`${ability.name} · ${ability.weapon}`, ability.id)));
   ui["expected-ability"].add(new Option("Generic 100% weapon-damage packet", "custom-packet"));
   state.data.abilities.filter(isExpectedDamageAbility).forEach((ability) => ui["expected-ability"].add(new Option(`${ability.name} · ${ability.weapon}`, ability.id)));
+  if (state.kitPackets?.skills) {
+    const group = document.createElement("optgroup");
+    group.label = "Modeled skills · primary hit";
+    Object.entries(state.kitPackets.skills)
+      .sort(([, a], [, b]) => a.weapon === b.weapon ? a.name.localeCompare(b.name) : a.weapon.localeCompare(b.weapon))
+      .forEach(([skillId, packet]) => group.appendChild(new Option(`${packet.name} · ${title(packet.weapon)}${packet.mappingClass === "derived" ? " · derived" : ""}`, `kit:${skillId}`)));
+    ui["expected-ability"].appendChild(group);
+  }
   for (const weapon of ["sword", "sword2h", "dagger", "spear", "gauntlet", "bow", "crossbow", "staff", "wand", "orb"]) ui["expected-weapon"].add(new Option(title(weapon), weapon));
   ui["expected-ability"].value = "custom-packet";
-  for (let level = 1; level <= 20; level += 1) ui["expected-level"].add(new Option(`Global Lv. ${level}`, String(level)));
-  ui["expected-level"].value = "20";
+  populateExpectedLevels();
   if (state.data.abilities.some(({ id }) => id === "judgment-lightning")) ui.ability.value = "judgment-lightning";
   TIER_MAPPINGS.forEach((tier) => ui.tier.add(new Option(tier.label, tier.id)));
   ui.tier.value = "epic";
@@ -189,7 +198,7 @@ function bindEvents() {
   ui.tier.addEventListener("change", () => { populateLevels(); render(); });
   ui.level.addEventListener("change", render);
   ui.outcome.addEventListener("change", render);
-  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); syncCustomExpectedWeapon(); syncDamageSourceToAbility(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
+  ui["source-build"].addEventListener("change", () => { updateBuildSummaries(); syncAttackTypeFromSource(); syncCustomExpectedWeapon(); syncDamageSourceToAbility(); populateExpectedLevels(); prefillDamage(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["target-build"].addEventListener("change", () => { updateBuildSummaries(); prefillHealing(); prefillMatchup(); renderFighters(); render(); });
   ui["comparison-build"].addEventListener("change", render);
   ui["source-questlog-import"].addEventListener("click", () => importQuestlog("source"));
@@ -256,6 +265,13 @@ function selectView(view) {
 
 function selectedAbility() { return state.data.abilities.find((entry) => entry.id === ui.ability.value); }
 function selectedExpectedAbility() { return state.data.abilities.find((entry) => entry.id === ui["expected-ability"].value); }
+function selectedKitPacket() {
+  const value = ui["expected-ability"].value;
+  if (!value.startsWith("kit:")) return null;
+  const skillId = value.slice("kit:".length);
+  const packet = state.kitPackets?.skills?.[skillId];
+  return packet ? { skillId, packet } : null;
+}
 function isExpectedDamageAbility(ability) { return String(ability?.kind ?? "").toLowerCase() === "damage"; }
 function selectedBuild(id) { return state.builds.find((entry) => entry.id === id); }
 
@@ -605,7 +621,7 @@ function updateBuildSummaries() {
 
 function syncExpectedAttackType() {
   const ability = selectedExpectedAbility();
-  const weapon = ability?.weapon ?? ui["expected-weapon"].value;
+  const weapon = ability?.weapon ?? selectedKitPacket()?.packet.weapon ?? ui["expected-weapon"].value;
   if (!weapon) return;
   ui["attack-type"].value = attackTypeForWeapon(weapon);
   byId("attack-type-note").textContent = `Using ${title(ui["attack-type"].value)} because the damage packet uses ${title(weapon)}.`;
@@ -621,9 +637,33 @@ function syncCustomExpectedWeapon() {
 
 function updateExpectedAbilityControls() {
   const ability = selectedExpectedAbility();
-  ui["expected-weapon"].disabled = Boolean(ability);
+  const kit = selectedKitPacket();
+  ui["expected-weapon"].disabled = Boolean(ability || kit);
   if (ability) ui["expected-weapon"].value = ability.weapon;
-  ui["expected-level-field"].classList.toggle("hidden", !ability);
+  if (kit) ui["expected-weapon"].value = kit.packet.weapon;
+  ui["expected-level-field"].classList.toggle("hidden", !ability && !kit);
+  ui["expected-level-field"].firstChild.textContent = kit ? "Skill level" : "Global ability level";
+  populateExpectedLevels();
+}
+
+// The level list follows the selected packet: reviewed abilities keep the
+// 1-20 global window, kit skills offer exactly their recorded packet levels,
+// defaulting to the attacker's stored level for that skill when it has one.
+function populateExpectedLevels() {
+  const kit = selectedKitPacket();
+  const previous = ui["expected-level"].value;
+  ui["expected-level"].innerHTML = "";
+  if (kit) {
+    const levels = Object.keys(kit.packet.levels).map(Number).sort((a, b) => a - b);
+    for (const level of levels) ui["expected-level"].add(new Option(`Skill Lv. ${level}`, String(level)));
+    const source = selectedBuild(ui["source-build"].value);
+    const stored = (source?.state?.build?.skills ?? []).find((row) => row.skillId === kit.skillId);
+    const storedLevel = levels.filter((level) => level <= Number(stored?.level)).pop();
+    ui["expected-level"].value = String(storedLevel ?? levels[levels.length - 1]);
+    return;
+  }
+  for (let level = 1; level <= 20; level += 1) ui["expected-level"].add(new Option(`Global Lv. ${level}`, String(level)));
+  ui["expected-level"].value = [...ui["expected-level"].options].some(({ value }) => value === previous) ? previous : "20";
 }
 
 function buildSummary(snapshot) {
@@ -808,36 +848,15 @@ function renderTradeVerdict() {
       for (const row of actives) {
         const packet = state.kitPackets?.skills?.[row.skillId];
         if (!packet) continue;
-        const available = Object.keys(packet.levels).map(Number).sort((a, b) => a - b);
-        // A skill leveled below the lowest recorded packet level has no honest
-        // packet to use; substituting a higher-level packet would overstate its
-        // contribution, so the skill is left out of the modeled kit instead.
-        const level = available.filter((value) => value <= Number(row.level)).pop();
-        if (level === undefined) continue;
-        let entry = packet.levels[String(level)];
-        let mappingClass = packet.mappingClass;
-        // A chosen specialization with a validated override replaces the
-        // primary hit under the same honest-level rule; a damage-relevant
-        // specialization without one keeps the skill at base form and is
-        // disclosed instead of guessed. Two matching overrides on one skill
-        // would be ambiguous, so that skill also stays at base form.
-        const specIds = Array.isArray(row.specializationIds) ? row.specializationIds : [];
-        const overrides = specIds.filter((id) => packet.traitOverrides?.[id]);
-        let specUnverified = specIds.some((id) => (packet.unverifiedDamageTraits ?? []).includes(id));
-        if (overrides.length === 1) {
-          const override = packet.traitOverrides[overrides[0]];
-          const overrideLevel = Object.keys(override.levels).map(Number).filter((value) => value <= Number(row.level)).sort((a, b) => a - b).pop();
-          if (overrideLevel === undefined) specUnverified = true;
-          else {
-            const overrideEntry = override.levels[String(overrideLevel)];
-            entry = { coefficient: overrideEntry.coefficient, flatAdd: overrideEntry.flatAdd, cooldown: overrideEntry.cooldown ?? entry.cooldown };
-            mappingClass = override.mappingClass;
-            specUnverified = false;
-            appliedSpecSkills += 1;
-          }
-        } else if (overrides.length > 1) specUnverified = true;
-        if (specUnverified) unverifiedSpecSkills += 1;
-        included.push({ skillSetId: row.skillId, name: packet.name, coefficient: entry.coefficient, flatAdd: entry.flatAdd, cooldown: entry.cooldown, mappingClass });
+        // The shared selection resolver applies the honest-level rule and the
+        // validated-specialization-override rule; it returns null for a skill
+        // leveled below the lowest recorded packet level, which is left out of
+        // the modeled kit instead of overstated by a higher-level packet.
+        const selection = resolveKitPacketSelection({ packet, skillLevel: Number(row.level), specializationIds: row.specializationIds });
+        if (!selection) continue;
+        if (selection.specApplied) appliedSpecSkills += 1;
+        if (selection.specUnverified) unverifiedSpecSkills += 1;
+        included.push({ skillSetId: row.skillId, name: packet.name, coefficient: selection.coefficient, flatAdd: selection.flatAdd, cooldown: selection.cooldown, mappingClass: selection.mappingClass });
       }
       return { included, totalActives: actives.length, appliedSpecSkills, unverifiedSpecSkills };
     };
@@ -942,15 +961,17 @@ function renderExpectedDamageComparison() {
     const target = selectedBuild(ui["target-build"].value);
     const alternative = selectedBuild(ui["comparison-build"].value);
     const ability = selectedExpectedAbility();
+    const kit = selectedKitPacket();
     const customPacket = ui["expected-ability"].value === "custom-packet";
     if (!source) throw new Error("Choose a legal attacker build.");
     if (!target) throw new Error("Choose an opponent build for a damage comparison.");
-    if (!customPacket && !ability) throw new Error("No reviewed damage ability is available.");
+    if (!customPacket && !kit && !ability) throw new Error("No reviewed damage ability is available.");
     const components = ability?.formulaComponents?.filter((entry) => stripEnum(entry.formulaType) === "kAmountFromAttackPower") ?? [];
-    if (!customPacket && components.length !== 1) throw new Error(`${ability.name} requires an explicit component choice because it has ${components.length} reviewed attack-power components.`);
+    if (!customPacket && !kit && components.length !== 1) throw new Error(`${ability.name} requires an explicit component choice because it has ${components.length} reviewed attack-power components.`);
     const [component] = components;
-    const requiredWeapon = ability?.weapon ?? ui["expected-weapon"].value;
-    const packetName = ability?.name ?? "Generic weapon-damage packet";
+    const requiredWeapon = ability?.weapon ?? kit?.packet.weapon ?? ui["expected-weapon"].value;
+    const packetName = ability?.name ?? kit?.packet.name ?? "Generic weapon-damage packet";
+    const kitNotes = [];
     const attackType = attackTypeForWeapon(requiredWeapon);
     if (ui["attack-type"].value !== attackType) throw new Error(`${packetName} requires ${title(attackType)} matchup stats. Select that attack type or reselect the packet.`);
     const resolveBuild = (build) => {
@@ -982,6 +1003,21 @@ function renderExpectedDamageComparison() {
         heavyDamage: build.id === source.id ? ui["pvp-heavy-damage"].value : displayStat(build.snapshot, "double_damage_dealt_modifier", 0.01),
         heavyDamageResistance: ui["pvp-heavy-resistance"].value,
       };
+      if (kit) {
+        const stored = (build.state.build.skills ?? []).find((row) => row.skillId === kit.skillId);
+        const selection = resolveKitPacketSelection({
+          packet: kit.packet,
+          skillLevel: Number(ui["expected-level"].value),
+          specializationIds: stored?.specializationIds ?? [],
+        });
+        if (!selection) throw new Error(`${packetName} has no recorded packet at the selected level.`);
+        kitNotes.push(`${build.label}: ${selection.specApplied
+          ? `validated specialization override applied — ${selection.specApplied}`
+          : selection.specUnverified
+            ? "a chosen damage-relevant specialization has no validated override, so the skill stays at base form"
+            : stored ? "base skill form (no validated override taken)" : "base skill form (skill is not on this build's bars)"} · ${selection.mappingClass} coefficient at packet level ${selection.packetLevel}.`);
+        return resolveKitPacketExpectedPvpDamage({ ...request, coefficient: selection.coefficient, flatAdd: selection.flatAdd, mappingClass: selection.mappingClass });
+      }
       return customPacket
         ? resolveCustomExpectedPvpDamage(request)
         : resolveExpectedPvpDamage({ ...request, ability, componentId: component.id, globalLevel: Number(ui["expected-level"].value) });
@@ -1013,7 +1049,11 @@ function renderExpectedDamageComparison() {
           : `${winningLabel} leads the included pre-Defense stages under every Heavy-plus-glance sensitivity variant by at least ${result.guaranteedDifferencePercent}%. This is model-stable for the included stages, not a final server-damage claim.`;
       }
     }
-    limits.innerHTML = [...primary.assumptions, ...primary.unsupportedStages].map((text) => `<div class="warning-item">${escapeHtml(text)}</div>`).join("");
+    const kitDisclosures = kit ? [
+      "This is the skill's primary attack-power component per cast: extra hits, conditional follow-ups, riders, and cooldown cadence are not included.",
+      ...kitNotes,
+    ] : [];
+    limits.innerHTML = [...kitDisclosures, ...primary.assumptions, ...primary.unsupportedStages].map((text) => `<div class="warning-item">${escapeHtml(text)}</div>`).join("");
   } catch (error) {
     output.innerHTML = "";
     verdict.textContent = String(error?.message ?? error);

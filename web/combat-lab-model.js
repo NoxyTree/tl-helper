@@ -119,6 +119,72 @@ export function compareExpectedPvpDamage(left, right) {
   return compareModeledExpectedDamage(left, right);
 }
 
+// Selects the honest kit-packet entry for one skill: the highest recorded
+// packet level at or below the requested level, with a validated
+// specialization override replacing the primary hit under the same rule.
+// A damage-relevant specialization without a validated override keeps the
+// skill at base form and is flagged instead of guessed; two matching
+// overrides on one skill are ambiguous and also keep base form. Returns
+// null when no recorded level qualifies, so a caller can skip or refuse
+// without a substituted higher-level packet overstating the skill.
+export function resolveKitPacketSelection({ packet, skillLevel, specializationIds = [] }) {
+  if (!packet?.levels) throw new TypeError("resolveKitPacketSelection requires a kit packet with recorded levels.");
+  const available = Object.keys(packet.levels).map(Number).sort((a, b) => a - b);
+  const level = available.filter((value) => value <= Number(skillLevel)).pop();
+  if (level === undefined) return null;
+  let entry = packet.levels[String(level)];
+  let mappingClass = packet.mappingClass;
+  let specApplied = null;
+  const specIds = Array.isArray(specializationIds) ? specializationIds : [];
+  const overrides = specIds.filter((id) => packet.traitOverrides?.[id]);
+  let specUnverified = specIds.some((id) => (packet.unverifiedDamageTraits ?? []).includes(id));
+  if (overrides.length === 1) {
+    const override = packet.traitOverrides[overrides[0]];
+    const overrideLevel = Object.keys(override.levels).map(Number).filter((value) => value <= Number(skillLevel)).sort((a, b) => a - b).pop();
+    if (overrideLevel === undefined) specUnverified = true;
+    else {
+      const overrideEntry = override.levels[String(overrideLevel)];
+      entry = { coefficient: overrideEntry.coefficient, flatAdd: overrideEntry.flatAdd, cooldown: overrideEntry.cooldown ?? entry.cooldown };
+      mappingClass = override.mappingClass;
+      specApplied = override.name;
+      specUnverified = false;
+    }
+  } else if (overrides.length > 1) specUnverified = true;
+  return Object.freeze({
+    name: packet.name,
+    weapon: packet.weapon,
+    packetLevel: level,
+    coefficient: entry.coefficient,
+    flatAdd: entry.flatAdd,
+    cooldown: entry.cooldown,
+    mappingClass,
+    specApplied,
+    specUnverified,
+  });
+}
+
+// One kit-packet primary hit composed into the modeled pre-Defense PvP
+// expectation: coefficient x weapon Base Damage endpoint + flat add feeds the
+// same expected-damage model the reviewed abilities use, with the packet's
+// mapping class carried in the precision label.
+export function resolveKitPacketExpectedPvpDamage(input) {
+  const coefficient = Number(input.coefficient);
+  const flatAdd = Number(input.flatAdd);
+  if (!Number.isFinite(coefficient) || coefficient < 0) throw new TypeError("Kit packet coefficient must be a non-negative number.");
+  if (!Number.isFinite(flatAdd) || flatAdd < 0) throw new TypeError("Kit packet flat add must be a non-negative number.");
+  const scale = (value, name) => {
+    const baseDamage = Number(value);
+    if (!Number.isFinite(baseDamage) || baseDamage < 0) throw new TypeError(`${name} must be a non-negative number.`);
+    return (coefficient * baseDamage + flatAdd).toFixed(4);
+  };
+  return modelExpectedPvpDamage({
+    ...input,
+    preResolutionMinimum: scale(input.minimum, "minimum"),
+    preResolutionMaximum: scale(input.maximum, "maximum"),
+    coefficientPrecision: `kit_packet_${String(input.mappingClass ?? "exact")}_primary_component`,
+  });
+}
+
 export function resolvePvpTradeVerdict(input) {
   return modelPvpTradeVerdict(input);
 }
