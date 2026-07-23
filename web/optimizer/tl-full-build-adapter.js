@@ -1,5 +1,5 @@
 import * as coreDefault from "../tl-core.js";
-import { loadArmoryState as loadStateDefault } from "../tl-persistence.js";
+import { loadArmoryPresets as loadPresetsDefault, loadArmoryState as loadStateDefault } from "../tl-persistence.js";
 import { optimizeHeroicPotential } from "../tl-heroic-potential.js";
 import { generateArtifactCandidates, generateRuneCandidates } from "./tl-optimizer-components.js";
 import { optimizeFullBuild } from "./tl-full-build-optimizer.js";
@@ -860,6 +860,15 @@ export async function createOptimizerAdapter(deps = {}) {
   if (!core.data) await core.initCore(deps.dataSource ?? new URL("../data/app-data.json", import.meta.url).href);
 
   const wrap = (payload, attributes = {}) => ({ build: payload.build ?? payload, attributes: payload.attributes ?? attributes, name: payload.build?.name ?? payload.name, sourceKind: payload.sourceKind ?? "armory" });
+  const armorySources = () => {
+    const rows = [];
+    const current = (deps.loadArmoryState ?? loadStateDefault)(storage, { currentGameBuild: core.data.gameBuild });
+    if (current?.ok) rows.push({ id: "current", kind: "current", name: current.data.build?.name ?? current.data.name ?? "Current Armory", profile: current.data.profile ?? {}, origin: "armory", createdAt: "", source: wrap(current.data) });
+    const loadPresets = deps.loadArmoryPresets ?? (typeof storage?.getItem === "function" ? loadPresetsDefault : null);
+    const saved = loadPresets?.(storage, { currentGameBuild: core.data.gameBuild });
+    if (saved?.ok) for (const preset of saved.data) rows.push({ id: preset.id, kind: "preset", name: preset.name ?? preset.build?.name ?? "Saved build", profile: preset.profile ?? {}, origin: preset.origin ?? "manual", createdAt: preset.createdAt ?? "", source: wrap(preset) });
+    return rows;
+  };
   const calculate = (wrapped, includeSetEffects = true, scenario = null) => core.calculateBuild(
     wrapped.build,
     wrapped.attributes ?? {},
@@ -877,10 +886,12 @@ export async function createOptimizerAdapter(deps = {}) {
       return wrap({ build, attributes: { str: 0, dex: 0, int: 0, per: 0, con: 0, ...attributes }, name, sourceKind: "scratch" });
     },
 
-    async loadArmoryBuild() {
-      const loaded = (deps.loadArmoryState ?? loadStateDefault)(storage, { currentGameBuild: core.data.gameBuild });
-      if (!loaded?.ok) return null;
-      return wrap(loaded.data);
+    async listArmoryBuilds() {
+      return armorySources();
+    },
+
+    async loadArmoryBuild(sourceId = "current") {
+      return armorySources().find((row) => row.id === sourceId)?.source ?? null;
     },
 
     async importQuestlogBuild(url) {

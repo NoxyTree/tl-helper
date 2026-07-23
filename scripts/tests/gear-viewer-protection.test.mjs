@@ -12,6 +12,19 @@ test("Gear Viewer separates increase goals from protected-stat constraints", () 
   assert.match(html, /Number\(b\.protectionPass\) - Number\(a\.protectionPass\)/);
 });
 
+test("Gear Viewer keeps everyday filters visible and progressively discloses scoring controls", () => {
+  assert.match(html, /<details id="advanced-settings" class="advanced-settings">/);
+  assert.match(html, /<summary>Comparison &amp; scoring <small id="advanced-summary">/);
+  assert.match(html, /class="advanced-controls"/);
+  assert.match(html, /class="fit-rules"/);
+  assert.match(html, /class="check-inline scenario-controls"/);
+  assert.ok(html.indexOf('id="category-select"') < html.indexOf('id="advanced-settings"'));
+  assert.ok(html.indexOf('id="mode-select"') > html.indexOf('id="advanced-settings"'));
+  assert.ok(html.indexOf('id="fav-toggle"') < html.indexOf('id="advanced-settings"'));
+  assert.ok(html.indexOf('id="col-button"') < html.indexOf('id="advanced-settings"'));
+  assert.doesNotMatch(html, /\.advanced-settings \{[^}]*order:/);
+});
+
 test("protected stats require a real build baseline and remain visible when blocked", () => {
   assert.match(html, /state\.mode !== "bare" && state\.protected\.length > 0/);
   assert.match(html, /row\.protectionPass \? "" : "protection-blocked"/);
@@ -98,6 +111,14 @@ test("the currently equipped item is pinned above ranked candidates", () => {
   assert.match(html, /row\.isPinned \|\| row\.score > 0/);
   assert.match(html, /class="pinned-mark">● Currently equipped/);
   assert.match(html, /tr\.equipped-row/);
+});
+
+test("sticky item columns share the table surface instead of forming a dark overlay", () => {
+  assert.match(html, /\.table-wrap \{[^}]*background: #100c08/);
+  assert.match(html, /table\.gear td \{[^}]*background:#100c08/);
+  assert.match(html, /td\.item-cell-td, td\.fav-cell \{ background:#100c08; \}/);
+  assert.match(html, /td\.item-cell-td \{ box-shadow:8px 0 14px -14px/);
+  assert.doesNotMatch(html, /th\.item-col, td\.item-cell-td \{[^}]*background: #120d08/);
 });
 
 test("attribute-derived gains expand only while Shift is held over an item", async () => {

@@ -56,13 +56,17 @@ test("rune panel provides explicit item, effect, and selector empty states", () 
 
 test("TL Helper creation and saving are primary while Questlog remains optional", () => {
   const header = sectionBetween("<!-- ======================= TOP BAR", "<!-- ======================= HERO STAT STRIP");
-  assert.match(header, />My builds \(\{\{ presetCount \}\}\)<\/button>/);
-  assert.match(header, />New build<\/button>/);
+  assert.match(header, /class="tl-armory-workspace"/);
+  assert.match(header, /role="group" aria-label="Current build details"/);
+  assert.match(header, /<span>My builds<\/span><span class="tl-armory-action-count">\{\{ presetCount \}\}<\/span>/);
+  assert.match(header, />\+ New build<\/button>/);
   assert.match(header, />Import Questlog<\/button>/);
   assert.doesNotMatch(header, /Auto-fill|onAutoFill/);
   assert.match(header, /aria-label="Character name"/);
   assert.match(header, /aria-label="Build role"/);
   assert.match(header, /aria-label="Server"/);
+  assert.match(shellCss, /\.tl-armory-identity\s*\{[\s\S]*?grid-template-columns:/);
+  assert.match(shellCss, /\.tl-armory-header \.tl-toolbar-actions\s*\{[\s\S]*?grid-template-columns:/);
 
   const builds = sectionBetween('value="{{ presetsOpen }}"', 'value="{{ importOpen }}"');
   assert.match(builds, /Create and edit builds directly in TL Helper/);

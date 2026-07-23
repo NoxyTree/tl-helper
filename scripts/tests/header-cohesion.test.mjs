@@ -11,7 +11,7 @@ const pages = [
   ["gear-viewer.html", "./gear-viewer.html", "Gear Viewer", "Gear Viewer | TL Helper"],
   ["full-build-optimizer.html", "./full-build-optimizer.html", "Build Optimizer", "Build Optimizer | TL Helper"],
   ["build-from-scratch.html", "./full-build-optimizer.html", "Build Optimizer", "Build Optimizer: Build from Scratch | TL Helper"],
-  ["privacy.html", "./privacy.html", "Privacy", "Privacy | TL Helper"],
+  ["privacy.html", null, null, "Privacy | TL Helper"],
 ];
 
 const assetVersion = "20260713";
@@ -30,7 +30,6 @@ const expectedNavigation = [
   ["./achievements.html", "Achievements"],
   ["./gear-viewer.html", "Gear Viewer"],
   ["./full-build-optimizer.html", "Build Optimizer"],
-  ["./privacy.html", "Privacy"],
 ];
 
 const load = (page) => readFile(new URL(`../../web/${page}`, import.meta.url), "utf8");
@@ -52,10 +51,14 @@ test("every public page uses one cohesive branded application header", async () 
     assert.deepEqual(links, expectedNavigation, `${page} keeps navigation order and destinations`);
 
     const activeLinks = [...nav.matchAll(/<a class="tl-app-nav-item is-active" href="([^"]+)" aria-current="(page|location)">([^<]+)<\/a>/gi)];
-    assert.equal(activeLinks.length, 1, `${page} has exactly one active navigation item`);
-    assert.equal(activeLinks[0][1], activeHref, `${page} active navigation destination is correct`);
-    assert.equal(activeLinks[0][2], page === "build-from-scratch.html" ? "location" : "page", `${page} uses the correct aria-current semantics`);
-    assert.equal(activeLinks[0][3].trim(), activeLabel, `${page} active navigation label is correct`);
+    if (activeHref) {
+      assert.equal(activeLinks.length, 1, `${page} has exactly one active navigation item`);
+      assert.equal(activeLinks[0][1], activeHref, `${page} active navigation destination is correct`);
+      assert.equal(activeLinks[0][2], page === "build-from-scratch.html" ? "location" : "page", `${page} uses the correct aria-current semantics`);
+      assert.equal(activeLinks[0][3].trim(), activeLabel, `${page} active navigation label is correct`);
+    } else {
+      assert.equal(activeLinks.length, 0, `${page} does not promote a utility page in product navigation`);
+    }
     assert.match(html, /<link rel="icon" href="\.\/tl-logo\.png" type="image\/png">/i, `${page} uses the TL monogram favicon`);
     assert.ok(html.includes(`<title>${title}</title>`), `${page} aligns its document title with the product navigation`);
     if (socialTitles.has(page)) {
@@ -64,6 +67,23 @@ test("every public page uses one cohesive branded application header", async () 
       assert.ok(html.includes('<meta name="twitter:image" content="https://tlhelper.org/tl-logo.png">'), `${page} publishes the shared Twitter preview image`);
     }
     assert.match(html, new RegExp(`<link\\b[^>]*href=["']\\./tl-shell\\.css\\?v=${assetVersion}["'][^>]*>`, "i"), `${page} uses the shared asset release version`);
+  }
+});
+
+test("privacy is available in the shared footer instead of primary navigation", async () => {
+  for (const page of [...pages.map(([name]) => name), "combat-lab.html"]) {
+    const html = await load(page);
+    const header = html.match(/<header class="tl-app-header(?: [^"]+)?">[\s\S]*?<\/header>/i)?.[0] ?? "";
+    const footer = html.match(/<footer class="tl-app-footer">[\s\S]*?<\/footer>/i)?.[0] ?? "";
+
+    assert.doesNotMatch(header, /href="\.\/privacy\.html"/i, `${page} keeps Privacy out of primary navigation`);
+    assert.ok(footer, `${page} includes the shared utility footer`);
+    assert.match(footer, /TL Helper is an independent fan project/i, `${page} identifies the project in its footer`);
+    if (page === "privacy.html") {
+      assert.match(footer, /class="tl-app-footer-current" aria-current="page">Privacy<\/span>/i, "Privacy marks its footer destination as current");
+    } else {
+      assert.match(footer, /<a href="\.\/privacy\.html">Privacy<\/a>/i, `${page} links to Privacy from the footer`);
+    }
   }
 });
 
@@ -102,6 +122,8 @@ test("design-component runtime prefers same-origin vendored React and falls back
 test("shared shell owns the logo and responsive header behaviour", async () => {
   const css = await load("tl-shell.css");
   assert.match(css, /background:\s*url\("\.\/tl-logo\.png"\) center \/ contain no-repeat/);
+  assert.match(css, /\.tl-app-footer\s*\{[\s\S]*?border-top:/, "shared shell styles the utility footer");
+  assert.match(css, /\.tl-app-footer-inner\s*\{[\s\S]*?justify-content:\s*space-between;/, "shared footer separates project context from utility navigation");
   assert.match(css, /@media \(max-width: 1000px\)[\s\S]*?\.tl-app-nav\s*\{[\s\S]*?grid-column:\s*1 \/ -1;[\s\S]*?overflow-x:\s*auto;/);
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*?\.tl-app-header-end\s*\{[\s\S]*?grid-row:\s*2;/);
   await access(new URL("../../web/tl-logo.png", import.meta.url));

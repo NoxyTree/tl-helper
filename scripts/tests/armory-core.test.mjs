@@ -2,9 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   adjustMasterySelection,
+  EQUIPMENT_SLOTS,
   initCore,
+  label,
   masteryLockInfo,
   reconcileMasterySelections,
+  WEAPON_TYPES,
   weaponHitProfile,
 } from "../../web/tl-core.js";
 
@@ -34,6 +37,12 @@ const masteries = [
 ];
 
 await initCore({ items: [], runes: [], itemSets: [], masteries, skills: [], skillTraits: [] });
+
+test("Sword and Shield is represented as one weapon family", () => {
+  assert.equal(label("sword"), "Sword and Shield");
+  assert.equal(WEAPON_TYPES.includes("shield"), false);
+  assert.equal(EQUIPMENT_SLOTS.find((slot) => slot.id === "off_hand").types.includes("shield"), false);
+});
 
 test("weaponHitProfile maps weapon families to their hit stat", () => {
   assert.deepEqual(weaponHitProfile("bow"), { key: "ranged", statId: "range_accuracy", label: "Ranged Hit Chance" });

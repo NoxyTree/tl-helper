@@ -3,6 +3,7 @@ node_modules/
 Thumbs.db
 *.log
 out/
+dist/
 tools/dotnet-sdk/
 tools/FModel/
 tools/FModel.zip

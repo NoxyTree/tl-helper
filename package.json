@@ -4,6 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "scripts": {
+    "build:sites": "node scripts/build-sites-static.mjs",
     "benchmark:optimizer": "node scripts/benchmark-build-optimizer.mjs --depth=fast --runs=1",
     "test": "node --test scripts/tests/*.test.mjs",
     "adviser:start": "node local-adviser/server.mjs",

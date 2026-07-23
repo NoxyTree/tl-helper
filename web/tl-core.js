@@ -47,7 +47,7 @@ export const ITEM_POTENTIAL_EFFECTS_MODE = "excluded";
 
 export const EQUIPMENT_SLOTS = [
   { id: "main_hand", label: "Main Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
-  { id: "off_hand", label: "Off Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand", "shield"] },
+  { id: "off_hand", label: "Off Hand", types: ["bow", "crossbow", "dagger", "gauntlet", "orb", "spear", "staff", "sword", "sword2h", "wand"] },
   { id: "head", label: "Head", types: ["head"] },
   { id: "chest", label: "Chest", types: ["chest"] },
   { id: "hands", label: "Hands", types: ["hands"] },
@@ -117,7 +117,10 @@ export const HEROIC_SLOT_GROUPS = {
   armor: ["head", "chest", "cloak", "hands", "feet", "legs"],
   accessory: ["necklace", "bracelet", "ring_1", "ring_2", "brooch", "earring", "belt"],
 };
-export const DISPLAY_LABELS = { sword2h: "Greatsword" };
+export const DISPLAY_LABELS = {
+  sword: "Sword and Shield",
+  sword2h: "Greatsword",
+};
 
 // Explicit static-calculator boundary. Every projected set breakpoint must be
 // exactly one of: a structured bonus_stat row, a mapped SET_PASSIVE_RULES

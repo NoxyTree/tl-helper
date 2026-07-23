@@ -8,10 +8,10 @@ test("Builder transforms from setup into a full character result", () => {
   assert.match(html, /Build from Scratch/);
   assert.match(html, /Forge a strong loadout/);
   assert.doesNotMatch(html, /Forge best loadout/);
-  assert.match(html, /The build you created/);
+  assert.match(html, /Your optimized/);
   assert.match(html, /Edit build goals/);
   assert.match(html, /Equipment/);
-  assert.match(html, /Favourite Stats/);
+  assert.match(html, /Your Priority Stats/);
   for (const label of ["Summary", "Attack", "Defense", "Utility", "PvP", "Boss", "Gear", "Sets & Runes"]) assert.ok(html.includes(label));
 });
 
@@ -30,10 +30,12 @@ test("Improve my build opens the exact Builder result with kept equipment contex
 test("setup uses real weapon, ranked goal modes, rules, and attribute contracts", () => {
   assert.match(html, /aria-label="\{\{ w\.ariaLabel \}\}"/);
   assert.match(html, /class="tl-weapon-card"/);
-  assert.match(html, /class="tl-weapon-card-select"/);
+  assert.match(html, /class="tl-weapon-menu"/);
+  assert.match(html, /role="listbox"/);
+  assert.match(html, /class="tl-weapon-option" role="option"/);
   assert.equal(html.match(/class="tl-weapon-pairing"/g)?.length, 1);
-  assert.match(html, /\.tl-weapon-card-select\{position:absolute;z-index:5;inset:0;width:100%;height:100%/);
-  assert.match(html, /name:selected\?this\.core\.label\(selected\):'Choose weapon'/);
+  assert.match(html, /\.tl-weapon-menu\{position:absolute;z-index:45/);
+  assert.match(html, /name:selected\?this\.core\.label\(selected\):'Choose a weapon'/);
   assert.match(html, /aria-label="Add a priority stat"/);
   assert.match(html, /movePriority/);
   assert.match(html, /Goal mode for \{\{ p\.name \}\}/);
@@ -45,8 +47,38 @@ test("setup uses real weapon, ranked goal modes, rules, and attribute contracts"
   assert.match(html, /depth:'thorough'/);
 });
 
+test("setup focuses one guided step at a time and collapses advanced choices", () => {
+  assert.match(html, /class="tl-builder-progress"/);
+  assert.match(html, /setupStep: 1/);
+  assert.match(html, /setupStepWeapons:setupStep===1/);
+  assert.match(html, /setupStepReview:setupStep===4/);
+  assert.match(html, /class="tl-rule-overview"/);
+  assert.match(html, /Your setup is ready/);
+  assert.match(html, /<details class="tl-rules-customizer">/);
+  assert.match(html, /Change these settings/);
+  assert.match(html, /setupRuleStatus=setupRulesCustomized\?'Changed by you':'Ready to go'/);
+  assert.doesNotMatch(html, /tl-rule-summary-icon/);
+  assert.doesNotMatch(html, /\.tl-rule-summary-card::before/);
+  assert.match(html, /\.tl-rule-summary-card\{[^}]*border:1px solid rgba\(71,163,108,.44\)/);
+  assert.match(html, /\.tl-rule-summary-card strong\{[^}]*color:#f4e2bd/);
+  assert.doesNotMatch(html, /Theoretical Heroics/);
+  assert.doesNotMatch(html, />Attribute Budget</);
+  assert.match(html, /Advanced combat scoring/);
+  assert.match(html, /Progression assumptions/);
+  assert.match(html, /class="tl-setup-review"/);
+  assert.match(html, /Continue to priorities/);
+});
+
+test("scratch mode exposes its sister page and gives weapon selection active contrast", () => {
+  assert.match(html, /class="tl-optimizer-mode-switch"/);
+  assert.match(html, /href="\.\/full-build-optimizer\.html"/);
+  assert.match(html, /class="tl-weapon-orb \{\{ w\.orbClass \}\}"/);
+  assert.match(html, /orbClass:selected\?'has-weapon':'is-empty'/);
+  assert.match(html, /name_color:selected\?'#f2c777':'#ead8b7'/);
+});
+
 test("owned Heroic builder uses the canonical item-specific data model", () => {
-  assert.match(html, /My Heroics/);
+  assert.match(html, /Heroic gear/);
   assert.match(html, /heroicCatalog\(group\)/);
   assert.match(html, /HEROIC_GRADE/);
   assert.match(html, /heroicEffectGroupCount/);
@@ -54,9 +86,29 @@ test("owned Heroic builder uses the canonical item-specific data model", () => {
   assert.match(html, /heroicEffectValue/);
   assert.match(html, /uniqueTrait/);
   assert.match(html, /resonance/);
+  assert.match(html, /Heroic bonus stats/);
+  assert.match(html, /The blue stat lines on the item tooltip/);
+  assert.match(html, /Skill Core/);
+  assert.match(html, /itemSkillCores\(item\)/);
+  assert.match(html, /perkId:cfg\.perkId\|\|''/);
+  assert.match(html, /perkRequired=group==='weapon'/);
+  assert.match(html, /const perks=group==='weapon'\?this\.core\.itemSkillCores\(item\):\[\]/);
+  assert.match(html, /perkId:group==='weapon'\?\(cfg\.perkId\|\|''\):''/);
+  assert.match(html, /Choose the Skill Core shown on your item/);
+  assert.match(html, /draftFixedStats:item\?this\.itemFixedStats/);
+  assert.match(html, /<img src="\{\{ di\.imageUrl \}\}"/);
+  assert.doesNotMatch(html, />Heroic Trait</);
+  assert.doesNotMatch(html, />Heroic Effect Groups</);
+  assert.match(html, /patchDraft\(p\)[\s\S]{0,240}hover:null/);
+  assert.match(html, /closeDrawer = \(\) => this\.setState\(\{ drawer:null, hover:null \}\)/);
   assert.match(html, /Choose the exact owned rune, stat roll, and level/);
-  assert.match(html, /Use only my Heroics/);
-  assert.match(html, /Allow theoretical/);
+  assert.match(html, /Only use Heroic gear I own/);
+  assert.match(html, /Suggest the best Heroic gear/);
+  assert.match(html, /aria-pressed="\{\{ m\.selected \}\}"/);
+  assert.match(html, /heroicModeTitle=heroicSuggestMode\?'Automatic picks are on':'Only your gear will be used'/);
+  assert.match(html, /emptyTitle:heroicSuggestMode\?'Automatic choice allowed':'Nothing added'/);
+  assert.match(html, /actionLabel:heroicSuggestMode\?'Lock mine':'＋ Add mine'/);
+  assert.match(html, /class="tl-heroic-auto-badge"/);
   // The "No Heroics" mode was retired — an optimized build always includes heroics.
   assert.doesNotMatch(html, /id:'none', label:'No Heroics'/);
 });
@@ -92,17 +144,25 @@ test("Builder results use the shared Armory hover card contract", () => {
 });
 
 test("result tuning links two to five real-stat sliders to retained complete builds", () => {
-  assert.match(html, /Tune the tradeoff/);
+  assert.match(html, /Explore alternative builds/);
   assert.match(html, /class="tl-tune-range"/);
   assert.match(html, /paretoTuneFrontier/);
   assert.match(html, /selectLinkedTuneCandidate/);
   assert.match(html, /s\.priorities\.slice\(0,5\)/);
   assert.match(html, /complete recalculated build/);
-  assert.match(html, /tradeoff builds/);
+  assert.match(html, /alternatives/);
   assert.match(html, /Hard cap/);
   assert.match(html, /General PvP diff/);
   assert.match(html, /candidateProgression=candidate\.progression\?\{\.\.\.structuredClone\(candidate\.progression\.summary\|\|\{\}\),settings:structuredClone\(candidate\.progression\.settings\|\|\{\}\)\}:null/);
   assert.match(html, /progression:candidateProgression,goalResults,allStats/);
+});
+
+test("result summary uses independent columns so taller alternatives do not create empty rows", () => {
+  assert.match(html, /class="tl-summary-flow-grid"/);
+  assert.match(html, /class="tl-summary-left-column"/);
+  assert.match(html, /class="tl-summary-right-column"/);
+  assert.match(html, /class="tl-result-card tl-summary-weapons"/);
+  assert.match(html, /\.tl-summary-left-column,\.tl-summary-right-column\{min-width:0;display:grid/);
 });
 
 test("attribute shortcomings are hidden behind hover tracks", () => {
@@ -115,7 +175,9 @@ test("attribute shortcomings are hidden behind hover tracks", () => {
 test("availability rules have accessible information controls", () => {
   assert.match(html, /endgame: true/);
   assert.match(html, /minimumItemLevel:this\.state\.rules\.endgame\?50:0/);
-  assert.match(html, /Endgame equipment/);
+  assert.match(html, /Use level 50\+ gear/);
+  assert.match(html, /class="tl-rule-toggle-grid"/);
+  assert.match(html, /class="tl-set-preference-grid"/);
   assert.match(html, /aria-label="About \{\{ r\.name \}\}"/);
   assert.match(html, /onMouseEnter="\{\{ r\.showTip \}\}"/);
   assert.match(html, /onFocus="\{\{ r\.showTip \}\}"/);

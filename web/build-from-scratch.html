@@ -35,12 +35,96 @@
   @keyframes tlSpin{to{transform:rotate(360deg);}}
   @keyframes tlSlide{from{transform:translateX(40px);opacity:0;}to{transform:none;opacity:1;}}
   @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;}}
+  .tl-optimizer-mode-switch{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:5px;min-width:310px;padding:5px;border:1px solid rgba(212,166,94,.22);border-radius:11px;background:rgba(8,6,4,.56);}
+  .tl-optimizer-mode-switch a,.tl-optimizer-mode-switch span{min-height:38px;display:grid;place-items:center;padding:8px 13px;border:1px solid transparent;border-radius:8px;color:#8f7d61;font-size:11.5px;font-weight:600;text-decoration:none;}
+  .tl-optimizer-mode-switch a:hover{border-color:rgba(212,166,94,.3);color:#ead4a9;}
+  .tl-optimizer-mode-switch .active{border-color:rgba(242,199,119,.55);background:linear-gradient(135deg,rgba(107,68,22,.34),rgba(37,27,15,.7));color:#f6d391;box-shadow:inset 0 1px rgba(255,238,200,.05);}
+  .tl-builder-progress{position:relative;z-index:4;width:min(calc(100% - 32px),1180px);margin:10px auto 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:7px;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:rgba(9,7,10,.76);box-shadow:0 16px 42px rgba(0,0,0,.18);}
+  .tl-builder-progress button{min-width:0;display:grid;grid-template-columns:30px minmax(0,1fr);gap:9px;align-items:center;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:#78694f;cursor:pointer;text-align:left;transition:border-color .16s ease,background .16s ease,color .16s ease;}
+  .tl-builder-progress button:hover:not(:disabled){border-color:rgba(212,166,94,.28);background:rgba(212,166,94,.06);color:#d9c49b;}
+  .tl-builder-progress button:disabled{cursor:not-allowed;opacity:.46;}
+  .tl-builder-progress button.is-active{border-color:rgba(242,199,119,.48);background:linear-gradient(135deg,rgba(107,68,22,.28),rgba(24,18,11,.72));color:#f6d391;}
+  .tl-builder-progress button.is-complete{color:#bca77e;}
+  .tl-builder-step-number{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(212,166,94,.3);border-radius:9px;font:14px Marcellus,serif;}
+  .tl-builder-progress button.is-active .tl-builder-step-number{border-color:#f2c777;background:#f2c777;color:#120d07;}
+  .tl-builder-progress button.is-complete .tl-builder-step-number{border-color:rgba(126,224,166,.45);color:#7ee0a6;}
+  .tl-builder-step-copy{min-width:0;}
+  .tl-builder-step-copy strong,.tl-builder-step-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tl-builder-step-copy strong{font-size:11.5px;}
+  .tl-builder-step-copy small{margin-top:2px;color:#75664f;font-size:9px;}
+  .tl-builder-progress button.is-active small{color:#aa9168;}
+  .tl-setup-step{animation:tlRise .2s ease;}
+  .tl-rule-overview{padding:20px;border:1px solid rgba(212,166,94,.26);border-radius:16px;background:radial-gradient(circle at 92% 0,rgba(209,138,58,.1),transparent 38%),linear-gradient(180deg,rgba(31,23,14,.78),rgba(16,12,9,.9));box-shadow:0 18px 44px rgba(0,0,0,.22);}
+  .tl-rule-overview-head{display:flex;align-items:flex-start;gap:12px;}
+  .tl-rule-overview-head h2{margin:0;color:#ead8b7;font:400 21px Marcellus,serif;}
+  .tl-rule-overview-head p{max-width:680px;margin:5px 0 0;color:#99876a;font-size:11px;line-height:1.5;}
+  .tl-rule-status{margin-left:auto;flex:0 0 auto;padding:5px 9px;border:1px solid rgba(126,224,166,.34);border-radius:999px;background:rgba(27,73,48,.16);color:#87d7a7;font-size:8.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+  .tl-rule-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:16px;}
+  .tl-rule-summary-card{min-width:0;padding:13px 14px;border:1px solid rgba(71,163,108,.44);border-radius:11px;background:linear-gradient(110deg,rgba(34,82,53,.11),rgba(4,3,3,.24) 42%);box-shadow:inset 0 1px rgba(141,220,172,.045),0 0 0 1px rgba(38,103,64,.06);}
+  .tl-rule-summary-card span,.tl-rule-summary-card strong,.tl-rule-summary-card small{display:block;white-space:normal;}
+  .tl-rule-summary-card span{color:#9bc9a9;font-size:8.5px;font-weight:750;letter-spacing:.12em;text-transform:uppercase;}
+  .tl-rule-summary-card strong{margin-top:4px;color:#f4e2bd;font-size:12px;font-weight:700;line-height:1.3;text-shadow:0 1px 10px rgba(244,226,189,.08);}
+  .tl-rule-summary-card small{margin-top:4px;color:#c0ad88;font-size:9.5px;font-weight:500;line-height:1.4;}
+  .tl-rule-toggle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+  .tl-rule-toggle-card{min-height:74px;}
+  .tl-rule-toggle-card>button:first-child{align-items:center!important;}
+  .tl-rule-toggle-card>button:first-child>span:last-child{padding-right:4px;}
+  .tl-rule-toggle-card>button:first-child>span:last-child>span:first-child{line-height:1.25;}
+  .tl-rule-toggle-card>button:first-child>span:last-child>span:last-child{line-height:1.35;}
+  .tl-set-preference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:end;}
+  .tl-heroic-mode-callout{margin:8px 0 12px;padding:10px 12px;border-left:3px solid var(--heroic-mode-accent);border-radius:0 8px 8px 0;background:var(--heroic-mode-bg);}
+  .tl-heroic-mode-callout strong{display:block;color:var(--heroic-mode-title);font-size:11px;}
+  .tl-heroic-mode-callout span{display:block;margin-top:3px;color:#b3a488;font-size:10px;line-height:1.45;}
+  .tl-heroic-empty-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px dashed var(--heroic-slot-border);border-radius:12px;background:var(--heroic-slot-bg);}
+  .tl-heroic-empty-mark{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:1.5px dashed var(--heroic-slot-border);background:rgba(0,0,0,.22);display:grid;place-items:center;color:var(--heroic-slot-accent);font-size:17px;}
+  .tl-heroic-auto-badge{flex:0 0 auto;padding:3px 7px;border:1px solid rgba(103,199,140,.38);border-radius:999px;background:rgba(36,91,57,.16);color:#8ad6a5;font-size:8px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;}
+  .tl-rules-customizer{margin-top:12px;border:1px solid rgba(212,166,94,.18);border-radius:11px;background:rgba(4,3,3,.2);overflow:hidden;}
+  .tl-rules-customizer>summary{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;list-style:none;}
+  .tl-rules-customizer>summary::-webkit-details-marker{display:none;}
+  .tl-rules-customizer>summary::before{content:"›";color:#d2ad68;font:21px Marcellus,serif;line-height:1;transition:transform .15s ease;}
+  .tl-rules-customizer[open]>summary::before{transform:rotate(90deg);}
+  .tl-rules-customizer>summary strong{display:block;color:#d9c6a3;font-size:11.5px;}
+  .tl-rules-customizer>summary small{display:block;margin-top:2px;color:#78684f;font-size:9.5px;}
+  .tl-rules-customizer>summary>span{margin-left:auto;color:#7d6c51;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+  .tl-rules-customizer-body{display:grid;gap:12px;padding:12px;border-top:1px solid rgba(212,166,94,.13);background:rgba(0,0,0,.1);}
+  .tl-advanced-cluster{border:1px solid rgba(135,172,239,.2);border-radius:14px;background:rgba(10,12,17,.5);overflow:hidden;}
+  .tl-advanced-cluster + .tl-advanced-cluster{border-color:rgba(185,140,240,.22);}
+  .tl-advanced-cluster>summary{display:flex;align-items:center;gap:10px;padding:14px 16px;color:#d8e2f2;cursor:pointer;font:400 16px Marcellus,serif;list-style:none;}
+  .tl-advanced-cluster>summary::-webkit-details-marker{display:none;}
+  .tl-advanced-cluster>summary::before{content:"›";color:#9db7df;font:21px Marcellus,serif;line-height:1;transition:transform .15s ease;}
+  .tl-advanced-cluster[open]>summary::before{transform:rotate(90deg);}
+  .tl-advanced-cluster>summary span{margin-left:auto;color:#71839e;font:600 9px 'Instrument Sans';letter-spacing:.1em;text-transform:uppercase;}
+  .tl-advanced-cluster>section{border:0!important;border-top:1px solid rgba(135,172,239,.14)!important;border-radius:0!important;}
+  .tl-setup-review{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:14px;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg,rgba(31,23,14,.7),rgba(20,15,10,.82));}
+  .tl-setup-review-card{min-width:0;padding:11px 12px;border:1px solid rgba(212,166,94,.14);border-radius:9px;background:rgba(0,0,0,.2);}
+  .tl-setup-review-card span,.tl-setup-review-card strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tl-setup-review-card span{color:#7d6b51;font-size:8px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;}
+  .tl-setup-review-card strong{margin-top:5px;color:#e5d3af;font-size:11px;}
+  .tl-setup-nav{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(212,166,94,.2);border-radius:12px;background:linear-gradient(90deg,rgba(33,24,13,.92),rgba(13,10,7,.94));box-shadow:0 16px 38px rgba(0,0,0,.28);}
+  .tl-setup-nav-copy{min-width:0;flex:1;color:#8a795f;font-size:10.5px;line-height:1.45;}
+  .tl-setup-nav button{min-height:40px;padding:0 16px;border-radius:9px;cursor:pointer;font:700 11px 'Instrument Sans';}
+  .tl-setup-nav .tl-back{border:1px solid rgba(212,166,94,.3);background:rgba(0,0,0,.24);color:#d8c6a5;}
+  .tl-setup-nav .tl-next{min-width:210px;border:1px solid #f2c777;background:linear-gradient(135deg,#f6d391,#c98b39);color:#0b0805;}
+  .tl-setup-nav button:disabled{opacity:.42;cursor:not-allowed;}
   .tl-priority-category-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
   .tl-priority-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
   .tl-weapon-pairing{position:relative;z-index:20;}
-  .tl-weapon-card{position:relative;isolation:isolate;min-width:0;}
+  .tl-weapon-card{position:relative;isolation:isolate;min-width:0;box-shadow:inset 0 1px rgba(255,239,205,.035),0 10px 24px rgba(0,0,0,.18);transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease;}
+  .tl-weapon-card:hover{border-color:rgba(242,199,119,.72)!important;background:linear-gradient(135deg,rgba(93,59,20,.38),rgba(17,12,8,.92))!important;box-shadow:inset 0 1px rgba(255,239,205,.07),0 14px 30px rgba(0,0,0,.28);transform:translateY(-1px);}
   .tl-weapon-card:focus-within{border-color:rgba(242,199,119,.82)!important;box-shadow:0 0 0 2px rgba(242,199,119,.12),0 10px 28px rgba(0,0,0,.24);}
-  .tl-weapon-card-select{position:absolute;z-index:5;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+  .tl-weapon-picker{position:relative;min-width:0;}
+  .tl-weapon-card{width:100%;display:flex;align-items:center;gap:13px;padding:13px;border-radius:12px;cursor:pointer;text-align:left;font:inherit;}
+  .tl-weapon-menu{position:absolute;z-index:45;top:calc(100% + 8px);left:0;right:0;display:grid;gap:7px;max-height:330px;overflow:auto;padding:9px;border:1px solid rgba(242,199,119,.48);border-radius:12px;background:linear-gradient(180deg,rgba(31,23,14,.99),rgba(10,8,7,.995));box-shadow:0 22px 50px rgba(0,0,0,.58),inset 0 1px rgba(255,239,205,.04);animation:tlRise .16s ease;}
+  .tl-weapon-menu-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 3px 7px;color:#8d795a;font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
+  .tl-weapon-menu-head button{border:0;background:transparent;color:#b59a6d;cursor:pointer;font-size:10px;}
+  .tl-weapon-option{width:100%;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 9px;border:1px solid rgba(212,166,94,.18);border-radius:9px;background:rgba(0,0,0,.24);color:#dfcfad;cursor:pointer;text-align:left;transition:border-color .14s ease,background .14s ease,transform .14s ease;}
+  .tl-weapon-option:hover,.tl-weapon-option[aria-selected="true"]{border-color:rgba(242,199,119,.55);background:linear-gradient(135deg,rgba(107,68,22,.28),rgba(13,10,7,.72));transform:translateX(2px);}
+  .tl-weapon-option-orb{width:38px;height:38px;border:1px solid rgba(212,166,94,.4);border-radius:50%;}
+  .tl-weapon-option strong{display:block;overflow:hidden;color:#ead8b7;font-size:11.5px;text-overflow:ellipsis;white-space:nowrap;}
+  .tl-weapon-option small{display:block;margin-top:2px;color:#806e53;font-size:8.5px;}
+  .tl-weapon-option-mark{color:#f2c777;font-size:13px;}
+  .tl-weapon-orb{position:relative;}
+  .tl-weapon-orb.is-empty::after{content:"+";position:absolute;inset:0;display:grid;place-items:center;color:#e3b866;font:22px Marcellus,serif;text-shadow:0 0 14px rgba(242,199,119,.36);}
   .tl-tune-range{width:100%;height:22px;margin:0;appearance:none;background:transparent;cursor:grab;}
   .tl-tune-range:active{cursor:grabbing;}
   .tl-tune-range::-webkit-slider-runnable-track{height:7px;border:1px solid rgba(242,199,119,.28);border-radius:999px;background:linear-gradient(90deg,rgba(185,140,240,.72),rgba(242,199,119,.9));box-shadow:inset 0 1px 4px rgba(0,0,0,.6);}
@@ -48,7 +132,31 @@
   .tl-tune-range:hover::-webkit-slider-thumb{transform:scale(1.14);box-shadow:0 0 0 5px rgba(242,199,119,.16),0 0 22px rgba(242,199,119,.66);}
   .tl-tune-range::-moz-range-track{height:7px;border:1px solid rgba(242,199,119,.28);border-radius:999px;background:linear-gradient(90deg,rgba(185,140,240,.72),rgba(242,199,119,.9));}
   .tl-tune-range::-moz-range-thumb{width:18px;height:18px;border:2px solid #fff0c9;border-radius:50%;background:#f2c777;box-shadow:0 0 16px rgba(242,199,119,.48);}
-  @media (max-width:900px){.tl-priority-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-priority-result-grid,.tl-result-progression-grid,.tl-mastery-panel-grid{grid-template-columns:1fr!important;}}
+  .tl-title-strip{width:min(100%,1920px);margin-inline:auto;}
+  .tl-result-actions{padding:6px;border:1px solid rgba(212,166,94,.18);border-radius:13px;background:rgba(13,10,8,.72);box-shadow:0 12px 34px rgba(0,0,0,.22);}
+  .tl-result-main{width:min(100%,1920px);margin-inline:auto;gap:16px!important;padding-top:14px!important;}
+  .tl-result-equipment,.tl-result-workspace{border-color:rgba(212,166,94,.24)!important;background:linear-gradient(180deg,rgba(29,22,14,.86),rgba(13,10,8,.94))!important;box-shadow:0 18px 48px rgba(0,0,0,.18);}
+  .tl-result-workspace{padding:17px!important;}
+  .tl-result-primary-tabs{gap:6px!important;padding:5px!important;margin-bottom:12px!important;background:rgba(5,4,4,.36)!important;}
+  .tl-result-primary-tab{min-height:38px!important;font-size:12px!important;}
+  .tl-result-subtabs{gap:7px!important;margin-bottom:15px!important;}
+  .tl-result-card{border-color:rgba(212,166,94,.18)!important;background:linear-gradient(180deg,rgba(29,22,14,.68),rgba(13,10,8,.78))!important;box-shadow:inset 0 1px rgba(255,236,194,.025);}
+  .tl-summary-flow-grid{display:grid!important;grid-template-columns:minmax(0,1.06fr) minmax(380px,.94fr)!important;gap:16px!important;align-items:start!important;margin-bottom:16px!important;}
+  .tl-summary-left-column,.tl-summary-right-column{min-width:0;display:grid!important;gap:16px!important;align-self:start;}
+  .tl-summary-progression{grid-column:1 / -1;}
+  .tl-summary-flow-grid:not(:has(.tl-summary-alternatives)) .tl-summary-left-column{grid-column:1 / -1;}
+  .tl-summary-alternatives{padding:16px!important;border-color:rgba(185,140,240,.34)!important;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.14),transparent 44%),linear-gradient(150deg,rgba(32,22,42,.8),rgba(13,10,12,.9))!important;box-shadow:0 16px 38px rgba(0,0,0,.18),inset 0 1px rgba(225,204,244,.035)!important;}
+  .tl-alternative-row{padding:11px 12px!important;border-color:rgba(185,140,240,.18)!important;background:rgba(9,7,11,.36)!important;}
+  .tl-alternative-step{width:30px!important;height:30px!important;border-radius:8px!important;font-size:15px!important;}
+  .tl-equipment-card{padding:12px 8px!important;background:rgba(5,4,3,.24);}
+  @media (max-width:1180px){
+    .tl-summary-flow-grid{grid-template-columns:1fr!important;}
+    .tl-summary-left-column,.tl-summary-right-column,.tl-summary-progression{grid-column:1!important;}
+    .tl-rule-toggle-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @media (max-width:900px){.tl-optimizer-mode-switch{width:100%;min-width:0}.tl-builder-progress{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-rule-summary-grid{grid-template-columns:1fr;}.tl-setup-review{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-priority-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.tl-priority-result-grid,.tl-result-progression-grid,.tl-mastery-panel-grid{grid-template-columns:1fr!important;}.tl-result-actions{width:100%;justify-content:flex-start!important;}.tl-result-main{padding-inline:14px!important;}.tl-result-workspace{padding:13px!important;}}
+  @media (max-width:650px){.tl-rule-toggle-grid,.tl-set-preference-grid{grid-template-columns:1fr;}}
+  @media (max-width:560px){.tl-builder-progress{grid-template-columns:1fr;}.tl-builder-step-copy small{display:none;}.tl-rule-overview{padding:15px;}.tl-rule-overview-head{align-items:stretch;flex-direction:column;}.tl-rule-status{margin-left:0;align-self:flex-start;}.tl-setup-review{grid-template-columns:1fr;}.tl-setup-nav{align-items:stretch;flex-direction:column;}.tl-setup-nav-copy{width:100%;}.tl-setup-nav button,.tl-setup-nav .tl-next{width:100%;}.tl-weapon-grid{grid-template-columns:1fr!important;}}
 </style>
 </helmet>
 
@@ -68,7 +176,6 @@
       <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
       <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
       <a class="tl-app-nav-item is-active" href="./full-build-optimizer.html" aria-current="location">Build Optimizer</a>
-      <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
     </nav>
     <div class="tl-app-header-end">
       <div class="tl-app-status-group">
@@ -85,7 +192,7 @@
   </header>
 
   <!-- ===== TITLE STRIP ===== -->
-  <div style="position:relative;z-index:4;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:18px clamp(16px,2.2vw,34px) 8px;">
+  <div class="tl-title-strip" style="position:relative;z-index:4;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:18px clamp(16px,2.2vw,34px) 8px;">
     <div>
       <div style="color:#8b7a5d;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;">{{ kicker }}</div>
       <h1 style="margin:6px 0 0;color:#f6d391;font-family:Marcellus,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1;">{{ title }}</h1>
@@ -104,8 +211,11 @@
         </div>
       </sc-if>
     </div>
+    <sc-if value="{{ isSetup }}" hint-placeholder-val="{{ true }}">
+      <nav class="tl-optimizer-mode-switch" aria-label="Choose optimizer mode"><a href="./full-build-optimizer.html">Improve my build</a><span class="active" aria-current="page">Build from scratch</span></nav>
+    </sc-if>
     <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+      <div class="tl-result-actions" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
         <button onClick="{{ editGoals }}" style="display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 18px;color:#e6d6b4;border:1px solid rgba(212,166,94,.4);border-radius:10px;background:rgba(28,21,13,.7);cursor:pointer;font:600 12px 'Instrument Sans';letter-spacing:.06em;" style-hover="border-color:rgba(242,199,119,.7);color:#f6d391;"><span style="font-size:15px;">⚙</span> Edit build goals</button>
         <sc-if value="{{ resultActionsReady }}" hint-placeholder-val="{{ true }}">
           <button onClick="{{ openComparePanel }}" style="min-height:44px;padding:0 16px;color:#e6d6b4;border:1px solid rgba(114,169,255,.4);border-radius:10px;background:rgba(16,20,28,.7);cursor:pointer;font:600 12px 'Instrument Sans';" style-hover="border-color:rgba(114,169,255,.7);color:#dce9ff;">Compare</button>
@@ -173,37 +283,58 @@
 
   <!-- ================= STATE 1: SETUP ================= -->
   <sc-if value="{{ isSetup }}" hint-placeholder-val="{{ true }}">
-  <main id="main-content" style="position:relative;z-index:3;display:grid;grid-template-columns:{{ setupCols }};gap:16px;align-items:start;padding:12px clamp(16px,2.2vw,34px) 60px;animation:tlFade .3s ease;">
+  <nav class="tl-builder-progress" aria-label="Build from Scratch steps">
+    <sc-for list="{{ setupSteps }}" as="step" hint-placeholder-count="4">
+      <button type="button" class="{{ step.className }}" onClick="{{ step.select }}" disabled="{{ step.disabled }}" aria-current="{{ step.current }}"><span class="tl-builder-step-number">{{ step.number }}</span><span class="tl-builder-step-copy"><strong>{{ step.name }}</strong><small>{{ step.summary }}</small></span></button>
+    </sc-for>
+  </nav>
+  <main id="main-content" style="position:relative;z-index:3;width:min(100%,1180px);margin-inline:auto;display:grid;grid-template-columns:{{ setupCols }};gap:16px;align-items:start;padding:12px clamp(16px,2.2vw,34px) 60px;animation:tlFade .3s ease;">
 
     <div style="display:grid;gap:14px;">
 
       <!-- Weapon pairing -->
+      <sc-if value="{{ setupStepWeapons }}" hint-placeholder-val="{{ true }}">
+      <div class="tl-setup-step">
       <section class="tl-weapon-pairing" style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(31,23,14,.7), rgba(20,15,10,.82));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
           <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">1</span>
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Weapon Pairing</h2>
           <span style="margin-left:auto;color:#6f5f49;font-size:10px;letter-spacing:.06em;text-transform:uppercase;">Two families</span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="tl-weapon-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <sc-for list="{{ weaponSlots }}" as="w" hint-placeholder-count="2">
-            <label class="tl-weapon-card" style="display:flex;align-items:center;gap:13px;padding:13px;border:1px solid {{ w.border }};border-radius:12px;background:{{ w.bg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.7);">
-              <span aria-hidden="true" style="pointer-events:none;flex:0 0 auto;width:54px;height:54px;border-radius:50%;border:1px solid {{ w.border }};background:{{ w.icon }};box-shadow:0 0 14px {{ w.glow }};"></span>
+            <div class="tl-weapon-picker" data-weapon-picker>
+            <button type="button" class="tl-weapon-card" onClick="{{ w.toggle }}" onKeyDown="{{ w.keyDown }}" aria-label="{{ w.ariaLabel }}" aria-haspopup="listbox" aria-expanded="{{ w.open }}" style="border:1px solid {{ w.border }};background:{{ w.bg }};" style-hover="border-color:rgba(242,199,119,.7);">
+              <span class="tl-weapon-orb {{ w.orbClass }}" aria-hidden="true" style="pointer-events:none;flex:0 0 auto;width:54px;height:54px;border-radius:50%;border:1px solid {{ w.orbBorder }};background:{{ w.icon }};box-shadow:0 0 18px {{ w.glow }};"></span>
               <div style="pointer-events:none;min-width:0;flex:1;">
-                <div style="color:#7d6b51;font-size:8px;letter-spacing:.16em;text-transform:uppercase;">{{ w.role }}</div>
+                <div style="color:#a08458;font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">{{ w.role }}</div>
                 <div style="margin-top:4px;overflow:hidden;color:{{ w.name_color }};font:400 15px Marcellus,serif;text-overflow:ellipsis;white-space:nowrap;">{{ w.name }}</div>
-                <div style="margin-top:3px;color:#8a795f;font-size:10px;">{{ w.family }}</div>
+                <div style="margin-top:3px;color:#ad9976;font-size:10px;">{{ w.family }}</div>
               </div>
               <span aria-hidden="true" style="pointer-events:none;margin-left:auto;color:#8f7958;font-size:16px;">⌄</span>
-              <select class="tl-weapon-card-select" value="{{ w.value }}" onChange="{{ w.change }}" aria-label="{{ w.ariaLabel }}">
-                <option value="">Choose weapon</option>
-                <sc-for list="{{ w.options }}" as="o" hint-placeholder-count="10"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
-              </select>
-            </label>
+            </button>
+            <sc-if value="{{ w.open }}" hint-placeholder-val="{{ false }}">
+              <div class="tl-weapon-menu" role="listbox" aria-label="{{ w.menuLabel }}" onKeyDown="{{ w.keyDown }}">
+                <div class="tl-weapon-menu-head"><span>{{ w.menuLabel }}</span><button type="button" onClick="{{ w.close }}">Close</button></div>
+                <sc-for list="{{ w.options }}" as="o" hint-placeholder-count="10">
+                  <button type="button" class="tl-weapon-option" role="option" aria-selected="{{ o.selected }}" onClick="{{ o.select }}">
+                    <span class="tl-weapon-option-orb" aria-hidden="true" style="background:{{ o.icon }};"></span>
+                    <span><strong>{{ o.label }}</strong><small>{{ o.detail }}</small></span>
+                    <span class="tl-weapon-option-mark" aria-hidden="true">{{ o.mark }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+            </div>
           </sc-for>
         </div>
       </section>
+      </div>
+      </sc-if>
 
       <!-- Ranked stat priorities -->
+      <sc-if value="{{ setupStepPriorities }}" hint-placeholder-val="{{ false }}">
+      <div class="tl-setup-step">
       <section style="border:1px solid rgba(242,199,119,.3);border-radius:14px;background:linear-gradient(180deg, rgba(37,27,15,.74), rgba(20,15,10,.85));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
           <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">2</span>
@@ -337,17 +468,48 @@
           </div>
         </sc-if>
       </section>
+      </div>
+      </sc-if>
 
       <!-- Rules row -->
+      <sc-if value="{{ setupStepOptions }}" hint-placeholder-val="{{ false }}">
+      <div class="tl-setup-step" style="display:grid;gap:14px;">
+      <section class="tl-rule-overview">
+        <div class="tl-rule-overview-head">
+          <div style="min-width:0;flex:1;">
+            <h2>Your setup is ready</h2>
+            <p>These choices work well for most players. Continue to review your build, or change them if you want tighter limits.</p>
+          </div>
+          <span class="tl-rule-status">{{ setupRuleStatus }}</span>
+        </div>
+
+        <div class="tl-rule-summary-grid" aria-label="Current build rules">
+          <sc-for list="{{ setupRuleCards }}" as="card" hint-placeholder-count="3">
+            <div class="tl-rule-summary-card">
+              <span>{{ card.label }}</span>
+              <strong>{{ card.value }}</strong>
+              <small>{{ card.detail }}</small>
+            </div>
+          </sc-for>
+        </div>
+
+        <details class="tl-rules-customizer">
+          <summary>
+            <div style="min-width:0;">
+              <strong>Change these settings</strong>
+              <small>Only needed if you want to limit the gear, upgrades, or calculations used</small>
+            </div>
+            <span>Optional</span>
+          </summary>
+          <div class="tl-rules-customizer-body">
       <section style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(31,23,14,.7), rgba(20,15,10,.82));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">3</span>
-          <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Availability Rules</h2>
-          <span style="margin-left:auto;color:#6f5f49;font-size:10px;letter-spacing:.06em;text-transform:uppercase;">What the search may use</span>
+          <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Equipment &amp; item search</h2>
+          <span style="margin-left:auto;color:#6f5f49;font-size:10px;letter-spacing:.06em;text-transform:uppercase;">Advanced controls</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+        <div class="tl-rule-toggle-grid">
           <sc-for list="{{ ruleList }}" as="r" hint-placeholder-count="5">
-            <div style="position:relative;display:flex;align-items:center;gap:9px;padding:12px 13px;border:1px solid {{ r.border }};border-radius:11px;background:{{ r.bg }};">
+            <div class="tl-rule-toggle-card" style="position:relative;display:flex;align-items:center;gap:9px;padding:12px 13px;border:1px solid {{ r.border }};border-radius:11px;background:{{ r.bg }};">
               <button onClick="{{ r.toggle }}" aria-label="{{ r.name }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;text-align:left;border:0;background:transparent;cursor:pointer;padding:0;" style-hover="opacity:.92;">
                 <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ r.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ r.knob }};width:16px;height:16px;border-radius:50%;background:{{ r.knob_color }};"></span></span>
                 <span style="min-width:0;">
@@ -365,26 +527,26 @@
         <sc-if value="{{ setControls.visible }}" hint-placeholder-val="{{ true }}">
           <div style="margin-top:12px;padding:13px;border:1px solid rgba(212,166,94,.18);border-radius:11px;background:rgba(0,0,0,.18);">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;">
-              <span style="color:#e6d6b4;font-size:12px;font-weight:600;">Set preferences</span>
-              <span style="color:#6f5f49;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;">How the search treats set bonuses</span>
+              <span style="color:#e6d6b4;font-size:12px;font-weight:600;">Gear set choices</span>
+              <span style="color:#6f5f49;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;">Optional</span>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 14px;align-items:center;">
-              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Require a set
+            <div class="tl-set-preference-grid">
+              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Force a specific gear set
                 <select value="{{ setControls.requireValue }}" onChange="{{ setControls.setRequire }}" style="color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(212,166,94,.3);border-radius:6px;padding:6px 8px;font-size:11px;">
-                  <option value="">No specific set required</option>
+                  <option value="">Do not force a specific set</option>
                   <sc-for list="{{ setControls.requireOptions }}" as="opt" hint-placeholder-count="4"><option value="{{ opt.id }}">{{ opt.name }}</option></sc-for>
                 </select>
               </label>
-              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Minimum active set bonuses
+              <label style="display:grid;gap:4px;font-size:10px;color:#9d8a68;">Minimum number of active bonuses
                 <input type="number" min="0" step="1" value="{{ setControls.minimum }}" onInput="{{ setControls.setMinimum }}" aria-label="Minimum active set bonuses" style="color:#f3e9d4;background:rgba(10,8,5,.78);border:1px solid rgba(212,166,94,.3);border-radius:6px;padding:6px 8px;font-size:11px;">
               </label>
               <button type="button" onClick="{{ setControls.togglePrefer }}" aria-pressed="{{ setControls.preferOn }}" style="display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;cursor:pointer;padding:4px 0;">
                 <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ setControls.prefer.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ setControls.prefer.knob }};width:16px;height:16px;border-radius:50%;background:{{ setControls.prefer.knobColor }};"></span></span>
-                <span style="color:#e6d6b4;font-size:11.5px;">Prefer set effects <span style="display:block;color:#8a795f;font-size:9.5px;">Break ties toward more active sets</span></span>
+                <span style="color:#e6d6b4;font-size:11.5px;">Prefer builds with set bonuses <span style="display:block;color:#8a795f;font-size:9.5px;">Use more set bonuses when two builds are equally strong</span></span>
               </button>
               <button type="button" onClick="{{ setControls.toggleNoBreak }}" aria-pressed="{{ setControls.noBreakOn }}" style="display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;cursor:pointer;padding:4px 0;">
                 <span style="flex:0 0 auto;width:36px;height:20px;border-radius:999px;background:{{ setControls.noBreak.track }};position:relative;"><span style="position:absolute;top:2px;left:{{ setControls.noBreak.knob }};width:16px;height:16px;border-radius:50%;background:{{ setControls.noBreak.knobColor }};"></span></span>
-                <span style="color:#e6d6b4;font-size:11.5px;">Never break a set <span style="display:block;color:#8a795f;font-size:9.5px;">Reject builds with partial sets</span></span>
+                <span style="color:#e6d6b4;font-size:11.5px;">Only use complete sets <span style="display:block;color:#8a795f;font-size:9.5px;">Do not recommend an incomplete gear set</span></span>
               </button>
             </div>
           </div>
@@ -392,9 +554,11 @@
       </section>
 
       <!-- Combat scenario -->
+      <details class="tl-advanced-cluster">
+        <summary>Advanced combat scoring <span>Optional &middot; static totals recommended</span></summary>
       <section style="border:1px solid rgba(135,172,239,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(135,172,239,.09),transparent 42%),linear-gradient(180deg,rgba(20,25,34,.76),rgba(13,12,11,.88));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:7px;">
-          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#b8d0ff;border:1px solid rgba(135,172,239,.5);border-radius:50%;font:13px Marcellus,serif;">4</span>
+          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#b8d0ff;border:1px solid rgba(135,172,239,.5);border-radius:8px;font:13px Marcellus,serif;">◇</span>
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Combat Scenario</h2>
           <span style="margin-left:auto;color:#87acef;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">Optional conditional scoring</span>
         </div>
@@ -498,21 +662,14 @@
           </div>
         </sc-if>
       </section>
-
-      <!-- Attribute budget -->
-      <section style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(31,23,14,.7), rgba(20,15,10,.82));padding:18px;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#f2c777;border:1px solid rgba(242,199,119,.4);border-radius:50%;font:13px Marcellus,serif;">5</span>
-          <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Attribute Budget</h2>
-          <span style="margin-left:auto;color:#f2c777;font:400 20px Marcellus,serif;">{{ attrBudget }}<span style="color:#6f5f49;font-family:'Instrument Sans';font-size:11px;"> pts</span></span>
-        </div>
-        <p style="margin:0;color:#8a795f;font-size:11.5px;line-height:1.55;">The optimizer distributes {{ attrBudget }} points across STR · DEX · WIS · PER · FOR and searches breakpoint activations to satisfy your ranked goals. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more — a high-ranked At least goal can keep absorbing score far past its floor and starve lower priorities. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached — use it when "enough is enough".</p>
-      </section>
+      </details>
 
       <!-- Passive skills and mastery -->
+      <details class="tl-advanced-cluster">
+        <summary>Progression assumptions <span>Optional &middot; sensible defaults applied</span></summary>
       <section style="border:1px solid rgba(185,140,240,.3);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.1),transparent 42%),linear-gradient(180deg,rgba(28,20,35,.72),rgba(16,12,11,.88));padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:7px;">
-          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#d8b8ff;border:1px solid rgba(185,140,240,.5);border-radius:50%;font:13px Marcellus,serif;">6</span>
+          <span style="flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;color:#d8b8ff;border:1px solid rgba(185,140,240,.5);border-radius:8px;font:13px Marcellus,serif;">◇</span>
           <h2 style="margin:0;color:#ead8b7;font:400 19px Marcellus,serif;">Passive Skills &amp; Mastery</h2>
           <span style="margin-left:auto;color:#9f8cb8;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">Calculator evaluated</span>
         </div>
@@ -541,16 +698,30 @@
           <span style="color:#75687e;font-size:9px;line-height:1.4;">The Forge may select up to four unlocked Overall Mastery nodes. The node named Potential is separate from Item Potentials, which remain excluded.</span>
         </label>
       </section>
+      </details>
+          </div>
+        </details>
+      </section>
+      </div>
+      </sc-if>
     </div>
 
     <!-- RIGHT: My Heroics + forge -->
+    <sc-if value="{{ setupStepReview }}" hint-placeholder-val="{{ false }}">
+    <div class="tl-setup-step" style="display:grid;gap:14px;">
+      <section class="tl-setup-review" aria-label="Build choices summary">
+        <div class="tl-setup-review-card"><span>Weapons</span><strong>{{ setupWeaponSummary }}</strong></div>
+        <div class="tl-setup-review-card"><span>Priorities</span><strong>{{ setupPrioritySummary }}</strong></div>
+        <div class="tl-setup-review-card"><span>Search rules</span><strong>{{ setupRuleSummary }}</strong></div>
+        <div class="tl-setup-review-card"><span>Heroics</span><strong>{{ setupHeroicSummary }}</strong></div>
+      </section>
     <aside class="tl-setup-aside" style="position:sticky;top:14px;display:grid;gap:14px;">
       <!-- MY HEROICS -->
-      <section style="border:1px solid {{ heroicPanelBorder }};border-radius:14px;background:radial-gradient(320px 200px at 50% 0%, rgba(255,152,45,.08), transparent 60%), linear-gradient(180deg, rgba(26,20,13,.82), rgba(13,10,8,.92));padding:16px;">
+      <section style="border:1px solid {{ heroicPanelBorder }};border-radius:14px;background:{{ heroicPanelBackground }};padding:16px;">
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;">
           <div style="min-width:0;flex:1;">
-            <h2 style="margin:0;color:#ffcf8c;font:400 19px Marcellus,serif;">My Heroics</h2>
-            <p style="margin:5px 0 0;color:#a4906d;font-size:11px;line-height:1.5;">Add the Heroic equipment you already own. These items and their exact configurations are locked into your generated build.</p>
+            <h2 style="margin:0;color:#ffcf8c;font:400 19px Marcellus,serif;">Heroic gear</h2>
+            <p style="margin:5px 0 0;color:#a4906d;font-size:11px;line-height:1.5;">{{ heroicPanelIntro }}</p>
           </div>
           <sc-if value="{{ heroicHasAny }}" hint-placeholder-val="{{ false }}">
             <span style="flex:0 0 auto;color:#7ee0a6;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(126,224,166,.4);border-radius:999px;padding:3px 8px;white-space:nowrap;">{{ heroicCount }} locked</span>
@@ -576,23 +747,27 @@
         <sc-if value="{{ heroicsEngaged }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;gap:5px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);">
             <sc-for list="{{ heroicModes }}" as="m" hint-placeholder-count="3">
-              <button onClick="{{ m.select }}" style="flex:1;padding:8px 3px;border:1px solid {{ m.border }};border-radius:8px;background:{{ m.bg }};color:{{ m.color }};cursor:pointer;font:700 9px 'Instrument Sans';letter-spacing:.02em;line-height:1.2;">{{ m.label }}</button>
+              <button onClick="{{ m.select }}" aria-pressed="{{ m.selected }}" style="flex:1;padding:8px 3px;border:1px solid {{ m.border }};border-radius:8px;background:{{ m.bg }};color:{{ m.color }};cursor:pointer;font:700 9px 'Instrument Sans';letter-spacing:.02em;line-height:1.2;">{{ m.label }}</button>
             </sc-for>
           </div>
-          <div style="margin:8px 0 12px;padding:8px 11px;border-left:2px solid rgba(255,183,101,.5);background:rgba(255,152,45,.05);color:#b3a488;font-size:10.5px;line-height:1.5;">{{ heroicModeExplain }}</div>
+          <div class="tl-heroic-mode-callout" style="--heroic-mode-accent:{{ heroicModeAccent }};--heroic-mode-bg:{{ heroicModeBg }};--heroic-mode-title:{{ heroicModeTitleColor }};">
+            <strong>{{ heroicModeTitle }}</strong>
+            <span>{{ heroicModeExplain }}</span>
+          </div>
 
           <sc-if value="{{ heroicSlotsVisible }}" hint-placeholder-val="{{ true }}">
           <div style="display:grid;gap:9px;">
             <sc-for list="{{ heroicSlots }}" as="h" hint-placeholder-count="3">
               <sc-if value="{{ h.empty }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px dashed rgba(255,183,101,.3);border-radius:12px;background:rgba(0,0,0,.2);">
-                  <span style="flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:1.5px dashed rgba(255,183,101,.45);background:rgba(0,0,0,.25);display:grid;place-items:center;color:#7d5a2f;font-size:17px;">◇</span>
+                <div class="tl-heroic-empty-row" style="--heroic-slot-border:{{ h.emptyBorder }};--heroic-slot-bg:{{ h.emptyBg }};--heroic-slot-accent:{{ h.emptyAccent }};">
+                  <span class="tl-heroic-empty-mark" aria-hidden="true">◇</span>
                   <div style="min-width:0;flex:1;">
                     <div style="color:#e6d6b4;font-size:12.5px;font-weight:600;">{{ h.label }}</div>
-                    <div style="margin-top:1px;color:#8a795f;font-size:10.5px;">No Heroic selected</div>
-                    <div style="margin-top:2px;color:#6f5f49;font-size:9px;">Optimizer won't assume you own one.</div>
+                    <div style="margin-top:1px;color:#b09d7b;font-size:10.5px;">{{ h.emptyTitle }}</div>
+                    <div style="margin-top:2px;color:#78694f;font-size:9px;">{{ h.emptyNote }}</div>
                   </div>
-                  <button onClick="{{ h.add }}" style="flex:0 0 auto;min-height:36px;padding:0 13px;border:1px solid rgba(255,183,101,.5);border-radius:9px;background:rgba(150,86,24,.22);color:#ffcf8c;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:#ffcf8c;">＋ Add</button>
+                  <sc-if value="{{ h.auto }}" hint-placeholder-val="{{ false }}"><span class="tl-heroic-auto-badge">Auto</span></sc-if>
+                  <button onClick="{{ h.add }}" style="flex:0 0 auto;min-height:36px;padding:0 13px;border:1px solid {{ h.actionBorder }};border-radius:9px;background:{{ h.actionBg }};color:{{ h.actionColor }};cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:#ffcf8c;">{{ h.actionLabel }}</button>
                 </div>
               </sc-if>
               <sc-if value="{{ h.configured }}" hint-placeholder-val="{{ false }}">
@@ -609,7 +784,10 @@
                     <sc-for list="{{ h.traitChips }}" as="c" hint-placeholder-count="3">
                       <span style="padding:3px 7px;border:1px solid rgba(212,166,94,.28);border-radius:6px;background:rgba(0,0,0,.24);color:#cbb185;font-size:9.5px;">◆ {{ c }}</span>
                     </sc-for>
-                    <span style="padding:3px 7px;border:1px solid rgba(255,183,101,.35);border-radius:6px;background:rgba(255,152,45,.07);color:#ffb765;font-size:9.5px;">★ {{ h.heroicSummary }}</span>
+                    <sc-if value="{{ h.hasSkillCore }}" hint-placeholder-val="{{ false }}">
+                      <span style="padding:3px 7px;border:1px solid rgba(207,157,255,.32);border-radius:6px;background:rgba(159,86,214,.07);color:#d9b9f2;font-size:9.5px;">✦ {{ h.skillCoreSummary }}</span>
+                    </sc-if>
+                    <span style="padding:3px 7px;border:1px solid rgba(255,183,101,.35);border-radius:6px;background:rgba(255,152,45,.07);color:#ffb765;font-size:9.5px;">{{ h.bonusSummary }}</span>
                   </div>
                   <div style="display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;border-top:1px dotted rgba(212,166,94,.18);">
                     <span style="color:#7d6b51;font-size:8px;letter-spacing:.12em;text-transform:uppercase;">Runes</span>
@@ -630,13 +808,21 @@
         </sc-if>
       </section>
 
-      <button onClick="{{ forge }}" style="position:relative;overflow:hidden;min-height:60px;border:1px solid rgba(242,199,119,.6);border-radius:13px;background:linear-gradient(135deg, rgba(140,88,26,.5), rgba(56,38,16,.7));color:#ffe6ac;cursor:pointer;font:400 21px Marcellus,serif;letter-spacing:.03em;box-shadow:0 14px 40px rgba(120,74,20,.28), inset 0 0 30px rgba(242,199,119,.08);" style-hover="border-color:#f6d391;color:#fff2d4;">
+      <button onClick="{{ forge }}" disabled="{{ forgeDisabled }}" style="position:relative;overflow:hidden;min-height:60px;border:1px solid rgba(242,199,119,.6);border-radius:13px;background:linear-gradient(135deg, rgba(140,88,26,.5), rgba(56,38,16,.7));color:#ffe6ac;cursor:{{ forgeCursor }};opacity:{{ forgeOpacity }};font:400 21px Marcellus,serif;letter-spacing:.03em;box-shadow:0 14px 40px rgba(120,74,20,.28), inset 0 0 30px rgba(242,199,119,.08);" style-hover="border-color:#f6d391;color:#fff2d4;">
         <span style="position:absolute;top:0;bottom:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,235,190,.22),transparent);animation:tlSweep 2.6s ease-in-out infinite;"></span>
         ⚒ Forge a strong loadout
       </button>
       <sc-if value="{{ hasEngineError }}" hint-placeholder-val="{{ false }}"><div role="alert" style="padding:10px 12px;border:1px solid rgba(229,124,114,.38);border-radius:9px;background:rgba(110,35,27,.15);color:#e7a39a;font-size:11px;line-height:1.5;">{{ engineError }}</div></sc-if>
       <p style="margin:0;text-align:center;color:#6f5f49;font-size:10.5px;line-height:1.5;">Searches the equipment catalogue, ranks candidate loadouts, optimizes attributes, and assembles a complete character.</p>
     </aside>
+    </div>
+    </sc-if>
+
+    <div class="tl-setup-nav">
+      <sc-if value="{{ setupHasBack }}" hint-placeholder-val="{{ false }}"><button class="tl-back" type="button" onClick="{{ setupBack }}">Back</button></sc-if>
+      <span class="tl-setup-nav-copy">{{ setupNavHint }}</span>
+      <sc-if value="{{ setupHasNext }}" hint-placeholder-val="{{ true }}"><button class="tl-next" type="button" onClick="{{ setupNext }}" disabled="{{ setupNextDisabled }}">{{ setupNextLabel }}</button></sc-if>
+    </div>
   </main>
   </sc-if>
 
@@ -701,7 +887,9 @@
           <div style="display:grid;gap:8px;">
             <sc-for list="{{ drawerItems }}" as="di" hint-placeholder-count="3">
               <div onClick="{{ di.select }}" onMouseEnter="{{ di.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" style="display:flex;align-items:center;gap:12px;padding:11px;border:1px solid {{ di.border }};border-radius:11px;background:{{ di.bg }};cursor:pointer;" style-hover="border-color:rgba(255,183,101,.6);">
-                <span style="flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,183,101,.7);background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);"></span>
+                <span style="flex:0 0 auto;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;border:2px solid rgba(255,183,101,.7);background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);overflow:hidden;">
+                  <img src="{{ di.imageUrl }}" alt="" style="width:88%;height:88%;object-fit:contain;">
+                </span>
                 <div style="min-width:0;flex:1;">
                   <div style="color:#ffcf8c;font-size:13px;font-weight:700;">{{ di.name }}</div>
                   <div style="margin-top:2px;color:#a4906d;font-size:10px;">{{ di.meta }}</div>
@@ -717,11 +905,13 @@
         <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
           <!-- A. Selected item -->
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;padding:10px 12px;border:1px solid rgba(255,183,101,.3);border-radius:11px;background:rgba(255,152,45,.05);">
-            <span style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,183,101,.7);background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);"></span>
+            <span style="flex:0 0 auto;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;border:2px solid rgba(255,183,101,.7);background:radial-gradient(circle at 36% 30%,#5a3a17,#16100a);overflow:hidden;">
+              <img src="{{ draftImageUrl }}" alt="" style="width:88%;height:88%;object-fit:contain;">
+            </span>
             <div style="min-width:0;flex:1;">
               <div style="color:#ffcf8c;font-size:13.5px;font-weight:700;">{{ draftName }}</div>
-              <div style="color:#a4906d;font-size:10.5px;">{{ draftMeta }} · {{ draftSlot }} · Set: {{ draftSet }}</div>
-              <div style="margin-top:2px;color:#8a795f;font-size:10px;">{{ draftInherent }}</div>
+              <div style="color:#a4906d;font-size:10.5px;">{{ draftMeta }} · {{ draftSlot }}</div>
+              <div style="margin-top:2px;color:#c5ad82;font-size:10px;">Item Level {{ draftLevelLabel }} <sc-if value="{{ draftFixedLevel }}" hint-placeholder-val="{{ true }}">· Fixed level</sc-if></div>
             </div>
             <sc-if value="{{ showLevelSelect }}" hint-placeholder-val="{{ false }}">
               <select value="{{ draftLevel }}" onChange="{{ onLevel }}" style="flex:0 0 auto;padding:7px 9px;border:1px solid rgba(212,166,94,.3);border-radius:8px;background:rgba(7,5,3,.8);color:#f3e9d4;font:600 12px 'Instrument Sans';">
@@ -730,10 +920,15 @@
             </sc-if>
             <button onClick="{{ changeDraftItem }}" style="flex:0 0 auto;min-height:32px;padding:0 12px;border:1px solid rgba(212,166,94,.32);border-radius:8px;background:rgba(0,0,0,.28);color:#d8c6a5;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.6);color:#f6d391;">Change</button>
           </div>
-          <div style="color:#6f5f49;font-size:10px;margin-bottom:16px;line-height:1.5;">Traits prefill at max tier — <strong style="color:#8a795f;">adjust any that don't match your item</strong>. Effect roll levels stay Unknown until you set them.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+            <sc-for list="{{ draftFixedStats }}" as="fs" hint-placeholder-count="4">
+              <span style="padding:5px 8px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(0,0,0,.2);color:#cdbb99;font-size:9.5px;"><strong style="color:#f0dfbd;">{{ fs.name }}</strong> {{ fs.value }}</span>
+            </sc-for>
+          </div>
+          <div style="color:#7f7059;font-size:10px;margin-bottom:16px;line-height:1.5;">Match the lines on your in-game tooltip. We’ve filled sensible starting choices; change anything that differs.</div>
 
           <!-- B. Normal traits -->
-          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;"><span style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Owned Traits</span><span style="color:{{ traitCountColor }};font-size:10.5px;font-weight:600;">{{ traitCount }} / 3</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;"><span style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Traits</span><span style="color:{{ traitCountColor }};font-size:10.5px;font-weight:600;">{{ traitCount }} / 3 selected</span></div>
           <div style="display:grid;gap:7px;margin-bottom:9px;">
             <sc-for list="{{ normalTraitRows }}" as="t" hint-placeholder-count="3">
               <div style="display:flex;align-items:center;gap:7px;padding:8px 9px;border:1px solid rgba(212,166,94,.16);border-radius:10px;background:rgba(0,0,0,.2);">
@@ -750,45 +945,51 @@
             </sc-for>
           </div>
           <sc-if value="{{ canAddTrait }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ addTrait }}" style="width:100%;padding:8px;margin-bottom:18px;border:1px dashed rgba(212,166,94,.32);border-radius:9px;background:rgba(0,0,0,.16);color:#c1af8c;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f2c777;border-style:solid;"><span style="color:#7ee0a6;">＋</span> Add owned trait</button>
+            <button onClick="{{ addTrait }}" style="width:100%;padding:8px;margin-bottom:18px;border:1px dashed rgba(212,166,94,.32);border-radius:9px;background:rgba(0,0,0,.16);color:#c1af8c;cursor:pointer;font:600 11px 'Instrument Sans';" style-hover="border-color:rgba(242,199,119,.7);color:#f2c777;border-style:solid;"><span style="color:#7ee0a6;">＋</span> Add trait</button>
           </sc-if>
 
-          <!-- C. Heroic trait -->
-          <div style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:6px 0 7px;">Heroic Trait</div>
-          <sc-if value="{{ hasUnique }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;padding:8px 9px;border:1px solid rgba(255,183,101,.28);border-radius:10px;background:rgba(255,152,45,.045);">
-              <span style="flex:0 0 auto;color:#ffb765;font-size:11px;">★</span>
-              <select value="{{ uniqueStat }}" onChange="{{ onUniqueStat }}" style="flex:1;min-width:0;padding:6px 7px;border:1px solid rgba(255,183,101,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#ffcf8c;font:600 11px 'Instrument Sans';">
-                <sc-for list="{{ uniqueOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
-              </select>
-              <sc-if value="{{ hasUniqueSel }}" hint-placeholder-val="{{ false }}">
-                <select value="{{ uniqueTierVal }}" onChange="{{ onUniqueTier }}" style="flex:0 0 auto;padding:6px 6px;border:1px solid rgba(255,183,101,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#ffcf8c;font:600 11px 'Instrument Sans';">
-                  <sc-for list="{{ uniqueTierOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+          <!-- C. Skill Core -->
+          <sc-if value="{{ hasPerks }}" hint-placeholder-val="{{ true }}">
+            <div style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:8px 0 7px;">Skill Core</div>
+            <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:18px;padding:10px 11px;border:1px solid rgba(207,157,255,.24);border-radius:10px;background:rgba(159,86,214,.05);">
+              <span style="width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(207,157,255,.32);border-radius:8px;background:rgba(0,0,0,.24);overflow:hidden;">
+                <sc-if value="{{ hasSelectedPerk }}" hint-placeholder-val="{{ true }}"><img src="{{ selectedPerkImage }}" alt="" style="width:100%;height:100%;object-fit:cover;"></sc-if>
+                <sc-if value="{{ hasSelectedPerk }}" hint-placeholder-val="{{ false }}"><span style="color:#9271b5;font-size:16px;">✦</span></sc-if>
+              </span>
+              <div style="min-width:0;">
+                <select value="{{ perkValue }}" onChange="{{ onPerk }}" style="width:100%;padding:7px 8px;border:1px solid rgba(207,157,255,.3);border-radius:7px;background:rgba(7,5,3,.8);color:#eadcf7;font:600 11px 'Instrument Sans';">
+                  <option value="">Choose the Skill Core on your item</option>
+                  <sc-for list="{{ perkOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                 </select>
-                <span style="flex:0 0 auto;min-width:48px;text-align:right;color:#ffb765;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;">{{ uniqueValue }}</span>
-              </sc-if>
+                <sc-if value="{{ hasSelectedPerk }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin-top:6px;color:#a99bb8;font-size:9.5px;line-height:1.45;"><strong style="color:#ddc8ed;">{{ selectedPerkName }}</strong> · {{ selectedPerkText }}</div>
+                </sc-if>
+              </div>
             </div>
           </sc-if>
 
-          <!-- D. Heroic effect groups -->
-          <div style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Heroic Effect Groups</div>
+          <!-- D. Rolled Heroic stats -->
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:7px;">
+            <span style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Heroic bonus stats</span>
+            <span style="color:#8a795f;font-size:9.5px;">The blue stat lines on the item tooltip</span>
+          </div>
           <div style="display:grid;gap:8px;margin-bottom:18px;">
             <sc-for list="{{ effectRows }}" as="ef" hint-placeholder-count="2">
               <div style="padding:9px 11px;border:1px solid rgba(255,152,45,.18);border-radius:10px;background:rgba(255,152,45,.03);">
                 <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
-                  <span style="flex:0 0 auto;width:34px;color:#8a795f;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">Grp {{ ef.grp }}</span>
+                  <span style="flex:0 0 auto;width:44px;color:#8a795f;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;">Stat {{ ef.grp }}</span>
                   <select value="{{ ef.statId }}" onChange="{{ ef.onStat }}" style="flex:1;min-width:0;padding:6px 7px;border:1px solid rgba(255,183,101,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#e6d6b4;font:600 11px 'Instrument Sans';">
                     <sc-for list="{{ ef.options }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                   </select>
                   <span style="flex:0 0 auto;min-width:44px;text-align:right;color:#ffb765;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;">{{ ef.value }}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:7px;">
-                  <button onClick="{{ ef.setKnown }}" style="padding:4px 9px;border:1px solid {{ ef.kBorder }};border-radius:6px;background:{{ ef.kBg }};color:{{ ef.kColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;min-height:28px;padding:0 11px;">Known</button>
-                  <button onClick="{{ ef.setUnknown }}" style="padding:4px 9px;border:1px solid {{ ef.uBorder }};border-radius:6px;background:{{ ef.uBg }};color:{{ ef.uColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';letter-spacing:.04em;text-transform:uppercase;min-height:28px;padding:0 11px;">Unknown</button>
+                  <button onClick="{{ ef.setKnown }}" style="padding:4px 9px;border:1px solid {{ ef.kBorder }};border-radius:6px;background:{{ ef.kBg }};color:{{ ef.kColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';min-height:28px;padding:0 11px;">I know the value</button>
+                  <button onClick="{{ ef.setUnknown }}" style="padding:4px 9px;border:1px solid {{ ef.uBorder }};border-radius:6px;background:{{ ef.uBg }};color:{{ ef.uColor }};cursor:pointer;font:700 9.5px 'Instrument Sans';min-height:28px;padding:0 11px;">Not sure</button>
                   <span style="flex:1;"></span>
                   <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ true }}">
                     <button onClick="{{ ef.dec }}" style="width:24px;height:24px;border:1px solid rgba(212,166,94,.3);border-radius:6px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:13px;">−</button>
-                    <span style="min-width:60px;text-align:center;color:#ffb765;font-size:11px;font-weight:700;">Lv {{ ef.level }} / {{ ef.max }}</span>
+                    <span style="min-width:78px;text-align:center;color:#ffb765;font-size:11px;font-weight:700;">Roll {{ ef.level }} / {{ ef.max }}</span>
                     <button onClick="{{ ef.inc }}" style="width:24px;height:24px;border:1px solid rgba(212,166,94,.3);border-radius:6px;background:rgba(0,0,0,.3);color:#cbb185;cursor:pointer;font-size:13px;">+</button>
                   </sc-if>
                   <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ false }}"></sc-if>
@@ -796,30 +997,32 @@
                 </div>
                 <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ false }}"></sc-if>
                 <div style="margin-top:5px;color:#75664f;font-size:9px;">
-                  <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ true }}">Value at level {{ ef.level }} · roll chance {{ ef.prob }}</sc-if>
+                  <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ true }}">Use + and − until this value matches your tooltip.</sc-if>
                   <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ false }}"></sc-if>
                 </div>
                 <sc-if value="{{ ef.known }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:5px;color:#8a795f;font-size:9.5px;font-style:italic;">Level unknown — TL Helper only knows which effect was selected; value calculated at base level.</div>
+                  <div style="margin-top:5px;color:#8a795f;font-size:9.5px;font-style:italic;">We’ll use the lowest value until you match the exact number.</div>
                 </sc-if>
               </div>
             </sc-for>
           </div>
 
           <!-- E. Resonance -->
-          <div style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Trait Resonance <span style="color:#6f5f49;font-weight:400;text-transform:none;letter-spacing:0;">· optional</span></div>
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;padding:8px 9px;border:1px solid rgba(207,157,255,.22);border-radius:10px;background:rgba(159,86,214,.05);">
-            <span style="flex:0 0 auto;color:#cf9dff;font-size:11px;">✦</span>
-            <select value="{{ resonanceStat }}" onChange="{{ onResonanceStat }}" style="flex:1;min-width:0;padding:6px 7px;border:1px solid rgba(207,157,255,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 11px 'Instrument Sans';">
-              <sc-for list="{{ resonanceOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
-            </select>
-            <sc-if value="{{ hasResonanceSel }}" hint-placeholder-val="{{ false }}">
-              <select value="{{ resonanceTierVal }}" onChange="{{ onResonanceTier }}" style="flex:0 0 auto;padding:6px 6px;border:1px solid rgba(207,157,255,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 11px 'Instrument Sans';">
-                <sc-for list="{{ resonanceTierOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+          <sc-if value="{{ hasResonance }}" hint-placeholder-val="{{ false }}">
+            <div style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Trait Resonance <span style="color:#6f5f49;font-weight:400;text-transform:none;letter-spacing:0;">· only if shown on your item</span></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;padding:8px 9px;border:1px solid rgba(207,157,255,.22);border-radius:10px;background:rgba(159,86,214,.05);">
+              <span style="flex:0 0 auto;color:#cf9dff;font-size:11px;">✦</span>
+              <select value="{{ resonanceStat }}" onChange="{{ onResonanceStat }}" style="flex:1;min-width:0;padding:6px 7px;border:1px solid rgba(207,157,255,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 11px 'Instrument Sans';">
+                <sc-for list="{{ resonanceOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
               </select>
-              <span style="flex:0 0 auto;min-width:48px;text-align:right;color:#cf9dff;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;">{{ resonanceValue }}</span>
-            </sc-if>
-          </div>
+              <sc-if value="{{ hasResonanceSel }}" hint-placeholder-val="{{ false }}">
+                <select value="{{ resonanceTierVal }}" onChange="{{ onResonanceTier }}" style="flex:0 0 auto;padding:6px 6px;border:1px solid rgba(207,157,255,.28);border-radius:7px;background:rgba(7,5,3,.8);color:#d9c8a5;font:600 11px 'Instrument Sans';">
+                  <sc-for list="{{ resonanceTierOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+                </select>
+                <span style="flex:0 0 auto;min-width:48px;text-align:right;color:#cf9dff;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;">{{ resonanceValue }}</span>
+              </sc-if>
+            </div>
+          </sc-if>
 
           <!-- F. Rune sockets -->
           <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;"><span style="color:#e5c88f;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Rune Sockets</span><span style="color:{{ chaosColor }};font-size:10px;">Choose the exact owned rune, stat roll, and level</span></div>
@@ -849,7 +1052,7 @@
         </sc-if>
 
         <sc-if value="{{ drawerConfigMode }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:8px;margin-top:16px;padding:10px 12px;border:1px solid rgba(126,224,166,.3);border-radius:10px;background:rgba(31,76,47,.12);color:#a9c9b3;font-size:10.5px;line-height:1.5;"><span style="color:#7ee0a6;">🔒</span><span>This exact item — traits, Heroic effects, effect levels, resonance and runes — locks into your build and is never replaced.</span></div>
+          <div style="display:flex;gap:8px;margin-top:16px;padding:10px 12px;border:1px solid rgba(126,224,166,.3);border-radius:10px;background:rgba(31,76,47,.12);color:#a9c9b3;font-size:10.5px;line-height:1.5;"><span style="color:#7ee0a6;">🔒</span><span>This exact item — its traits, bonus stats, Skill Core and runes — stays in your build and is never replaced.</span></div>
         </sc-if>
       </div>
 
@@ -873,11 +1076,11 @@
 
   <!-- ================= STATE 2: RESULT HUD ================= -->
   <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
-  <main id="main-content" style="position:relative;z-index:3;display:grid;grid-template-columns:{{ resultCols }};gap:14px;align-items:start;padding:10px clamp(16px,2.2vw,34px) 56px;">
+  <main id="main-content" class="tl-result-main" style="position:relative;z-index:3;display:grid;grid-template-columns:{{ resultCols }};gap:14px;align-items:start;padding:10px clamp(16px,2.2vw,34px) 56px;">
 
     <!-- ===== LEFT: EQUIPMENT CANVAS ===== -->
     <sc-if value="{{ showResultOverview }}" hint-placeholder-val="{{ true }}">
-    <section style="min-width:0;grid-column:{{ eqCol }};animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
+    <section class="tl-result-equipment" style="min-width:0;grid-column:{{ eqCol }};animation:tlRise .5s ease both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px;">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
         <h2 style="margin:0;color:#ead8b7;font:400 17px Marcellus,serif;">Equipment</h2>
         <span style="color:#6f5f49;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Hover · click to lock</span>
@@ -885,14 +1088,14 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
         <sc-for list="{{ gearAll }}" as="it" hint-placeholder-count="10">
-          <div onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0;padding:10px 6px;border:1px solid {{ it.cardBorder }};border-radius:12px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
+          <div class="tl-equipment-card" onMouseEnter="{{ it.enter }}" onMouseMove="{{ moveHover }}" onMouseLeave="{{ leaveHover }}" onClick="{{ it.lock }}" tabindex="0" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0;padding:10px 6px;border:1px solid {{ it.cardBorder }};border-radius:12px;background:{{ it.cardBg }};cursor:pointer;" style-hover="border-color:rgba(242,199,119,.55);">
             <span style="position:relative;flex:0 0 auto;width:56px;height:56px;border-radius:50%;border:2px solid {{ it.ring }};background:{{ it.icon }};box-shadow:0 0 14px {{ it.glow }};">
               <b style="position:absolute;right:-3px;bottom:-3px;min-width:18px;padding:0 3px;font-style:normal;font-size:8.5px;font-weight:700;color:#f3e2bd;background:rgba(10,8,5,.95);border:1px solid {{ it.ring }};border-radius:7px;">{{ it.level }}</b>
               <sc-if value="{{ it.locked }}" hint-placeholder-val="{{ false }}"><b style="position:absolute;left:-5px;top:-5px;width:20px;height:20px;font-style:normal;display:grid;place-items:center;font-size:10px;color:#0b0805;background:#f2c777;border-radius:50%;box-shadow:0 0 8px rgba(242,199,119,.6);">🔒</b></sc-if>
             </span>
             <span style="min-width:0;width:100%;">
-              <span style="display:block;color:#7d6b51;font-size:7px;letter-spacing:.1em;text-transform:uppercase;">{{ it.slotLabel }}</span>
-              <span style="margin-top:1px;color:{{ it.nameColor }};font-size:11px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ it.name }}</span>
+              <span style="display:block;color:#9b8767;font-size:9px;letter-spacing:.1em;text-transform:uppercase;">{{ it.slotLabel }}</span>
+              <span style="margin-top:2px;color:{{ it.nameColor }};font-size:12px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ it.name }}</span>
             </span>
           </div>
         </sc-for>
@@ -930,14 +1133,14 @@
         </sc-if>
 
     <!-- ===== RIGHT: STAT SCREEN (tabs: Guide / Stats / Progression) ===== -->
-    <section style="min-width:0;grid-column:{{ mainCol }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
-      <div style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
+    <section class="tl-result-workspace" style="min-width:0;grid-column:{{ mainCol }};animation:tlRise .5s ease .16s both;border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(24,18,12,.82), rgba(11,8,5,.92));padding:15px;">
+      <div class="tl-result-primary-tabs" style="display:flex;gap:4px;padding:4px;border:1px solid rgba(212,166,94,.16);border-radius:11px;background:rgba(0,0,0,.28);margin-bottom:10px;">
         <sc-for list="{{ primaryTabs }}" as="t" hint-placeholder-count="4">
-          <button onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
+          <button class="tl-result-primary-tab" onClick="{{ t.select }}" style="flex:1;min-height:34px;padding:0 6px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bg }};color:{{ t.color }};cursor:pointer;font:700 11px 'Instrument Sans';letter-spacing:.03em;" style-hover="border-color:rgba(242,199,119,.4);">{{ t.name }}</button>
         </sc-for>
       </div>
       <sc-if value="{{ showStatsSubchips }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">
+        <div class="tl-result-subtabs" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">
           <sc-for list="{{ statSubChips }}" as="c" hint-placeholder-count="7">
             <button onClick="{{ c.select }}" style="padding:5px 11px;border:1px solid {{ c.border }};border-radius:999px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;font:600 10px 'Instrument Sans';letter-spacing:.02em;" style-hover="border-color:rgba(242,199,119,.5);">{{ c.name }}</button>
           </sc-for>
@@ -952,11 +1155,11 @@
       </sc-if>
       <!-- Weapons / Attributes / Sets & Runes (Summary sub-chip, in-panel) -->
       <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
-      <div style="display:grid;gap:13px;margin-bottom:14px;">
-      <!-- Attributes | Favourite Stats (two halves) -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:13px;align-items:start;margin-bottom:13px;">
+      <div class="tl-summary-flow-grid" style="display:grid;gap:13px;margin-bottom:14px;">
+      <!-- Independent summary columns prevent the taller alternatives panel from pushing Weapons down. -->
+      <div class="tl-summary-left-column" style="display:grid;gap:16px;align-items:start;">
       <!-- Attribute tracks (stacked) -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+      <div class="tl-result-card tl-summary-attributes" style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 6px;">
           <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
           <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Attributes</span>
@@ -1010,46 +1213,8 @@
           </sc-for>
         </div>
       </div>
-      <!-- Tune the tradeoff (beside Attributes) -->
-      <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ true }}">
-        <div style="padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
-          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
-            <span style="flex:none;width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(185,140,240,.55);border-radius:9px;background:rgba(185,140,240,.12);color:#d8b8ff;font-size:14px;">✦</span>
-            <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 15px Marcellus,serif;">Tune the tradeoff</div><div style="margin-top:2px;color:#8f7e9f;font-size:9.5px;line-height:1.45;">Drag any stat. Each slider snaps to a complete recalculated build retained from this Forge.</div></div>
-            <span style="flex:none;padding:4px 7px;border:1px solid rgba(126,224,166,.25);border-radius:999px;color:#8fd6aa;background:rgba(31,76,47,.1);font-size:8px;letter-spacing:.08em;text-transform:uppercase;">{{ tuningCount }} tradeoff builds</span>
-          </div>
-          <div style="display:grid;gap:9px;">
-            <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
-              <label style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:8px 10px;border:1px solid {{ row.border }};border-radius:10px;background:{{ row.bg }};transition:border-color .22s ease,background .22s ease,transform .22s ease;">
-                <span style="min-width:0;color:#d8c9ab;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.name }} <small style="color:#8f7e9f;font-size:8px;font-weight:500;letter-spacing:.04em;">{{ row.capLabel }}</small></span>
-                <span style="display:flex;align-items:center;gap:6px;">
-                  <button type="button" onClick="{{ row.dec }}" aria-label="Lower {{ row.name }} to the previous retained build" title="Previous retained build" style="width:24px;height:24px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:13px;line-height:1;">−</button>
-                  <strong style="min-width:64px;text-align:right;color:#f2c777;font:400 16px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
-                  <button type="button" onClick="{{ row.inc }}" aria-label="Raise {{ row.name }} to the next retained build" title="Next retained build" style="width:24px;height:24px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:13px;line-height:1;">+</button>
-                </span>
-                <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" onKeyDown="{{ row.rangeKey }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
-                <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                  <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.minimumLabel }}</span>
-                  <span style="flex:0 0 auto;color:#8f7e9f;font-size:8px;letter-spacing:.06em;text-transform:uppercase;">{{ row.optionsLabel }}</span>
-                  <span style="color:#695d70;font-size:8px;font-variant-numeric:tabular-nums;">{{ row.maximumLabel }}</span>
-                </div>
-              </label>
-            </sc-for>
-          </div>
-          <sc-if value="{{ hasTuneCandidates }}" hint-placeholder-val="{{ false }}">
-            <label style="display:grid;gap:4px;margin-top:9px;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#8f7e9f;">Jump to a retained build
-              <select value="" onChange="{{ selectTuneCandidate }}" aria-label="Choose a retained tradeoff build by its stat totals" style="min-height:30px;padding:5px 7px;border:1px solid rgba(185,140,240,.35);border-radius:7px;background:rgba(0,0,0,.4);color:#e6d6f2;font-size:10px;letter-spacing:0;text-transform:none;">
-                <option value="">Choose by stat totals…</option>
-                <sc-for list="{{ tuneCandidates }}" as="cand" hint-placeholder-count="5"><option value="{{ cand.id }}">{{ cand.label }}</option></sc-for>
-              </select>
-            </label>
-          </sc-if>
-          <div style="margin-top:9px;color:#746783;font-size:8.5px;line-height:1.45;">Structural changes still require Re-forge. Sliders, − / + steps, typed targets, and the build list only select complete builds already recalculated by the optimizer.</div>
-        </div>
-      </sc-if>
-      </div>
       <!-- Weapons block -->
-      <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+      <div class="tl-result-card tl-summary-weapons" style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
           <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
           <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Weapons</span>
@@ -1064,9 +1229,49 @@
           </div>
         </sc-for>
       </div>
+      </div>
+      <div class="tl-summary-right-column" style="display:grid;gap:16px;align-items:start;">
+      <!-- Alternative calculated builds -->
+      <sc-if value="{{ hasTuning }}" hint-placeholder-val="{{ true }}">
+        <div class="tl-summary-alternatives" style="padding:13px;border:1px solid rgba(185,140,240,.3);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.13),transparent 46%),linear-gradient(145deg,rgba(30,20,40,.72),rgba(12,9,8,.82));box-shadow:inset 0 0 30px rgba(185,140,240,.035);">
+          <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:13px;">
+            <span style="flex:none;width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(185,140,240,.55);border-radius:10px;background:rgba(185,140,240,.12);color:#d8b8ff;font-size:15px;">✦</span>
+            <div style="min-width:0;flex:1;"><div style="color:#f3dfbb;font:400 17px Marcellus,serif;">Explore alternative builds</div><div style="margin-top:3px;color:#b09cbd;font-size:11px;line-height:1.5;">Adjust a priority to switch between fully calculated finalists. No new search is required.</div></div>
+            <span style="flex:none;padding:5px 8px;border:1px solid rgba(126,224,166,.28);border-radius:999px;color:#9be0b4;background:rgba(31,76,47,.12);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;">{{ tuningCount }} alternatives</span>
+          </div>
+          <div style="display:grid;gap:10px;">
+            <sc-for list="{{ tuningRows }}" as="row" hint-placeholder-count="5">
+              <label class="tl-alternative-row" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;padding:8px 10px;border:1px solid {{ row.border }};border-radius:10px;background:{{ row.bg }};transition:border-color .22s ease,background .22s ease,transform .22s ease;">
+                <span style="min-width:0;display:flex;align-items:baseline;gap:7px;color:#e4d5ba;font-size:12px;font-weight:600;overflow:hidden;white-space:nowrap;"><small style="flex:none;color:#ad91c1;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;">Priority {{ row.rank }}</small><span style="overflow:hidden;text-overflow:ellipsis;">{{ row.name }}</span><small style="color:#927fa0;font-size:9px;font-weight:500;letter-spacing:.02em;">{{ row.capLabel }}</small></span>
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <button class="tl-alternative-step" type="button" onClick="{{ row.dec }}" aria-label="Lower {{ row.name }} to the previous calculated alternative" title="Previous calculated alternative" style="width:24px;height:24px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:13px;line-height:1;">−</button>
+                  <strong style="min-width:76px;text-align:right;color:#f2c777;font:400 18px Marcellus,serif;font-variant-numeric:tabular-nums;transition:color .2s ease;">{{ row.value }}</strong>
+                  <button class="tl-alternative-step" type="button" onClick="{{ row.inc }}" aria-label="Raise {{ row.name }} to the next calculated alternative" title="Next calculated alternative" style="width:24px;height:24px;border:1px solid rgba(185,140,240,.35);border-radius:6px;background:rgba(0,0,0,.3);color:#d8b8ff;cursor:pointer;font-size:13px;line-height:1;">+</button>
+                </span>
+                <input class="tl-tune-range" type="range" min="{{ row.minimum }}" max="{{ row.maximum }}" step="{{ row.step }}" value="{{ row.rawValue }}" onInput="{{ row.tune }}" onKeyDown="{{ row.rangeKey }}" aria-label="Tune {{ row.name }}" style="grid-column:1/-1;">
+                <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="color:#85738f;font-size:9px;font-variant-numeric:tabular-nums;">Lower · {{ row.minimumLabel }}</span>
+                  <span style="flex:0 0 auto;color:#a28aae;font-size:9px;letter-spacing:.05em;text-transform:uppercase;">{{ row.optionsLabel }}</span>
+                  <span style="color:#85738f;font-size:9px;font-variant-numeric:tabular-nums;">Higher · {{ row.maximumLabel }}</span>
+                </div>
+              </label>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasTuneCandidates }}" hint-placeholder-val="{{ false }}">
+            <label style="display:grid;gap:5px;margin-top:11px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#a28aae;">Jump to a calculated alternative
+              <select value="" onChange="{{ selectTuneCandidate }}" aria-label="Choose a calculated alternative by its stat totals" style="min-height:36px;padding:7px 9px;border:1px solid rgba(185,140,240,.35);border-radius:8px;background:rgba(0,0,0,.4);color:#e6d6f2;font-size:11px;letter-spacing:0;text-transform:none;">
+                <option value="">Choose an alternative by stat totals…</option>
+                <sc-for list="{{ tuneCandidates }}" as="cand" hint-placeholder-count="5"><option value="{{ cand.id }}">{{ cand.label }}</option></sc-for>
+              </select>
+            </label>
+          </sc-if>
+          <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(185,140,240,.14);color:#927fa0;font-size:10px;line-height:1.5;">Every position is a complete recalculated build. Change weapons, locks, or search rules to run a new optimization.</div>
+        </div>
+      </sc-if>
+      </div>
       <!-- Passive skills and mastery -->
       <sc-if value="{{ showCompactProgression }}" hint-placeholder-val="{{ false }}">
-      <div style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
+      <div class="tl-summary-progression" style="border:1px solid rgba(185,140,240,.28);border-radius:14px;background:radial-gradient(circle at 100% 0,rgba(185,140,240,.09),transparent 45%),linear-gradient(180deg,rgba(25,18,31,.78),rgba(12,9,10,.92));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
           <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(185,140,240,.45));"></span>
           <span style="color:#d8c2e7;font:400 14px Marcellus,serif;letter-spacing:.06em;">Passive Skills &amp; Mastery</span>
@@ -1114,7 +1319,7 @@
       <sc-if value="{{ showStatsExtras }}" hint-placeholder-val="{{ true }}">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:13px;align-items:start;margin-bottom:13px;">
         <!-- Sets & Runes (beside the tuning panel) -->
-        <div style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
+        <div class="tl-result-card" style="border:1px solid rgba(212,166,94,.2);border-radius:14px;background:linear-gradient(180deg, rgba(26,20,13,.78), rgba(12,9,7,.9));padding:15px 17px;">
           <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
             <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
             <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Sets &amp; Runes</span>
@@ -1149,11 +1354,11 @@
             </sc-if>
           </div>
         </div>
-      <!-- Favourite Stats (beside Sets & Runes) -->
-      <div style="border:1px solid rgba(242,199,119,.32);border-radius:14px;background:linear-gradient(180deg, rgba(30,22,13,.82), rgba(13,10,7,.92));padding:15px 17px;">
+      <!-- Priority Stats (beside Sets & Runes) -->
+      <div class="tl-result-card" style="border:1px solid rgba(242,199,119,.32);border-radius:14px;background:linear-gradient(180deg, rgba(30,22,13,.82), rgba(13,10,7,.92));padding:15px 17px;">
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 12px;">
           <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,199,119,.4));"></span>
-          <span style="color:#e5c88f;font:400 14px Marcellus,serif;letter-spacing:.06em;">Favourite Stats</span>
+          <span style="color:#e5c88f;font:400 15px Marcellus,serif;letter-spacing:.04em;">Your Priority Stats</span>
           <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(242,199,119,.4),transparent);"></span>
         </div>
         <div style="display:grid;gap:8px;">
@@ -1434,11 +1639,18 @@
   </sc-if>
 
 </div>
+<footer class="tl-app-footer">
+  <div class="tl-app-footer-inner">
+    <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
+    <a href="./privacy.html">Privacy</a>
+  </div>
+</footer>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
 class Component extends DCLogic {
   state = {
     phase: 'setup',
+    setupStep: 1,
     statTab: 'summary',
     acquisition: null,
     marketPrices: {},
@@ -1460,6 +1672,7 @@ class Component extends DCLogic {
     dragPriorityId: null,
     dragOverPriorityId: null,
     dragInsertAfter: false,
+    openWeaponMenu: '',
     weaponTypes: { main:'', off:'' },
     progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, overallMasteryLevel:0 },
     scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified', stationaryBand:'under_2s', movingBand:'unspecified', priorStationaryBand:'unspecified', eventMode:'unspecified', eventWeaponType:'', partyTotal:'', partyWithin4:'', partyAdditional4To16:'', alliedNonpartyWithin4:'' },
@@ -1501,8 +1714,33 @@ class Component extends DCLogic {
   };
 
   _onResize = () => this.setState({ vw: window.innerWidth });
+  _onDocumentPointerDown = (event) => {
+    if(!this.state.openWeaponMenu)return;
+    const target=event.target;
+    if(target instanceof Element&&target.closest('[data-weapon-picker]'))return;
+    this.setState({openWeaponMenu:''});
+  };
+  setupMaxStep() {
+    const s=this.state, weapons=!!(s.weaponTypes.main&&s.weaponTypes.off);
+    const validGoals=s.priorities.length>0&&!s.priorities.some(id=>{
+      if((s.goalModes[id]||'maximize')==='maximize')return false;
+      const value=s.goalValues[id];
+      return value==null||value===''||!Number.isFinite(Number(value));
+    });
+    if(!weapons)return 1;
+    if(!validGoals)return 2;
+    return 4;
+  }
+  setSetupStep = (step) => {
+    const next=Math.max(1,Math.min(Number(step)||1,this.setupMaxStep()));
+    this.setState({setupStep:next,priorityPickerOpen:next===2?this.state.priorityPickerOpen:false});
+    if(typeof window!=='undefined')requestAnimationFrame(()=>document.querySelector('.tl-builder-progress')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  };
+  setupBack = () => this.setSetupStep(this.state.setupStep-1);
+  setupNext = () => this.setSetupStep(this.state.setupStep+1);
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
+    document.addEventListener('pointerdown', this._onDocumentPointerDown);
     this._onResize();
     // Gearing-guide sourcing (craftable/codex now; drops+market later). Non-blocking; guide degrades if absent.
     // no-cache: revalidate so a freshly-built acquisition.json (same URL) is picked up rather than served stale from cache.
@@ -1845,8 +2083,8 @@ class Component extends DCLogic {
   };
   RUNE_TYPE_COLOR = { attack:'#f0a933', defense:'#87acef', assist:'#c984f1' };
   HERO_MODES = [
-    { id:'owned', label:'Use only my Heroics', explain:'Configured Heroics may be equipped. The optimizer cannot invent another Heroic.' },
-    { id:'theoretical', label:'Allow theoretical', explain:'The optimizer may recommend the strongest Heroic configuration that follows the game’s limits, even if you have not marked it as owned.' },
+    { id:'owned', label:'Only use Heroic gear I own', explain:'Empty categories stay empty. The optimizer will only use the Heroic items you add here.' },
+    { id:'theoretical', label:'Suggest the best Heroic gear', explain:'The optimizer may choose Heroic gear you have not added. Add one of yours only when you want to force that exact item into the build.' },
   ];
 
   heroicCatalog(group) {
@@ -1886,20 +2124,35 @@ class Component extends DCLogic {
   }
   runeById(item, id) { return this.runeCatalog(item).find(r => r.id === id); }
   itemMeta(item) { return item ? ('Heroic · '+(this.core ? this.core.label(item.equipmentType) : item.equipmentType || 'Item')) : ''; }
+  itemFixedStats(item, level) {
+    if (!item || !this.core) return [];
+    const key=String(level||this.getItemLevels(item).at(-1)||'');
+    const main=item.itemStats?.main?.[key]||{};
+    const rows=[];
+    if(main.mainhand) rows.push({name:'Damage',value:`${main.mainhand.min}–${main.mainhand.max}`});
+    if(main.offhand) rows.push({name:'Off-hand damage',value:`${main.offhand.min}–${main.offhand.max}`});
+    const add=(statId,value)=>{
+      const name=statId.startsWith('attack_speed_')?'Attack Speed':statId.startsWith('attack_range_')?'Range':this.statLabel(statId);
+      rows.push({name,value:this.core.formatStat(statId,value)});
+    };
+    Object.entries(main.extra||{}).forEach(([statId,value])=>add(statId,value));
+    Object.entries(item.itemStats?.extra?.[key]||{}).forEach(([statId,value])=>add(statId,value));
+    return rows;
+  }
   emptyRune() { return { runeId:null, statId:null, level:1, chaos:false }; }
 
-  emptyDraft(group) { return { group, itemId:null, level:null, traits:[], uniqueTrait:null, heroicEffects:[], resonance:null,
+  emptyDraft(group) { return { group, itemId:null, level:null, traits:[], uniqueTrait:null, heroicEffects:[], resonance:null, perkId:'',
     runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] }; }
   engageHeroics = () => this.setState({ heroicsEngaged:true, heroicMode: this.state.heroicMode==='none' ? 'owned' : this.state.heroicMode });
   noHeroics = () => {this.persistHeroics(this.state.heroics,'theoretical');this.setState({ heroicsEngaged:true, heroicMode:'theoretical',rules:{...this.state.rules,heroic:true} });};
   persistHeroics(heroics=this.state.heroics,heroicMode=this.state.heroicMode){try{localStorage.setItem('tlhelper.builder.heroics.v1',JSON.stringify({heroics,heroicMode}))}catch{}}
   setHeroicMode(m) { this.persistHeroics(this.state.heroics,m);this.setState({ heroicMode:m, rules:{...this.state.rules,heroic:m==='theoretical'} }); }
-  addHeroic(group) { this.setState({ drawer:{ group, step:1, search:'', draft:this.emptyDraft(group) } }); }
+  addHeroic(group) { this.setState({ drawer:{ group, step:1, search:'', draft:this.emptyDraft(group) }, hover:null }); }
   editHeroic(group) { const cfg=this.state.heroics[group]; this.setState({ drawer:{ group, step:2, search:'', draft:{ ...cfg,
     traits:cfg.traits.map(t=>({...t})), uniqueTrait:cfg.uniqueTrait?{...cfg.uniqueTrait}:null, heroicEffects:cfg.heroicEffects.map(e=>({...e})),
-    resonance:cfg.resonance?{...cfg.resonance}:null, runes:cfg.runes.map(r=>({...r})) } } }); }
-  removeHeroic(group) { const h={...this.state.heroics}; h[group]=null;this.persistHeroics(h,this.state.heroicMode);this.setState({ heroics:h }); }
-  closeDrawer = () => this.setState({ drawer:null });
+    resonance:cfg.resonance?{...cfg.resonance}:null, perkId:cfg.perkId||'', runes:cfg.runes.map(r=>({...r})) } }, hover:null }); }
+  removeHeroic(group) { const h={...this.state.heroics}; h[group]=null;this.persistHeroics(h,this.state.heroicMode);this.setState({ heroics:h, hover:null }); }
+  closeDrawer = () => this.setState({ drawer:null, hover:null });
   setMarketRegion = (e) => this.setState({ marketRegion:e.target.value, marketPrices:{} });
   // Live auction-house prices via the same-origin questlog proxy (functions/api/questlog/market.js).
   // Degrades silently where the proxy isn't deployed (e.g. static local dev).
@@ -1917,25 +2170,24 @@ class Component extends DCLogic {
     this.setState({ marketPrices:prices, marketBusy:false });
   };
   patchDrawer(p) { this.setState({ drawer:{ ...this.state.drawer, ...p } }); }
-  patchDraft(p) { const d=this.state.drawer; this.setState({ drawer:{ ...d, draft:{ ...d.draft, ...p } } }); }
+  // A draft update can replace the hovered picker row before mouseleave fires.
+  // Clear the transient preview in the same state change so it cannot become sticky.
+  patchDraft(p) { const d=this.state.drawer; this.setState({ drawer:{ ...d, draft:{ ...d.draft, ...p } }, hover:null }); }
   setDrawerSearch = (e) => this.patchDrawer({ search:e.target.value });
   curItem() { const d=this.state.drawer; return this.findHeroic(d.group, d.draft.itemId); }
   selectDraftItem(item) {
-    // Fast recreation: prefill the 3 owned traits from the item's own pool at max tier
-    // (most owned Heroics are maxed — you just adjust what differs), and prefill the Heroic
-    // trait. Effect ROLL levels still start "unknown" — that's an axis we genuinely can't assume.
+    // Fast recreation: prefill three traits and the two visible Heroic bonus-stat
+    // lines. Exact roll values and Skill Core remain for the player to match.
     const its=item.itemStats||{};
     const traits=Object.keys(its.traits||{}).slice(0,3).map(statId=>({ statId, tier:this.tierMax(its.traits[statId]) }));
-    const uKeys=Object.keys(its.uniqueTraits||{});
-    const uniqueTrait=uKeys.length?{ statId:uKeys[0], tier:this.tierMax(its.uniqueTraits[uKeys[0]]) }:null;
     const usedEffects=new Set();
     const heroicEffects = Array.from({length:this.heroicEffectGroupCount(item)},(_,groupIndex) => {
       const option=this.heroicEffectOptions(item,groupIndex).find(row=>!usedEffects.has(row.statId));
       if(option)usedEffects.add(option.statId);
       return { statId:option?.statId||'', level:0, levelKnown:false };
     });
-    this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits, uniqueTrait,
-      heroicEffects, resonance:null, runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] });
+    this.patchDraft({ itemId:item.id, level:this.getItemLevels(item).at(-1) || null, traits, uniqueTrait:null,
+      heroicEffects, resonance:null, perkId:'', runes:[this.emptyRune(), this.emptyRune(), this.emptyRune()] });
   }
   // Return to the item picker, discarding the current draft config for this slot.
   changeDraftItem() { this.patchDraft({ ...this.emptyDraft(this.state.drawer.group) }); }
@@ -1960,6 +2212,7 @@ class Component extends DCLogic {
   setResonance(statId) { const cur=this.state.drawer.draft.resonance;
     this.patchDraft({ resonance: statId ? { statId, tier: cur && cur.statId===statId ? cur.tier : 1 } : null }); }
   setResonanceTier(tier) { const r=this.state.drawer.draft.resonance; if (r) this.patchDraft({ resonance:{ ...r, tier:Number(tier) } }); }
+  setDraftPerk = (e) => this.patchDraft({ perkId:e.target.value });
   setRuneRow(i, patch) { this.patchDraft({ runes:this.state.drawer.draft.runes.map((r,j)=> j===i ? { ...r, ...patch } : r) }); }
   setRuneKind(i, runeId) { const item=this.curItem();
     if (!runeId) { this.setRuneRow(i, this.emptyRune()); return; }
@@ -1974,15 +2227,16 @@ class Component extends DCLogic {
   useHeroic() {
     const d = this.state.drawer; const h = { ...this.state.heroics }; h[d.group] = { ...d.draft };
     this.persistHeroics(h,this.state.heroicMode==='none'?'owned':this.state.heroicMode);
-    this.setState({ heroics:h, drawer:null, heroicMode: this.state.heroicMode==='none' ? 'owned' : this.state.heroicMode });
+    this.setState({ heroics:h, drawer:null, hover:null, heroicMode: this.state.heroicMode==='none' ? 'owned' : this.state.heroicMode });
   }
   configToItem(group, cfg) {
     const item = this.findHeroic(group, cfg.itemId) || {};
     const inh = item.inherentByLevel ? [{ name:'Item Level', value:'Lv ' + (cfg.level || (this.getItemLevels(item).at(-1)||'')) }, { name:(item.inherentByLevel[cfg.level]||Object.values(item.inherentByLevel)[0]||''), value:'' }] : [];
     const unique=cfg.uniqueTrait?[{name:this.statLabel(cfg.uniqueTrait.statId),formattedValue:this.core.formatStat(cfg.uniqueTrait.statId,this.tierVal(item.itemStats?.uniqueTraits?.[cfg.uniqueTrait.statId],cfg.uniqueTrait.tier))}]:[];
     const heroicEffects=cfg.heroicEffects.map((e,i)=>{const option=this.heroicEffectOptions(item,i).find(row=>row.statId===e.statId);const value=this.heroicEffectValue(option,e.levelKnown?e.level:0);return {groupNumber:i+1,name:this.statLabel(e.statId),value:this.core.formatSigned(value,e.statId),level:e.level,levelKnown:e.levelKnown,baseValue:this.core.formatSigned(this.heroicEffectValue(option,0),e.statId),maxValue:this.core.formatSigned(this.heroicEffectValue(option,option?.maxLevel??0),e.statId)};});
+    const effects=this.core.itemTooltipEffects(item,group==='weapon'?cfg:{...cfg,perkId:''}).map(effect=>({label:effect.label,name:effect.name,text:effect.text,icon:effect.imageUrl||'',hasIcon:Boolean(effect.imageUrl)}));
     return { name:item.name, meta:this.itemMeta(item), slotLabel:item.slotLabel, rarity:'heroic', slot:'heroic_'+group,
-      imageUrl:item.imageUrl||'',stats:inh,traits:cfg.traits.map(t=>({name:this.statLabel(t.statId),value:this.core.formatStat(t.statId,this.tierVal(item.itemStats?.traits?.[t.statId],t.tier))})),unique,heroicEffects,
+      imageUrl:item.imageUrl||'',stats:inh,traits:cfg.traits.map(t=>({name:this.statLabel(t.statId),value:this.core.formatStat(t.statId,this.tierVal(item.itemStats?.traits?.[t.statId],t.tier))})),unique,heroicEffects,effects,
       runes: cfg.runes.filter(r=>r.runeId).map(r => { const rn=this.runeById(item, r.runeId);
         const option=rn?.options?.find(row=>row.statId===r.statId);const value=option?.levels?.[r.level]??0;
         return { empty:false,filled:true,icon:rn?.imageUrl||'',hasIcon:Boolean(rn?.imageUrl),typeLabel:this.core.runeTypeLabel(rn?.runeType).toUpperCase(),typeColor:this.RUNE_TYPE_COLOR[rn?.runeType]||'#e5c88f',gradeName:this.core.runeTierLabel(rn),level:r.level,contribution:`+${this.core.formatStat(r.statId,value)} ${this.statLabel(r.statId)}` }; }) };
@@ -2011,7 +2265,7 @@ class Component extends DCLogic {
       const effectIds=cfg.heroicEffects.map(row=>row.statId).filter(Boolean);
       if(new Set(effectIds).size!==effectIds.length)throw new Error(`${item.name} repeats a Heroic effect. Each effect may be selected only once per item.`);
       source.build.equipment[item.slotId]={
-        ...this.core.emptyEquipmentSelection(), itemId:item.id, level:cfg.level,
+        ...this.core.emptyEquipmentSelection(), itemId:item.id, level:cfg.level, perkId:group==='weapon'?(cfg.perkId||''):'',
         traits:cfg.traits.map(row=>({...row})), uniqueTrait:cfg.uniqueTrait?{...cfg.uniqueTrait}:null,
         heroicEffects:cfg.heroicEffects.map(row=>({...row})), resonance:cfg.resonance?[{...cfg.resonance}]:[],
         runes:cfg.runes.map(({runeId,statId,level})=>({runeId,statId,level})),
@@ -2281,7 +2535,7 @@ class Component extends DCLogic {
     const pan=this._resultMasteryPan;if(!pan||pan.pointerId!==event.pointerId)return;
     const viewport=event.currentTarget;viewport.releasePointerCapture?.(event.pointerId);viewport.style.cursor='grab';this._resultMasteryPan=null;
   }
-  componentWillUnmount() { this._worker?.terminate(); this._resultWheelRO?.disconnect(); window.removeEventListener('resize', this._onResize); }
+  componentWillUnmount() { this._worker?.terminate(); this._resultWheelRO?.disconnect(); window.removeEventListener('resize', this._onResize); document.removeEventListener('pointerdown', this._onDocumentPointerDown); }
 
   movePriority(id, dir) {
     const arr = [...this.state.priorities];
@@ -2507,15 +2761,18 @@ class Component extends DCLogic {
       .sort((a,b)=>(Number(b.grade)||0)-(Number(a.grade)||0)||String(a.id).localeCompare(String(b.id)))[0];
     return this._familyIcons[type]=best?.imageUrl||'';
   }
-  setWeaponType(role,event) {
-    const value=event.target.value;
+  toggleWeaponMenu = (role) => this.setState({openWeaponMenu:this.state.openWeaponMenu===role?'':role});
+  closeWeaponMenu = () => this.setState({openWeaponMenu:''});
+  weaponMenuKeyDown = (event) => { if(event.key==='Escape'){event.preventDefault();this.closeWeaponMenu();} };
+  setWeaponType(role,eventOrValue) {
+    const value=typeof eventOrValue==='string'?eventOrValue:eventOrValue.target.value;
     const weaponTypes={...this.state.weaponTypes,[role]:value};
     if(weaponTypes.main && weaponTypes.main===weaponTypes.off) weaponTypes[role==='main'?'off':'main']='';
     const selected=[weaponTypes.main,weaponTypes.off].filter(Boolean),scenario={...this.state.scenario};
     if(scenario.eventMode!=='unspecified'&&!selected.includes(scenario.eventWeaponType))scenario.eventWeaponType=selected[0]||'';
     const weaponHeroic=this.state.heroics.weapon;
-    if(weaponHeroic){const item=this.findHeroic('weapon',weaponHeroic.itemId);if(item && ![weaponTypes.main,weaponTypes.off].includes(item.equipmentType)){const heroics={...this.state.heroics,weapon:null};this.setState({weaponTypes,heroics,scenario});return;}}
-    this.setState({weaponTypes,scenario});
+    if(weaponHeroic){const item=this.findHeroic('weapon',weaponHeroic.itemId);if(item && ![weaponTypes.main,weaponTypes.off].includes(item.equipmentType)){const heroics={...this.state.heroics,weapon:null};this.setState({weaponTypes,heroics,scenario,openWeaponMenu:''});return;}}
+    this.setState({weaponTypes,scenario,openWeaponMenu:''});
   }
   setPassiveLevelCap = (event) => this.setState({progression:{...this.state.progression,skillLevelCap:Math.max(1,Math.min(20,Number(event.target.value)||20))}});
   setMasteryPoints(weapon,event) {
@@ -2616,11 +2873,13 @@ class Component extends DCLogic {
       const selected=s.weaponTypes[role];
       const types=this.core?this.core.slotById(slotId).types:[];
       const familyIcon=selected?this.weaponFamilyIcon(selected):'';
-      return { role:role==='main'?'Main weapon':'Off-hand weapon', value:selected, name:selected?this.core.label(selected):'Choose weapon', ariaLabel:role==='main'?'Main weapon family':'Off-hand weapon family',
-        options:types.filter(type=>type!==s.weaponTypes[role==='main'?'off':'main']).map(type=>({id:type,label:this.core.label(type)})),
-        family:selected?(this.core.label(selected)+' family locked for this search'):'Choose a weapon family', name_color:selected?'#f2c777':'#8a795f',
-        border:selected?'rgba(242,199,119,.65)':'rgba(212,166,94,.24)', bg:'rgba(0,0,0,.24)',
-        icon:familyIcon?`url(${familyIcon}) center/78% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`:'radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)',glow:'rgba(229,200,143,.16)',change:(event)=>this.setWeaponType(role,event) };
+      const roleLabel=role==='main'?'Main weapon':'Off-hand weapon',open=s.openWeaponMenu===role;
+      return { role:roleLabel, value:selected, name:selected?this.core.label(selected):'Choose a weapon', ariaLabel:roleLabel+' family',menuLabel:'Choose '+roleLabel.toLowerCase(),open,
+        options:types.filter(type=>type!==s.weaponTypes[role==='main'?'off':'main']).map(type=>{const optionSelected=type===selected,optionIcon=this.weaponFamilyIcon(type);return{id:type,label:this.core.label(type),selected:optionSelected,detail:optionSelected?'Selected for this build':'Select weapon family',mark:optionSelected?'✓':'',icon:optionIcon?`url(${optionIcon}) center/78% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`:'radial-gradient(circle at 36% 30%,#4b3318,#171007 72%)',select:()=>this.setWeaponType(role,type)};}),
+        family:selected?(this.core.label(selected)+' family locked for this search'):'Open weapon families', name_color:selected?'#f2c777':'#ead8b7',
+        border:selected?'rgba(242,199,119,.72)':'rgba(212,166,94,.48)', bg:selected?'linear-gradient(135deg,rgba(107,68,22,.3),rgba(14,10,7,.84))':'linear-gradient(135deg,rgba(68,44,18,.28),rgba(10,8,6,.86))',
+        orbClass:selected?'has-weapon':'is-empty',orbBorder:selected?'rgba(242,199,119,.72)':'rgba(212,166,94,.58)',
+        icon:familyIcon?`url(${familyIcon}) center/78% no-repeat, radial-gradient(circle at 36% 30%,#3a2c17,#14100a 72%)`:'radial-gradient(circle at 36% 30%,#4b3318,#171007 72%)',glow:selected?'rgba(242,199,119,.28)':'rgba(229,200,143,.18)',toggle:()=>this.toggleWeaponMenu(role),close:this.closeWeaponMenu,keyDown:this.weaponMenuKeyDown };
     });
     const progressionWeapons=['main','off'].map(role=>{
       const weapon=s.weaponTypes[role];
@@ -2711,12 +2970,12 @@ class Component extends DCLogic {
     const hasPresets=presetChips.length>0;
 
     const ruleMeta = {
-      endgame: ['Endgame equipment', 'Level 50+ catalogue only', 'Excludes levelling and starter equipment below level 50. Disable this only when you deliberately want the optimizer to consider the full progression catalogue.'],
-      heroic: ['Theoretical Heroics', 'Best theoretical configuration', 'Allows the optimizer to configure Heroic equipment using its best Heroic trait and effect levels. Disable this to exclude theoretical Heroic configurations. Heroics you mark as owned and locked are preserved separately.'],
-      traits: ['Traits', 'Three max-tier traits', 'Selects exactly three compatible normal traits for every recommended item and uses their maximum available tier. Disable this to score items without optional traits.'],
-      sets: ['Set effects', 'Evaluate complete sets', 'Includes bonuses activated by wearing the required number of pieces from an equipment set. The optimizer may choose a slightly weaker individual item when it completes a stronger set bonus.'],
-      runes: ['Runes', 'Normal + owned Chaos', 'Configures three rune sockets per item. Normal runes may repeat across the three sockets. Chaos runes are restricted to owned runes and no more than one Chaos rune per item.'],
-      artifacts: ['Artifacts', 'Optimize complete sets', 'Searches complete six-piece artifact combinations and includes their active set bonuses. Disable this to generate the build without artifact stats or bonuses.'],
+      endgame: ['Use level 50+ gear', 'Ignore levelling gear', 'Keeps the results focused on gear for a finished character. Turn this off if you also want levelling and starter gear.'],
+      heroic: ['Suggest Heroic gear I do not own', 'Only when it improves the build', 'Lets the optimizer recommend the strongest Heroic option. Heroic gear you add as owned will still stay locked into the build.'],
+      traits: ['Optimize item traits', 'Choose three strong traits per item', 'Adds three compatible traits to each recommended item and uses the strongest available tier.'],
+      sets: ['Complete useful gear sets', 'Use a set when the whole build benefits', 'Allows a slightly weaker item when wearing it completes a gear set that makes the whole build stronger.'],
+      runes: ['Add the best runes', 'Use normal and owned Chaos runes', 'Fills all three rune slots. Normal runes may repeat; Chaos runes are limited to the ones you own and one per item.'],
+      artifacts: ['Choose an artifact set', 'Build a complete six-piece set', 'Picks a complete artifact set and includes the bonuses it activates.'],
     };
     const ruleList = Object.keys(ruleMeta).map(k => {
       const on = s.rules[k];
@@ -2824,7 +3083,7 @@ class Component extends DCLogic {
       const formattedValue=goal.formattedValue||this.core.formatStat(id,rawValue);
       const parsedDisplay=parseFloat(String(formattedValue).replace(/,/g,''));
       const optionCount=new Set(tuningFrontier.map(c=>String(this.core.formatStat(id,Number(c.goalValues?.[id])||0)))).size;
-      return{id,name:goal.name||this.statLabel(id),capLabel,value:formattedValue,rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),optionsLabel:(optionCount||1)+' option'+((optionCount||1)===1?'':'s'),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event),
+      return{id,rank:index+1,name:goal.name||this.statLabel(id),capLabel,value:formattedValue,rawValue,minimum:Number(range.minimum),maximum:Number(range.maximum),step:Math.max(1,Math.round(span/240)),minimumLabel:this.core.formatStat(id,range.minimum),maximumLabel:this.core.formatStat(id,range.maximum),optionsLabel:(optionCount||1)+' option'+((optionCount||1)===1?'':'s'),border:index===0?'rgba(242,199,119,.34)':'rgba(185,140,240,.2)',bg:index===0?'rgba(107,68,22,.12)':'rgba(15,10,20,.34)',tune:(event)=>this.tuneStat(id,event),
         displayValue:Number.isFinite(parsedDisplay)?parsedDisplay:rawValue,
         numeric:(event)=>this.tuneStatInput(id,event),
         rangeKey:(event)=>this.tuneRangeKey(id,event),
@@ -2858,7 +3117,7 @@ class Component extends DCLogic {
     // sit in the persistent left column, so those aren't tabs here.
     const STAT_GROUP={summary:'stats',attack:'stats',defense:'stats',utility:'stats',pvp:'stats',boss:'stats',gear:'stats',sets:'stats',skills:'progression',mastery:'progression',guide:'guide'};
     const resultView=STAT_GROUP[s.statTab]||'guide';
-    const primaryTabs=[{id:'stats',name:'Stats',dflt:'summary'},{id:'guide',name:'Guide',dflt:'guide'},{id:'progression',name:'Skills',dflt:'skills'}].map(p=>{
+    const primaryTabs=[{id:'stats',name:'Stats',dflt:'summary'},{id:'guide',name:'Upgrade Guide',dflt:'guide'},{id:'progression',name:'Skills & Mastery',dflt:'skills'}].map(p=>{
       const on=resultView===p.id;
       return { name:p.name, on, border:on?'rgba(242,199,119,.55)':'rgba(212,166,94,.14)', bg:on?'linear-gradient(135deg, rgba(107,68,22,.4), rgba(32,23,13,.6))':'transparent', color:on?'#f6d391':'#8a795f',
         select:()=>this.setState({ statTab:p.dflt }) };
@@ -2997,7 +3256,7 @@ class Component extends DCLogic {
     const totalSlots = gearSource.length + this.WEAPONS.length + this.ARTIFACTS.length;
 
     const vw = s.vw;
-    const setupCols = vw <= 820 ? '1fr' : 'minmax(0,1.6fr) minmax(0,.9fr)';
+    const setupCols = 'minmax(0,1fr)';
     const twoCol = vw <= 1350 && vw > 820;
     // Guide-centric result: left column = Equipment + favourite stats; right column = the tab panel (Guide default).
     // Weapons/Attributes/Sets sit under the tab panel in the right column, shown only on the Stats subtab.
@@ -3087,31 +3346,120 @@ class Component extends DCLogic {
     const heroicCount = Object.values(s.heroics).filter(Boolean).length;
     const heroicHasAny = heroicCount > 0;
     const showHeroicGateway = !s.heroicsEngaged && !heroicHasAny;
-    const heroicPanelBorder = heroicHasAny ? 'rgba(255,183,101,.4)' : 'rgba(212,166,94,.2)';
+    const heroicSuggestMode=s.heroicsEngaged&&s.heroicMode==='theoretical';
+    const heroicOwnedMode=s.heroicsEngaged&&s.heroicMode==='owned';
+    const heroicPanelBorder=heroicSuggestMode?'rgba(92,190,129,.42)':heroicHasAny?'rgba(255,183,101,.4)':'rgba(212,166,94,.2)';
+    const heroicPanelBackground=heroicSuggestMode
+      ?'radial-gradient(360px 210px at 100% 0%,rgba(65,151,99,.1),transparent 60%),linear-gradient(180deg,rgba(19,29,21,.82),rgba(11,13,10,.94))'
+      :'radial-gradient(320px 200px at 50% 0%,rgba(255,152,45,.08),transparent 60%),linear-gradient(180deg,rgba(26,20,13,.82),rgba(13,10,8,.92))';
+    const heroicPanelIntro=heroicSuggestMode
+      ?'Automatic Heroic picks are on. Add gear you own only when you want to lock that exact item into the result.'
+      :heroicOwnedMode
+        ?'Add the Heroic gear you own. Any category you leave empty will stay empty in the generated build.'
+        :'Add Heroic gear you own, or let the optimizer recommend the strongest options.';
     const heroicModes = this.HERO_MODES.map(m => {
       const on = s.heroicMode === m.id;
-      return { label:m.label, select:()=>this.setHeroicMode(m.id),
-        border: on ? 'rgba(255,183,101,.6)' : 'transparent', bg: on ? 'linear-gradient(135deg, rgba(150,86,24,.42), rgba(32,23,13,.6))' : 'transparent',
-        color: on ? '#ffcf8c' : '#8a795f' };
+      const suggest=m.id==='theoretical';
+      return { label:m.label,selected:on,select:()=>this.setHeroicMode(m.id),
+        border:on?(suggest?'rgba(92,190,129,.64)':'rgba(255,183,101,.6)'):'transparent',
+        bg:on?(suggest?'linear-gradient(135deg,rgba(38,103,62,.42),rgba(18,34,23,.66))':'linear-gradient(135deg,rgba(150,86,24,.42),rgba(32,23,13,.6))'):'transparent',
+        color:on?(suggest?'#a8e0bb':'#ffcf8c'):'#8a795f' };
     });
     const heroicModeExplain = (this.HERO_MODES.find(m=>m.id===s.heroicMode)||{}).explain;
+    const heroicModeTitle=heroicSuggestMode?'Automatic picks are on':'Only your gear will be used';
+    const heroicModeAccent=heroicSuggestMode?'rgba(92,190,129,.72)':'rgba(255,183,101,.62)';
+    const heroicModeBg=heroicSuggestMode?'rgba(48,116,73,.11)':'rgba(255,152,45,.05)';
+    const heroicModeTitleColor=heroicSuggestMode?'#a8e0bb':'#f1cb8d';
     const heroicSlotsVisible = true;
     const heroicSlots = this.HGROUPS.map(g => {
       const cfg = s.heroics[g.key];
-      if (!cfg) return { group:g.key, label:g.label, empty:true, configured:false, add:()=>this.addHeroic(g.key) };
+      if (!cfg) return {
+        group:g.key,label:g.label,empty:true,configured:false,auto:heroicSuggestMode,
+        emptyTitle:heroicSuggestMode?'Automatic choice allowed':'Nothing added',
+        emptyNote:heroicSuggestMode?'The optimizer may choose the strongest option.':'No Heroic item from this category will be used.',
+        emptyBorder:heroicSuggestMode?'rgba(92,190,129,.46)':'rgba(255,183,101,.4)',
+        emptyBg:heroicSuggestMode?'rgba(40,103,63,.1)':'rgba(0,0,0,.2)',
+        emptyAccent:heroicSuggestMode?'#70bd8e':'#8c6636',
+        actionLabel:heroicSuggestMode?'Lock mine':'＋ Add mine',
+        actionBorder:heroicSuggestMode?'rgba(92,190,129,.55)':'rgba(255,183,101,.5)',
+        actionBg:heroicSuggestMode?'rgba(42,111,68,.2)':'rgba(150,86,24,.22)',
+        actionColor:heroicSuggestMode?'#a8e0bb':'#ffcf8c',
+        add:()=>this.addHeroic(g.key),
+      };
       const item = this.findHeroic(g.key, cfg.itemId) || {};
-      const uni = cfg.uniqueTrait ? this.statLabel(cfg.uniqueTrait.statId) : '—';
       const knownFx = cfg.heroicEffects.filter(e=>e.levelKnown).length;
-      const heroicSummary = uni + ' · ' + knownFx + '/' + cfg.heroicEffects.length + ' fx';
+      const perk=this.core.selectedItemPerk(item,cfg);
+      const skillCoreSummary=perk?.passive?.name||perk?.name||'No Skill Core';
+      const bonusSummary=knownFx+'/'+cfg.heroicEffects.length+' bonus values matched';
       const runeDots = cfg.runes.map(r => { const rn = r.runeId ? this.runeById(item, r.runeId) : null;
         const c = rn ? this.RUNE_TYPE_COLOR[rn.runeType] : '#6f5f49';
         return { color: r.chaos ? '#ffb765' : c, bg: rn ? c+'33' : 'transparent',
           title: rn ? (this.statLabel(r.statId)+' · Lv '+r.level+(r.chaos?' · Chaos':'')) : 'Empty socket' }; });
       return { group:g.key, label:g.label, empty:false, configured:true, name:item.name,
         meta:this.itemMeta(item)+' · Lv '+cfg.level, slotLabel:item.slotLabel,
-        traitChips: cfg.traits.map(t=>this.statLabel(t.statId)+' T'+t.tier), heroicSummary, runeDots,
+        traitChips: cfg.traits.map(t=>this.statLabel(t.statId)+' T'+t.tier), hasSkillCore:g.key==='weapon', skillCoreSummary, bonusSummary, runeDots,
         edit:()=>this.editHeroic(g.key), remove:()=>this.removeHeroic(g.key), enter:(e)=>this.setHover(this.configToItem(g.key,cfg),e) };
     });
+    const invalidSetupGoal=s.priorities.some(id=>{
+      if((s.goalModes[id]||'maximize')==='maximize')return false;
+      const value=s.goalValues[id];
+      return value==null||value===''||!Number.isFinite(Number(value));
+    });
+    const setupMaxStep=this.setupMaxStep(),setupStep=Math.min(s.setupStep,setupMaxStep);
+    const setupWeaponSummary=weaponsChosen?[s.weaponTypes.main,s.weaponTypes.off].map(type=>this.core?.label(type)||type).join(' + '):'Choose two weapon families';
+    const priorityNames=s.priorities.slice(0,2).map(id=>this.statLabel(id));
+    const setupPrioritySummary=s.priorities.length?`${priorityNames.join(', ')}${s.priorities.length>2?` +${s.priorities.length-2}`:''}`:'No priorities yet';
+    const activeRuleCount=Object.values(s.rules).filter(Boolean).length;
+    const enabledUpgradeRules=[
+      s.rules.traits&&'traits',
+      s.rules.sets&&'gear sets',
+      s.rules.runes&&'runes',
+      s.rules.artifacts&&'artifacts',
+    ].filter(Boolean);
+    const masteryAdjusted=['main','off'].some(role=>{
+      const weapon=s.weaponTypes[role];
+      return weapon&&Number(s.progression.masteryPointsByWeapon[weapon]??220)!==220;
+    });
+    const setupRulesCustomized=activeRuleCount!==6
+      ||s.setRules.require
+      ||s.setRules.prefer
+      ||!s.setRules.allowBreaking
+      ||Number(s.setRules.minimumActiveBonuses)!==0
+      ||s.scenario.enabled
+      ||!s.progression.enabled
+      ||Number(s.progression.skillLevelCap)!==20
+      ||Number(s.progression.overallMasteryLevel)!==0
+      ||masteryAdjusted;
+    const setupRuleStatus=setupRulesCustomized?'Changed by you':'Ready to go';
+    const setupRuleCards=[
+      {
+        label:'Gear',
+        value:s.rules.endgame?'Use endgame gear':'Use gear from every level',
+        detail:s.rules.heroic?'Can suggest Heroic gear you do not own yet':'Only use Heroic gear you own',
+      },
+      {
+        label:'Upgrades',
+        value:enabledUpgradeRules.length===4?'Optimize every upgrade':enabledUpgradeRules.length?`Optimize ${enabledUpgradeRules.length} upgrade types`:'Do not add upgrades',
+        detail:enabledUpgradeRules.length?`Includes ${enabledUpgradeRules.join(', ')}`:'Traits, sets, runes, and artifacts are off',
+      },
+      {
+        label:'Stats and skills',
+        value:`Spend all ${this.ATTR_BUDGET} stat points for me`,
+        detail:s.progression.enabled?'Also chooses passives and weapon mastery':'Leave passives and mastery alone',
+      },
+    ];
+    const setupRuleSummary=setupRulesCustomized?'Changed by you':'Ready to go';
+    const setupHeroicSummary=heroicCount?`${heroicCount} owned locked`:s.heroicsEngaged?'Can suggest any Heroic':'Choose on this step';
+    const setupSteps=[
+      {number:1,name:'Weapons',summary:weaponsChosen?setupWeaponSummary:'Choose your pairing'},
+      {number:2,name:'Priorities',summary:s.priorities.length?`${s.priorities.length} ranked`:'Rank what matters'},
+      {number:3,name:'Build rules',summary:setupRuleStatus},
+      {number:4,name:'Review & forge',summary:heroicCount?`${heroicCount} Heroic locked`:'Final choices'},
+    ].map((row,index)=>{const number=index+1,current=number===setupStep,complete=number<setupStep;return{...row,number,current:current?'step':'false',disabled:number>setupMaxStep,className:current?'is-active':complete?'is-complete':'',select:()=>this.setSetupStep(number)};});
+    const setupNextDisabled=(setupStep===1&&!weaponsChosen)||(setupStep===2&&(!s.priorities.length||invalidSetupGoal));
+    const setupNavHint=setupStep===1?'Pick two different weapon families. This shapes every recommendation that follows.':setupStep===2?(!s.priorities.length?'Add at least one stat, then drag to rank what matters most.':invalidSetupGoal?'Complete each At least or Target value before continuing.':'Your top priority receives the strongest weighting.'):setupStep===3?'These choices work for most builds. Change them only if you want to limit what the optimizer can use.':'Review owned Heroics, then forge when you are happy with the summary.';
+    const setupNextLabel=['','Continue to priorities','Continue to build rules','Review & forge'][setupStep]||'Continue';
+    const forgeDisabled=!s.engineReady||!weaponsChosen||!s.priorities.length||invalidSetupGoal;
 
     // ---------- Heroic drawer ----------
     const dr = s.drawer;
@@ -3124,14 +3472,14 @@ class Component extends DCLogic {
       const pickMode = !draft.itemId;
       const configMode = !!draft.itemId;
       const effectsOk = draft.heroicEffects.every(e=>!!e.statId);
-      const uniqueRequired=Object.keys(item?.itemStats?.uniqueTraits||{}).length>0;
-      const configValid = draft.traits.length===3 && (!uniqueRequired || !!draft.uniqueTrait) && effectsOk && chaosUsed<=1;
+      const perkRequired=group==='weapon'&&(item?.availablePerks||[]).length>0;
+      const configValid = draft.traits.length===3 && effectsOk && (!perkRequired || !!draft.perkId) && chaosUsed<=1;
       const valid = configMode && configValid;
       let list = this.heroicCatalog(group);
       if (group==='weapon') list = list.filter(it => [s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).includes(it.wtype));
       if (dr.search) { const q=dr.search.toLowerCase(); list = list.filter(it => it.name.toLowerCase().includes(q)); }
       const invText = (it)=> it.inherentByLevel ? (it.inherentByLevel[this.getItemLevels(it).at(-1)] || Object.values(it.inherentByLevel)[0] || '') : '';
-      const drawerItems = list.map(it => ({ name:it.name, meta:this.itemMeta(it)+' · Lv '+this.getItemLevels(it).at(-1), set:it.setName,
+      const drawerItems = list.map(it => ({ name:it.name, imageUrl:it.imageUrl||'', meta:this.itemMeta(it)+' · Lv '+this.getItemLevels(it).at(-1), set:it.setName,
         inherentText: invText(it), selected: draft.itemId===it.id,
         border: draft.itemId===it.id ? 'rgba(255,183,101,.7)' : 'rgba(212,166,94,.16)',
         bg: draft.itemId===it.id ? 'rgba(255,152,45,.08)' : 'rgba(0,0,0,.2)',
@@ -3141,7 +3489,7 @@ class Component extends DCLogic {
       let showLevelSelect=false, levelOptions=[], normalTraitRows=[], canAddTrait=false,
           hasUnique=false, uniqueOptions=[], uniqueStat='', uniqueTierOptions=[], uniqueTierVal='', uniqueValue='', hasUniqueSel=false,
           effectRows=[], resonanceOptions=[], resonanceStat='', resonanceTierOptions=[], resonanceValue='', hasResonanceSel=false,
-          runeRows=[], runeSynergy='';
+          runeRows=[], runeSynergy='', hasPerks=false, perkOptions=[], selectedPerk=null, hasResonance=false;
       if (item) {
         const its=item.itemStats;
         const itemLevels=this.getItemLevels(item); showLevelSelect=itemLevels.length>1;
@@ -3173,6 +3521,7 @@ class Component extends DCLogic {
             uBorder:!e.levelKnown?'rgba(242,199,119,.6)':'rgba(212,166,94,.22)', uBg:!e.levelKnown?'rgba(107,68,22,.28)':'rgba(0,0,0,.2)', uColor:!e.levelKnown?'#f2c777':'#8a795f' };
         });
         const rKeys=Object.keys(its.resonance||{});
+        hasResonance=rKeys.length>0;
         resonanceOptions=[{id:'',label:'— none —'},...rKeys.map(k=>({id:k,label:this.statLabel(k)}))];
         resonanceStat=draft.resonance?draft.resonance.statId:'';
         if(draft.resonance){ const arr=its.resonance[draft.resonance.statId].tiers; const maxT=this.tierMax(arr);
@@ -3198,25 +3547,32 @@ class Component extends DCLogic {
         const counts={}; types.forEach(t=>counts[t]=(counts[t]||0)+1);
         const syn=Object.entries(counts).find(([,c])=>c>=2);
         runeSynergy = syn ? (syn[0].charAt(0).toUpperCase()+syn[0].slice(1)+' Resonance active · '+syn[1]+' sockets') : 'No synergy — mix of rune types';
+        const perks=group==='weapon'?this.core.itemSkillCores(item):[];
+        hasPerks=perks.length>0;
+        perkOptions=perks.map(perk=>({id:perk.id,label:perk.passive?.name||perk.name}));
+        selectedPerk=perks.find(perk=>perk.id===draft.perkId)||null;
       }
       let warning='';
       if(configMode){
-        if(draft.traits.length!==3) warning='Select exactly 3 owned traits ('+draft.traits.length+'/3).';
-        else if(uniqueRequired&&!draft.uniqueTrait) warning='Choose the Heroic trait.';
+        if(draft.traits.length!==3) warning='Select exactly 3 traits ('+draft.traits.length+'/3).';
+        else if(perkRequired&&!draft.perkId) warning='Choose the Skill Core shown on your item.';
         else if(chaosUsed>1) warning='Only one Chaos rune may be used on an item.';
       }
       drawerVals = {
         drawerTitle: gmeta.title, drawerPickMode:pickMode, drawerConfigMode:configMode, changeDraftItem:()=>this.changeDraftItem(),
         drawerWeaponFamilies:[s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).map(type=>this.core.label(type)).join(' + '),
         drawerSearch:dr.search, drawerWeaponNote:group==='weapon', drawerItems,
-        draftName:item?item.name:'', draftMeta:item?this.itemMeta(item):'', draftSlot:item?item.slotLabel:'',
+        draftName:item?item.name:'', draftImageUrl:item?item.imageUrl||'':'', draftMeta:item?this.itemMeta(item):'', draftSlot:item?item.slotLabel:'',
         draftSet:item?item.setName:'—', draftInherent:item?(item.inherentByLevel[draft.level]||invText(item)):'',
-        showLevelSelect, draftLevel:String(draft.level||''), levelOptions, onLevel:this.setDraftLevel,
+        showLevelSelect, draftLevel:String(draft.level||''), draftLevelLabel:String(draft.level||''), draftFixedLevel:item?this.getItemLevels(item).length===1:false,
+        draftFixedStats:item?this.itemFixedStats(item,draft.level):[], levelOptions, onLevel:this.setDraftLevel,
         normalTraitRows, traitCount:draft.traits.length, traitCountColor:draft.traits.length===3?'#7ee0a6':'#e57c72', canAddTrait, addTrait:()=>this.addTraitRow(),
         hasUnique, uniqueOptions, uniqueStat, uniqueTierOptions, uniqueTierVal, uniqueValue, hasUniqueSel,
         onUniqueStat:(e)=>this.setUniqueTrait(e.target.value), onUniqueTier:(e)=>this.setUniqueTier(e.target.value),
-        effectRows,
-        resonanceOptions, resonanceStat, resonanceTierOptions, resonanceTierVal:draft.resonance?String(draft.resonance.tier):'', resonanceValue, hasResonanceSel,
+        effectRows, hasPerks, perkOptions, perkValue:draft.perkId||'', onPerk:this.setDraftPerk,
+        hasSelectedPerk:!!selectedPerk, selectedPerkName:selectedPerk?(selectedPerk.passive?.name||selectedPerk.name):'',
+        selectedPerkText:selectedPerk?(selectedPerk.passive?.text||''):'', selectedPerkImage:selectedPerk?(selectedPerk.passive?.imageUrl||selectedPerk.imageUrl||''):'',
+        hasResonance, resonanceOptions, resonanceStat, resonanceTierOptions, resonanceTierVal:draft.resonance?String(draft.resonance.tier):'', resonanceValue, hasResonanceSel,
         onResonanceStat:(e)=>this.setResonance(e.target.value), onResonanceTier:(e)=>this.setResonanceTier(e.target.value),
         runeRows, runeSynergy, chaosUsed, chaosOwned:s.chaosOwned, chaosColor:chaosUsed>s.chaosOwned?'#e57c72':'#8a795f',
         draftTraitRows: item ? draft.traits.map(t=>({name:this.statLabel(t.statId), tier:'T'+t.tier+' · '+this.core.formatStat(t.statId,this.tierVal(item.itemStats.traits[t.statId],t.tier))})) : [],
@@ -3236,12 +3592,15 @@ class Component extends DCLogic {
 
     return {
       isSetup, isForging, isResult,
+      setupSteps,setupStepWeapons:setupStep===1,setupStepPriorities:setupStep===2,setupStepOptions:setupStep===3,setupStepReview:setupStep===4,
+      setupHasBack:setupStep>1,setupHasNext:setupStep<4,setupBack:this.setupBack,setupNext:this.setupNext,setupNextDisabled,setupNextLabel,setupNavHint,
+      setupWeaponSummary,setupPrioritySummary,setupRuleSummary,setupRuleStatus,setupRuleCards,setupHeroicSummary,forgeDisabled,forgeCursor:forgeDisabled?'not-allowed':'pointer',forgeOpacity:forgeDisabled?'.48':'1',
       kicker: isResult ? (s.resultOrigin==='improved'?'Improved character':'Optimized character') : 'Full-build optimizer',
-      title: isResult ? (s.resultOrigin==='improved'?'Your improved build':'The build you created') : 'Build from Scratch',
+      title: isResult ? (s.resultOrigin==='improved'?'Your improved build':`Your optimized ${this.core?.label(s.weaponTypes.main)||'main'} + ${this.core?.label(s.weaponTypes.off)||'off-hand'} build`) : 'Build from Scratch',
       subtitle: isResult
         ? (s.resultOrigin==='improved'
           ? ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build improved from your current character. Items marked KEPT were carried forward; hover any item for its complete configuration.')
-          : ((this.core?.label(s.weaponTypes.main)||'Main')+' / '+(this.core?.label(s.weaponTypes.off)||'Off-hand')+' build assembled from your ranked goals. Hover any item for its full card; click to lock and re-forge the rest.'))
+          : ('Built around your ranked priorities. Review the result, explore calculated alternatives, then save it or use it in Armory.'))
         : 'Pick two weapon families, rank the stats you care about, set your rules, then forge a complete character from the equipment catalogue.',
       resultScenarioActive:Boolean(resultScenarioSummary),resultScenarioSummary,
       combatPower: s.result?.allStats?.find(row=>row.id==='combat_power')?.formattedValue||'—', attrBudget: this.ATTR_BUDGET, filledSlots:s.result?gearSource.length+weapons.length+artifacts.length:0, totalSlots,
@@ -3309,8 +3668,8 @@ class Component extends DCLogic {
 
       hasHover: !!s.hover, hover: s.hover || {}, legacyHover:false,
 
-      heroicsEngaged: s.heroicsEngaged, heroicHasAny, heroicCount, showHeroicGateway, heroicPanelBorder,
-      heroicModes, heroicModeExplain, heroicSlotsVisible, heroicSlots,
+      heroicsEngaged:s.heroicsEngaged,heroicHasAny,heroicCount,showHeroicGateway,heroicPanelBorder,heroicPanelBackground,heroicPanelIntro,
+      heroicModes,heroicModeExplain,heroicModeTitle,heroicModeAccent,heroicModeBg,heroicModeTitleColor,heroicSlotsVisible,heroicSlots,
       engageHeroics: this.engageHeroics, noHeroics: this.noHeroics,
       drawerOpen, closeDrawer: this.closeDrawer, drawerBack: this.drawerBack, setDrawerSearch: this.setDrawerSearch,
       ...drawerVals,

@@ -243,7 +243,7 @@ test("objective scales are independent of priority order and ties", () => {
 test("adapter exposes the browser contract and reports a missing saved build", async () => {
   const core = { data: { gameBuild: "test", statLabels: { attack: "Attack" }, items: [{ itemStats: { attack: 1 } }] }, indexes: {}, statName: (id) => id, createInitialBuild: () => ({ name: "Default Build", equipment: {}, artifacts: {}, supportSlots: {} }) };
   const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
-  for (const method of ["createScratchBuild", "loadArmoryBuild", "importQuestlogBuild", "listStats", "currentStats", "optimize"]) assert.equal(typeof adapter[method], "function");
+  for (const method of ["createScratchBuild", "listArmoryBuilds", "loadArmoryBuild", "importQuestlogBuild", "listStats", "currentStats", "optimize"]) assert.equal(typeof adapter[method], "function");
   assert.equal(await adapter.loadArmoryBuild(), null);
   assert.deepEqual(await adapter.listStats(), [{ id: "attack", name: "attack" }]);
 });
@@ -517,6 +517,27 @@ test("saved Armory state is returned with build and attributes", async () => {
   const saved = await adapter.loadArmoryBuild();
   assert.equal(saved.name, "Mine");
   assert.equal(saved.attributes.str, 4);
+});
+
+test("current Armory and every saved build are selectable optimizer sources", async () => {
+  const core = { data: { gameBuild: "test", statLabels: {} }, indexes: {} };
+  const adapter = await createOptimizerAdapter({
+    core,
+    storage: {},
+    loadArmoryState: () => ({ ok: true, data: { profile: { name: "Hero" }, build: { name: "Current" }, attributes: { str: 4 } } }),
+    loadArmoryPresets: () => ({ ok: true, data: [
+      { id: "preset-pvp", name: "PvP Staff", origin: "manual", profile: { name: "Hero" }, build: { name: "PvP Staff" }, attributes: { dex: 7 } },
+      { id: "preset-pve", name: "Boss Set", origin: "optimized", profile: { name: "Hero" }, build: { name: "Boss Set" }, attributes: { per: 9 } },
+    ] }),
+  });
+  const sources = await adapter.listArmoryBuilds();
+  assert.deepEqual(sources.map(({ id, kind, name }) => ({ id, kind, name })), [
+    { id: "current", kind: "current", name: "Current" },
+    { id: "preset-pvp", kind: "preset", name: "PvP Staff" },
+    { id: "preset-pve", kind: "preset", name: "Boss Set" },
+  ]);
+  assert.equal((await adapter.loadArmoryBuild("preset-pvp")).attributes.dex, 7);
+  assert.equal((await adapter.loadArmoryBuild("missing")), null);
 });
 
 function perkOptimizerCore({ slots, items, invalidWhen = () => false }) {

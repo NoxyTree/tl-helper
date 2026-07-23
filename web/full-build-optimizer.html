@@ -21,13 +21,37 @@
     main { max-width:1380px; margin:auto; padding:24px clamp(14px,2.5vw,32px) 80px; }
     h1,h2,h3 { margin:0; font-family:Marcellus,serif; font-weight:400; }
     button,input,select { font:inherit; }
-    .page-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin:10px 0 22px; }
+    .page-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin:10px 0 14px; }
+    .optimizer-mode-switch { flex:none; display:grid; grid-template-columns:1fr 1fr; gap:5px; min-width:310px; padding:5px; border:1px solid rgba(212,166,94,.22); border-radius:11px; background:rgba(8,6,4,.56); }
+    .optimizer-mode-switch a,.optimizer-mode-switch span { min-height:38px; display:grid; place-items:center; padding:8px 13px; border:1px solid transparent; border-radius:8px; color:#8f7d61; font-size:11.5px; font-weight:600; text-decoration:none; }
+    .optimizer-mode-switch a:hover { border-color:rgba(212,166,94,.3); color:#ead4a9; }
+    .optimizer-mode-switch .active { border-color:rgba(242,199,119,.55); background:linear-gradient(135deg,rgba(107,68,22,.34),rgba(37,27,15,.7)); color:#f6d391; box-shadow:inset 0 1px rgba(255,238,200,.05); }
     .eyebrow,.section-kicker { color:var(--gold); font-size:10px; letter-spacing:.17em; text-transform:uppercase; }
     h1 { margin-top:5px; font-size:clamp(30px,4vw,46px); }
     .lede { max-width:630px; margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55; }
-    .step { color:var(--muted); font-size:12px; }
-    .setup-workspace { display:grid; grid-template-columns:minmax(300px,.72fr) minmax(0,1.55fr); grid-template-areas:"source goals" "locks goals" "rules rules" "actions actions"; gap:14px; align-items:start; transition:grid-template-columns .24s ease; animation:tlFade .24s ease; }
-    .setup-workspace:has(.picker-menu:not(.hidden)) { grid-template-columns:minmax(270px,.55fr) minmax(0,1.75fr); }
+    .optimizer-note { margin:0 0 16px; color:#8fa5c2; font-size:10px; line-height:1.45; }
+    .setup-workspace { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"progress" "source" "goals" "locks" "rules" "actions"; gap:14px; align-items:start; animation:tlFade .24s ease; }
+    .wizard-progress { grid-area:progress; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:7px; border:1px solid rgba(212,166,94,.2); border-radius:14px; background:rgba(9,7,5,.72); box-shadow:0 16px 42px rgba(0,0,0,.16); }
+    .wizard-progress button { min-width:0; display:grid; grid-template-columns:30px minmax(0,1fr); gap:9px; align-items:center; padding:9px 10px; border:1px solid transparent; border-radius:10px; background:transparent; color:#7d6c52; cursor:pointer; text-align:left; transition:border-color .16s ease,background .16s ease,color .16s ease; }
+    .wizard-progress button:hover:not(:disabled) { border-color:rgba(212,166,94,.28); background:rgba(212,166,94,.06); color:#d9c49b; }
+    .wizard-progress button:disabled { cursor:not-allowed; opacity:.48; }
+    .wizard-progress button.is-active { border-color:rgba(242,199,119,.48); background:linear-gradient(135deg,rgba(107,68,22,.28),rgba(24,18,11,.7)); color:#f6d391; }
+    .wizard-progress button.is-complete { color:#bca77e; }
+    .wizard-step-number { width:30px; height:30px; display:grid; place-items:center; border:1px solid rgba(212,166,94,.3); border-radius:9px; font:14px Marcellus,serif; }
+    .wizard-progress button.is-active .wizard-step-number { border-color:#f2c777; background:#f2c777; color:#120d07; }
+    .wizard-progress button.is-complete .wizard-step-number { border-color:rgba(126,224,166,.45); color:#7ee0a6; }
+    .wizard-step-copy { min-width:0; }
+    .wizard-step-copy strong,.wizard-step-copy small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .wizard-step-copy strong { font-size:11.5px; }
+    .wizard-step-copy small { margin-top:2px; color:#75664f; font-size:9px; }
+    .wizard-progress button.is-active small { color:#aa9168; }
+    .wizard-step:not(.is-active) { display:none; }
+    .wizard-step.is-active { animation:tlRise .2s ease; }
+    .review-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:13px; }
+    .review-item { min-width:0; padding:11px 12px; border:1px solid rgba(212,166,94,.15); border-radius:9px; background:rgba(0,0,0,.2); }
+    .review-item span,.review-item strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .review-item span { color:#806e53; font-size:8px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+    .review-item strong { margin-top:5px; color:#e4d2ae; font-size:11px; }
     .source-panel { grid-area:source; }
     .goals-panel { grid-area:goals; }
     .rules-panel { grid-area:rules; }
@@ -37,11 +61,13 @@
     .panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 17px; border-bottom:1px solid rgba(212,166,94,.13); }
     .panel-head h2 { font-size:19px; }
     .panel-body { padding:16px 17px; }
+    .source-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-items:start; }
+    .source-method { min-width:0; }
     label.field { display:grid; gap:6px; color:var(--muted); font-size:11.5px; }
     input[type="url"],select { width:100%; min-height:38px; padding:8px 10px; color:var(--cream); background:#0c0906; border:1px solid var(--line); border-radius:8px; }
     .source-tabs,.segmented { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
     .source-tabs { grid-template-columns:repeat(2,1fr); }
-    .experience-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+    .experience-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
     .experience-switch a,.experience-switch span { min-height:37px; display:grid; place-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--muted); font-size:12px; text-decoration:none; }
     .experience-switch .active { border-color:rgba(212,166,94,.7); background:rgba(212,166,94,.14); color:#ffe9b8; }
     .source-tabs button,.segmented button { min-height:37px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:rgba(8,6,4,.62); color:var(--muted); cursor:pointer; }
@@ -54,11 +80,16 @@
     button:disabled { opacity:.45; cursor:not-allowed; }
     .source-status,.hint,.warning { margin:9px 0 0; font-size:11.5px; line-height:1.45; color:var(--muted); }
     .warning { padding:9px 10px; border:1px solid rgba(255,183,101,.28); border-radius:8px; background:rgba(255,152,45,.06); color:#d8b483; }
-    .goal-block + .goal-block { margin-top:16px; }
+    .goal-presets-shell { padding:11px 12px; border:1px solid rgba(212,166,94,.14); border-radius:9px; background:rgba(8,6,4,.3); }
+    .goal-presets { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; }
+    .goals-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:start; margin-top:12px; }
+    .goals-grid:has(.goal-chip) { grid-template-columns:minmax(0,1fr); }
+    .goal-block { min-width:0; padding:12px; border:1px solid rgba(212,166,94,.14); border-radius:9px; background:rgba(8,6,4,.3); }
+    .goal-block + .goal-block { margin-top:0; }
     .goal-title { display:flex; justify-content:space-between; margin-bottom:7px; font-size:12px; color:#decaa2; }
     .stat-picker { display:grid; gap:8px; }
-    .goal-selected { display:grid; gap:7px; }
-    .goal-empty { padding:10px 12px; border:1px dashed rgba(212,166,94,.18); border-radius:9px; color:#74664f; font-size:10.5px; line-height:1.45; }
+    .goal-selected { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+    .goal-empty { grid-column:1/-1; padding:10px 12px; border:1px dashed rgba(212,166,94,.18); border-radius:9px; color:#74664f; font-size:10.5px; line-height:1.45; }
     .goal-chip { display:flex; align-items:center; gap:10px; min-width:0; padding:9px 10px; border:1px solid rgba(212,166,94,.2); border-radius:9px; background:linear-gradient(135deg,rgba(107,68,22,.16),rgba(10,8,6,.72)); animation:tlRise .16s ease; }
     .goal-chip-mark { flex:none; width:24px; height:24px; display:grid; place-items:center; border:1px solid rgba(242,199,119,.34); border-radius:7px; color:#f2c777; font:13px Marcellus,serif; }
     .goal-chip-copy { min-width:0; flex:1; }
@@ -100,27 +131,88 @@
     .picker-no-results { grid-column:1/-1; padding:25px 10px; color:#85745a; font-size:10.5px; text-align:center; }
     .picker-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; padding-top:9px; border-top:1px dotted rgba(212,166,94,.18); color:#75664f; font-size:9px; }
     .picker-done { padding:6px 12px; border:1px solid rgba(242,199,119,.4); border-radius:7px; background:rgba(107,68,22,.2); color:#e5c88f; cursor:pointer; font-size:10px; font-weight:700; }
+    .goal-help { margin-top:12px; border-top:1px dotted rgba(212,166,94,.18); }
+    .goal-help summary { padding:10px 2px 0; color:#b8a17b; cursor:pointer; font-size:10.5px; font-weight:600; }
+    .goal-help .hint { margin:8px 0 0; }
     .toggle-list { display:grid; gap:0; }
     .toggle-row { display:grid; grid-template-columns:20px minmax(0,1fr); gap:8px; align-items:start; padding:10px 0; border-bottom:1px solid rgba(212,166,94,.1); cursor:pointer; }
     .toggle-row:last-child { border-bottom:0; }
     .toggle-row input { margin-top:2px; accent-color:var(--gold); }
     .toggle-row strong { display:block; color:#e3d4b5; font-size:12.5px; font-weight:600; }
     .toggle-row small { display:block; margin-top:2px; color:var(--muted); font-size:10.5px; line-height:1.4; }
-    .heroic-lock { display:grid; gap:7px; padding:12px; border:1px solid rgba(185,140,240,.4); border-radius:10px; background:linear-gradient(135deg,rgba(92,53,126,.16),rgba(9,7,5,.6)); }
+    .lock-policy-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:stretch; margin-bottom:12px; }
+    .heroic-lock { display:grid; grid-template-columns:minmax(130px,.42fr) minmax(280px,1fr) minmax(240px,1fr); gap:10px; align-items:center; padding:12px; border:1px solid rgba(185,140,240,.4); border-radius:10px; background:linear-gradient(135deg,rgba(92,53,126,.16),rgba(9,7,5,.6)); }
     .heroic-lock strong,.heroic-lock small { display:block; }
     .heroic-lock strong { color:#e8d7f5; font-size:12.5px; }
-    .heroic-lock small { margin-top:2px; color:#aa91bd; font-size:10px; line-height:1.4; }
+    .heroic-lock small { color:#aa91bd; font-size:10px; line-height:1.4; }
     .heroic-lock select { width:100%; min-width:0; padding:8px 9px; border:1px solid rgba(185,140,240,.42); border-radius:8px; background:rgba(9,7,5,.7); color:#e8d7f5; font:inherit; font-size:11.5px; cursor:pointer; }
-    .lock-toolbar { display:flex; gap:7px; margin:10px 0; }
-    .lock-toolbar button { min-height:32px; flex:1; padding:6px 9px; border:1px solid rgba(212,166,94,.2); border-radius:7px; background:rgba(8,6,4,.5); color:#cdbb98; cursor:pointer; font-size:10px; }
+    .lock-toolbar { display:grid; grid-template-columns:repeat(2,minmax(128px,1fr)); gap:7px; }
+    .lock-toolbar button { min-height:100%; padding:8px 12px; border:1px solid rgba(212,166,94,.2); border-radius:8px; background:rgba(8,6,4,.5); color:#cdbb98; cursor:pointer; font-size:10px; }
     .lock-toolbar button:hover { border-color:rgba(242,199,119,.48); color:#f1d59e; }
+    .equipment-source-bar { display:grid; grid-template-columns:minmax(280px,.85fr) minmax(0,1.15fr) auto; gap:12px; align-items:end; margin-bottom:12px; padding:12px; border:1px solid rgba(212,166,94,.18); border-radius:10px; background:linear-gradient(90deg,rgba(36,26,14,.58),rgba(10,8,5,.5)); }
+    .equipment-source-field { display:grid; gap:6px; color:#a99470; font-size:9px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+    .equipment-source-field select { min-height:42px; font-size:12px; letter-spacing:0; text-transform:none; }
+    .equipment-source-copy { min-width:0; padding-bottom:4px; }
+    .equipment-source-copy strong { display:block; overflow:hidden; color:#f3dfb4; font:17px Marcellus,serif; text-overflow:ellipsis; white-space:nowrap; }
+    .equipment-source-copy small { display:block; margin-top:4px; color:#8f7b5c; font-size:10px; }
+    .equipment-source-count { align-self:center; min-width:106px; padding:8px 10px; border:1px solid rgba(242,199,119,.26); border-radius:999px; color:#e3c589; font-size:10px; text-align:center; white-space:nowrap; }
+    .equipment-warning { margin:-2px 0 12px; padding:9px 11px; border:1px solid rgba(255,183,101,.28); border-radius:8px; background:rgba(255,152,45,.06); color:#d8b483; font-size:10.5px; line-height:1.45; }
+    .equipment-doll { padding:14px; border:1px solid rgba(212,166,94,.2); border-radius:11px; background:radial-gradient(circle at 50% 35%,rgba(212,166,94,.08),transparent 35%),rgba(5,4,3,.34); }
+    .equipment-doll-grid { display:grid; grid-template-columns:minmax(190px,.72fr) minmax(300px,1.18fr) minmax(190px,.72fr); gap:14px; align-items:stretch; }
+    .equipment-rail { display:grid; align-content:space-between; gap:7px; }
+    .equipment-slot { position:relative; min-width:0; display:grid; grid-template-columns:50px minmax(0,1fr); gap:9px; align-items:center; min-height:50px; padding:4px 7px; border:1px solid transparent; border-radius:9px; color:#b9a789; cursor:pointer; transition:border-color .15s ease,background .15s ease,transform .15s ease; }
+    .equipment-slot:hover { border-color:rgba(242,199,119,.24); background:rgba(212,166,94,.05); transform:translateY(-1px); }
+    .equipment-slot:has(input:focus-visible) { outline:2px solid rgba(242,199,119,.72); outline-offset:2px; }
+    .equipment-slot input { position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none; }
+    .equipment-orb { position:relative; width:48px; height:48px; display:grid; place-items:center; flex:none; border:1px solid var(--item-color,rgba(212,166,94,.42)); border-radius:999px; background:radial-gradient(circle,rgba(212,166,94,.1),rgba(8,6,4,.88) 68%); box-shadow:inset 0 0 18px rgba(0,0,0,.45); }
+    .equipment-orb img { width:39px; height:39px; object-fit:contain; filter:drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
+    .equipment-orb-plus { color:#b88b45; font:18px Marcellus,serif; }
+    .equipment-level { position:absolute; right:-3px; bottom:-2px; min-width:19px; height:17px; display:grid; place-items:center; padding:0 4px; border:1px solid var(--item-color,rgba(212,166,94,.42)); border-radius:999px; background:#0b0805; color:#f0dfbd; font-size:8px; font-weight:700; }
+    .equipment-lock-mark { position:absolute; left:-3px; top:-3px; width:17px; height:17px; display:none; place-items:center; border:1px solid rgba(242,199,119,.58); border-radius:999px; background:#2a1c0c; color:#f6d391; font-size:9px; }
+    .equipment-slot:has(input:checked) .equipment-lock-mark { display:grid; }
+    .equipment-slot:has(input:checked) .equipment-orb { border-color:#f2c777; box-shadow:0 0 0 2px rgba(242,199,119,.1),0 0 18px rgba(242,199,119,.18),inset 0 0 18px rgba(0,0,0,.45); }
+    .equipment-slot.is-heroic:has(input:checked) .equipment-orb { border-color:#c99af5; box-shadow:0 0 0 2px rgba(185,140,240,.12),0 0 20px rgba(185,140,240,.24),inset 0 0 18px rgba(0,0,0,.45); }
+    .equipment-slot.is-empty { color:#75664f; }
+    .equipment-slot.is-empty .equipment-orb { border-style:dashed; }
+    .equipment-slot-copy { min-width:0; }
+    .equipment-slot-label { display:block; color:#9d8967; font-size:8px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+    .equipment-item-name { display:block; overflow:hidden; margin-top:3px; color:#dfcfad; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+    .equipment-slot.is-empty .equipment-item-name { color:#64563f; }
+    .equipment-character { min-height:386px; display:flex; flex-direction:column; overflow:hidden; padding:18px; border:1px solid rgba(212,166,94,.36); border-radius:10px; background:radial-gradient(circle at 50% 0,rgba(185,140,240,.1),transparent 34%),linear-gradient(180deg,rgba(40,28,15,.5),rgba(12,9,6,.96)); box-shadow:inset 0 0 50px rgba(0,0,0,.36); }
+    .equipment-character-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .equipment-character-power { text-align:right; }
+    .equipment-character-power strong { display:block; color:#f6d391; font:24px Marcellus,serif; line-height:1; }
+    .equipment-character-power small { display:block; margin-top:4px; color:#79684f; font-size:7px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; }
+    .equipment-stat-section { margin-top:16px; }
+    .equipment-stat-title { display:flex; align-items:center; gap:8px; margin-bottom:8px; color:#8f7b5c; font-size:8px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .equipment-stat-title::after { content:""; height:1px; flex:1; background:linear-gradient(90deg,rgba(212,166,94,.22),transparent); }
+    .equipment-attributes { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; }
+    .equipment-attribute { min-width:0; padding:9px 4px 8px; border:1px solid rgba(212,166,94,.14); border-radius:7px; background:rgba(0,0,0,.2); text-align:center; }
+    .equipment-attribute strong { display:block; overflow:hidden; color:#f2c777; font:20px Marcellus,serif; line-height:1.05; text-overflow:ellipsis; }
+    .equipment-attribute span { display:block; overflow:hidden; margin-top:5px; color:#7e6b50; font-size:7px; font-weight:700; letter-spacing:.08em; text-overflow:ellipsis; text-transform:uppercase; }
+    .equipment-highlights { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+    .equipment-highlight { min-width:0; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 9px; border:1px solid rgba(212,166,94,.12); border-radius:7px; background:rgba(0,0,0,.16); }
+    .equipment-highlight span { overflow:hidden; color:#8f7b5c; font-size:8px; text-overflow:ellipsis; white-space:nowrap; }
+    .equipment-highlight strong { color:#d9c39a; font-size:10px; white-space:nowrap; }
+    .equipment-character-copy { margin-top:auto; padding-top:15px; border-top:1px solid rgba(212,166,94,.1); }
+    .equipment-origin { display:inline-flex; padding:3px 7px; border:1px solid rgba(212,166,94,.25); border-radius:999px; color:#b89a67; font-size:8px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .equipment-character h3 { margin-top:9px; color:#f6d391; font-size:22px; }
+    .equipment-character p { margin:4px 0 0; color:#a48d68; font-size:10px; letter-spacing:.1em; text-transform:uppercase; }
+    .equipment-character-stats { display:flex; gap:7px; flex-wrap:wrap; margin-top:12px; }
+    .equipment-character-stats span { padding:5px 7px; border:1px solid rgba(212,166,94,.15); border-radius:6px; background:rgba(0,0,0,.2); color:#c8b58f; font-size:9px; }
+    .equipment-weapons { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:12px; }
+    .equipment-weapon { min-height:67px; grid-template-columns:54px minmax(0,1fr) auto; padding:7px 10px; border:1px dashed rgba(212,166,94,.32); border-radius:9px; background:rgba(8,6,4,.42); }
+    .equipment-weapon .equipment-orb { width:50px; height:50px; }
+    .equipment-weapon .equipment-lock-copy { align-self:center; color:#75664f; font-size:8px; letter-spacing:.1em; text-transform:uppercase; }
+    .heroic-empty-status { display:flex; align-items:center; gap:9px; padding:11px 12px; border:1px solid rgba(185,140,240,.2); border-radius:9px; background:rgba(92,53,126,.06); color:#9f8cb8; font-size:10.5px; }
+    .heroic-empty-status strong { color:#d8c2e9; }
     .rules-grid { display:grid; grid-template-columns:minmax(220px,.7fr) minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:start; }
     .rule-card { min-height:100%; padding:11px 12px; border:1px solid rgba(212,166,94,.14); border-radius:9px; background:rgba(8,6,4,.3); }
     .rule-card .mode-group { margin-top:0; }
-    .automatic-note { margin:12px 0 0; color:#8fa5c2; font-size:10px; line-height:1.5; }
-    .advanced-options { margin-top:12px; border:1px solid rgba(185,140,240,.2); border-radius:9px; background:rgba(92,53,126,.06); }
-    .advanced-options summary { padding:11px 12px; color:#c6add9; cursor:pointer; font-size:11px; font-weight:600; list-style-position:inside; }
-    .advanced-options summary span { margin-left:7px; color:#806d90; font-size:9.5px; font-weight:400; }
+    .automatic-note { margin:0; padding:0 12px 11px; color:#8fa5c2; font-size:10px; line-height:1.5; }
+    .automatic-options,.advanced-options { margin-top:12px; border:1px solid rgba(185,140,240,.2); border-radius:9px; background:rgba(92,53,126,.06); }
+    .automatic-options summary,.advanced-options summary { padding:11px 12px; color:#c6add9; cursor:pointer; font-size:11px; font-weight:600; list-style-position:inside; }
+    .automatic-options summary span,.advanced-options summary span { margin-left:7px; color:#806d90; font-size:9.5px; font-weight:400; }
     .scenario-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:end; margin:0; padding:4px 12px 12px; }
     .scenario-enable { grid-column:1/-1; }
     .scenario-controls label { color:#d9c7e8; font-size:10.5px; line-height:1.45; }
@@ -133,8 +225,8 @@
     .mode-group { margin-top:13px; }
     .mode-group > span { display:block; margin-bottom:6px; color:var(--muted); font-size:11px; }
     .segmented.three { grid-template-columns:repeat(3,1fr); }
-    .slots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
-    .slot-lock { display:flex; gap:8px; align-items:center; padding:9px; border:1px solid rgba(212,166,94,.14); border-radius:8px; background:rgba(8,6,4,.36); color:#cfc1a6; font-size:11.5px; }
+    .slots { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; }
+    .slot-lock { min-height:50px; display:flex; gap:8px; align-items:center; padding:9px; border:1px solid rgba(212,166,94,.14); border-radius:8px; background:rgba(8,6,4,.36); color:#cfc1a6; font-size:11.5px; }
     .slot-lock input { accent-color:var(--gold); }
     .slot-lock span { min-width:0; }
     .slot-lock strong,.slot-lock small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -144,8 +236,10 @@
     .heroic-badge { display:inline-block; margin-left:5px; padding:1px 4px; border:1px solid rgba(185,140,240,.36); border-radius:4px; color:#b98cf0; font-size:6.5px; letter-spacing:.08em; text-transform:uppercase; vertical-align:1px; }
     .is-unavailable { opacity:.42; }
     .is-unavailable input,.is-unavailable button { cursor:not-allowed; }
-    .actions { display:flex; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(90deg,rgba(33,24,13,.96),rgba(13,10,7,.96)); backdrop-filter:blur(8px); z-index:4; }
-    .actions .primary { flex:1; }
+    .actions { position:sticky; bottom:12px; display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(90deg,rgba(33,24,13,.96),rgba(13,10,7,.96)); box-shadow:0 18px 42px rgba(0,0,0,.42); backdrop-filter:blur(8px); z-index:4; }
+    .actions .hint { flex:1; margin:auto 8px auto 0; }
+    .actions .primary { flex:0 1 320px; min-width:220px; }
+    .wizard-back { min-width:88px; }
     .result-empty { min-height:360px; display:grid; place-items:center; padding:40px; text-align:center; }
     .result-empty .sigil { width:54px; height:54px; display:grid; place-items:center; margin:0 auto 15px; border:1px solid var(--line); transform:rotate(45deg); color:var(--gold); }
     .result-empty .sigil span { transform:rotate(-45deg); font-family:Marcellus,serif; font-size:25px; }
@@ -225,48 +319,84 @@
     .result-status { flex-basis:100%; margin:2px 0 0; color:#9af0b8; font-size:10px; text-align:right; }
     .hidden { display:none!important; }
     @keyframes tlPulse { 50%{transform:rotate(45deg) scale(1.08);box-shadow:0 0 38px rgba(242,199,119,.24)} }
-    @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:minmax(270px,.8fr) minmax(0,1.4fr)}}
+    @media(max-width:1100px){.result-stage{grid-template-columns:1fr}.build-doll{position:static;max-width:430px}.goal-presets{grid-template-columns:repeat(3,minmax(0,1fr))}.equipment-doll-grid{grid-template-columns:minmax(165px,.65fr) minmax(270px,1fr) minmax(165px,.65fr);gap:8px}.equipment-slot{grid-template-columns:46px minmax(0,1fr);gap:6px;padding:3px}.heroic-lock{grid-template-columns:minmax(120px,.45fr) minmax(240px,1fr)}.heroic-lock small{grid-column:1/-1}.slots{grid-template-columns:repeat(4,minmax(0,1fr))}}
     @media(min-width:901px){.goals-panel .picker-results{grid-template-columns:repeat(3,minmax(0,1fr))}.goals-panel .picker-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}
-    @media(max-width:900px){.setup-workspace,.setup-workspace:has(.picker-menu:not(.hidden)){grid-template-columns:1fr;grid-template-areas:"source" "goals" "locks" "rules" "actions"}.page-head{align-items:start;flex-direction:column}.slots{grid-template-columns:repeat(3,1fr)}.rules-grid{grid-template-columns:1fr}}
+    @media(max-width:900px){.page-head{align-items:start;flex-direction:column}.optimizer-mode-switch{width:100%;min-width:0}.wizard-progress{grid-template-columns:repeat(2,minmax(0,1fr))}.source-layout{grid-template-columns:1fr}.equipment-source-bar{grid-template-columns:minmax(230px,1fr) minmax(0,1fr)}.equipment-source-count{grid-column:1/-1;justify-self:start}.lock-policy-row{grid-template-columns:1fr}.lock-toolbar button{min-height:38px}.slots{grid-template-columns:repeat(3,1fr)}.rules-grid{grid-template-columns:1fr}.review-strip{grid-template-columns:1fr}}
     @keyframes tlRise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     @keyframes tlFade { from{opacity:0} to{opacity:1} }
     @media(prefers-reduced-motion:reduce){.goal-chip,.picker-menu{animation-duration:.01ms}}
-    @media(max-width:560px){.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}.result-toolbar{align-items:stretch;flex-direction:column}.result-toolbar-actions{justify-content:stretch}.result-toolbar-actions button{flex:1}.result-status{text-align:left}}
+    @media(max-width:700px){.goals-grid,.goals-grid:has(.goal-chip){grid-template-columns:1fr}.goal-selected{grid-template-columns:1fr}.equipment-source-bar{grid-template-columns:1fr}.equipment-source-count{grid-column:auto}.equipment-doll{padding:8px}.equipment-doll-grid{grid-template-columns:74px minmax(0,1fr) 74px;gap:6px}.equipment-slot{grid-template-columns:1fr;gap:3px;justify-items:center;min-height:61px;padding:2px;text-align:center}.equipment-slot-copy{width:100%}.equipment-item-name{display:none}.equipment-character{min-height:430px;padding:12px}.equipment-character h3{font-size:18px}.equipment-character-power strong{font-size:19px}.equipment-attributes{grid-template-columns:repeat(2,minmax(0,1fr))}.equipment-attribute:last-child{grid-column:1/-1}.equipment-highlights{grid-template-columns:1fr}.equipment-highlight:nth-child(n+5){display:none}.equipment-character-stats{display:grid;grid-template-columns:1fr}.equipment-weapons{grid-template-columns:1fr}.equipment-weapon{grid-template-columns:54px minmax(0,1fr) auto;justify-items:stretch;text-align:left}.equipment-weapon .equipment-item-name{display:block}.heroic-lock{grid-template-columns:1fr}.heroic-lock small{grid-column:auto}.actions{position:static;align-items:stretch;flex-direction:column}.actions .hint{margin:0}.actions .primary{width:100%;min-width:0;flex:auto}.wizard-back{width:100%}}
+    @media(max-width:520px){.wizard-progress{grid-template-columns:1fr}.wizard-step-copy small{display:none}}
+    @media(max-width:560px){.goal-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.equipment-doll-grid{grid-template-columns:64px minmax(0,1fr) 64px;gap:3px}.equipment-orb{width:43px;height:43px}.equipment-orb img{width:35px;height:35px}.equipment-character{min-height:395px;padding:12px}.equipment-character p{font-size:8px}.slots{grid-template-columns:repeat(2,1fr)}.questlog{flex-direction:column}.segmented.three{grid-template-columns:1fr}.comparison{min-width:650px}.table-scroll{overflow:auto}.picker-results{grid-template-columns:1fr}.picker-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.picker-footer span{display:none}.result-toolbar{align-items:stretch;flex-direction:column}.result-toolbar-actions{justify-content:stretch}.result-toolbar-actions button{flex:1}.result-status{text-align:left}}
   </style>
 </head>
 <body>
   <a class="tl-skip-link" href="#main-content">Skip to full-build optimizer</a>
   <header class="tl-app-header">
     <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Build Optimizer</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item is-active" href="./full-build-optimizer.html" aria-current="page">Build Optimizer</a><a class="tl-app-nav-item" href="./privacy.html">Privacy</a></nav>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item is-active" href="./full-build-optimizer.html" aria-current="page">Build Optimizer</a></nav>
     <div class="tl-app-header-end"><div class="tl-app-status-group"><div class="tl-app-status"><span class="tl-app-status-label">Optimizer</span><strong class="tl-app-status-value" id="engine-status">Connecting</strong></div></div></div>
   </header>
 
 <main id="main-content">
-<div id="page-head" class="page-head"><div><div class="eyebrow">Improve my build</div><h1>Keep what matters. Improve the rest.</h1><p class="lede">Choose your priorities, lock anything you refuse to replace, and let the optimizer calculate the strongest loadout that follows the game&apos;s equipment limits.</p></div><div class="step">Build. Goals. Locks. Improve.</div></div>
-<p role="note" style="margin:-12px 0 16px;color:#8fa5c2;font-size:10px;line-height:1.45;">Set effects and three compatible traits are always included. Item Potentials are excluded. Search quality is selected automatically.</p>
+<div id="page-head" class="page-head"><div><div class="eyebrow">Build optimizer</div><h1>Keep what matters. Improve the rest.</h1><p class="lede">Start from your current build, choose what should improve, and lock only the items or stats you refuse to lose.</p></div><nav class="optimizer-mode-switch" aria-label="Choose optimizer mode"><span class="active" aria-current="page">Improve my build</span><a href="./build-from-scratch.html">Build from scratch</a></nav></div>
+<p class="optimizer-note" role="note">Set effects and three compatible traits are included automatically. Results only come from the calculation engine; Item Potentials are not yet included.</p>
     <div id="setup-state" class="setup-workspace">
-        <section class="panel source-panel" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Choose your build</h2></div><div class="panel-body">
-          <div class="experience-switch" aria-label="Optimizer experience"><span class="active">Improve my build</span><a href="./build-from-scratch.html">Build from scratch</a></div>
-          <div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
-          <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
-          <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
+        <nav class="wizard-progress" aria-label="Build optimizer steps">
+          <button type="button" data-wizard-step="1" class="is-active" aria-current="step"><span class="wizard-step-number">1</span><span class="wizard-step-copy"><strong>Starting build</strong><small id="wizard-source-summary">Choose a source</small></span></button>
+          <button type="button" data-wizard-step="2" disabled><span class="wizard-step-number">2</span><span class="wizard-step-copy"><strong>Priorities</strong><small id="wizard-goals-summary">What should improve?</small></span></button>
+          <button type="button" data-wizard-step="3" disabled><span class="wizard-step-number">3</span><span class="wizard-step-copy"><strong>Keep items</strong><small id="wizard-locks-summary">Optional</small></span></button>
+          <button type="button" data-wizard-step="4" disabled><span class="wizard-step-number">4</span><span class="wizard-step-copy"><strong>Review</strong><small>Options &amp; search</small></span></button>
+        </nav>
+        <section class="panel source-panel wizard-step is-active" data-wizard-panel="1" aria-labelledby="source-title"><div class="panel-head"><h2 id="source-title">1. Starting build</h2><span class="section-kicker">Choose a source</span></div><div class="panel-body source-layout">
+          <div class="source-method"><div class="source-tabs" role="tablist"><button type="button" class="active" data-source="armory">My Armory</button><button type="button" data-source="questlog">Questlog import</button></div>
+            <div id="questlog-controls" class="questlog hidden"><input id="questlog-url" type="url" aria-label="Questlog build link" placeholder="Paste Questlog character-builder link"><button id="import-build" class="primary" type="button">Import</button></div>
+            <p id="source-status" class="source-status" role="status">Waiting for the optimizer engine.</p>
+          </div>
         </div></section>
 
-        <section class="panel goals-panel" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Set your goals</h2></div><div class="panel-body">
-          <div class="goal-block"><div class="goal-title"><span>Increase</span><span>Ranked priorities · drag to reorder</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
-          <div id="protect-block" class="goal-block"><div class="goal-title"><span>Protect</span><span id="protect-mode-label">Do not reduce</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
-          <p class="hint">Every wanted stat can also carry a minimum. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more — a high-ranked At least goal can keep absorbing score far past its floor and starve lower priorities. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached, so use Target when "enough is enough" (for example Endurance 3,000). Values use the same units the game displays. Protected stats are hard constraints at their current value; the engine will reject a loadout that reduces one.</p>
+        <section class="panel goals-panel wizard-step" data-wizard-panel="2" aria-labelledby="goals-title"><div class="panel-head"><h2 id="goals-title">2. Choose your priorities</h2><span class="section-kicker">Rank what matters most</span></div><div class="panel-body">
+          <div class="goal-presets-shell"><div class="goal-title"><span>Suggested starting points</span><span>Optional</span></div><div id="goal-presets" class="goal-presets" aria-label="Suggested goal presets"></div></div>
+          <div class="goals-grid">
+            <div class="goal-block"><div class="goal-title"><span>Improve</span><span>Ranked &middot; drag to reorder</span></div><div id="increase-picker" class="stat-picker" data-placeholder="Choose stats you want the optimizer to improve"></div></div>
+            <div id="protect-block" class="goal-block"><div class="goal-title"><span>Must not decrease</span><span id="protect-mode-label">Protected at current value</span></div><div id="protect-picker" class="stat-picker" data-placeholder="Choose stats that must stay at their current value"></div></div>
+          </div>
+          <details class="goal-help"><summary>How priorities and minimums work</summary><p class="hint">Every wanted stat can also carry a minimum. <strong style="color:#cbb185;">At least</strong> is a hard floor that still rewards more &mdash; a high-ranked At least goal can keep absorbing score far past its floor and starve lower priorities. <strong style="color:#cbb185;">Target</strong> is a hard floor that stops rewarding that stat once reached, so use Target when "enough is enough" (for example Endurance 3,000). Values use the same units the game displays. Protected stats are hard constraints at their current value; the engine will reject a loadout that reduces one.</p></details>
         </div></section>
 
-        <section class="panel rules-panel" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">4. Optional choices</h2><span class="section-kicker">Defaults are recommended</span></div><div class="panel-body">
+        <section id="locks-panel" class="panel locks-panel wizard-step" data-wizard-panel="3" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">3. Items to keep</h2><span class="section-kicker">Optional &middot; only lock what must stay</span></div><div class="panel-body">
+          <div class="equipment-source-bar">
+            <label class="equipment-source-field">Build to optimize<select id="equipment-source-select" aria-label="Choose the Armory build or saved build to optimize"></select></label>
+            <div class="equipment-source-copy"><strong id="equipment-source-name">Loading your equipment…</strong><small id="equipment-source-meta">Current Armory</small></div>
+            <span id="equipment-source-count" class="equipment-source-count">0/15 equipped</span>
+          </div>
+          <p id="equipment-warning" class="equipment-warning hidden" role="status"></p>
+          <div id="slot-locks" class="equipment-doll" aria-label="Equipment in the selected build"></div>
+          <div class="lock-policy-row">
+            <label id="heroic-policy-control" class="heroic-lock"><strong>Heroic equipment</strong><select id="heroic-policy" aria-label="How to handle equipped Heroic items">
+              <option value="keep_config" selected>Keep exact setup</option>
+              <option value="keep_items">Keep items, optimize configuration</option>
+              <option value="replace_any">Allow Heroic replacements</option>
+            </select><small id="heroic-lock-copy">Your equipped Heroic items and their exact configurations will stay.</small></label>
+            <div id="heroic-empty-status" class="heroic-empty-status hidden"><strong>No Heroics equipped</strong><span>The optimizer can still consider legal Heroic upgrades.</span></div>
+            <div class="lock-toolbar" aria-label="Equipment lock actions"><button id="lock-all-slots" type="button">Lock all equipped</button><button id="clear-slot-locks" type="button">Clear optional locks</button></div>
+          </div>
+          <p id="locks-hint" class="hint">Select any equipped item that must remain exactly as configured.</p>
+        </div></section>
+
+        <section class="panel rules-panel wizard-step" data-wizard-panel="4" aria-labelledby="rules-title"><div class="panel-head"><h2 id="rules-title">4. Search options</h2><span class="section-kicker">Review &middot; recommended defaults selected</span></div><div class="panel-body">
+          <div class="review-strip" aria-label="Build choices summary">
+            <div class="review-item"><span>Starting build</span><strong id="review-source">Waiting for a build</strong></div>
+            <div class="review-item"><span>Priorities</span><strong id="review-goals">None selected</strong></div>
+            <div class="review-item"><span>Kept equipment</span><strong id="review-locks">No optional locks</strong></div>
+          </div>
           <div class="rules-grid">
             <div class="rule-card"><label class="toggle-row"><input id="endgame-only" type="checkbox" checked><span><strong>Endgame equipment only</strong><small>Ignore levelling and starter equipment below level 50.</small></span></label></div>
             <div class="rule-card"><div class="mode-group"><span>Runes</span><div id="rune-mode" class="segmented three"><button type="button" data-value="keep" class="active">Keep mine</button><button type="button" data-value="normal">Optimize normal</button><button type="button" data-value="chaos">Owned Chaos</button></div></div></div>
             <div class="rule-card"><div class="mode-group"><span>Artifacts</span><div id="artifact-mode" class="segmented"><button type="button" data-value="keep" class="active">Keep mine</button><button type="button" data-value="sets">Optimize sets</button></div></div></div>
           </div>
           <p id="chaos-warning" class="warning hidden">Only Chaos rune IDs already equipped in the source build are treated as owned, with no more than one Chaos rune per item.</p>
-          <p class="automatic-note">Always on: exact set-effect scoring, three compatible normal traits per replacement, the game&apos;s Heroic limits, automatic Heroic trait and effect configuration when replacements are allowed, and the strongest retained search profile. Item Potentials are excluded from calculations and recommendations in this release.</p>
+          <details class="automatic-options"><summary>Included automatically <span>Set effects, traits, Heroics, and search quality</span></summary><p class="automatic-note">Exact set-effect scoring, three compatible normal traits per replacement, the game&apos;s Heroic limits, automatic Heroic trait and effect configuration when replacements are allowed, and the strongest retained search profile are always included. Item Potentials are excluded from calculations and recommendations in this release.</p></details>
           <details class="advanced-options">
             <summary>Advanced combat scenario <span>Distance, time, resources, movement, and nearby players</span></summary>
             <div class="scenario-controls">
@@ -291,17 +421,12 @@
             </div>
           </details>
         </div></section>
-
-        <section id="locks-panel" class="panel locks-panel" aria-labelledby="locks-title"><div class="panel-head"><h2 id="locks-title">3. Keep equipment</h2><span class="section-kicker">Lock only what must stay</span></div><div class="panel-body">
-          <label class="heroic-lock"><strong>Equipped Heroics</strong><select id="heroic-policy" aria-label="How to handle equipped Heroic items">
-            <option value="keep_config" selected>Keep items · keep exact traits &amp; effects</option>
-            <option value="keep_items">Keep items · re-optimize traits &amp; Heroic effects</option>
-            <option value="replace_any">Allow any legal Heroic · full re-optimization</option>
-          </select><small id="heroic-lock-copy">Your equipped Heroic items and their exact configurations will stay.</small></label>
-          <div class="lock-toolbar"><button id="lock-all-slots" type="button">Lock all equipped</button><button id="clear-slot-locks" type="button">Clear slot locks</button></div>
-          <div id="slot-locks" class="slots"></div><p id="locks-hint" class="hint">Tick any additional item you do not want replaced.</p>
-        </div></section>
-        <div class="actions setup-actions"><span id="run-hint" class="hint" style="margin:auto 8px auto 0;">Choose at least one stat. The optimizer handles search quality and calculation rules automatically.</span><button id="run-optimizer" class="primary" type="button" disabled>Improve my build</button></div>
+        <div class="actions setup-actions">
+          <button id="wizard-back" class="secondary wizard-back hidden" type="button">Back</button>
+          <span id="run-hint" class="hint">Choose a starting build to continue.</span>
+          <button id="wizard-next" class="primary" type="button" disabled>Continue to priorities</button>
+          <button id="run-optimizer" class="primary hidden" type="button" disabled>Improve my build</button>
+        </div>
     </div>
     <section id="output" class="panel output-stage hidden" aria-live="polite">
       <div id="progress-state" class="progress-wrap hidden"><div class="progress-card"><div class="progress-sigil"><span>✦</span></div><div class="section-kicker">Improving your build</div><h2 id="progress-label">Preparing equipment</h2><p id="progress-detail">Checking compatible options for every slot.</p><div class="progress-head"><strong>Complete-build search</strong><span id="progress-percent">0%</span></div><div class="progress-bar"><i id="progress-fill"></i></div><div class="progress-steps"><span class="progress-step active">Catalogue</span><span class="progress-step">Limits</span><span class="progress-step">Attributes</span><span class="progress-step">Assemble</span></div><button id="cancel-optimizer" class="secondary" type="button">Cancel and return</button></div></div>
@@ -309,26 +434,110 @@
       <div id="results-state" class="results hidden"></div>
     </section>
   </main>
+  <footer class="tl-app-footer">
+    <div class="tl-app-footer-inner">
+      <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
+      <a href="./privacy.html">Privacy</a>
+    </div>
+  </footer>
   <div id="result-hover" class="hidden" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
     import { formatOptimizerScenario, optimizerScenarioOptions, parseOptionalPercentageBps } from "./optimizer/full-build-optimizer.js";
 
     const SLOTS = ["Main weapon","Off-hand weapon","Head","Chest","Hands","Legs","Feet","Cloak","Necklace","Bracelet","Belt","Ring 1","Ring 2","Brooch","Earring"];
-    const state = { source:"armory", build:null, result:null, increase:[], protect:[], goalModes:{}, goalValues:{}, currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], dragPriorityId:"" };
+    const state = { source:"armory", build:null, result:null, increase:[], protect:[], goalModes:{}, goalValues:{}, currentStats:{}, scenarioError:"", runeMode:"keep", artifactMode:"keep", worker:null, adapter:null, core:null, rulesData:null, persistence:null, handoff:null, statOptions:[], armorySources:[], selectedArmorySourceId:"current", dragPriorityId:"" };
+    let wizardStep=1;
     const $ = id => document.getElementById(id);
+    const WIZARD_LABELS=["","Continue to priorities","Continue to kept items","Review choices"];
+    function wizardUnlockedStep(){
+      if(!state.build) return 1;
+      if(!state.increase.length||invalidGoalValueId()) return 2;
+      return 4;
+    }
+    function updateWizard(){
+      const unlocked=wizardUnlockedStep();
+      wizardStep=Math.min(wizardStep,unlocked);
+      document.querySelectorAll("[data-wizard-panel]").forEach(panel=>panel.classList.toggle("is-active",Number(panel.dataset.wizardPanel)===wizardStep));
+      document.querySelectorAll("[data-wizard-step]").forEach(button=>{
+        const step=Number(button.dataset.wizardStep);
+        button.disabled=step>unlocked;
+        button.classList.toggle("is-active",step===wizardStep);
+        button.classList.toggle("is-complete",step<wizardStep&&step<=unlocked);
+        if(step===wizardStep) button.setAttribute("aria-current","step"); else button.removeAttribute("aria-current");
+      });
+      $("wizard-back").classList.toggle("hidden",wizardStep===1);
+      $("wizard-next").classList.toggle("hidden",wizardStep===4);
+      $("run-optimizer").classList.toggle("hidden",wizardStep!==4);
+      $("wizard-next").textContent=WIZARD_LABELS[wizardStep]??"Continue";
+      $("wizard-next").disabled=(wizardStep===1&&!state.build)||(wizardStep===2&&(!state.increase.length||Boolean(invalidGoalValueId())));
+      const locked=document.querySelectorAll("[data-slot]:checked").length;
+      const sourceName=state.build?.name??selectedArmorySource()?.name??"Choose a source";
+      const goalNames=state.increase.slice(0,2).map(id=>state.statOptions.find(row=>row.id===id)?.name??id);
+      $("wizard-source-summary").textContent=state.build?sourceName:"Choose a source";
+      $("wizard-goals-summary").textContent=state.increase.length?`${state.increase.length} selected`:"What should improve?";
+      $("wizard-locks-summary").textContent=locked?`${locked} locked`:"Optional";
+      $("review-source").textContent=sourceName;
+      $("review-goals").textContent=state.increase.length?`${goalNames.join(", ")}${state.increase.length>2?` +${state.increase.length-2}`:""}`:"None selected";
+      $("review-locks").textContent=locked?`${locked} ${locked===1?"item":"items"} locked`:"No optional locks";
+    }
+    function setWizardStep(step,{scroll=true}={}){
+      const next=Math.max(1,Math.min(Number(step)||1,wizardUnlockedStep()));
+      wizardStep=next;
+      updateWizard();
+      if(scroll) document.querySelector(".wizard-progress")?.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+    document.querySelectorAll("[data-wizard-step]").forEach(button=>button.addEventListener("click",()=>setWizardStep(button.dataset.wizardStep)));
+    $("wizard-back").addEventListener("click",()=>setWizardStep(wizardStep-1));
+    $("wizard-next").addEventListener("click",()=>setWizardStep(wizardStep+1));
     function syncHeroicLocks() {
       const policy=$('heroic-policy').value,fullLock=policy==="keep_config",heroicInputs=[...document.querySelectorAll('[data-heroic="true"]')];
       heroicInputs.forEach(input=>{ if(fullLock){ if(input.dataset.forced!=="true") input.dataset.priorChecked=String(input.checked); input.dataset.forced="true"; input.checked=true; input.disabled=true; } else { input.disabled=false; if(input.dataset.forced==="true") input.checked=input.dataset.priorChecked==="true"; delete input.dataset.forced; delete input.dataset.priorChecked; } });
       const count=heroicInputs.length,plural=count===1?"":"s",verb=count===1?"is":"are";
+      $("heroic-policy-control").classList.toggle("hidden",count===0); $("heroic-empty-status").classList.toggle("hidden",count>0);
       $('heroic-lock-copy').textContent=count?(policy==="keep_config"?`${count} equipped Heroic${plural} ${verb} locked with exact traits and effects.`:policy==="keep_items"?`${count} equipped Heroic${plural} will stay, but their normal traits, Heroic trait, and Heroic effects will be re-optimized for your goals. Tick a slot below to keep that item's exact configuration instead.`:`${count} equipped Heroic${plural} ${verb} eligible for replacement by any legal Heroic.`):'No Heroic equipment is currently equipped.';
     }
+    const LEFT_EQUIPMENT_SLOTS=["head","chest","hands","legs","feet","cloak"],RIGHT_EQUIPMENT_SLOTS=["necklace","bracelet","belt","ring_1","ring_2","brooch","earring"];
+    function equipmentSlotModel(slotId){
+      const slots=state.core?.EQUIPMENT_SLOTS??[],index=slots.findIndex(slot=>slot.id===slotId),slot=slots[index]??{id:slotId,label:slotId},selection=state.build?.build?.equipment?.[slotId],item=state.core?.indexes?.itemById?.[selection?.itemId],available=Boolean(item),heroic=available&&item.grade===state.core?.HEROIC_GRADE;
+      return {slot,index,selection,item,available,heroic};
+    }
+    function equipmentSlotHtml(slotId,{weapon=false}={}){
+      const {slot,index,selection,item,available,heroic}=equipmentSlotModel(slotId),label=slot.label??slotId,level=available?Number(selection?.level??selection?.itemLevel??state.core?.itemMaxLevel?.(item)??0):0,color=available?(state.core?.gradeColor?.(item.grade)??"#d4a65e"):"rgba(212,166,94,.38)",name=available?item.name:`Empty ${label}`;
+      const orb=`<span class="equipment-orb" style="--item-color:${esc(color)}">${available&&item.imageUrl?`<img src="${esc(item.imageUrl)}" alt="">`:`<span class="equipment-orb-plus">+</span>`}${level?`<span class="equipment-level">${esc(level)}</span>`:""}<span class="equipment-lock-mark" aria-hidden="true">◆</span></span>`;
+      return `<label class="equipment-slot ${weapon?"equipment-weapon":""} ${available?"is-filled":"is-empty"} ${heroic?"is-heroic":""}" data-equipment-slot="${esc(slotId)}" title="${available?`Select to keep ${esc(item.name)} exactly as configured`:`${esc(label)} is empty; the optimizer may fill it`}"><input type="checkbox" data-slot="${index}" data-heroic="${heroic}" ${available?"":"disabled"} aria-label="${available?`Keep ${esc(item.name)}`:`Empty ${esc(label)}`}">${orb}<span class="equipment-slot-copy"><span class="equipment-slot-label">${esc(label)}</span><strong class="equipment-item-name">${esc(name)}</strong></span>${weapon?`<span class="equipment-lock-copy">${available?"Select to keep":"Upgrade opportunity"}</span>`:""}</label>`;
+    }
+    function selectedArmorySource(){ return state.armorySources.find(row=>row.id===state.selectedArmorySourceId)??null; }
+    function renderEquipmentSource(){
+      const select=$("equipment-source-select"),current=selectedArmorySource(),questlog=state.source==="questlog"&&state.build;
+      const options=[...(questlog?[`<option value="questlog">Imported Questlog build</option>`]:[]),...state.armorySources.map(row=>`<option value="${esc(row.id)}">${esc(row.kind==="current"?`Current Armory — ${row.name}`:row.name)}</option>`)];
+      select.innerHTML=options.join("")||'<option value="">No Armory builds found</option>'; select.disabled=!options.length; select.value=questlog?"questlog":(current?.id??"");
+      const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??[],equipped=slots.filter(slot=>build?.equipment?.[slot.id]?.itemId).length,heroics=slots.filter(slot=>state.core?.indexes?.itemById?.[build?.equipment?.[slot.id]?.itemId]?.grade===state.core?.HEROIC_GRADE).length;
+      let cp=""; try{cp=build?state.core?.formatNumber?.(state.core.calculateCombatPower(build))??String(state.core.calculateCombatPower(build)):"";}catch{}
+      const weaponPair=build&&state.presetMeta?.weaponComboLabel?.(state.core,build,{short:false}),profileName=(questlog?state.build?.name:current?.profile?.name)||state.build?.name||"No build selected",origin=questlog?"Questlog import":current?.kind==="current"?"Current Armory":state.presetMeta?.presetOriginLabel?.(current)??"Saved build";
+      $("equipment-source-name").textContent=state.build?.name??profileName; $("equipment-source-meta").textContent=[profileName!==state.build?.name?profileName:"",weaponPair,cp?`CP ${cp}`:"",heroics?`${heroics} Heroic${heroics===1?"":"s"}`:""].filter(Boolean).join(" · ")||origin; $("equipment-source-count").textContent=`${equipped}/${slots.length||15} equipped`;
+      const warning=$("equipment-warning"); warning.classList.toggle("hidden",!state.build||equipped>Math.max(3,Math.floor(slots.length/3))); warning.textContent=state.build&&equipped<=Math.max(3,Math.floor(slots.length/3))?`This build contains only ${equipped} equipped ${equipped===1?"item":"items"}. Empty slots are available for the optimizer to fill.`:"";
+      return {equipped,heroics,weaponPair,profileName,origin,cp};
+    }
+    function bindEquipmentHover(){
+      const root=$("slot-locks"); let active="",calculation=null;
+      root.onmouseover=event=>{const target=event.target.closest("[data-equipment-slot]"),slotId=target?.dataset.equipmentSlot,modelData=slotId?equipmentSlotModel(slotId):null;if(!modelData?.available||slotId===active)return;active=slotId;try{calculation??=state.core.calculateBuild(state.build.build,state.build.attributes??{},{includeSetEffects:true});const model=state.core.buildItemHoverModel(slotId,state.build.build,calculation,{optionalFallback:false});if(!model){active="";return;}renderResultHover(model);$("result-hover").classList.remove("hidden");$("result-hover").setAttribute("aria-hidden","false");positionResultHover(event);}catch{active="";}};
+      root.onmousemove=event=>{if(active)positionResultHover(event);}; root.onmouseleave=()=>{active="";$("result-hover").classList.add("hidden");$("result-hover").setAttribute("aria-hidden","true");};
+    }
+    const EQUIPMENT_ATTRIBUTES=[{id:"str",label:"Strength"},{id:"dex",label:"Dexterity"},{id:"int",label:"Wisdom"},{id:"per",label:"Perception"},{id:"con",label:"Fortitude"}];
+    const EQUIPMENT_HIGHLIGHTS=["hp_max","damage_reduction","attack_speed_modifier","skill_cooldown_modifier","move_speed","block_chance"];
+    function equipmentStatValue(id){ return state.currentStats?.[id]?.formattedValue??"—"; }
+    function equipmentStatName(id){ return state.statOptions.find(row=>row.id===id)?.name??state.core?.statName?.(id)??id; }
+    function equipmentStatsHtml(){
+      const attributes=EQUIPMENT_ATTRIBUTES.map(row=>`<div class="equipment-attribute"><strong>${esc(equipmentStatValue(row.id))}</strong><span>${esc(row.label)}</span></div>`).join("");
+      const highlights=EQUIPMENT_HIGHLIGHTS.map(id=>`<div class="equipment-highlight"><span>${esc(equipmentStatName(id))}</span><strong>${esc(equipmentStatValue(id))}</strong></div>`).join("");
+      return `<div class="equipment-stat-section"><div class="equipment-stat-title">Attributes</div><div class="equipment-attributes">${attributes}</div></div><div class="equipment-stat-section"><div class="equipment-stat-title">Build stats</div><div class="equipment-highlights">${highlights}</div></div>`;
+    }
     function renderLocks() {
-      const build=state.build?.build,slots=state.core?.EQUIPMENT_SLOTS??SLOTS.map((label,index)=>({id:String(index),label}));
-      $("slot-locks").innerHTML=slots.map((slot,index)=>{ const selection=build?.equipment?.[slot.id],item=state.core?.indexes?.itemById?.[selection?.itemId],available=Boolean(item),heroic=available&&item.grade===state.core?.HEROIC_GRADE; return `<label class="slot-lock ${available?"":"is-unavailable"} ${heroic?"is-heroic":""}" title="${available?`Keep ${esc(item.name)}`:"Nothing is equipped in this slot"}"><input type="checkbox" data-slot="${index}" data-heroic="${heroic}" ${available?"":"disabled"}><span><strong>${esc(slot.label??SLOTS[index]??slot.id)}${heroic?'<span class="heroic-badge">Heroic</span>':""}</strong>${available?`<small>${esc(item.name)}</small>`:""}</span></label>`; }).join("");
-      const equipped=slots.filter(slot=>build?.equipment?.[slot.id]?.itemId).length;
-      $("locks-hint").textContent=build&&equipped<slots.length?`${equipped}/${slots.length} slots are filled. Empty slots are treated as upgrade opportunities.`:"Tick any additional item you do not want replaced.";
-      syncHeroicLocks();
+      const summary=renderEquipmentSource(),buildName=state.build?.name??"No build selected";
+      $("slot-locks").innerHTML=`<div class="equipment-doll-grid"><div class="equipment-rail">${LEFT_EQUIPMENT_SLOTS.map(slot=>equipmentSlotHtml(slot)).join("")}</div><div class="equipment-character"><div class="equipment-character-head"><span class="equipment-origin">${esc(summary.origin)}</span><span class="equipment-character-power"><strong>${esc(summary.cp||"—")}</strong><small>Combat power</small></span></div>${equipmentStatsHtml()}<div class="equipment-character-copy"><h3>${esc(buildName)}</h3><p>${esc([summary.profileName!==buildName?summary.profileName:"",summary.weaponPair||"No weapons"].filter(Boolean).join(" · "))}</p><div class="equipment-character-stats"><span>${esc(`${summary.equipped}/15 equipped`)}</span>${summary.heroics?`<span>${esc(`${summary.heroics} Heroic${summary.heroics===1?"":"s"}`)}</span>`:""}</div></div></div><div class="equipment-rail">${RIGHT_EQUIPMENT_SLOTS.map(slot=>equipmentSlotHtml(slot)).join("")}</div></div><div class="equipment-weapons">${equipmentSlotHtml("main_hand",{weapon:true})}${equipmentSlotHtml("off_hand",{weapon:true})}</div>`;
+      $("locks-hint").textContent=state.build?"Select any equipped item that must remain exactly as configured. Empty slots are upgrade opportunities.":"Choose an Armory build, saved build, or Questlog import to inspect its equipment.";
+      syncHeroicLocks(); bindEquipmentHover();
     }
     function refreshEventWeaponOptions() {
       const select=$("scenario-event-weapon"),build=state.build?.build??state.build,current=select.value;
@@ -340,9 +549,11 @@
     function selectButtonGroup(id,key,onChange) { $(id).addEventListener("click",event => { const button=event.target.closest("button[data-value]"); if(!button)return; $(id).querySelectorAll("button").forEach(node=>node.classList.toggle("active",node===button)); state[key]=button.dataset.value; onChange?.(button.dataset.value); }); }
     selectButtonGroup("rune-mode","runeMode",value => $("chaos-warning").classList.toggle("hidden",value!=="chaos"));
     selectButtonGroup("artifact-mode","artifactMode");
-    $("heroic-policy").addEventListener("change",syncHeroicLocks);
-    $("lock-all-slots").addEventListener("click",()=>document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=true;}));
-    $("clear-slot-locks").addEventListener("click",()=>document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=false;}));
+    $("heroic-policy").addEventListener("change",()=>{ syncHeroicLocks(); updateReady(); });
+    $("lock-all-slots").addEventListener("click",()=>{ document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=true;}); updateReady(); });
+    $("clear-slot-locks").addEventListener("click",()=>{ document.querySelectorAll("[data-slot]:not(:disabled)").forEach(input=>{input.checked=false;}); updateReady(); });
+    $("slot-locks").addEventListener("change",updateReady);
+    $("equipment-source-select").addEventListener("change",async event=>{const sourceId=event.target.value;if(!sourceId||sourceId==="questlog")return;state.selectedArmorySourceId=sourceId;state.source="armory";document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node.dataset.source==="armory"));$("questlog-controls").classList.add("hidden");await loadArmory(sourceId);});
     document.querySelectorAll("[data-source]").forEach(button => button.addEventListener("click",async()=>{ document.querySelectorAll("[data-source]").forEach(node=>node.classList.toggle("active",node===button)); state.source=button.dataset.source; $("questlog-controls").classList.toggle("hidden",state.source!=="questlog"); if(state.source==="armory") await loadArmory(); else { state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); renderLocks(); updateReady(); $("source-status").textContent="Paste a Questlog link to import a source build."; } }));
 
     function setView(view) {
@@ -426,7 +637,7 @@
       for(const key of ["increase","protect"]) if($(key+"-picker")?.querySelector(".picker-trigger")) renderPicker($(key+"-picker"),key);
       updateReady();
     }
-    async function loadArmory() { if(!state.adapter)return; try { state.build=await state.adapter.loadArmoryBuild(); refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${state.build.name ?? "your saved Armory build"}.` : "No saved Armory build was found in this browser."; } catch(error){ state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } renderLocks(); updateReady(); }
+    async function loadArmory(sourceId=state.selectedArmorySourceId) { if(!state.adapter)return; try { state.armorySources=await state.adapter.listArmoryBuilds(); const selected=state.armorySources.find(row=>row.id===sourceId)??state.armorySources.find(row=>row.id==="current")??state.armorySources[0]??null; state.selectedArmorySourceId=selected?.id??"current"; state.build=selected?.source??null; refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=state.build ? `Using ${selected.kind==="current"?"your current Armory build":`saved build “${selected.name}”`}.` : "No current or saved Armory build was found in this browser."; } catch(error){ state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Armory build could not be loaded: ${error.message}`; } renderLocks(); updateReady(); }
     $("import-build").addEventListener("click",async()=>{ const url=$("questlog-url").value.trim(); if(!url)return; $("import-build").disabled=true; $("source-status").textContent="Importing Questlog build..."; try { state.build=await state.adapter.importQuestlogBuild(url); refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Imported ${state.build.name ?? "Questlog build"}.`; } catch(error){ state.build=null; refreshEventWeaponOptions(); await refreshCurrentStats(); $("source-status").textContent=`Import failed: ${error.message}`; } finally { renderLocks(); $("import-build").disabled=false; updateReady(); } });
     function readScenarioInputs() {
       const distanceInput=$("target-distance"),rawDistance=distanceInput.value.trim(),targetDistanceMeters=Number(rawDistance);
@@ -562,7 +773,16 @@
     function updateReady(){
       const scenarioValid=!$("enable-distance-scenario").checked||Boolean(activeScenario()), invalidGoal=invalidGoalValueId();
       $("run-optimizer").disabled=!(state.adapter && state.build && state.increase.length && !invalidGoal && scenarioValid && !state.scenarioError);
-      const hint=$("run-hint"); if(hint) hint.textContent=invalidGoal?`Enter a ${(state.goalModes[invalidGoal]==="target")?"Target":"At least"} value for ${state.statOptions.find(row=>row.id===invalidGoal)?.name??invalidGoal}, or switch it back to Maximize.`:"Choose at least one stat. The optimizer handles search quality and calculation rules automatically.";
+      const hint=$("run-hint"); if(!hint)return;
+      updateWizard();
+      if(!state.build){ hint.textContent=state.source==="questlog"?"Import a Questlog build to continue.":"Choose a saved Armory build to continue."; return; }
+      if(!state.increase.length){ hint.textContent="Choose at least one stat to improve."; return; }
+      if(invalidGoal){ hint.textContent=`Enter a ${(state.goalModes[invalidGoal]==="target")?"Target":"At least"} value for ${state.statOptions.find(row=>row.id===invalidGoal)?.name??invalidGoal}, or switch it back to Maximize.`; return; }
+      if(!scenarioValid||state.scenarioError){ hint.textContent="Complete or disable the advanced combat scenario to continue."; return; }
+      const locked=document.querySelectorAll("[data-slot]:checked").length,parts=[`${state.increase.length} ${state.increase.length===1?"priority":"priorities"}`];
+      if(state.protect.length) parts.push(`${state.protect.length} protected`);
+      if(locked) parts.push(`${locked} ${locked===1?"item":"items"} locked`);
+      hint.textContent=`${parts.join(" · ")} · Ready to search.`;
     }
     function buildMainHandFamily(){ const itemId=state.build?.equipment?.main_hand?.itemId; const type=state.core?.indexes?.itemById?.[itemId]?.equipmentType; return state.presets?.weaponStatFamily?.(type) ?? "all"; }
     function applyGoalPreset(presetId){

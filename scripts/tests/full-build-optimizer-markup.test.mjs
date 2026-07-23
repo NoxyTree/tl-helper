@@ -42,6 +42,8 @@ test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /value="replace_any"/);
   assert.match(html, /id="lock-all-slots"/);
   assert.match(html, /id="clear-slot-locks"/);
+  assert.match(html, /id="equipment-source-select"/);
+  assert.match(html, /listArmoryBuilds\(\)/);
   assert.doesNotMatch(html, /id="search-depth"|data-value="fast"|data-value="thorough"/);
   assert.match(html, /depth:"refine"/);
   assert.doesNotMatch(html, /id="keep-heroics"|id="reconsider-heroics"|id="best-heroic"/);
@@ -56,7 +58,7 @@ test("goal selection uses the structured Build from Scratch picker pattern", () 
   assert.match(html, /class="picker-results"/);
   assert.match(html, /class="goal-chip"/);
   assert.doesNotMatch(html, /createElement\("datalist"\)/);
-  assert.match(html, /Ranked priorities · drag to reorder/);
+  assert.match(html, /Ranked &middot; drag to reorder/);
   assert.match(html, /compositeComponents/);
   assert.match(html, /class="composite-badge"/);
   assert.match(html, /draggable="true"/);
@@ -80,17 +82,38 @@ test("wanted stats support At least and Target minimums in display units", () =>
   assert.match(html, /id="run-hint"/);
 });
 
-test("protected goals show current calculated floors and widen the workspace", () => {
+test("protected goals show current calculated floors without shifting the workspace", () => {
   assert.match(html, /adapter\.currentStats/);
   assert.match(html, /class="picker-option-value" title="Current value"/);
   assert.match(html, /class="goal-chip-value" title="Current protected floor"/);
-  assert.match(html, /\.setup-workspace:has\(\.picker-menu:not\(\.hidden\)\)/);
+  assert.doesNotMatch(html, /\.setup-workspace:has\(\.picker-menu:not\(\.hidden\)\)/);
+  assert.match(html, /id="goal-presets"/);
+  assert.match(html, /class="goals-grid"/);
   assert.match(html, /repeat\(3,minmax\(0,1fr\)\)/);
+});
+
+test("items to keep uses a character equipment doll with complete source selection", () => {
+  assert.match(html, /class="equipment-doll-grid"/);
+  assert.match(html, /class="equipment-character"/);
+  assert.match(html, /class="equipment-weapons"/);
+  assert.match(html, /data-equipment-slot/);
+  assert.match(html, /LEFT_EQUIPMENT_SLOTS/);
+  assert.match(html, /RIGHT_EQUIPMENT_SLOTS/);
+  assert.match(html, /Current Armory —/);
+  assert.match(html, /Empty slots are available for the optimizer to fill/);
+  assert.match(html, /id="heroic-empty-status"/);
+  assert.match(html, /buildItemHoverModel\(slotId/);
+  assert.match(html, /class="equipment-character-power"/);
+  assert.match(html, /EQUIPMENT_ATTRIBUTES/);
+  assert.match(html, /EQUIPMENT_HIGHLIGHTS/);
+  assert.match(html, /equipmentStatsHtml\(\)/);
+  assert.doesNotMatch(html, /class="equipment-character-mark"/);
 });
 
 test("optimizer uses full-screen setup and loading before opening the shared result screen", () => {
   assert.match(html, /id="setup-state" class="setup-workspace"/);
-  assert.match(html, /grid-template-areas:"source goals" "locks goals" "rules rules" "actions actions"/);
+  assert.match(html, /grid-template-areas:"progress" "source" "goals" "locks" "rules" "actions"/);
+  assert.match(html, /\.actions \{ position:sticky; bottom:12px;/);
   assert.match(html, /class="progress-card"/);
   assert.match(html, /Improving your build/);
   assert.match(html, /function setView\(view\)/);
@@ -104,6 +127,30 @@ test("optimizer uses full-screen setup and loading before opening the shared res
   assert.match(html, /Complete-build search/);
 });
 
+test("optimizer setup is a progressive four-step flow", () => {
+  assert.match(html, /class="wizard-progress"/);
+  assert.equal(html.match(/data-wizard-step="[1-4]"/g)?.length, 4);
+  assert.equal(html.match(/data-wizard-panel="[1-4]"/g)?.length, 4);
+  assert.match(html, /id="wizard-back"/);
+  assert.match(html, /id="wizard-next"/);
+  assert.match(html, /function setWizardStep\(step/);
+  assert.match(html, /class="review-strip"/);
+});
+
+test("optimizer mode switch remains visible above the guided steps", () => {
+  assert.match(html, /class="optimizer-mode-switch"/);
+  assert.match(html, /aria-label="Choose optimizer mode"/);
+  assert.match(html, /href="\.\/build-from-scratch\.html"/);
+});
+
+test("optimizer steps follow the same order in the document and on screen", () => {
+  const source = html.indexOf('id="source-title">1. Starting build');
+  const goals = html.indexOf('id="goals-title">2. Choose your priorities');
+  const locks = html.indexOf('id="locks-title">3. Items to keep');
+  const rules = html.indexOf('id="rules-title">4. Search options');
+  assert.ok(source >= 0 && source < goals && goals < locks && locks < rules);
+});
+
 test("improved results reuse the Build from Scratch result experience", () => {
   assert.match(html, /import\("\.\/optimizer\/tl-optimizer-result-handoff\.js"\)/);
   assert.match(html, /location\.href="\.\/build-from-scratch\.html\?result=improved"/);
@@ -111,7 +158,7 @@ test("improved results reuse the Build from Scratch result experience", () => {
 });
 
 test("optimizer represents sets, traits, Heroics, runes, and artifacts", () => {
-  assert.match(html, /Equipped Heroics/);
+  assert.match(html, /Heroic equipment/);
   assert.match(html, /includeSetEffects:true/);
   assert.match(html, /optimizeThreeTraits:true/);
   assert.match(html, /bestHeroicConfiguration:true/);

@@ -77,7 +77,6 @@
       <a class="tl-app-nav-item is-active" href="./achievements.html" aria-current="page">Achievements</a>
       <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
       <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
-      <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
     </nav>
 
     <div class="tl-app-header-end">
@@ -304,6 +303,12 @@
 <sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
   <div style="position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 90; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(232, 184, 106, 0.5); background: rgba(20, 15, 9, 0.95); color: #f6d391; font-size: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); animation: tlFadeUp 0.2s ease;">{{ toastMsg }}</div>
 </sc-if>
+<footer class="tl-app-footer">
+  <div class="tl-app-footer-inner">
+    <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
+    <a href="./privacy.html">Privacy</a>
+  </div>
+</footer>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {

@@ -137,26 +137,23 @@
         <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
         <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
         <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
-        <a class="tl-app-nav-item" href="./privacy.html">Privacy</a>
       </nav>
-      <div class="tl-armory-identity">
-        <input value="{{ charName }}" onChange="{{ onNameChange }}" aria-label="Character name" placeholder="Character name" spellcheck="false"
-          style="min-width:110px;width:clamp(110px,13vw,190px);padding:6px 9px;border:1px solid rgba(212,166,94,.2);border-radius:7px;background:rgba(8,6,4,.46);color:#f3e9d4;font-family:Marcellus,serif;">
-        <input value="{{ charRole }}" onChange="{{ onRoleChange }}" aria-label="Build role" placeholder="Build role" spellcheck="false"
-          style="min-width:84px;width:clamp(84px,9vw,130px);padding:6px 9px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(8,6,4,.36);color:#cbb185;font-size:11px;">
-        <input value="{{ charServer }}" onChange="{{ onServerChange }}" aria-label="Server" placeholder="Server" spellcheck="false"
-          style="min-width:72px;width:clamp(72px,8vw,110px);padding:6px 9px;border:1px solid rgba(212,166,94,.16);border-radius:7px;background:rgba(8,6,4,.36);color:#9d8a68;font-size:11px;">
-        <span data-tl-account-slot style="display:inline-flex;align-items:center;"></span>
-      </div>
-      <div class="tl-app-header-end tl-toolbar-actions" data-screen-label="Header Actions">
-        <button type="button" onClick="{{ openPresets }}" title="Save, load, rename, reorder, or remove your TL Helper builds"
-          style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f6d391; background: rgba(212, 166, 94, 0.12); border: 1px solid rgba(232, 184, 106, 0.42); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
-          style-hover="color: #fff2ce; border-color: rgba(232, 184, 106, 0.72); background: rgba(212, 166, 94, 0.18);">My builds ({{ presetCount }})</button>
-        <button type="button" onClick="{{ onNewBuild }}" title="Start a new build directly in TL Helper"
-          style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #dce9ff; background: rgba(114, 169, 255, 0.1); border: 1px solid rgba(114, 169, 255, 0.42); border-radius: 999px; padding: 6px 14px; cursor: pointer;">New build</button>
-        <button type="button" onClick="{{ openImport }}" title="Import from a Questlog character-builder link"
-          style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #cbb185; background: rgba(114, 169, 255, 0.08); border: 1px solid rgba(114, 169, 255, 0.32); border-radius: 999px; padding: 6px 14px; cursor: pointer;"
-          style-hover="color: #dce9ff; border-color: rgba(114, 169, 255, 0.65); background: rgba(114, 169, 255, 0.14);">Import Questlog</button>
+      <div class="tl-armory-workspace">
+        <div class="tl-armory-controls">
+          <div class="tl-armory-identity" role="group" aria-label="Current build details">
+            <input class="tl-armory-identity-input tl-armory-identity-name" value="{{ charName }}" onChange="{{ onNameChange }}" aria-label="Character name" placeholder="Character name" spellcheck="false">
+            <input class="tl-armory-identity-input" value="{{ charRole }}" onChange="{{ onRoleChange }}" aria-label="Build role" placeholder="Build role" spellcheck="false">
+            <input class="tl-armory-identity-input" value="{{ charServer }}" onChange="{{ onServerChange }}" aria-label="Server" placeholder="Server" spellcheck="false">
+          </div>
+          <div class="tl-app-header-end tl-toolbar-actions" data-screen-label="Header Actions">
+            <button class="tl-armory-action tl-armory-action-library" type="button" onClick="{{ openPresets }}" title="Save, load, rename, reorder, or remove your TL Helper builds">
+              <span>My builds</span><span class="tl-armory-action-count">{{ presetCount }}</span>
+            </button>
+            <button class="tl-armory-action tl-armory-action-primary" type="button" onClick="{{ onNewBuild }}" title="Start a new build directly in TL Helper">+ New build</button>
+            <button class="tl-armory-action" type="button" onClick="{{ openImport }}" title="Import from a Questlog character-builder link">Import Questlog</button>
+          </div>
+        </div>
+        <span class="tl-armory-account-slot" data-tl-account-slot></span>
       </div>
     </header>
 
@@ -1607,6 +1604,12 @@
       </div></sc-if>
   </div>
 </sc-if>
+  <footer class="tl-app-footer">
+    <div class="tl-app-footer-inner">
+      <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
+      <a href="./privacy.html">Privacy</a>
+    </div>
+  </footer>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1600, &quot;height&quot;: 1000}}">
 class Component extends DCLogic {

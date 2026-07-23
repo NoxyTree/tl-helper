@@ -8,11 +8,11 @@ const [builder, armory, masteryWheel] = await Promise.all([
   readFile(new URL("../../web/MasteryWheel.dc.html", import.meta.url), "utf8"),
 ]);
 
-test("Builder result view exposes Stats, Guide, and Skills primary tabs with Skills/Mastery sub-views", () => {
-  // Three primary tabs: Stats, Guide, then the progression tab (labelled Skills).
+test("Builder result view exposes Stats, Upgrade Guide, and Skills & Mastery primary tabs with progression sub-views", () => {
+  // Three primary tabs: Stats, Upgrade Guide, then the combined progression tab.
   assert.match(builder, /\{id:'stats',name:'Stats'/);
-  assert.match(builder, /\{id:'guide',name:'Guide'/);
-  assert.match(builder, /id:'progression',name:'Skills'/);
+  assert.match(builder, /\{id:'guide',name:'Upgrade Guide'/);
+  assert.match(builder, /id:'progression',name:'Skills & Mastery'/);
   // Skills and Mastery remain distinct views, now as sub-chips of the progression tab.
   assert.match(builder, /\['skills','Skills'\],\['mastery','Mastery'\]/);
   assert.match(builder, /tabSkills:s\.statTab==='skills'/);
