@@ -149,9 +149,11 @@ test("search discovery files publish only the clean production pages", async () 
   for (const route of ["/ItemHoverCard.dc.html", "/ItemHoverCard.dc", "/MasteryWheel.dc.html", "/MasteryWheel.dc"]) {
     assert.ok(robots.includes(`Disallow: ${route}\n`) || robots.includes(`Disallow: ${route}\r\n`), `robots.txt disallows ${route}`);
   }
-  for (const route of ["/", "/tracker", "/achievements", "/combat-lab", "/gear-viewer", "/full-build-optimizer", "/build-from-scratch", "/privacy"]) {
+  for (const route of ["/", "/tracker", "/achievements", "/gear-viewer", "/full-build-optimizer", "/build-from-scratch", "/privacy"]) {
     assert.ok(sitemap.includes(`<loc>https://tlhelper.org${route}</loc>`), `sitemap includes ${route}`);
   }
+  // Combat Lab is intentionally unlisted while it is on the back burner.
+  assert.ok(!sitemap.includes("/combat-lab"), "sitemap omits the unlisted Combat Lab page");
 });
 
 test("standalone pages use the shared application header", async () => {

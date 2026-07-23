@@ -6,7 +6,8 @@ const pages = [
   ["index.html", "./index.html", "Armory", "Armory | TL Helper"],
   ["tracker.html", "./tracker.html", "Tracker", "Tracker | TL Helper"],
   ["achievements.html", "./achievements.html", "Achievements", "Achievements | TL Helper"],
-  ["combat-lab.html", "./combat-lab.html", "Combat Lab", "Combat Lab | TL Helper"],
+  // combat-lab.html is intentionally unlisted: it keeps the shared header but
+  // has no navigation entry, so combat-lab-navigation.test.mjs covers it.
   ["gear-viewer.html", "./gear-viewer.html", "Gear Viewer", "Gear Viewer | TL Helper"],
   ["full-build-optimizer.html", "./full-build-optimizer.html", "Build Optimizer", "Build Optimizer | TL Helper"],
   ["build-from-scratch.html", "./full-build-optimizer.html", "Build Optimizer", "Build Optimizer: Build from Scratch | TL Helper"],
@@ -19,7 +20,6 @@ const socialTitles = new Map([
   ["index.html", "Armory | TL Helper"],
   ["tracker.html", "Tracker | TL Helper"],
   ["achievements.html", "Achievements | TL Helper"],
-  ["combat-lab.html", "Combat Lab | TL Helper"],
   ["gear-viewer.html", "Gear Viewer | TL Helper"],
   ["privacy.html", "Privacy | TL Helper"],
 ]);
@@ -28,7 +28,6 @@ const expectedNavigation = [
   ["./index.html", "Armory"],
   ["./tracker.html", "Tracker"],
   ["./achievements.html", "Achievements"],
-  ["./combat-lab.html", "Combat Lab"],
   ["./gear-viewer.html", "Gear Viewer"],
   ["./full-build-optimizer.html", "Build Optimizer"],
   ["./privacy.html", "Privacy"],
