@@ -192,6 +192,13 @@ test("Kit packet selection replaces the primary hit only for one validated overr
   const unverified = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 5, specializationIds: ["trait-c"] });
   assert.equal(unverified.coefficient, "2.5000");
   assert.equal(unverified.specUnverified, true);
+
+  // An applied override must not hide a co-selected damage-relevant
+  // specialization that still has no validated model.
+  const overrideWithUnverified = resolveKitPacketSelection({ packet: kitPacket, skillLevel: 5, specializationIds: ["trait-a", "trait-c"] });
+  assert.equal(overrideWithUnverified.specApplied, "Test Strike - Variant");
+  assert.equal(overrideWithUnverified.coefficient, "3.0000");
+  assert.equal(overrideWithUnverified.specUnverified, true);
 });
 
 test("Kit packet expected damage scales the primary hit into the modeled pre-Defense pipeline", () => {

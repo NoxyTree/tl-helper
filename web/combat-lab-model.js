@@ -147,7 +147,9 @@ export function resolveKitPacketSelection({ packet, skillLevel, specializationId
       entry = { coefficient: overrideEntry.coefficient, flatAdd: overrideEntry.flatAdd, cooldown: overrideEntry.cooldown ?? entry.cooldown };
       mappingClass = override.mappingClass;
       specApplied = override.name;
-      specUnverified = false;
+      // specUnverified deliberately keeps its initial value: an applied
+      // override must not hide a co-selected damage-relevant specialization
+      // that still has no validated model.
     }
   } else if (overrides.length > 1) specUnverified = true;
   return Object.freeze({
