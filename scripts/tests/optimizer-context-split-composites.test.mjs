@@ -12,17 +12,31 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const appData = await loadWebDataFromFile(join(repoRoot, "web", "data", "app-data.json"));
 await core.initCore(appData);
 
-test("CONTEXT_SPLIT_COMPOSITE_IDS captures exactly the Boss/PvP two-way composites", () => {
+test("CONTEXT_SPLIT_COMPOSITE_IDS captures every composite whose components are boss_/pvp_ projections of itself", () => {
+  // Includes the two-way boss_x+pvp_x splits AND one-way boss-only forward feeds
+  // like damage_reduction (there is no pvp_damage_reduction).
   const derived = Object.entries(STAT_EXPANSIONS)
-    .filter(([, components]) => components.length === 2
-      && components.some((id) => id.startsWith("boss_"))
-      && components.some((id) => id.startsWith("pvp_")))
+    .filter(([id, components]) => components.length >= 1 && components.length <= 2
+      && components.every((c) => c === `boss_${id}` || c === `pvp_${id}`))
     .map(([id]) => id);
   assert.deepEqual([...CONTEXT_SPLIT_COMPOSITE_IDS].sort(), derived.sort());
-  // Sanity: the offensive families the redesign targets are present.
   for (const id of ["magic_double_attack", "melee_critical_attack", "range_accuracy"]) {
     assert.ok(CONTEXT_SPLIT_COMPOSITE_IDS.has(id), `${id} should be context-split`);
   }
+});
+
+test("damage_reduction scores and floor-checks on itself, not on boss_damage_reduction", () => {
+  // Regression: damage_reduction expands one-way to [boss_damage_reduction]. It
+  // must be treated as a context projection of itself so a "Damage Reduction"
+  // goal scores AND enforces its floor on raw damage_reduction. Otherwise the
+  // goal reports the (higher) boss value while the floor checks raw, producing a
+  // false "no build satisfies".
+  assert.ok(CONTEXT_SPLIT_COMPOSITE_IDS.has("damage_reduction"));
+  assert.deepEqual(goalCompositeComponents("damage_reduction"), ["damage_reduction"]);
+  const [goal] = expandCompositeGoals([{ id: "damage_reduction", rank: 1, weight: 1 }]);
+  assert.deepEqual(goal.components, ["damage_reduction"]);
+  // Genuine aggregates are unaffected — still expand to their typed leaves.
+  assert.deepEqual(goalCompositeComponents("all_accuracy"), STAT_EXPANSIONS.all_accuracy);
 });
 
 test("context-split composites score on their own leaf, never min(boss, pvp)", () => {

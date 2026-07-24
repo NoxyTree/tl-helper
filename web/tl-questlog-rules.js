@@ -49,11 +49,21 @@ export const STAT_EXPANSIONS={all_accuracy:["melee_accuracy","range_accuracy","m
 // (score/show their own row) and expose the Boss/PvP variants separately. The
 // calculator still distributes their contributions via STAT_EXPANSIONS, and
 // type roll-ups (min over melee/range/magic) are unaffected.
+// A composite is "context-split" when every one of its expansion components is a
+// boss_/pvp_ projection of the stat itself (not an independent sub-stat). Those
+// projections are the SAME stat measured in another context, so a goal on the
+// stat must score AND floor-check on the stat itself — never on a projection.
+// This covers the 2-component boss_x+pvp_x splits AND the 1-component boss-only
+// forward feeds (e.g. damage_reduction -> [boss_damage_reduction]; there is no
+// pvp_damage_reduction). Before this generalization, damage_reduction scored and
+// reported as boss_damage_reduction while its floor was enforced against raw
+// damage_reduction, so a user's "Damage Reduction" floor could falsely report
+// "no build satisfies". Genuine aggregates (all_accuracy -> melee/range/magic)
+// are NOT projections of self and are correctly left as min() composites.
 export const CONTEXT_SPLIT_COMPOSITE_IDS=new Set(
   Object.entries(STAT_EXPANSIONS)
-    .filter(([,components])=>components.length===2
-      &&components.some((id)=>id.startsWith("boss_"))
-      &&components.some((id)=>id.startsWith("pvp_")))
+    .filter(([id,components])=>components.length>=1&&components.length<=2
+      &&components.every((component)=>component===`boss_${id}`||component===`pvp_${id}`))
     .map(([id])=>id),
 );
 // Component ids used for GOAL scoring and stat-panel breakdown. Returns the stat
