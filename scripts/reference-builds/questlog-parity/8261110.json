@@ -1,0 +1,1162 @@
+{
+ "schema": "tl-helper.questlog-parity-fixture",
+ "schemaVersion": 1,
+ "characterSlug": "TheBloodOfTheThornyRavenous",
+ "buildId": "8261110",
+ "label": "Healer (orb/wand)",
+ "capturedAtUtc": "2026-07-24T02:20:00.000Z",
+ "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/TheBloodOfTheThornyRavenous?build-id=8261110",
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (82/83). Raise only alongside the change that earned it.",
+ "note": "Panel and payload verified to belong to the SAME build (\"t4 theory\"). The original capture paired this panel with build 8023583, which the character page was NOT displaying — a payload/panel desync that made a 98%-accurate archetype read as 6%.",
+ "questlogPanel": {
+  "Combat Power": "6982",
+  "Attack Speed": "52.2%",
+  "Species Damage Boost": "72",
+  "Melee Critical Hit Chance": "255",
+  "Magic Critical Hit Chance": "195",
+  "Ranged Critical Hit Chance": "255",
+  "Melee Heavy Attack Chance": "308",
+  "Ranged Heavy Attack Chance": "308",
+  "Magic Heavy Attack Chance": "296",
+  "Melee Hit Chance": "740",
+  "Ranged Hit Chance": "740",
+  "Magic Hit Chance": "740",
+  "Damage Reduction": "30",
+  "Melee Defense": "3,587",
+  "Ranged Defense": "3,254",
+  "Magic Defense": "4,205",
+  "Melee Evasion": "78",
+  "Ranged Evasion": "78",
+  "Magic Evasion": "78",
+  "Melee Endurance": "3,425",
+  "Ranged Endurance": "1,825",
+  "Magic Endurance": "2,593",
+  "Melee Heavy Attack Evasion": "1,617",
+  "Ranged Heavy Attack Evasion": "1,281",
+  "Magic Heavy Attack Evasion": "1,557",
+  "Critical Damage Resistance": "47.7%",
+  "Heavy Attack Damage Resistance": "4.8%",
+  "Max Health": "30,272.97",
+  "Health Regen": "192",
+  "Max Mana": "15,104",
+  "Mana Regen": "882.5",
+  "Shield Health": "205.14%",
+  "Shield Health Received": "1.5%",
+  "Movement Speed": "23.1%",
+  "Stamina Regen": "12.2",
+  "Skill Damage Boost": "272",
+  "Cooldown Speed": "99.7%",
+  "Healing": "120.07%",
+  "Healing Received": "2.5%",
+  "Buff Duration": "91.9%",
+  "Debuff Duration": "-38.31%",
+  "Weaken Resistance": "1,227",
+  "Stun Resistance": "1,167",
+  "Petrification Resistance": "1,167",
+  "Sleep Resistance": "1,167",
+  "Silence Resistance": "1,167",
+  "Fear Resistance": "1,167",
+  "Bind Resistance": "1,167",
+  "Collision Resistance": "2,697",
+  "Skill Damage Resistance": "1,046",
+  "Stun Chance": "513",
+  "Fear Chance": "558",
+  "Bind Chance": "558",
+  "Petrification Chance": "558",
+  "Sleep Chance": "483",
+  "Collision Chance": "558",
+  "Silence Chance": "558",
+  "Weaken Chance": "608",
+  "PvP Melee Critical Hit Chance": "255",
+  "PvP Ranged Critical Hit Chance": "255",
+  "PvP Magic Critical Hit Chance": "195",
+  "PvP Melee Endurance": "4,480",
+  "PvP Ranged Endurance": "2,880",
+  "PvP Magic Endurance": "3,648",
+  "PvP Melee Hit Chance": "876",
+  "PvP Ranged Hit Chance": "840",
+  "PvP Magic Hit Chance": "840",
+  "PvP Melee Evasion": "150",
+  "PvP Ranged Evasion": "78",
+  "PvP Magic Evasion": "78",
+  "PvP Melee Heavy Attack Chance": "308",
+  "PvP Ranged Heavy Attack Chance": "308",
+  "PvP Magic Heavy Attack Chance": "332",
+  "PvP Melee Heavy Attack Evasion": "1,971",
+  "PvP Ranged Heavy Attack Evasion": "1,635",
+  "PvP Magic Heavy Attack Evasion": "1,911",
+  "Boss Damage Reduction": "30",
+  "Boss Melee Critical Hit Chance": "255",
+  "Boss Ranged Critical Hit Chance": "255",
+  "Boss Magic Critical Hit Chance": "195",
+  "Boss Melee Endurance": "3,425",
+  "Boss Ranged Endurance": "1,825",
+  "Boss Magic Endurance": "2,593",
+  "Boss Melee Hit Chance": "740",
+  "Boss Ranged Hit Chance": "740",
+  "Boss Magic Hit Chance": "740",
+  "Boss Melee Evasion": "78",
+  "Boss Ranged Evasion": "78",
+  "Boss Magic Evasion": "78",
+  "Boss Melee Heavy Attack Chance": "308",
+  "Boss Ranged Heavy Attack Chance": "308",
+  "Boss Magic Heavy Attack Chance": "296",
+  "Boss Melee Heavy Attack Evasion": "1,617",
+  "Boss Ranged Heavy Attack Evasion": "1,281",
+  "Boss Magic Heavy Attack Evasion": "1,557"
+ },
+ "questlogPayload": {
+  "build": {
+   "id": 8261110,
+   "name": "t4 theory",
+   "skillBuildId": 703221,
+   "weaponSpecializationBuildId": 452335,
+   "userId": "651e2e96-7b3e-4a36-ad42-f715fad34482",
+   "note": "",
+   "characterId": 369069,
+   "attributes": {
+    "con": 18,
+    "dex": 0,
+    "int": 11,
+    "per": 20,
+    "str": 10
+   },
+   "equipment": {
+    "belt": {
+     "id": "belt_aa_S1_003",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Belt_Ast_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Belt_All_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Belt_Def_Rune_Usable_kAA2_001",
+       "statId": "melee_double_defense"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "collide_resistance": 4000,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "collide_resistance",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "feet": {
+     "id": "feet_aa_S1_fabric_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 60,
+       "runeId": "Feet_Def_Rune_Usable_kA_001",
+       "statId": "pvp_all_double_defense"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Feet_All_Rune_Usable_kA_001",
+       "statId": "pvp_all_double_defense"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Feet_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_magic_double_attack"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "move_speed_modifier": 800,
+      "magic_critical_defense": 1600,
+      "melee_critical_defense": 1600
+     },
+     "potential": null,
+     "resonance": "melee_critical_defense",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "head": {
+     "id": "head_aa_S1_fabric_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Head_All_Rune_Usable_kA_001",
+       "statId": "pvp_melee_accuracy"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Head_Def_Rune_Usable_kA_001",
+       "statId": "pvp_melee_evasion"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Head_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "magic_critical_defense": 1600,
+      "melee_critical_defense": 1600,
+      "skill_cooldown_modifier": 600
+     },
+     "potential": null,
+     "resonance": "melee_critical_defense",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "legs": {
+     "id": "legs_aa_S1_fabric_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Legs_All_Rune_Usable_kA_001",
+       "statId": "pvp_all_critical_defense"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Legs_Def_Rune_Usable_kA_001",
+       "statId": "pvp_all_critical_defense"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Legs_Ast_Rune_Usable_kA_001",
+       "statId": "stamina_regen"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "magic_critical_defense": 1600,
+      "melee_critical_defense": 1600,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "magic_critical_defense",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "chest": {
+     "id": "chest_aa_S1_plate_rift_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Armor_All_Rune_Usable_kA_001",
+       "statId": "pvp_all_critical_defense"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Armor_Def_Rune_Usable_kA_001",
+       "statId": "pvp_all_critical_defense"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Armor_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "melee_critical_defense": 1600,
+      "buff_given_duration_modifier": 600,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "melee_critical_defense",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "cloak": {
+     "id": "cloak_unique_aa_t2_set_001",
+     "perk": "SkillSet_WP_Item_Gear_ORB_05",
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Cloak_All_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Cloak_Def_Rune_Usable_kA_001",
+       "statId": "pvp_melee_evasion"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Cloak_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      }
+     },
+     "heroic": {
+      "1": "attack_range_modifier",
+      "2": "cost_consumption_modifier",
+      "3": "all_critical_defense"
+     },
+     "traits": {
+      "collide_resistance": 4000,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "all_double_defense": 1600
+     }
+    },
+    "hands": {
+     "id": "hands_aa_S1_fabric_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Hands_All_Rune_Usable_kA_001",
+       "statId": "pvp_all_double_defense"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Hands_Def_Rune_Usable_kA_001",
+       "statId": "pvp_all_double_defense"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Hands_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "magic_critical_defense": 1600,
+      "melee_critical_defense": 1600,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "melee_critical_defense",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "attack": {
+     "id": "Usable_Food_Result_056_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "brooch": {
+     "id": "brooch_aa_t3_normal_006",
+     "perk": null,
+     "heroic": {
+      "1": "hp_max",
+      "2": "all_armor",
+      "3": "melee_armor"
+     },
+     "traits": {
+      "collide_resistance": 4000,
+      "skill_power_resistance": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "shield_modifier",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "castle": {
+     "id": ""
+    },
+    "ring_1": {
+     "id": "ring_aa_S1_004",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Ring_Def_Rune_Usable_kAA2_001",
+       "statId": "melee_critical_defense"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Ring_All_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "skill_cooldown_modifier": 600,
+      "cost_consumption_modifier": 1200,
+      "skill_power_amplification": 800
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "ring_2": {
+     "id": "ring_aa_S1_rift_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Ring_Def_Rune_Usable_kAA2_001",
+       "statId": "melee_critical_defense"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Ring_All_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "hp_max": 600,
+      "skill_cooldown_modifier": 600,
+      "skill_power_amplification": 800
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "defense": {
+     "id": "Usable_Food_Result_053_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "earring": {
+     "id": "earring_aa_S1_rift_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Earring_All_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Earring_Def_Rune_Usable_kAA2_001",
+       "statId": "melee_double_defense"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Earring_Ast_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      }
+     },
+     "heroic": {
+      "1": "hp_max",
+      "2": "magic_armor",
+      "3": "all_armor"
+     },
+     "traits": {
+      "cost_regen": 60000,
+      "side_all_double_defense": 1440,
+      "front_all_double_defense": 1440
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "utility": {
+     "id": "Usable_Food_Result_026_kB",
+     "heroic": {},
+     "traits": {},
+     "artifact": null,
+     "uniqueTraits": {}
+    },
+    "bracelet": {
+     "id": "bracelet_aa_t2_raid_001",
+     "perk": "SkillSet_WP_Item_Gear_ORB_07",
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Bracelet_Ast_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Bracelet_Def_Rune_Usable_kAA2_001",
+       "statId": "melee_double_defense"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Bracelet_All_Rune_Usable_kAA2_001",
+       "statId": "collide_resistance"
+      }
+     },
+     "heroic": {
+      "1": "skill_cooldown_modifier",
+      "2": "con",
+      "3": "all_critical_defense"
+     },
+     "traits": {
+      "collide_resistance": 4000,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "all_double_defense": 1600
+     }
+    },
+    "necklace": {
+     "id": "necklace_aa_t3_normal_011",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Necklace_Ast_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Necklace_Def_Rune_Usable_kAA2_001",
+       "statId": "melee_critical_defense"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Necklace_All_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "hp_max": 600,
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "off_hand": {
+     "id": "wand_aa_t3_upgrade_arch_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Weapon_Def_Rune_Usable_kAA2_001",
+       "statId": "magic_double_defense"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Weapon_Ast_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      }
+     },
+     "heroic": {
+      "1": "all_double_attack",
+      "2": "all_critical_attack"
+     },
+     "traits": {
+      "hp_max": 600,
+      "all_double_attack": 800,
+      "cost_consumption_modifier": 1200
+     },
+     "potential": "SkillSet_WP_Item_Gear_ORB_16",
+     "resonance": "skill_cooldown_modifier",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "boonstone": {
+     "id": "",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "gemstone1": {
+     "id": "gemstone_a_set_05_001",
+     "traits": {
+      "weaken_accuracy": 2400,
+      "all_state_accuracy": 1600
+     },
+     "artifact": null,
+     "uniqueTraits": {}
+    },
+    "gemstone2": {
+     "id": "gemstone_a_set_05_002",
+     "traits": {
+      "collide_resistance": 2400,
+      "all_state_tolerance": 1600
+     },
+     "artifact": null,
+     "uniqueTraits": {}
+    },
+    "main_hand": {
+     "id": "orb_aaa_t1_raid_001",
+     "perk": "perk_orb_aa_t3_upgrade_arch_001",
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Weapon_Atk_Rune_Usable_kAA2_001",
+       "statId": "buff_given_duration_modifier"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Weapon_Ast_Rune_Usable_kAA2_001",
+       "statId": "shield_modifier"
+      }
+     },
+     "heroic": {
+      "1": "per",
+      "2": "con"
+     },
+     "traits": {
+      "all_double_attack": 800,
+      "attack_speed_modifier": 800,
+      "cost_consumption_modifier": 1200
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "con": 8
+     }
+    },
+    "riftstone": {
+     "id": "",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "stellarite": {
+     "id": "Ammo_kB_001",
+     "heroic": {},
+     "uniqueTraits": {}
+    },
+    "talistone1": {
+     "id": "talistone_a_set_05_001",
+     "traits": {
+      "all_double_attack": 480,
+      "magic_double_attack": 600,
+      "attack_power_main_hand": 6
+     },
+     "artifact": "bonus_attack_power_main_hand",
+     "uniqueTraits": {}
+    },
+    "talistone2": {
+     "id": "talistone_a_set_05_002",
+     "traits": {
+      "all_double_defense": 600,
+      "all_critical_defense": 600,
+      "magic_double_defense": 900
+     },
+     "artifact": "all_armor",
+     "uniqueTraits": {}
+    },
+    "talistone3": {
+     "id": "talistone_a_set_05_003",
+     "traits": {
+      "weaken_tolerance": 2400,
+      "collide_resistance": 2400,
+      "all_state_tolerance": 1600
+     },
+     "artifact": "hp_max",
+     "uniqueTraits": {}
+    },
+    "talistone4": {
+     "id": "talistone_a_set_05_004",
+     "traits": {
+      "all_double_defense": 600,
+      "all_state_tolerance": 1600,
+      "all_critical_defense": 600
+     },
+     "artifact": "hp_max",
+     "uniqueTraits": {}
+    },
+    "hp-recovery": {
+     "id": "Usable_Food_Result_021_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "mana-recovery": {
+     "id": "Usable_Food_Result_022_kB",
+     "heroic": {},
+     "traits": {},
+     "artifact": null,
+     "uniqueTraits": {}
+    }
+   },
+   "order": 999,
+   "weaponTypes": [
+    "orb",
+    "wand"
+   ],
+   "tags": []
+  },
+  "skillBuild": {
+   "id": 703221,
+   "name": "shield",
+   "isPublic": true,
+   "createdAt": "2026-02-20T22:16:16.818Z",
+   "updatedAt": "2026-07-13T01:14:28.651Z",
+   "mainHand": "orb",
+   "offHand": "wand",
+   "tags": [],
+   "active": [
+    {
+     "lvl": 1,
+     "order": 0,
+     "traits": [
+      "SkillSet_WP_ORB_Active_OrbSummon_Trait_2",
+      "SkillSet_WP_ORB_Active_OrbSummon_Trait_3",
+      "SkillSet_WP_ORB_Active_OrbSummon_Trait_1"
+     ],
+     "skillId": "SkillSet_WP_ORB_Active_OrbSummon"
+    },
+    {
+     "lvl": 1,
+     "order": 1,
+     "skillId": "SkillSet_WP_ORB_Active_OrbExplosion"
+    },
+    {
+     "lvl": 20,
+     "order": 2,
+     "skillId": "SkillSet_WP_ORB_Active_Phasing"
+    },
+    {
+     "lvl": 20,
+     "order": 3,
+     "traits": [
+      "SkillSet_WP_ORB_Active_Shield_Trait_3",
+      "SkillSet_WP_ORB_Active_Shield_Trait_4",
+      "SkillSet_WP_ORB_Active_Shield_Trait_2"
+     ],
+     "skillId": "SkillSet_WP_ORB_Active_Shield"
+    },
+    {
+     "lvl": 20,
+     "order": 4,
+     "traits": [
+      "SkillSet_WP_ORB_Active_OrbitSlash_Trait_1",
+      "SkillSet_WP_ORB_Active_OrbitSlash_Trait_2"
+     ],
+     "skillId": "SkillSet_WP_ORB_Active_OrbitSlash"
+    },
+    {
+     "lvl": 20,
+     "order": 5,
+     "traits": [
+      "SkillSet_WP_ORB_Active_Satellite_Trait_1"
+     ],
+     "skillId": "SkillSet_WP_ORB_Active_Satellite"
+    },
+    {
+     "lvl": 20,
+     "order": 6,
+     "traits": [
+      "SkillSet_WP_ORB_Active_Restoration_Trait_2"
+     ],
+     "skillId": "SkillSet_WP_ORB_Active_Restoration"
+    },
+    {
+     "lvl": 20,
+     "order": 7,
+     "traits": [
+      "SkillSet_WP_ORB_Active_PartyBarrier_Trait_1"
+     ],
+     "skillId": "SkillSet_WP_ORB_Active_PartyBarrier"
+    },
+    {
+     "lvl": 20,
+     "order": 8,
+     "traits": [
+      "SkillSet_WP_WA_GR_S_HealAll_trait_2",
+      "SkillSet_WP_WA_GR_S_HealAll_trait_1"
+     ],
+     "skillId": "SkillSet_WP_WA_GR_S_HealAll"
+    },
+    {
+     "lvl": 20,
+     "order": 9,
+     "traits": [
+      "SkillSet_WP_WA_GR_S_Decay_trait_1"
+     ],
+     "skillId": "SkillSet_WP_WA_GR_S_Decay"
+    },
+    {
+     "lvl": 20,
+     "order": 10,
+     "traits": [
+      "SkillSet_WP_WA_GR_S_DefenseUp_trait_1",
+      "SkillSet_WP_WA_GR_S_DefenseUp_trait_3"
+     ],
+     "skillId": "SkillSet_WP_WA_GR_S_DefenseUp"
+    },
+    {
+     "lvl": 20,
+     "order": 11,
+     "traits": [
+      "SkillSet_WP_WA_GR_S_MagicShield_trait_1"
+     ],
+     "skillId": "SkillSet_WP_WA_GR_S_MagicShield"
+    }
+   ],
+   "passive": [
+    {
+     "lvl": 20,
+     "order": 0,
+     "skillId": "SkillSet_WP_ORB_Passive_OrbControl"
+    },
+    {
+     "lvl": 20,
+     "order": 1,
+     "skillId": "SkillSet_WP_ORB_Passive_ShieldUp"
+    },
+    {
+     "lvl": 20,
+     "order": 2,
+     "skillId": "SkillSet_WP_ORB_Passive_SoulLink"
+    },
+    {
+     "lvl": 20,
+     "order": 3,
+     "skillId": "SkillSet_WP_ORB_Passive_Circulation"
+    },
+    {
+     "lvl": 20,
+     "order": 4,
+     "skillId": "SkillSet_WP_WA_GR_S_DayHealNightCurse"
+    },
+    {
+     "lvl": 20,
+     "order": 5,
+     "skillId": "SkillSet_WP_WA_GR_S_HealEfficiencyByMaxCost"
+    },
+    {
+     "lvl": 20,
+     "order": 6,
+     "skillId": "SkillSet_WP_WA_GR_S_SupportAllyCostRegenUp"
+    },
+    {
+     "lvl": 20,
+     "order": 7,
+     "skillId": "SkillSet_WP_ORB_Passive_HpUp"
+    }
+   ],
+   "defensive": [
+    {
+     "lvl": 20,
+     "order": 0,
+     "skillId": "SkillSet_WP_WA_GR_S_CounterMove"
+    }
+   ],
+   "order": 1,
+   "priority": {
+    "active": [],
+    "passive": []
+   },
+   "description": "",
+   "userId": "651e2e96-7b3e-4a36-ad42-f715fad34482",
+   "likeCount": 0,
+   "userLiked": false
+  },
+  "masteryBuild": {
+   "id": 452335,
+   "name": "shield",
+   "isPublic": true,
+   "createdAt": "2026-01-28T10:27:52.105Z",
+   "updatedAt": "2026-01-28T10:27:52.105Z",
+   "mainHand": "orb",
+   "offHand": "wand",
+   "tags": [],
+   "order": 0,
+   "description": "",
+   "specialization": [
+    {
+     "id": "Orb_Normal_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Normal_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Normal_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_High_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Hero_Util_02",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Normal_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_High_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Normal_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_Defense_07",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_High_Defense_07",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_UtilDefense_06",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Hero_Defense_03",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Hero_Util_02",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Hero_Defense_03",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_Defense_07",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_High_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Normal_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_High_UtilDefense_06",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_High_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_High_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Normal_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Wand_Normal_Def_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Wand_High_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_High_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_High_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_High_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_High_Util_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Orb_High_Def_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Orb_Rare_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Rare_Util_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Orb_Rare_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Orb_Normal_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Orb_Normal_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Wand_High_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_High_Util_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Wand_High_Def_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Wand_Rare_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Wand_Rare_Util_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Wand_Rare_Def_Skill",
+     "lvl": 1
+    }
+   ],
+   "unified": {
+    "1": "WM_Common_SKILL_010",
+    "2": "WM_Common_SKILL_016",
+    "3": "WM_Common_SKILL_007",
+    "4": "WM_Common_SKILL_020"
+   },
+   "userId": "651e2e96-7b3e-4a36-ad42-f715fad34482"
+  },
+  "character": {
+   "userId": "651e2e96-7b3e-4a36-ad42-f715fad34482",
+   "name": "T4 Healer PVP ",
+   "url": "TheBloodOfTheThornyRavenous",
+   "level": 60,
+   "privacy": "public",
+   "updatedAt": "2026-07-19T21:25:19.020Z",
+   "createdAt": "2024-11-13T16:48:39.840Z",
+   "desc": "<p></p>",
+   "id": 369069,
+   "user": {
+    "id": "651e2e96-7b3e-4a36-ad42-f715fad34482",
+    "slug": "ev27ZaxZ1PR2",
+    "image": "https://cdn.discordapp.com/avatars/707592429728956449/a2f37483ee06c02d0482133914cd9901.png",
+    "name": "saphy_3",
+    "level": 10
+   },
+   "likeCount": 61,
+   "userLiked": false,
+   "publisher": "ags",
+   "folders": [],
+   "tags": []
+  }
+ },
+ "baselineMatched": 82
+}

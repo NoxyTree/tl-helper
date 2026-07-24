@@ -10,17 +10,17 @@
     "skills": {
       "schema": "tl-helper.web-data",
       "schemaVersion": 2,
-      "generatedAtUtc": "2026-07-13T21:09:40.259Z"
+      "generatedAtUtc": "2026-07-24T00:17:02.091Z"
     },
     "progression": {
       "schema": "tl-helper.web-data",
       "schemaVersion": 2,
-      "generatedAtUtc": "2026-07-13T21:09:40.259Z"
+      "generatedAtUtc": "2026-07-24T00:17:02.091Z"
     },
     "equipment": {
       "schema": "tl-helper.web-data",
       "schemaVersion": 2,
-      "generatedAtUtc": "2026-07-13T21:09:40.259Z"
+      "generatedAtUtc": "2026-07-24T00:17:02.091Z"
     }
   },
   "policy": {
@@ -4545,7 +4545,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_ArchBoss_T2_BO_01",
       "name": "Deluzhnoa's Cold",
-      "description": "Arrow Vortex cooldown -30%. Deals 100% of Base Damage to the first enemy hit by Arrow Vortex. Also deals 120% of Base Damage to all enemies within 3m of the initial target. Has an 80% chance to apply Collision: Push and send target airborne for 3s. Damage boost +50% against monsters. The effect is transferred to another target within a 5m radius area once. Deals damage up to 6 times.",
+      "description": "Arrow Vortex cooldown -30%. Deals 100% of Base Damage to the first enemy hit by Arrow Vortex. Also deals 120% of Base Damage to all enemies within 3m of the initial target. Has a(n) 80% chance to apply Collision: Push and send target airborne for 3s. Damage boost +50% against monsters. Transfers the effect to another target within a 5m radius area once. Deals damage up to 6 times.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -4617,7 +4617,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_ArchBoss_T2_BO_02",
       "name": "Enraged Deluzhnoa's Cold",
-      "description": "Arrow Vortex cooldown -30%. Deals 100% of Base Damage to the first enemy hit by Arrow Vortex. Also deals 120% of Base Damage to all enemies within 3m of the initial target. Has an 80% chance to apply Collision: Push and send target airborne for 3s and remove one shield type. Damage boost +50% against monsters. The effect is transferred to another target within a 5m radius area once. Deals damage up to 6 times.",
+      "description": "Arrow Vortex cooldown -30%. Deals 100% of Base Damage to the first enemy hit by Arrow Vortex. Also deals 120% of Base Damage to all enemies within 3m of the initial target. Has a(n) 80% chance to apply Collision: Push and send target airborne for 3s and remove one shield type. Damage boost +50% against monsters. Transfers the effect to another target within a 5m radius area once. Deals damage up to 6 times.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -4689,7 +4689,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_ArchBoss_T2_CR_01",
       "name": "Giant Cordy's Bog",
-      "description": "At 25 Gale stacks, an explosion deals 375% of Base Damage to all enemies within 3m, with an 80% chance to apply Collision: Pull, pulling the target into the center.",
+      "description": "At 25 Gale stacks, an explosion deals 375% of Base Damage to all enemies within 3m, and has a(n) 80% chance to apply Collision: Pull, pulling the target into the center.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -4761,7 +4761,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_ArchBoss_T2_CR_02",
       "name": "Enraged Giant Cordy's Bog",
-      "description": "At 25 Gale stacks, an explosion deals 400% of Base Damage to all enemies within 3.5m, with an 80% chance to apply Collision: Pull, pulling the target into the center.",
+      "description": "At 25 Gale stacks, an explosion deals 400% of Base Damage to all enemies within 3.5m, and has a(n) 80% chance to apply Collision: Pull, pulling the target into the center.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -4982,7 +4982,7 @@
         {
           "kind": "innate_item_passive",
           "itemId": "gauntlet_aa_t2_arch_003",
-          "itemName": "Deluzhnoa's Icy Grasp",
+          "itemName": "Deluzhnoa's Snowstorm Gauntlets",
           "equipmentType": "gauntlet"
         },
         {
@@ -5553,7 +5553,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_ArchBoss_T2_SW2_01",
       "name": "Giant Cordy's Spore Poison",
-      "description": "On hit with the Death Blow skill, creates a 3m-wide Poison Cloud that ignores Block Chance around the target for 4s. Enemies within the cloud will take damage over time equal to 120% of Base Damage every 0.5s, and Magic, Melee, and Ranged Evasion are reduced by 300. Damage increases by 100% against monsters.",
+      "description": "On hit with the Death Blow skill, creates a 3m-wide Poison Cloud that ignores Block Chance around the target for 4s. Enemies within the cloud take damage over time equal to 120% of Base Damage every 0.5s, and Magic, Melee, and Ranged Evasion are reduced by 300. Increases damage by 100% against monsters.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -5625,7 +5625,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_ArchBoss_T2_SW2_02",
       "name": "Enraged Giant Cordy's Spore Poison",
-      "description": "On hit with the Death Blow skill, creates a 3m-wide Poison Cloud that ignores Block Chance around the target for 4s. Enemies within the cloud will take damage over time equal to 132% of Base Damage every 0.5s, and Magic, Melee, and Ranged Evasion are reduced by 300. Damage increases by 100% against monsters. In PvP, deals Defense-ignoring damage equal to 2% of the target's max Health per sec.",
+      "description": "On hit with the Death Blow skill, creates a 3m-wide Poison Cloud that ignores Block Chance around the target for 4s. Enemies within the cloud take damage over time equal to 132% of Base Damage every 0.5s, and Magic, Melee, and Ranged Evasion are reduced by 300. Increases damage by 100% against monsters. In PvP, deals Defense-ignoring damage equal to 2% of the target's max Health per sec.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -8687,7 +8687,7 @@
           "itemName": "Calanthia's Implement of Finality",
           "equipmentType": "sword2h",
           "perkId": "Perk_sword2h_aa_t5_boss_003",
-          "perkName": "Skill Core: Pakilo's Cruelty"
+          "perkName": "Skill Core: Pakilo Naru's Cruelty"
         },
         {
           "kind": "innate_item_passive",
@@ -10977,7 +10977,7 @@
           "itemName": "Calanthia's Loom of Entropy",
           "equipmentType": "bow",
           "perkId": "perk_bow_aa_t3_boss_001",
-          "perkName": "Skill Core: Grand Aelon's Spirit"
+          "perkName": "Skill Core: Grand Aelon's Vitality"
         },
         {
           "kind": "innate_item_passive",
@@ -13965,7 +13965,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_CR_01_3",
       "name": "Focused Barrage",
-      "description": "When casting Merciless Barrage or Wild Barrage after installing an Arbalest with Support Fire, the Arbalest uses the same skill. <span style=\"color: #F54451\">Decreases PvP Damage dealt with Merciless Barrage or Wild Barrage by 30%</span>",
+      "description": "When casting Merciless Barrage or Wild Barrage after installing an Arbalest with Support Fire, the Arbalest uses the same skill. <span style=\"color: #F54451\">Decreases PvP Damage dealt with Merciless Barrage or Wild Barrage by 30%.</span> <span style=\"color: #F54451\">Boosts damage dealt to monsters with Merciless Barrage, Annihilation Barrage Shot, and Unrelenting Annihilation by 30%.</span>",
       "carriers": [
         {
           "kind": "skill_core",
@@ -14565,7 +14565,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_CR_02_5",
       "name": "Will of Fonsiné",
-      "description": "When Quick Fire is cast, decreases the cooldown of Multi-Shot, Rapid Shot, Collision Shot, Blade Storm, and Frost Expansion by 1.5s. Increases the number of Blade Storm attacks by 2 and applies Gale to the target for 6s. Upon hitting a target with Frost Expansion, has a(n) 80% chance to change the effect to Bind: Icebound for 1.5s and increases Bind duration by 1.5s when Icebound is applied to an already Icebound target. <span style=\"color: #F54451\">Increases damage against monsters by 50%</span> when using Multi-Shot, Rapid Shot, Collision Shot, Blade Storm, and Frost Expansion. <span style=\"color: #F54451\">Decreases PvP Damage of Multi-Shot, Rapid Shot, Collision Shot, Blade Storm, and Frost Expansion by 50%</span>.",
+      "description": "When Quick Fire is cast, decreases the cooldown of Multi-Shot, Rapid Shot, Collision Shot, Blade Storm, and Frost Expansion by 1.5s. Increases the number of Blade Storm attacks by 2 and applies Gale to the target for 6s. Upon hitting a target with Frost Expansion, has a(n) 80% chance to change the effect to Bind: Icebound for 1.5s and increases Bind duration by 1.5s when Icebound is applied to an already Icebound target. <span style=\"color: #F54451\">Increases damage against monsters by 50% when using Multi-Shot, Rapid Shot, Collision Shot, Blade Storm, and Frost Expansion.</span> <span style=\"color: #F54451\">Decreases PvP Damage of Multi-Shot, Rapid Shot, Collision Shot, Blade Storm, and Frost Expansion by 90%</span>.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -15165,7 +15165,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_DA_03",
       "name": "Foretold Agony",
-      "description": "Venomous Edge Damage ignores Evasion and Resistance before dealing damage. If Creeping Death or Venomous Swamp is active, Poison Cloud Damage also ignores Evasion and Resistance before dealing damage.",
+      "description": "On landing a melee attack, has a(n) 15% chance to activate Venomous Edge. This damage ignores the target's Defense and Evasion. Upon equipping the Creeping Death or Venomous Swamp core, summons a Poison Cloud that deals damage ignoring the target's Defense and Evasion each time Venomous Edge is activated.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -17365,7 +17365,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ORB_06",
       "name": "Nebula's Pulsation",
-      "description": "Adds an effect where blocking Fury and Wrath attacks with Defensive Skills does not consume Resonance stacks",
+      "description": "Adds an effect where blocking Fury and Wrath attacks with Defensive Skills does not consume Resonance stacks. Boosts Restoring Constellation's Health Recovery by 5%.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -17564,8 +17564,8 @@
       "catalogId": "itemPerkComplex:SkillSet_WP_Item_Gear_ORB_07",
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ORB_07",
-      "name": "Echoes of Nebula",
-      "description": "Adds an effect where the Decrease Base Damage by 25% effect is not applied when Nebula's Resonance effect ends due to consuming all Resonance stacks",
+      "name": "Nebula's Echo",
+      "description": "Adds an effect where the Decrease Base Damage by 25% effect is not applied when Nebula's Resonance effect ends due to consuming all Resonance stacks. Boosts Restoring Constellation's Health Recovery by 5%.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -17573,7 +17573,7 @@
           "itemName": "Binding Treachery",
           "equipmentType": "belt",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17581,7 +17581,7 @@
           "itemName": "Shackled Twilight",
           "equipmentType": "bracelet",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17589,7 +17589,7 @@
           "itemName": "Calanthia's Regret",
           "equipmentType": "chest",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17597,7 +17597,7 @@
           "itemName": "Calanthia's Confession",
           "equipmentType": "cloak",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17605,7 +17605,7 @@
           "itemName": "Earrings of Corrupted Stellarite",
           "equipmentType": "earring",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17613,7 +17613,7 @@
           "itemName": "Calanthia's Fetters",
           "equipmentType": "feet",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17621,7 +17621,7 @@
           "itemName": "Calanthia's Touch",
           "equipmentType": "hands",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17629,7 +17629,7 @@
           "itemName": "Calanthia's Visage",
           "equipmentType": "head",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17637,7 +17637,7 @@
           "itemName": "Calanthia's Bindings",
           "equipmentType": "legs",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17645,7 +17645,7 @@
           "itemName": "Choking Conviction",
           "equipmentType": "necklace",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         },
         {
           "kind": "skill_core",
@@ -17653,7 +17653,7 @@
           "itemName": "Eternal Promise",
           "equipmentType": "ring",
           "perkId": "SkillSet_WP_Item_Gear_ORB_07",
-          "perkName": "Echoes of Nebula"
+          "perkName": "Nebula's Echo"
         }
       ],
       "weaponRequirements": [
@@ -17965,7 +17965,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ORB_09",
       "name": "Redemptive Star",
-      "description": "Adds an effect that restores Health by 160% of Base Damage + 470 when successfully removing a CC effect with Purifying Star",
+      "description": "Adds an effect that restores Health by 160% of Base Damage + 470 when successfully removing a CC effect with Purifying Star Boosts Healing Star's Health Recovery by 5%.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -18164,8 +18164,8 @@
       "catalogId": "itemPerkComplex:SkillSet_WP_Item_Gear_ORB_18",
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ORB_18",
-      "name": "Star of Peace",
-      "description": "While within 4m during Purifying Star's duration, applies a buff that increases party members' damage against all species by 100",
+      "name": "Star of Rest",
+      "description": "While within 4m during Healing Star or Purifying Star's duration, applies a buff that increases party members' damage against all species by 100",
       "carriers": [
         {
           "kind": "skill_core",
@@ -18173,7 +18173,7 @@
           "itemName": "Binding Treachery",
           "equipmentType": "belt",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18181,7 +18181,7 @@
           "itemName": "Shackled Twilight",
           "equipmentType": "bracelet",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18189,7 +18189,7 @@
           "itemName": "Calanthia's Regret",
           "equipmentType": "chest",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18197,7 +18197,7 @@
           "itemName": "Calanthia's Confession",
           "equipmentType": "cloak",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18205,7 +18205,7 @@
           "itemName": "Earrings of Corrupted Stellarite",
           "equipmentType": "earring",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18213,7 +18213,7 @@
           "itemName": "Calanthia's Fetters",
           "equipmentType": "feet",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18221,7 +18221,7 @@
           "itemName": "Calanthia's Touch",
           "equipmentType": "hands",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18229,7 +18229,7 @@
           "itemName": "Calanthia's Visage",
           "equipmentType": "head",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18237,7 +18237,7 @@
           "itemName": "Calanthia's Bindings",
           "equipmentType": "legs",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18245,7 +18245,7 @@
           "itemName": "Choking Conviction",
           "equipmentType": "necklace",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         },
         {
           "kind": "skill_core",
@@ -18253,7 +18253,7 @@
           "itemName": "Eternal Promise",
           "equipmentType": "ring",
           "perkId": "SkillSet_WP_Item_Gear_ORB_18",
-          "perkName": "Star of Peace"
+          "perkName": "Star of Rest"
         }
       ],
       "weaponRequirements": [
@@ -18565,7 +18565,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_SP_02",
       "name": "Piercing Thunder",
-      "description": "Changes Lightning Javelin's use type to a directional and location skill. <span style=\"color: #F54451\">Increases damage against monsters by 50%</span>. <span style=\"color: #F54451\">Decreases PvP Damage Dealt by 90%</span>.",
+      "description": "Boosts Javelin Inferno Damage by 10%. Upon equipping [Blue Flash], changes Lightning Javelin's use type to a directional and location skill. <span style=\"color: #F54451\">Increases damage against monsters by 50%.</span> <span style=\"color: #F54451\">Decreases PvP Damage Dealt by 90%.</span>",
       "carriers": [
         {
           "kind": "skill_core",
@@ -18765,7 +18765,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_SP_03",
       "name": "Night of Thunderstorms",
-      "description": "Changes the max number of uses for Explosive Lightning Slash to 5.",
+      "description": "Boosts Explosive Fury Damage by 10%. Upon equipping [Blue Flash], changes the max number of uses for Explosive Lightning Slash to 5 and boosts Weaken: Shock 5-stack damage by 30%.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -19365,7 +19365,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_SP_12",
       "name": "Hour of Judgment",
-      "description": "After Ascending Cleave ends, increases PvP Melee Heavy Attack Chance by 300% and Heavy Attack Damage by 10% for 6s.",
+      "description": "After Ascending Cleave ends, increases PvP Melee Heavy Attack Chance by 200 and Heavy Attack Damage by 10% for 6s.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -19564,8 +19564,8 @@
       "catalogId": "itemPerkComplex:SkillSet_WP_Item_Gear_ST_01_1",
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ST_01_1",
-      "name": "Thunder Shadow",
-      "description": "Changes Inner Peace Specialization 1 [Thunder's Blessing] to [Thunder Shadow] Deals damage to the target in proportion to the Base Damage and applies Weaken: Thunderclouds.",
+      "name": "Thunder's Shadow",
+      "description": "Changes Inner Peace Specialization 1 [Thunder's Blessing] to [Thunder's Shadow] Deals damage to the target in proportion to the Base Damage and applies Weaken: Thunderclouds.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -19573,7 +19573,7 @@
           "itemName": "Binding Treachery",
           "equipmentType": "belt",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19581,7 +19581,7 @@
           "itemName": "Shackled Twilight",
           "equipmentType": "bracelet",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19589,7 +19589,7 @@
           "itemName": "Calanthia's Regret",
           "equipmentType": "chest",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19597,7 +19597,7 @@
           "itemName": "Calanthia's Confession",
           "equipmentType": "cloak",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19605,7 +19605,7 @@
           "itemName": "Earrings of Corrupted Stellarite",
           "equipmentType": "earring",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19613,7 +19613,7 @@
           "itemName": "Calanthia's Fetters",
           "equipmentType": "feet",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19621,7 +19621,7 @@
           "itemName": "Calanthia's Touch",
           "equipmentType": "hands",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19629,7 +19629,7 @@
           "itemName": "Calanthia's Visage",
           "equipmentType": "head",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19637,7 +19637,7 @@
           "itemName": "Calanthia's Bindings",
           "equipmentType": "legs",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19645,7 +19645,7 @@
           "itemName": "Choking Conviction",
           "equipmentType": "necklace",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         },
         {
           "kind": "skill_core",
@@ -19653,7 +19653,7 @@
           "itemName": "Eternal Promise",
           "equipmentType": "ring",
           "perkId": "SkillSet_WP_Item_Gear_ST_01_1",
-          "perkName": "Thunder Shadow"
+          "perkName": "Thunder's Shadow"
         }
       ],
       "weaponRequirements": [
@@ -19765,7 +19765,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ST_01_2",
       "name": "Lightning Condensation",
-      "description": "Decreases the radius of Thunder's Blessing and Thunder Shadow to 2.5m, but increases damage by WP_Item_Gear_ST_01_2_DD.tooltip1-WP_ST_S_ManaRengeUp_trait1_DD.tooltip1%. Boosts damage by 30% per Weaken: Thunderclouds stack",
+      "description": "Decreases the radius of Thunder's Blessing and Thunder's Shadow to 2.5m, but increases damage by WP_Item_Gear_ST_01_2_DD.tooltip1-WP_ST_S_ManaRengeUp_trait1_DD.tooltip1%. Boosts damage by 30% per Weaken: Thunderclouds stack",
       "carriers": [
         {
           "kind": "skill_core",
@@ -19965,7 +19965,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_ST_01_3",
       "name": "Thunderclouds Explosion",
-      "description": "Decreases falling lightning strikes of Thunder's Blessing and Thunder Shadow to 2 times per sec and deals AoE Damage proportional to the Base Damage to up to 3 targets within a 1m radius. <span style=\"color: #F54451\">Increases Thunderclouds Explosions Damage against monsters by 50%</span> <span style=\"color: #F54451\">Decreases Thunderclouds Explosions PvP Damage by 90%</span>",
+      "description": "Decreases falling lightning strikes of Thunder's Blessing and Thunder's Shadow to 2 times per sec and deals AoE Damage proportional to the Base Damage to up to 3 targets within a 1m radius. <span style=\"color: #F54451\">Increases Thunderclouds Explosions Damage against monsters by 50%</span> <span style=\"color: #F54451\">Decreases Thunderclouds Explosions PvP Damage by 90%</span>",
       "carriers": [
         {
           "kind": "skill_core",
@@ -22165,7 +22165,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_SW_06",
       "name": "Victory Strike",
-      "description": "Increases Earth Strike range by 3m. <span style=\"color: #F54451\">Does not apply A Shot at Victory's Annihilation Blade specialization</span>",
+      "description": "Increases Earth Strike range by 3m. Boosts A Shot at Victory, Annihilation Blade, and Earth Strike Damage by 5%.",
       "carriers": [
         {
           "kind": "skill_core",
@@ -22965,7 +22965,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Gear_SW_10",
       "name": "Roaring Shackles",
-      "description": "When Roar of Rage's Weaken: Provoke effect hits a PvP target, applies an effect that decreases Movement Speed by 50% for 6s.",
+      "description": "When Provoking Roar or Roar of Rage's Weaken: Provoke effect hits a PvP target, applies an effect that decreases Movement Speed by 50% for 6s. Cooldown: 3s",
       "carriers": [
         {
           "kind": "skill_core",
@@ -24463,7 +24463,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Nix_Crack_BO_01",
       "name": "Purifying Cry",
-      "description": "Changes Purifying Touch skill to Purifying Cry. The skill now removes debuffs from party members in front, cooldown changes to 27s and Mana Cost changes to 260.",
+      "description": "Purifying Touch changes to [Purifying Cry]. As it now removes CC effects from party members within 3m, cooldown changes to 27s and Mana cost changes to 260.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -25345,7 +25345,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Nix_FieldBoss_BO_01",
       "name": "Rock Arrow",
-      "description": "Changes Brutal Arrow skill to Rock Arrow. Applies stun for 3s upon 4 hits.",
+      "description": "Changes the Brutal Arrow skill to [Rock Arrow], dropping 16 arrows in the area that deal 128% of Base Damage + 14, and upon 4 hits, stuns for 3s. When Specialization 2 [Range Increase] is applied, the number of arrows increases to 24.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -25422,7 +25422,7 @@
         {
           "kind": "innate_item_passive",
           "itemId": "crossbow_aa_S1_002",
-          "itemName": "Arctic Roar Tracking Crossbows",
+          "itemName": "Coldblooded Commander Pursuit Crossbows",
           "equipmentType": "crossbow"
         },
         {
@@ -25494,7 +25494,7 @@
         {
           "kind": "innate_item_passive",
           "itemId": "dagger_aa_S1_002",
-          "itemName": "Coldblooded Commander Deception Daggers",
+          "itemName": "Arctic Roar Ambush Blades",
           "equipmentType": "dagger"
         },
         {
@@ -25561,7 +25561,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Nix_FieldBoss_ORB_01",
       "name": "Tectonic Shift",
-      "description": "Changes Interstellar Explosion to [Tectonic Shift] and consumes only 1 orb at the designated location to trigger a tectonic shift after 1s. Deals 560% of Base Damage + 120 damage to up to 5 targets within a 5m radius and has a(n) 80% chance to apply Collision: Pull.",
+      "description": "Changes Interstellar Explosion to [Tectonic Shift] and consumes only 1 orb at the designated location to trigger a tectonic shift after 1s. Deals 530% of Base Damage + 216 damage to up to 5 targets within a 5m radius and has a(n) 80% chance to apply Collision: Pull.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -25710,7 +25710,7 @@
         {
           "kind": "innate_item_passive",
           "itemId": "staff_aa_S1_002",
-          "itemName": "Arctic Roar Staff",
+          "itemName": "Coldblooded Commander Magic Scepter",
           "equipmentType": "staff"
         },
         {
@@ -25854,7 +25854,7 @@
         {
           "kind": "innate_item_passive",
           "itemId": "sword_aa_S1_002",
-          "itemName": "Coldblooded Commander Declaration Sword",
+          "itemName": "Arctic Roar Judgment Blade",
           "equipmentType": "sword"
         },
         {
@@ -26065,7 +26065,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Nix_Field_BO_02",
       "name": "Seed of the World Tree",
-      "description": "Changes [Nature's Blessing] to [Seed of the World Tree] You can now place 3 seeds at target locations, each lasting for 10s. Changes Mana Cost to 90. For allies that step on a seed, increases Health Regen by 228, which is then boosted by 12%, and increases Mana Regen by 294 for 4s. When the effect is applied, removes 1 Weaken effect, and the seed disappears after granting its effect. Seeds can be replanted within 6s. Specialization 3 [Whirlpool] only applies to the first placement.",
+      "description": "Nature's Blessing changes to [Seed of the World Tree]. You can now place up to 3 seeds at target locations, each lasting for 10s, and Mana cost changes to 90. Allies who step on a seed have Health Regen increased by 228 and then boosted by 12% and also have Mana Regen increased by 294 for 4s. When the effect is applied, removes 1 Weaken effect, and the seed disappears after granting its effect. Seeds can be placed again within 6s. Specialization 3 [Whirlpool] only applies to the first placement.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -27073,7 +27073,7 @@
       "sourceFamily": "itemPerkComplex",
       "sourceId": "SkillSet_WP_Item_Nix_Field_WA_01",
       "name": "Chaos Grasp",
-      "description": "Has a(n) 7.5% chance to apply Touch of Chaos to enemy targets.",
+      "description": "Has a(n) 7.5% chance to apply Touch of Chaos Mastery to all enemy targets.",
       "carriers": [
         {
           "kind": "innate_item_passive",
@@ -31817,7 +31817,7 @@
       "sourceFamily": "masteryNonStructured",
       "sourceId": "Orb_High_Def_Skill",
       "name": "Celestial Guard",
-      "description": "Activating Astral Overseer now increases Shield Health by 3% proportional to the skill's growth tier instead of increasing Critical Hit Chance.",
+      "description": "Activating Astral Overseer now increases Shield Health by 3.3% proportional to the skill's growth tier instead of increasing Critical Hit Chance.",
       "carriers": [
         {
           "kind": "mastery_node",
@@ -31878,7 +31878,7 @@
       "sourceFamily": "masteryNonStructured",
       "sourceId": "Orb_High_Tac_Skill",
       "name": "Eternal Body",
-      "description": "Activating Eternal Veil now increases Healing Received by 12.5% and Shield Health Received by 7.5% proportional to the skill's growth tier instead of increasing Shield Health. Shield Health Received further increases by 0.4% per 1,000 Max Health, up to 50,000.",
+      "description": "Activating Eternal Veil now increases Healing Received by 14% and Shield Health Received by 8.4% proportional to the skill's growth tier instead of increasing Shield Health. Shield Health Received further increases by 0.4% per 1,000 Max Health, up to 50,000.",
       "carriers": [
         {
           "kind": "mastery_node",
@@ -32567,7 +32567,7 @@
       "sourceFamily": "masteryNonStructured",
       "sourceId": "Spear_Hero_Attack_01",
       "name": "Explosive Force",
-      "description": "Explosion Damage with Rising Slash or Slaughtering Slash increases by 20% per stack when causing a Burst or Ignite explosion.",
+      "description": "Explosion Damage with Rising Slash or Slaughtering Slash increases by 20% per stack when causing a Burst, Ignite, or Shock explosion.",
       "carriers": [
         {
           "kind": "mastery_node",
@@ -37000,7 +37000,7 @@
       "sourceFamily": "masteryNonStructured",
       "sourceId": "WM_Common_SKILL_023",
       "name": "Bloodlust",
-      "description": "Consumes 4% Mana per sec to increase Boss Heavy Attack Chance and Boss Critical Hit Chance by 50 every 5s. Stacks up to 3 times.",
+      "description": "On attack or taking damage, consumes 12% of Mana to increase Boss Heavy Attack Chance and Boss Critical Hit Chance by 150. Cooldown: 5s",
       "carriers": [
         {
           "kind": "mastery_node",
@@ -43405,7 +43405,7 @@
       "sourceFamily": "weaponPassive",
       "sourceId": "SkillSet_WP_SW2_S_StunBuff",
       "name": "Suppressing Strike",
-      "description": "When applying a Stun, Shock, Bind, or Collision effect on a target with a Greatsword, increases Heavy Attack damage by 28% for 5s.",
+      "description": "When applying a Stun, Bind, or Collision effect on a target with a Greatsword, increases Heavy Attack damage by 14% for 5s. When applying a Shock effect, increases Heavy Attack damage by 28%.",
       "carriers": [
         {
           "kind": "passive_skill",
@@ -43657,7 +43657,7 @@
       "sourceFamily": "weaponPassive",
       "sourceId": "SkillSet_WP_SW_SH_S_AroundCountBuff",
       "name": "Impenetrable",
-      "description": "Increases Magic, Melee, and Ranged Defense proportional to the number of targets within a 10.5m radius. Magic, Melee, and Ranged Defense increase by 179 if there are 2 or fewer targets within range; by 280 if there are 3 to 6 targets; and increase by 700 if there are 7 or more targets.",
+      "description": "Increases Magic, Melee, and Ranged Defense proportional to the number of targets within a 12.5m radius. Magic, Melee, and Ranged Defense increase by 179 if there are 2 or fewer targets within range; by 280 if there are 3 to 6 targets; and increase by 700 if there are 7 or more targets.",
       "carriers": [
         {
           "kind": "passive_skill",

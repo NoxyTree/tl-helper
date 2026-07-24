@@ -27,14 +27,20 @@ function sourceValues(calc, sourceLabel) {
   return values;
 }
 
-test("Dark Wing's Bulwark applies through its real selected armor perk", () => {
+test("retired Dark Wing core is inherent and a stored perk does not double-count it", () => {
   const build = core.createInitialBuild();
   build.equipment.head = selection("head_unique_aa_t2_set_001", "SkillSet_Unique_Armor_Skill_01");
 
-  assert.deepEqual(sourceValues(core.calculateBuild(build, attributes), "Dark Wing's Bulwark"), {
+  const calculation = core.calculateBuild(build, attributes);
+  assert.deepEqual(sourceValues(calculation, "Calanthia's Visage"), {
+    int: 10,
     hp_max: 2000,
     magic_armor: 300,
+    melee_armor: 446,
+    range_armor: 476,
+    skill_cooldown_modifier: 730,
   });
+  assert.ok(!calculation.stats.some((stat) => stat.sources.some((source) => source.type === "skill_core")));
 });
 
 test("decoded personal item auras and Southpaw contribute exact persistent values", () => {

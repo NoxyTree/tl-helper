@@ -1,0 +1,1191 @@
+{
+ "schema": "tl-helper.questlog-parity-fixture",
+ "schemaVersion": 1,
+ "characterSlug": "ManyDestructionLootDevotion",
+ "buildId": "8244627",
+ "label": "Ranged DPS (crossbow/dagger)",
+ "capturedAtUtc": "2026-07-24T00:00:00.000Z",
+ "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/ManyDestructionLootDevotion?build-id=8244627",
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (72/72). Raise only alongside the change that earned it.",
+ "note": "Questlog payload and rendered Combined Stats panel frozen together. The panel is the reference; regenerate both at once or they desynchronise when the owner edits the build.",
+ "questlogPanel": {
+  "Melee Critical Hit Chance": "3,208",
+  "Magic Critical Hit Chance": "3,208",
+  "Ranged Critical Hit Chance": "3,788",
+  "Melee Heavy Attack Chance": "1,059",
+  "Ranged Heavy Attack Chance": "1,223",
+  "Magic Heavy Attack Chance": "1,059",
+  "Melee Hit Chance": "2,896.4",
+  "Ranged Hit Chance": "2,960.4",
+  "Magic Hit Chance": "2,896.4",
+  "Damage Reduction": "30",
+  "Melee Defense": "3,588",
+  "Ranged Defense": "3,668",
+  "Magic Defense": "3,625",
+  "Melee Evasion": "630",
+  "Ranged Evasion": "630",
+  "Magic Evasion": "630",
+  "Melee Endurance": "-31",
+  "Ranged Endurance": "14",
+  "Magic Endurance": "14",
+  "Melee Heavy Attack Evasion": "70",
+  "Ranged Heavy Attack Evasion": "70",
+  "Magic Heavy Attack Evasion": "70",
+  "Critical Damage Resistance": "42.5%",
+  "Max Health": "25,541",
+  "Health Regen": "169",
+  "Max Mana": "13,740",
+  "Mana Regen": "1,253",
+  "Movement Speed": "29.8%",
+  "Max Stamina": "45",
+  "Stamina Regen": "24",
+  "Skill Damage Boost": "778",
+  "Cooldown Speed": "79.3%",
+  "Buff Duration": "81.2%",
+  "Debuff Duration": "-23%",
+  "Weaken Resistance": "499",
+  "Stun Resistance": "351.5",
+  "Petrification Resistance": "409",
+  "Sleep Resistance": "364",
+  "Silence Resistance": "409",
+  "Fear Resistance": "409",
+  "Bind Resistance": "409",
+  "Collision Resistance": "379",
+  "Skill Damage Resistance": "510",
+  "Stun Chance": "708",
+  "Fear Chance": "708",
+  "Bind Chance": "728",
+  "Petrification Chance": "708",
+  "Sleep Chance": "708",
+  "Collision Chance": "708",
+  "Silence Chance": "932",
+  "Weaken Chance": "1,910",
+  "PvP Melee Critical Hit Chance": "3,208",
+  "PvP Ranged Critical Hit Chance": "4,637",
+  "PvP Magic Critical Hit Chance": "3,208",
+  "PvP Melee Endurance": "-31",
+  "PvP Ranged Endurance": "14",
+  "PvP Magic Endurance": "14",
+  "PvP Melee Hit Chance": "3,280.4",
+  "PvP Ranged Hit Chance": "3,344.4",
+  "PvP Magic Hit Chance": "3,280.4",
+  "PvP Melee Evasion": "630",
+  "PvP Ranged Evasion": "630",
+  "PvP Magic Evasion": "630",
+  "PvP Melee Heavy Attack Chance": "1,059",
+  "PvP Ranged Heavy Attack Chance": "1,403",
+  "PvP Magic Heavy Attack Chance": "1,059",
+  "Boss Damage Reduction": "30",
+  "Boss Melee Critical Hit Chance": "3,208",
+  "Boss Ranged Critical Hit Chance": "3,788",
+  "Boss Magic Critical Hit Chance": "3,208",
+  "Boss Melee Hit Chance": "2,896.4",
+  "Boss Ranged Hit Chance": "2,960.4",
+  "Boss Magic Hit Chance": "2,896.4"
+ },
+ "questlogPayload": {
+  "build": {
+   "id": 8244627,
+   "name": "Glas",
+   "skillBuildId": 754084,
+   "weaponSpecializationBuildId": 457358,
+   "userId": "43d17ce8-9737-4424-b2ff-af3a1aedc5f5",
+   "note": "Work in Progress!\nBuild could change anytime!",
+   "characterId": 998723,
+   "attributes": {
+    "con": 0,
+    "dex": 18,
+    "int": 18,
+    "per": 7,
+    "str": 16
+   },
+   "equipment": {
+    "belt": {
+     "id": "belt_aa_S1_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Belt_Ast_Rune_Usable_kAA2_001",
+       "statId": "skill_power_resistance"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Belt_Atk_Rune_Usable_kAA2_001",
+       "statId": "all_accuracy"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Belt_All_Rune_Usable_kAA2_001",
+       "statId": "all_accuracy"
+      }
+     },
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "skill_power_resistance": 800,
+      "skill_cooldown_modifier": 600,
+      "cost_consumption_modifier": 1200
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "feet": {
+     "id": "feet_aa_S1_leather_rift_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 60,
+       "runeId": "Feet_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_range_double_attack"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Feet_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_range_double_attack"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Feet_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_range_double_attack"
+      }
+     },
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "cost_regen": 60000,
+      "stamina_max": 20,
+      "move_speed_modifier": 800
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "head": {
+     "id": "head_aa_S1_leather_rift_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 60,
+       "runeId": "Head_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_all_accuracy"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Head_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_all_accuracy"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Head_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_all_accuracy"
+      }
+     },
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "hp_max": 600,
+      "skill_cooldown_modifier": 600,
+      "cost_consumption_modifier": 1200
+     },
+     "itemLevel": 80,
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "legs": {
+     "id": "legs_aa_S1_leather_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 60,
+       "runeId": "Legs_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_range_critical_attack"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Legs_All_Rune_Usable_kA_001",
+       "statId": "pvp_range_critical_attack"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Legs_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_accuracy"
+      }
+     },
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "cost_regen": 60000,
+      "buff_given_duration_modifier": 600,
+      "debuff_taken_duration_modifier": -600
+     },
+     "itemLevel": 80,
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "chest": {
+     "id": "chest_unique_aa_t2_set_001",
+     "perk": "SkillSet_WP_Item_Gear_CR_02_5",
+     "runes": {
+      "0": {
+       "lvl": 60,
+       "runeId": "Armor_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_all_accuracy"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Armor_All_Rune_Usable_kA_001",
+       "statId": "pvp_all_accuracy"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Armor_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      }
+     },
+     "heroic": {
+      "1": "int",
+      "2": "all_critical_attack",
+      "3": "con"
+     },
+     "traits": {
+      "hp_max": 600,
+      "buff_given_duration_modifier": 600,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "critical_damage_taken_modifier": 560
+     }
+    },
+    "cloak": {
+     "id": "cloak_aa_t3_nomal_005",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Cloak_All_Rune_Usable_kA_001",
+       "statId": "pvp_range_double_attack"
+      },
+      "1": {
+       "lvl": 60,
+       "runeId": "Cloak_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Cloak_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_range_double_attack"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "cost_regen": 60000,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "hands": {
+     "id": "hands_aa_S1_leather_002",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 60,
+       "runeId": "Hands_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_range_critical_attack"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Hands_All_Rune_Usable_kA_001",
+       "statId": "pvp_range_critical_attack"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Hands_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "all_accuracy": 800,
+      "attack_range_modifier": 800,
+      "attack_speed_modifier": 800
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "attack": {
+     "id": "Usable_Food_Result_060_kA",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "brooch": {
+     "id": "brooch_aa_t3_normal_001",
+     "perk": null,
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "weaken_accuracy": 4000,
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "critical_damage_dealt_modifier",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "castle": {
+     "id": "TID_CASTLE_Windawood",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "ring_1": {
+     "id": "ring_aa_S1_007",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+       "statId": "weaken_accuracy"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Ring_All_Rune_Usable_kAA2_001",
+       "statId": "range_critical_attack"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Ring_Atk_Rune_Usable_kAA2_001",
+       "statId": "range_critical_attack"
+      }
+     },
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "weaken_accuracy": 4000,
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "weaken_accuracy",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "ring_2": {
+     "id": "ring_aa_t2_raid_001",
+     "perk": "SkillSet_WP_Item_Gear_CR_02_1",
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+       "statId": "weaken_accuracy"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Ring_All_Rune_Usable_kAA2_001",
+       "statId": "range_critical_attack"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Ring_Atk_Rune_Usable_kAA2_001",
+       "statId": "range_critical_attack"
+      }
+     },
+     "heroic": {
+      "1": "per",
+      "2": "all_accuracy",
+      "3": "all_double_attack"
+     },
+     "traits": {
+      "weaken_accuracy": 4000,
+      "silence_accuracy": 4000,
+      "skill_power_amplification": 800
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "all_accuracy": 1600
+     }
+    },
+    "defense": {
+     "id": "Usable_Food_Result_053_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "earring": {
+     "id": "earring_aa_S1_003",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Earring_Ast_Rune_Usable_kAA2_001",
+       "statId": "silence_accuracy"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Earring_All_Rune_Usable_kAA2_001",
+       "statId": "all_accuracy"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Earring_Atk_Rune_Usable_kAA2_001",
+       "statId": "all_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "rear_all_accuracy": 1600,
+      "rear_all_double_attack": 1600,
+      "rear_all_critical_attack": 1600
+     },
+     "potential": null,
+     "resonance": "weaken_accuracy",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "utility": {
+     "id": "Usable_Food_Result_052_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "bracelet": {
+     "id": "bracelet_aa_S1_rift_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Bracelet_Ast_Rune_Usable_kAA2_001",
+       "statId": "skill_power_resistance"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Bracelet_All_Rune_Usable_kAA2_001",
+       "statId": "skill_power_resistance"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Bracelet_Atk_Rune_Usable_kAA2_001",
+       "statId": "range_double_attack"
+      }
+     },
+     "heroic": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "traits": {
+      "cost_regen": 60000,
+      "skill_power_resistance": 800,
+      "skill_cooldown_modifier": 600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "necklace": {
+     "id": "necklace_aa_S1_003",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Necklace_Ast_Rune_Usable_kAA2_001",
+       "statId": "shield_taken_modifier"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Necklace_All_Rune_Usable_kAA2_001",
+       "statId": "all_accuracy"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Necklace_Atk_Rune_Usable_kAA2_001",
+       "statId": "all_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "weaken_accuracy": 4000,
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "weaken_accuracy",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "off_hand": {
+     "id": "dagger_aa_t2_raid_001",
+     "perk": "Perk_dagger_aa_S1_rift_001",
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Weapon_Atk_Rune_Usable_kAA2_001",
+       "statId": "skill_power_amplification"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+       "statId": "skill_power_amplification"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Weapon_Ast_Rune_Usable_kAA2_001",
+       "statId": "skill_power_resistance"
+      }
+     },
+     "heroic": {
+      "1": "int",
+      "2": "all_critical_attack"
+     },
+     "traits": {
+      "all_accuracy": 800,
+      "all_critical_attack": 800,
+      "attack_speed_modifier": 800
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "int": 8
+     }
+    },
+    "boonstone": {
+     "id": "Origin_L04_A01_01",
+     "heroic": {},
+     "potential": null,
+     "uniqueTraits": {}
+    },
+    "gemstone1": {
+     "id": "gemstone_a_set_03_001",
+     "runes": {},
+     "traits": {
+      "weaken_accuracy": 2400,
+      "all_state_accuracy": 1600
+     },
+     "artifact": null
+    },
+    "gemstone2": {
+     "id": "gemstone_a_set_02_002",
+     "runes": {},
+     "traits": {
+      "weaken_tolerance": 2400,
+      "all_state_tolerance": 1600
+     },
+     "artifact": null,
+     "uniqueTraits": {}
+    },
+    "main_hand": {
+     "id": "crossbow_aa_S1_000",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Weapon_Atk_Rune_Usable_kAA2_001",
+       "statId": "skill_power_amplification"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+       "statId": "skill_power_amplification"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Weapon_Ast_Rune_Usable_kAA2_001",
+       "statId": "skill_power_resistance"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "all_accuracy": 800,
+      "all_double_attack": 800,
+      "all_critical_attack": 800
+     },
+     "potential": null,
+     "resonance": "all_accuracy",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "riftstone": {
+     "id": "",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "stellarite": {
+     "id": "Ammo_kB_001",
+     "runes": {},
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null
+    },
+    "talistone1": {
+     "id": "talistone_a_set_02_001",
+     "runes": {},
+     "traits": {
+      "all_accuracy": 480,
+      "all_double_attack": 480,
+      "attack_power_main_hand": 6
+     },
+     "artifact": "bonus_attack_power_main_hand"
+    },
+    "talistone2": {
+     "id": "talistone_a_set_03_002",
+     "runes": {},
+     "traits": {
+      "magic_armor": 90,
+      "melee_armor": 90,
+      "range_armor": 90
+     },
+     "artifact": "all_armor",
+     "uniqueTraits": {}
+    },
+    "talistone3": {
+     "id": "talistone_a_set_02_003",
+     "runes": {},
+     "traits": {
+      "cost_regen": 45000,
+      "stamina_max": 10,
+      "stamina_regen": 6000
+     },
+     "artifact": "hp_max"
+    },
+    "talistone4": {
+     "id": "talistone_a_set_02_004",
+     "runes": {},
+     "traits": {
+      "all_accuracy": 480,
+      "range_double_attack": 600,
+      "range_critical_attack": 600
+     },
+     "artifact": "attack_power_main_hand",
+     "uniqueTraits": {}
+    },
+    "hp-recovery": {
+     "id": "Usable_Food_Result_021_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    },
+    "mana-recovery": {
+     "id": "Usable_Food_Result_022_kB",
+     "perk": null,
+     "heroic": {},
+     "traits": {},
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {}
+    }
+   },
+   "order": 1001,
+   "weaponTypes": [
+    "crossbow",
+    "dagger"
+   ],
+   "folderId": 520070220,
+   "tags": [
+    "pvp",
+    "endgame-build"
+   ]
+  },
+  "skillBuild": {
+   "id": 754084,
+   "name": "Glas",
+   "isPublic": true,
+   "createdAt": "2026-07-11T08:47:01.401Z",
+   "updatedAt": "2026-07-11T08:47:44.146Z",
+   "mainHand": "crossbow",
+   "offHand": "dagger",
+   "tags": [],
+   "active": [
+    {
+     "lvl": 21,
+     "order": 0,
+     "traits": [
+      "SkillSet_WP_CR_CR_S_RapidShot_Trait_2",
+      "SkillSet_WP_CR_CR_S_RapidShot_Trait_3",
+      "SkillSet_WP_CR_CR_S_RapidShot_Trait_1",
+      "SkillSet_WP_CR_CR_S_RapidShot_Trait_4"
+     ],
+     "skillId": "SkillSet_WP_CR_CR_S_RapidShot"
+    },
+    {
+     "lvl": 21,
+     "order": 1,
+     "traits": [
+      "SkillSet_WP_CR_CR_S_Step_Trait_2",
+      "SkillSet_WP_CR_CR_S_Step_Trait_3",
+      "SkillSet_WP_CR_CR_S_Step_Trait_4",
+      "SkillSet_WP_CR_CR_S_Step_Trait_1"
+     ],
+     "skillId": "SkillSet_WP_CR_CR_S_Step"
+    },
+    {
+     "lvl": 21,
+     "order": 2,
+     "skillId": "SkillSet_WP_CR_CR_S_ArmorBreakShot"
+    },
+    {
+     "lvl": 21,
+     "order": 3,
+     "traits": [
+      "SkillSet_WP_CR_D_WeakPointShot_Trait_3",
+      "SkillSet_WP_CR_D_WeakPointShot_Trait_1",
+      "SkillSet_WP_CR_D_WeakPointShot_Trait_2"
+     ],
+     "skillId": "SkillSet_WP_CR_D_WeakPointShot"
+    },
+    {
+     "lvl": 21,
+     "order": 4,
+     "traits": [
+      "SkillSet_WP_DA_DA_S_PoisonEnchant_trait_1"
+     ],
+     "skillId": "SkillSet_WP_DA_DA_S_PoisonEnchant"
+    },
+    {
+     "lvl": 20,
+     "order": 5,
+     "traits": [
+      "SkillSet_WP_DA_DA_S_BlinkStrike_trait_2"
+     ],
+     "skillId": "SkillSet_WP_DA_DA_S_BlinkStrike"
+    },
+    {
+     "lvl": 21,
+     "order": 6,
+     "skillId": "SkillSet_WP_CR_CR_S_BuckShot"
+    },
+    {
+     "lvl": 21,
+     "order": 7,
+     "traits": [
+      "SkillSet_WP_DA_DA_S_DeadlyStrike_trait_1"
+     ],
+     "skillId": "SkillSet_WP_DA_DA_S_DeadlyStrike"
+    },
+    {
+     "lvl": 21,
+     "order": 8,
+     "skillId": "SkillSet_WP_DA_DA_S_Stealth"
+    },
+    {
+     "lvl": 21,
+     "order": 9,
+     "traits": [
+      "SkillSet_WP_CR_CR_S_BloodToSoul_Trait_3"
+     ],
+     "skillId": "SkillSet_WP_CR_CR_S_BloodToSoul"
+    },
+    {
+     "lvl": 21,
+     "order": 10,
+     "traits": [
+      "SkillSet_WP_CR_S_GhostWalk_Trait_4"
+     ],
+     "skillId": "SkillSet_WP_CR_S_GhostWalk"
+    },
+    {
+     "lvl": 21,
+     "order": 11,
+     "traits": [
+      "SkillSet_WP_CR_CR_S_AddProjectile_Trait_3"
+     ],
+     "skillId": "SkillSet_WP_CR_CR_S_AddProjectile"
+    }
+   ],
+   "passive": [
+    {
+     "lvl": 20,
+     "order": 0,
+     "skillId": "SkillSet_WP_DA_S_CriticalDamageUp"
+    },
+    {
+     "lvl": 20,
+     "order": 1,
+     "skillId": "SkillSet_WP_CR_S_OffHandMaxDmg"
+    },
+    {
+     "lvl": 20,
+     "order": 2,
+     "skillId": "SkillSet_WP_CR_S_WeakenAccuracy"
+    },
+    {
+     "lvl": 20,
+     "order": 3,
+     "skillId": "SkillSet_WP_CR_CR_S_PeaceTimeBuff"
+    },
+    {
+     "lvl": 20,
+     "order": 4,
+     "skillId": "SkillSet_WP_DA_BA_S_KillMoveSpeed"
+    },
+    {
+     "lvl": 20,
+     "order": 5,
+     "skillId": "SkillSet_WP_CR_S_GaleBuff"
+    },
+    {
+     "lvl": 20,
+     "order": 6,
+     "skillId": "SkillSet_WP_CR_CR_S_DistanceRangeAcc"
+    },
+    {
+     "lvl": 20,
+     "order": 7,
+     "skillId": "SkillSet_WP_DA_S_MeleeAccuracy"
+    }
+   ],
+   "defensive": [
+    {
+     "lvl": 20,
+     "order": 0,
+     "skillId": "SkillSet_WP_DA_DA_S_CounterMove"
+    }
+   ],
+   "order": 178375962,
+   "priority": {
+    "active": [],
+    "passive": []
+   },
+   "description": "",
+   "userId": "43d17ce8-9737-4424-b2ff-af3a1aedc5f5",
+   "likeCount": 0,
+   "userLiked": false
+  },
+  "masteryBuild": {
+   "id": 457358,
+   "name": "Glas",
+   "isPublic": true,
+   "createdAt": "2026-02-12T23:11:47.550Z",
+   "updatedAt": "2026-02-12T23:11:47.550Z",
+   "mainHand": "crossbow",
+   "offHand": "dagger",
+   "tags": [],
+   "order": 177093790,
+   "description": "",
+   "specialization": [
+    {
+     "id": "Crossbow_Normal_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Normal_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Normal_Tactic_10",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Hero_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Normal_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Hero_Util_02",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Normal_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Tactic_10",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Hero_Tactic_04",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Hero_Util_02",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Rare_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Crossbow_Rare_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Rare_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Rare_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Normal_Tactic_10",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Normal_Util_04",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_Normal_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Crossbow_Normal_Util_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Crossbow_High_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Crossbow_High_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Crossbow_High_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Normal_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Util_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_High_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Normal_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Normal_Tac_Skill",
+     "lvl": 1
+    }
+   ],
+   "unified": {
+    "1": "WM_Common_SKILL_011",
+    "2": "WM_Common_SKILL_020",
+    "3": "WM_Common_SKILL_007",
+    "4": "WM_Common_SKILL_004"
+   },
+   "userId": "43d17ce8-9737-4424-b2ff-af3a1aedc5f5"
+  },
+  "character": {
+   "userId": "43d17ce8-9737-4424-b2ff-af3a1aedc5f5",
+   "name": "malpia - PvP - Join my xbow discord!",
+   "url": "ManyDestructionLootDevotion",
+   "level": 60,
+   "privacy": "public",
+   "updatedAt": "2026-07-23T19:00:30.288Z",
+   "createdAt": "2025-04-01T15:00:42.227Z",
+   "desc": "<p><span style=\"color: rgb(3, 3, 3)\"><strong><mark style=\"background-color: #f56565; color: inherit\" data-color=\"#f56565\">Feel free to join my Discord T&amp;L Crossbow Community!</mark></strong></span></p><p>Over <span style=\"color: rgb(3, 3, 3)\"><strong><mark style=\"background-color: #f56565; color: inherit\" data-color=\"#f56565\">1500</mark></strong></span>Members already!</p><p><strong>https://discord.gg/jwmETJK44b</strong></p><p>Remember to read the rules and react with ✅ to gain full access.</p><p></p><p>This Discord server is a hub for Crossbow / Scorpion mains.</p><hr><p>I have played Scorpion since the global release of Throne and Liberty and I'm glad to share my builds on Questlog.</p><p>My builds are updated almost every day since I spend a lot of time refining and crafting new builds.</p><p>Please feel free to leave some feedback or some questions in the comment section / discord.</p><p></p><img src=\"https://user-content.questlog.gg/43d17ce8-9737-4424-b2ff-af3a1aedc5f5/2/5528c3bc-e69f-4094-bb50-c76c99d7bfe7.webp\"><p></p><p></p><p></p><p></p>",
+   "id": 998723,
+   "user": {
+    "id": "43d17ce8-9737-4424-b2ff-af3a1aedc5f5",
+    "slug": "0OqQGmpd2nbf",
+    "image": "https://cdn.discordapp.com/avatars/265967015959724033/cf29890c007c8add3bb1cdc454dc936b.png",
+    "name": "malpia",
+    "level": 10
+   },
+   "likeCount": 57,
+   "userLiked": false,
+   "publisher": "ags",
+   "folders": [
+    {
+     "id": 520070220,
+     "name": "T4",
+     "note": "Coming soon",
+     "color": "green",
+     "order": 1000
+    }
+   ],
+   "tags": [
+    "pvp",
+    "endgame-build"
+   ]
+  }
+ },
+ "baselineMatched": 72
+}

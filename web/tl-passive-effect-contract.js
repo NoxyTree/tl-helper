@@ -360,7 +360,8 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
         "union": 294
       },
       "expectedClassCounts": {
-        "persistentStatic": 7,
+        "persistentStatic": 5,
+        "retiredInherent": 2,
         "persistentOwnerSemanticsUnresolved": 1,
         "sourceConflict": 0,
         "unresolvedDecode": 0,
@@ -368,13 +369,15 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
       },
       "classes": {
         "persistentStatic": [
-          "SkillSet_Unique_Accessory_Skill_01",
-          "SkillSet_Unique_Armor_Skill_01",
           "SkillSet_WP_Item_A07_kA_CR",
           "SkillSet_WP_Item_A08_kAA_BO",
           "SkillSet_WP_Item_Field_NIX_GT_01",
           "SkillSet_WP_Item_Field_NIX_GT_02",
           "SkillSet_WP_Item_Nix_Field_CR_01"
+        ],
+        "retiredInherent": [
+          "SkillSet_Unique_Accessory_Skill_01",
+          "SkillSet_Unique_Armor_Skill_01"
         ],
         "persistentOwnerSemanticsUnresolved": [
           "SkillSet_WP_Item_FieldBoss_T3_CR_02"
@@ -782,8 +785,6 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
       "SkillSet_WP_Item_Nix_Field_CR_01"
     ],
     "perkRule": [
-      "SkillSet_Unique_Accessory_Skill_01",
-      "SkillSet_Unique_Armor_Skill_01",
       "SkillSet_WP_Item_A08_kAA_BO",
       "SkillSet_WP_Item_Field_NIX_GT_01",
       "SkillSet_WP_Item_Field_NIX_GT_02",

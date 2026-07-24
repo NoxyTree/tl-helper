@@ -1,0 +1,1095 @@
+{
+ "schema": "tl-helper.questlog-parity-fixture",
+ "schemaVersion": 1,
+ "characterSlug": "LegacyOfTheInfernalSeal",
+ "buildId": "8290225",
+ "label": "Magic DPS (staff/dagger)",
+ "capturedAtUtc": "2026-07-24T02:20:00.000Z",
+ "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/LegacyOfTheInfernalSeal?build-id=8290225",
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (76/77). Raise only alongside the change that earned it.",
+ "note": "Panel and payload verified to belong to the SAME build (\"Current Nix Build\"). The original capture paired this panel with build 8255167, which the character page was NOT displaying — a payload/panel desync that made a 98%-accurate archetype read as 6%.",
+ "questlogPanel": {
+  "Attack Speed": "117.4%",
+  "Bonus Damage": "111",
+  "Species Damage Boost": "72",
+  "Melee Critical Hit Chance": "2,699.2",
+  "Magic Critical Hit Chance": "3,047.2",
+  "Ranged Critical Hit Chance": "2,699.2",
+  "Melee Heavy Attack Chance": "1,611.8",
+  "Ranged Heavy Attack Chance": "1,611.8",
+  "Magic Heavy Attack Chance": "1,935.8",
+  "Critical Damage": "56.1%",
+  "Melee Hit Chance": "2,512.4",
+  "Ranged Hit Chance": "2,512.4",
+  "Magic Hit Chance": "2,888.4",
+  "Damage Reduction": "30",
+  "Melee Defense": "3,692",
+  "Ranged Defense": "3,815",
+  "Magic Defense": "3,739",
+  "Melee Evasion": "656",
+  "Ranged Evasion": "731",
+  "Magic Evasion": "2,306",
+  "Melee Endurance": "4",
+  "Ranged Endurance": "-50",
+  "Magic Endurance": "4",
+  "Critical Damage Resistance": "42%",
+  "Max Health": "30,729",
+  "Health Regen": "185",
+  "Max Mana": "19,714",
+  "Mana Regen": "845",
+  "Movement Speed": "35.7%",
+  "Max Stamina": "30",
+  "Stamina Regen": "13.2",
+  "Skill Damage Boost": "991",
+  "Cooldown Speed": "59.7%",
+  "Healing": "7.2%",
+  "Buff Duration": "64.3%",
+  "Debuff Duration": "-40.92%",
+  "Weaken Resistance": "348.3",
+  "Stun Resistance": "318.3",
+  "Petrification Resistance": "318.3",
+  "Sleep Resistance": "318.3",
+  "Silence Resistance": "318.3",
+  "Fear Resistance": "318.3",
+  "Bind Resistance": "373.3",
+  "Collision Resistance": "348.3",
+  "Skill Damage Resistance": "284",
+  "Stun Chance": "526",
+  "Fear Chance": "526",
+  "Bind Chance": "606",
+  "Petrification Chance": "526",
+  "Sleep Chance": "526",
+  "Collision Chance": "526",
+  "Silence Chance": "526",
+  "Weaken Chance": "651",
+  "PvP Melee Critical Hit Chance": "2,699.2",
+  "PvP Ranged Critical Hit Chance": "2,699.2",
+  "PvP Magic Critical Hit Chance": "3,084.4",
+  "PvP Melee Endurance": "4",
+  "PvP Ranged Endurance": "-50",
+  "PvP Magic Endurance": "4",
+  "PvP Melee Hit Chance": "2,746.4",
+  "PvP Ranged Hit Chance": "2,746.4",
+  "PvP Magic Hit Chance": "3,195.6",
+  "PvP Melee Evasion": "656",
+  "PvP Ranged Evasion": "731",
+  "PvP Magic Evasion": "2,306.6",
+  "PvP Melee Heavy Attack Chance": "1,611.8",
+  "PvP Ranged Heavy Attack Chance": "1,611.8",
+  "PvP Magic Heavy Attack Chance": "2,317.4",
+  "Boss Damage Reduction": "30",
+  "Boss Melee Critical Hit Chance": "2,699.2",
+  "Boss Ranged Critical Hit Chance": "2,699.2",
+  "Boss Magic Critical Hit Chance": "3,047.2",
+  "Boss Melee Hit Chance": "2,512.4",
+  "Boss Ranged Hit Chance": "2,512.4",
+  "Boss Magic Hit Chance": "2,888.4",
+  "Boss Melee Heavy Attack Chance": "1,611.8",
+  "Boss Ranged Heavy Attack Chance": "1,611.8",
+  "Boss Magic Heavy Attack Chance": "1,935.8"
+ },
+ "questlogPayload": {
+  "build": {
+   "id": 8290225,
+   "name": "Current Nix Build",
+   "skillBuildId": 611315,
+   "weaponSpecializationBuildId": 463621,
+   "userId": "5d294483-056a-4cd4-b2ab-90699f17f3bd",
+   "note": "",
+   "characterId": 294932,
+   "attributes": {
+    "con": 0,
+    "dex": 16,
+    "int": 16,
+    "per": 18,
+    "str": 9
+   },
+   "equipment": {
+    "belt": {
+     "id": "belt_aa_t3_normal_005",
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Belt_All_Rune_Usable_kAA2_001",
+       "statId": "magic_accuracy"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Belt_Atk_Rune_Usable_kAA2_001",
+       "statId": "magic_accuracy"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Belt_Def_Rune_Usable_kAA2_001",
+       "statId": "hp_max"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "cost_max": 600,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "feet": {
+     "id": "feet_unique_aa_t2_set_001",
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Feet_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_magic_double_attack"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Feet_Def_Rune_Usable_kA_001",
+       "statId": "pvp_melee_double_defense"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Feet_All_Rune_Usable_kA_001",
+       "statId": "pvp_magic_double_attack"
+      }
+     },
+     "heroic": {
+      "1": "all_accuracy",
+      "2": "all_double_attack",
+      "3": "all_critical_attack"
+     },
+     "traits": {
+      "hp_max": 600,
+      "stamina_max": 20,
+      "move_speed_modifier": 800
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "critical_damage_taken_modifier": 600
+     }
+    },
+    "head": {
+     "id": "head_leather_aa_t3_normal_006",
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Head_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_magic_accuracy"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Head_Def_Rune_Usable_kA_001",
+       "statId": "pvp_magic_evasion"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Head_All_Rune_Usable_kA_001",
+       "statId": "pvp_magic_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "hp_max": 600,
+      "magic_evasion": 1600,
+      "skill_cooldown_modifier": 600
+     },
+     "potential": null,
+     "resonance": "magic_evasion",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "legs": {
+     "id": "legs_leather_aa_t3_normal_006",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Legs_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_magic_critical_attack"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Legs_All_Rune_Usable_kA_001",
+       "statId": "all_state_accuracy"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Legs_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "magic_evasion": 1600,
+      "buff_given_duration_modifier": 600,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "magic_evasion",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "chest": {
+     "id": "chest_aa_S1_fabric_rift_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Armor_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_magic_accuracy"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Armor_All_Rune_Usable_kA_001",
+       "statId": "pvp_magic_accuracy"
+      },
+      "2": {
+       "lvl": 60,
+       "runeId": "Armor_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "magic_evasion": 1600,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "magic_evasion",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "cloak": {
+     "id": "cloak_aa_t3_nomal_005",
+     "runes": {},
+     "heroic": {},
+     "traits": {
+      "cost_max": 600,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "hands": {
+     "id": "hands_leather_aa_t3_normal_006",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Hands_Ast_Rune_Usable_kA_001",
+       "statId": "all_state_tolerance"
+      },
+      "1": {
+       "lvl": 1,
+       "runeId": "Hands_Atk_Rune_Usable_kA_001",
+       "statId": "pvp_magic_critical_attack"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Hands_All_Rune_Usable_kA_001",
+       "statId": "pvp_magic_critical_attack"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "all_accuracy": 800,
+      "magic_evasion": 1600
+     },
+     "potential": null,
+     "resonance": "magic_evasion",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "attack": {
+     "id": "Usable_Food_Result_004_kB",
+     "runes": {},
+     "traits": {}
+    },
+    "brooch": {
+     "id": "brooch_aa_t3_normal_001",
+     "perk": null,
+     "heroic": {},
+     "traits": {
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "critical_damage_dealt_modifier",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "castle": {
+     "id": ""
+    },
+    "ring_1": {
+     "id": "ring_aa_t2_raid_001",
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Ring_Ast_Rune_Usable_kAA2_001",
+       "statId": "heal_modifier"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Ring_Def_Rune_Usable_kAA2_001",
+       "statId": "magic_evasion"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Ring_Atk_Rune_Usable_kAA2_001",
+       "statId": "magic_critical_attack"
+      }
+     },
+     "heroic": {
+      "1": "per",
+      "2": "all_accuracy",
+      "3": "all_double_attack"
+     },
+     "traits": {
+      "hp_max": 600,
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "all_accuracy": 1600
+     }
+    },
+    "ring_2": {
+     "id": "ring_aa_S1_009",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Ring_Atk_Rune_Usable_kAA2_001",
+       "statId": "magic_critical_attack"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Ring_Def_Rune_Usable_kAA2_001",
+       "statId": "magic_evasion"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Ring_All_Rune_Usable_kAA2_001",
+       "statId": "magic_critical_attack"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "cost_max": 600,
+      "skill_power_amplification": 800,
+      "buff_given_duration_modifier": 600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "defense": {
+     "id": ""
+    },
+    "earring": {
+     "id": "earring_aa_S1_005",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Earring_All_Rune_Usable_kAA2_001",
+       "statId": "magic_accuracy"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Earring_Def_Rune_Usable_kAA2_001",
+       "statId": "hp_max"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Earring_Atk_Rune_Usable_kAA2_001",
+       "statId": "magic_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "side_all_double_attack": 1200,
+      "front_all_double_attack": 1200,
+      "front_all_critical_attack": 1200
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "utility": {
+     "id": "Usable_Food_Result_026_kB",
+     "runes": {},
+     "traits": {},
+     "artifact": null
+    },
+    "bracelet": {
+     "id": "bracelet_aa_t3_normal_003",
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Bracelet_All_Rune_Usable_kAA2_001",
+       "statId": "magic_double_attack"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Bracelet_Atk_Rune_Usable_kAA2_001",
+       "statId": "magic_double_attack"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Bracelet_Def_Rune_Usable_kAA2_001",
+       "statId": "hp_max"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "hp_max": 600,
+      "skill_power_resistance": 800,
+      "debuff_taken_duration_modifier": -600
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "necklace": {
+     "id": "necklace_aa_S1_rift_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 1,
+       "runeId": "Necklace_All_Rune_Usable_kAA2_001",
+       "statId": "magic_accuracy"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Necklace_Def_Rune_Usable_kAA2_001",
+       "statId": "magic_evasion"
+      },
+      "2": {
+       "lvl": 120,
+       "runeId": "Necklace_Atk_Rune_Usable_kAA2_001",
+       "statId": "magic_accuracy"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "cost_max": 600,
+      "skill_cooldown_modifier": 600,
+      "skill_power_amplification": 800
+     },
+     "potential": null,
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "off_hand": {
+     "id": "dagger_aa_t2_raid_001",
+     "perk": "perk_dagger_aa_t3_upgrade_arch_001",
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Weapon_Atk_Rune_Usable_kAA2_001",
+       "statId": "skill_power_amplification"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Weapon_Def_Rune_Usable_kAA2_001",
+       "statId": "magic_evasion"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+       "statId": "magic_double_attack"
+      }
+     },
+     "heroic": {
+      "1": "all_double_attack",
+      "2": "all_accuracy"
+     },
+     "traits": {
+      "all_double_attack": 800,
+      "all_critical_attack": 800,
+      "attack_speed_modifier": 800
+     },
+     "potential": null,
+     "resonance": null,
+     "uniqueTraits": {
+      "str": 8
+     }
+    },
+    "boonstone": {
+     "id": ""
+    },
+    "gemstone1": {
+     "id": "gemstone_a_set_02_001",
+     "runes": {},
+     "traits": {
+      "bind_accuracy": 2400,
+      "weaken_accuracy": 2400,
+      "all_state_accuracy": 1600
+     },
+     "artifact": null
+    },
+    "gemstone2": {
+     "id": "gemstone_a_set_02_002",
+     "runes": {},
+     "traits": {
+      "collide_resistance": 2400,
+      "all_state_tolerance": 1600
+     },
+     "artifact": null,
+     "uniqueTraits": {}
+    },
+    "main_hand": {
+     "id": "staff_aa_t3_upgrade_arch_001",
+     "perk": null,
+     "runes": {
+      "0": {
+       "lvl": 120,
+       "runeId": "Weapon_Atk_Rune_Usable_kAA2_001",
+       "statId": "skill_power_amplification"
+      },
+      "1": {
+       "lvl": 120,
+       "runeId": "Weapon_Def_Rune_Usable_kAA2_001",
+       "statId": "magic_evasion"
+      },
+      "2": {
+       "lvl": 1,
+       "runeId": "Weapon_All_Rune_Usable_kAA2_001",
+       "statId": "magic_double_attack"
+      }
+     },
+     "heroic": {},
+     "traits": {
+      "all_accuracy": 800,
+      "all_double_attack": 800,
+      "all_critical_attack": 800
+     },
+     "potential": null,
+     "resonance": "all_double_attack",
+     "uniqueTraits": {},
+     "resonanceTier": 4
+    },
+    "riftstone": {
+     "id": ""
+    },
+    "stellarite": {
+     "id": "Ammo_kB_001",
+     "runes": {},
+     "heroic": {},
+     "uniqueTraits": {}
+    },
+    "talistone1": {
+     "id": "talistone_a_set_02_001",
+     "runes": {},
+     "traits": {
+      "all_double_attack": 480,
+      "magic_double_attack": 600,
+      "magic_critical_attack": 600
+     },
+     "artifact": "bonus_attack_power_main_hand",
+     "uniqueTraits": {}
+    },
+    "talistone2": {
+     "id": "talistone_a_set_02_002",
+     "runes": {},
+     "traits": {
+      "all_evasion": 600,
+      "magic_evasion": 900,
+      "range_evasion": 900
+     },
+     "artifact": "all_armor",
+     "uniqueTraits": {}
+    },
+    "talistone3": {
+     "id": "talistone_a_set_02_003",
+     "runes": {},
+     "traits": {
+      "cost_regen": 45000,
+      "stamina_max": 10,
+      "stamina_regen": 6000
+     },
+     "artifact": "hp_max"
+    },
+    "talistone4": {
+     "id": "talistone_a_set_02_004",
+     "runes": {},
+     "traits": {
+      "all_double_attack": 480,
+      "magic_double_attack": 600,
+      "magic_critical_attack": 600
+     },
+     "artifact": "hp_max"
+    },
+    "hp-recovery": {
+     "id": "Usable_Food_Result_021_kB",
+     "runes": {},
+     "traits": {},
+     "artifact": null
+    },
+    "mana-recovery": {
+     "id": "Usable_Food_Result_022_kA",
+     "runes": {},
+     "traits": {},
+     "artifact": null
+    }
+   },
+   "order": 1001,
+   "weaponTypes": [
+    "staff",
+    "dagger"
+   ],
+   "folderId": 348108273,
+   "tags": []
+  },
+  "skillBuild": {
+   "id": 611315,
+   "name": "Staff/Dagger Battlegrounds",
+   "isPublic": true,
+   "createdAt": "2025-09-16T18:01:07.979Z",
+   "updatedAt": "2026-04-11T23:53:37.917Z",
+   "mainHand": "staff",
+   "offHand": "dagger",
+   "tags": [],
+   "active": [
+    {
+     "lvl": 15,
+     "order": 0,
+     "traits": [
+      "SkillSet_WP_DA_DA_S_BlinkStrike_trait_1"
+     ],
+     "skillId": "SkillSet_WP_DA_DA_S_BlinkStrike"
+    },
+    {
+     "lvl": 15,
+     "order": 1,
+     "skillId": "SkillSet_WP_DA_DA_S_LegAttack"
+    },
+    {
+     "lvl": 15,
+     "order": 2,
+     "traits": [
+      "SkillSet_WP_ST_S_WideAreaAttack_trait_1",
+      "SkillSet_WP_ST_S_WideAreaAttack_trait_2",
+      "SkillSet_WP_ST_S_WideAreaAttack_trait_3"
+     ],
+     "skillId": "SkillSet_WP_ST_S_WideAreaAttack"
+    },
+    {
+     "lvl": 15,
+     "order": 3,
+     "traits": [
+      "SkillSet_WP_ST_S_MainAttack_trait_1"
+     ],
+     "skillId": "SkillSet_WP_ST_S_MainAttack"
+    },
+    {
+     "lvl": 15,
+     "order": 4,
+     "traits": [
+      "SkillSet_WP_ST_S_WideAreaDebuffAttack_trait_3",
+      "SkillSet_WP_ST_S_WideAreaDebuffAttack_trait_4"
+     ],
+     "skillId": "SkillSet_WP_ST_S_WideAreaDebuffAttack"
+    },
+    {
+     "lvl": 15,
+     "order": 5,
+     "traits": [
+      "SkillSet_WP_ST_S_IceFreeze_trait_3",
+      "SkillSet_WP_ST_S_IceFreeze_trait_2"
+     ],
+     "skillId": "SkillSet_WP_ST_S_IceFreeze"
+    },
+    {
+     "lvl": 15,
+     "order": 6,
+     "traits": [
+      "SkillSet_WP_ST_S_IceSpear_trait_3",
+      "SkillSet_WP_ST_S_IceSpear_trait_1"
+     ],
+     "skillId": "SkillSet_WP_ST_S_IceSpear"
+    },
+    {
+     "lvl": 15,
+     "order": 7,
+     "traits": [
+      "SkillSet_WP_ST_S_PowerAttack_trait_2",
+      "SkillSet_WP_ST_S_PowerAttack_trait_3"
+     ],
+     "skillId": "SkillSet_WP_ST_S_PowerAttack"
+    },
+    {
+     "lvl": 15,
+     "order": 8,
+     "traits": [
+      "SkillSet_WP_ST_S_WideAreaPowerAttack_trait_1",
+      "SkillSet_WP_ST_S_WideAreaPowerAttack_trait_3"
+     ],
+     "skillId": "SkillSet_WP_ST_S_WideAreaPowerAttack"
+    },
+    {
+     "lvl": 15,
+     "order": 9,
+     "traits": [
+      "SkillSet_WP_ST_S_GlobalCoolDownBuff_trait_2"
+     ],
+     "skillId": "SkillSet_WP_ST_S_GlobalCoolDownBuff"
+    },
+    {
+     "lvl": 15,
+     "order": 10,
+     "skillId": "SkillSet_WP_DA_DA_S_Stealth"
+    },
+    {
+     "lvl": 15,
+     "order": 11,
+     "traits": [
+      "SkillSet_WP_DA_DA_S_Smoke_trait_3",
+      "SkillSet_WP_DA_DA_S_Smoke_trait_1"
+     ],
+     "skillId": "SkillSet_WP_DA_DA_S_Smoke"
+    }
+   ],
+   "passive": [
+    {
+     "lvl": 15,
+     "order": 0,
+     "skillId": "SkillSet_WP_DA_DA_S_MoveSkillEvasion"
+    },
+    {
+     "lvl": 15,
+     "order": 1,
+     "skillId": "SkillSet_WP_DA_S_MeleeAccuracy"
+    },
+    {
+     "lvl": 15,
+     "order": 2,
+     "skillId": "SkillSet_WP_DA_S_CriticalDamageUp"
+    },
+    {
+     "lvl": 15,
+     "order": 3,
+     "skillId": "SkillSet_WP_DA_BA_S_KillMoveSpeed"
+    },
+    {
+     "lvl": 15,
+     "order": 4,
+     "skillId": "SkillSet_WP_ST_S_BurnTargetAddDamage"
+    },
+    {
+     "lvl": 15,
+     "order": 5,
+     "skillId": "SkillSet_WP_ST_S_MaxManaUp"
+    },
+    {
+     "lvl": 15,
+     "order": 6,
+     "skillId": "SkillSet_WP_ST_S_AddProjectile"
+    },
+    {
+     "lvl": 15,
+     "order": 7,
+     "skillId": "SkillSet_WP_ST_S_SkillPowerAmplificationBuff"
+    }
+   ],
+   "defensive": [
+    {
+     "lvl": 15,
+     "order": 0,
+     "skillId": "SkillSet_WP_DA_DA_S_CounterMove"
+    }
+   ],
+   "order": 175804566,
+   "priority": {
+    "active": [],
+    "passive": []
+   },
+   "description": "",
+   "userId": "5d294483-056a-4cd4-b2ab-90699f17f3bd",
+   "likeCount": 0,
+   "userLiked": false
+  },
+  "masteryBuild": {
+   "id": 463621,
+   "name": "Giga Blast",
+   "isPublic": true,
+   "createdAt": "2026-03-02T02:52:41.197Z",
+   "updatedAt": "2026-03-02T02:52:41.197Z",
+   "mainHand": "staff",
+   "offHand": "dagger",
+   "tags": [],
+   "order": 177241996,
+   "description": "",
+   "specialization": [
+    {
+     "id": "Staff_Normal_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_High_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_High_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_Defense_07",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_Util_05",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Normal_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Normal_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_High_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Tactic_10",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_High_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_High_Def_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Rare_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_AttackUtil_03",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_TacticAttack_12",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Hero_Tactic_04",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_DefenseTactic_09",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Defense_08",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Defense_07",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Hero_Defense_03",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Hero_Attack_01",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Hero_Defense_03",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_Defense_07",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_Tactic_11",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Normal_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Staff_Normal_Tac_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Staff_High_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_Attack_02",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_Rare_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Staff_Rare_Def_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Staff_High_UtilDefense_06",
+     "lvl": 10
+    },
+    {
+     "id": "Staff_High_Def_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Rare_Tactic_10",
+     "lvl": 10
+    },
+    {
+     "id": "Dagger_Rare_Attack_Skill",
+     "lvl": 1
+    },
+    {
+     "id": "Dagger_Rare_Tac_Skill",
+     "lvl": 1
+    }
+   ],
+   "unified": {
+    "1": "WM_Common_SKILL_011",
+    "2": "WM_Common_SKILL_009",
+    "3": "WM_Common_SKILL_007",
+    "4": "WM_Common_SKILL_013"
+   },
+   "userId": "5d294483-056a-4cd4-b2ab-90699f17f3bd"
+  },
+  "character": {
+   "userId": "5d294483-056a-4cd4-b2ab-90699f17f3bd",
+   "name": "DankRNG Staff/Dagger Nix",
+   "url": "LegacyOfTheInfernalSeal",
+   "level": 60,
+   "privacy": "public",
+   "updatedAt": "2026-07-23T09:53:07.050Z",
+   "createdAt": "2024-11-05T19:53:48.218Z",
+   "desc": "<p>Current nix builds stolen from Timeno: </p><p><a href=\"https://questlog.gg/throne-and-liberty/en/character-builder/EnchantedGolemBurn?buildId=8143746\" data-tooltip-link=\"true\" rel=\"noopener\" target=\"_blank\">https://questlog.gg/throne-and-liberty/en/character-builder/EnchantedGolemBurn?buildId=8143746</a></p><p></p><p><span style=\"color: rgb(250, 250, 250)\">My build setups for Talandre. Answering questions @ </span>Twitch.tv/DankRNG</p><div data-youtube-video=\"\"><iframe start=\"0\" src=\"https://www.youtube-nocookie.com/embed/S7fIV8Gg1WE?si=PPXLPvWthBdHj9tQ\" rel=\"1\" modestbranding=\"true\" loop=\"false\" autoplay=\"false\" allowfullscreen=\"true\" height=\"480\" width=\"640\"></iframe></div>",
+   "id": 294932,
+   "user": {
+    "id": "5d294483-056a-4cd4-b2ab-90699f17f3bd",
+    "slug": "qQMymMGHNfYc",
+    "image": "https://cdn.discordapp.com/avatars/459586326090743808/a0dd2c77c87df43724fcf872776c969d.png",
+    "name": "dankrng",
+    "level": 400
+   },
+   "likeCount": 48,
+   "userLiked": false,
+   "publisher": "nc",
+   "folders": [
+    {
+     "id": 348108273,
+     "name": "Nix",
+     "note": "",
+     "color": "blue",
+     "order": 1000
+    },
+    {
+     "id": 348479177,
+     "name": "Talandra (Old Builds)",
+     "note": "",
+     "color": "blue",
+     "order": 2000
+    }
+   ],
+   "tags": []
+  }
+ },
+ "baselineMatched": 76
+}

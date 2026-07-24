@@ -71,9 +71,9 @@ test("generated equipment projection interns repeated potential tables", async (
     .map((item) => item.itemPotentialRef);
 
   assert.equal(pool.length, 3);
-  assert.deepEqual(pool.map((potential) => potential.groupId), ["Potential_Weapon", "Potential_Acc", "Potential_Equip"]);
-  assert.equal(references.length, 193);
-  assert.deepEqual(pool.map((_, ref) => references.filter((candidate) => candidate === ref).length), [80, 49, 64]);
+  assert.deepEqual(pool.map((potential) => potential.groupId), ["Potential_Weapon", "Potential_Equip", "Potential_Acc"]);
+  assert.equal(references.length, 574);
+  assert.deepEqual(pool.map((_, ref) => references.filter((candidate) => candidate === ref).length), [190, 212, 172]);
   assert.deepEqual(pool.map((potential) => potential.stats.length), [4, 8, 8]);
   assert.deepEqual(pool.map((potential) => potential.skills.length), [60, 60, 60]);
   assert.equal(pool.flatMap((potential) => potential.stats).length, 20);

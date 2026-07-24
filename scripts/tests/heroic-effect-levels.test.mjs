@@ -92,3 +92,40 @@ test("Questlog imports mark selected Heroic effect levels as unknown at level ze
   assert.deepEqual(build.equipment.chest.heroicEffects[0], { statId: "all_evasion", level: 0, levelKnown: false });
   assert.deepEqual(build.equipment.chest.heroicEffects[2], { statId: "all_accuracy", level: 0, levelKnown: false });
 });
+
+// Questlog's group numbering does not always match random_stat_group_N ordering.
+// Storing its number verbatim produced rows the validator rejects, and those
+// rejections are blocking issues — one mismatch made the entire imported build
+// uncalculable and the optimizer refused to run.
+test("Questlog imports relocate Heroic effects into the group the item actually offers", () => {
+  const { build } = importQuestlogBuild({
+    character: { name: "Tester" },
+    build: {
+      id: "imported",
+      equipment: {
+        // Every stat is stored under a group that does not offer it.
+        chest: { id: heroic.id, itemLevel: 12, heroic: { 1: "hp_max", 2: "all_accuracy" } },
+      },
+    },
+  });
+  assert.deepEqual(build.equipment.chest.heroicEffects, [
+    { statId: "", level: 0, levelKnown: false },
+    { statId: "hp_max", level: 0, levelKnown: false },
+    { statId: "all_accuracy", level: 0, levelKnown: false },
+  ]);
+  // The rows must survive validation, or the optimizer refuses the build.
+  assert.deepEqual(selectedHeroicEffects(heroic, build.equipment.chest).map((row) => row.statId), ["hp_max", "all_accuracy"]);
+});
+
+test("Questlog imports drop Heroic effects no group on the item offers", () => {
+  const { build } = importQuestlogBuild({
+    character: { name: "Tester" },
+    build: {
+      id: "imported",
+      equipment: {
+        chest: { id: heroic.id, itemLevel: 12, heroic: { 1: "all_evasion", 2: "damage_reduction" } },
+      },
+    },
+  });
+  assert.deepEqual(build.equipment.chest.heroicEffects.map((row) => row.statId), ["all_evasion", "", ""]);
+});

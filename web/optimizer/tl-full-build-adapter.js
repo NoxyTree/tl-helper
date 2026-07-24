@@ -1207,7 +1207,15 @@ export async function createOptimizerAdapter(deps = {}) {
         rule.min != null ? Number(rule.min) : -Infinity,
         rule.baseline != null ? Number(rule.baseline) * (1 - Number(rule.allowedLossPercent ?? 0) / 100) : -Infinity,
       );
-      const constraintTracker = { best: new Map(), closest: null };
+      // A composite floor ("PvP Hit Chance") scores as the MINIMUM of its
+      // components, so a player transcribing the number off their character
+      // sheet is unknowingly demanding every component clear it. Track the
+      // components too, or the failure names a stat the player cannot act on.
+      const constraintComponents = (id) => {
+        const goal = constraintGoals.find((row) => row.id === id);
+        return goal?.components?.length > 1 ? goal.components : [];
+      };
+      const constraintTracker = { best: new Map(), closest: null, componentBest: new Map() };
       const trackConstraintRejection = (stats) => {
         if (!stats) return;
         let shortfall = 0;
@@ -1217,6 +1225,16 @@ export async function createOptimizerAdapter(deps = {}) {
           const required = requiredConstraintValue(rule);
           const best = constraintTracker.best.get(id);
           if (best == null || value > best) constraintTracker.best.set(id, value);
+          const components = constraintComponents(id);
+          if (components.length) {
+            const perComponent = constraintTracker.componentBest.get(id) ?? new Map();
+            for (const componentId of components) {
+              const componentValue = Number(stats[componentId] ?? 0);
+              const seen = perComponent.get(componentId);
+              if (seen == null || componentValue > seen) perComponent.set(componentId, componentValue);
+            }
+            constraintTracker.componentBest.set(id, perComponent);
+          }
           if (value < required) {
             shortfall += (required - value) / Math.max(1, Math.abs(required));
             misses.push({ id, value, required });
@@ -1635,6 +1653,12 @@ export async function createOptimizerAdapter(deps = {}) {
             if (!rule) return [];
             const required = requiredConstraintValue(rule);
             if (!(best < required)) return [];
+            const componentBest = constraintTracker.componentBest.get(id);
+            const components = componentBest
+              ? [...componentBest.entries()]
+                .map(([componentId, value]) => ({ id: componentId, name: core.statName(componentId), value, formattedValue: core.formatStat(componentId, value) }))
+                .sort((left, right) => left.value - right.value || left.id.localeCompare(right.id))
+              : [];
             return [{
               id,
               name: core.statName(id),
@@ -1643,6 +1667,9 @@ export async function createOptimizerAdapter(deps = {}) {
               kind: rule.min != null ? "minimum" : "protected",
               formattedRequired: core.formatStat(id, required),
               formattedBestAchievable: core.formatStat(id, best),
+              // Lowest component first: that is the one actually holding the
+              // composite down and the one worth relaxing or gearing for.
+              ...(components.length ? { components, bindingComponent: components[0] } : {}),
             }];
           });
           const closest = constraintTracker.closest ? {
@@ -1654,7 +1681,10 @@ export async function createOptimizerAdapter(deps = {}) {
             })),
           } : null;
           const detail = conflicts.length
-            ? conflicts.map((row) => `${row.name} needs ${row.formattedRequired} but the best evaluated build reached ${row.formattedBestAchievable}`).join("; ")
+            ? conflicts.map((row) => `${row.name} needs ${row.formattedRequired} but the best evaluated build reached ${row.formattedBestAchievable}`
+              + (row.bindingComponent
+                ? ` (${row.name} counts as the lowest of ${row.components.map((component) => component.name).join(", ")}, and ${row.bindingComponent.name} held it to ${row.bindingComponent.formattedValue})`
+                : "")).join("; ")
             : closest
               ? `each floor is reachable on its own, but no single build meets them together — the closest build missed: ${closest.misses.map((miss) => `${miss.name} ${miss.formattedValue} of ${miss.formattedRequired}`).join(", ")}`
               : "";

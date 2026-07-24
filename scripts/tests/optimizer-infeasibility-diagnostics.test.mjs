@@ -58,3 +58,42 @@ test("an impossible floor fails with best-achievable diagnostics", async () => {
   assert.ok(conflict.bestAchievable > 0 && conflict.bestAchievable < impossible);
   assert.equal(typeof conflict.formattedBestAchievable, "string");
 });
+
+// "PvP Hit Chance" is pvp_all_accuracy, scored as the MINIMUM of its melee,
+// ranged, and magic components. Naming only the composite tells a player their
+// build reached 3,875 without saying which of the three actually held it there,
+// which is the one thing they can act on.
+test("an infeasible composite floor names the component that held it down", async () => {
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const impossible = 10_000_000;
+  let thrown = null;
+  try {
+    await adapter.optimize({
+      build: { build: baseBuild(), attributes },
+      sourceKind: "existing",
+      goals: { priorities: [{ id: "pvp_all_accuracy", rank: 1, mode: "at_least", minimum: impossible }], protect: [] },
+      rules: {
+        minimumItemLevel: 0,
+        includeSetEffects: false,
+        optimizeThreeTraits: false,
+        bestHeroicConfiguration: false,
+        runes: { mode: "keep" },
+        artifacts: { mode: "keep" },
+      },
+      depth: "fast",
+    });
+  } catch (error) {
+    thrown = error;
+  }
+  assert.ok(thrown, "the optimizer must reject an impossible composite floor");
+  const conflict = thrown.constraintDiagnostics?.conflicts.find((row) => row.id === "pvp_all_accuracy");
+  assert.ok(conflict, "the composite stat is named");
+  assert.deepEqual(
+    conflict.components.map((row) => row.id).sort(),
+    ["pvp_magic_accuracy", "pvp_melee_accuracy", "pvp_range_accuracy"],
+  );
+  assert.ok(conflict.bindingComponent, "the limiting component is identified");
+  // The binding component is the weakest one, which is what the composite equals.
+  assert.equal(conflict.bindingComponent.value, Math.min(...conflict.components.map((row) => row.value)));
+  assert.match(thrown.message, /held it to/);
+});

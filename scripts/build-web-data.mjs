@@ -69,12 +69,15 @@ function repairStringsDeep(value) {
 async function readTrpc(name) {
   const raw = (await readFile(path.join(publicDir, name), "utf8")).replace(/^\uFEFF/, "");
   const parsed = repairStringsDeep(JSON.parse(raw));
-  return parsed[0]?.result?.data?.json ?? parsed[0]?.result?.data ?? parsed[0];
+  const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+  return entry?.result?.data?.json ?? entry?.result?.data ?? entry;
 }
 
 async function readTrpcRecords(name) {
   const raw = (await readFile(path.join(publicDir, name), "utf8")).replace(/^\uFEFF/, "");
-  return flattenTrpcBatch(repairStringsDeep(JSON.parse(raw)));
+  const parsed = repairStringsDeep(JSON.parse(raw));
+  if (Array.isArray(parsed) && !parsed[0]?.result?.data) return parsed;
+  return flattenTrpcBatch(parsed);
 }
 
 function flattenTrpcBatch(batch) {

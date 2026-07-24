@@ -127,7 +127,7 @@ test("all 294 item and perk complexes have one explicit semantic class", () => {
   assertPartition(
     family,
     itemComplexIds,
-    ["persistentStatic", "persistentOwnerSemanticsUnresolved", "sourceConflict", "unresolvedDecode", "conditional"],
+    ["persistentStatic", "retiredInherent", "persistentOwnerSemanticsUnresolved", "sourceConflict", "unresolvedDecode", "conditional"],
     "item and perk complex contract",
   );
 });
@@ -174,7 +174,7 @@ test("item and perk rule bindings are exact, reachable, and semantically mapped"
   assertExactSet(Object.keys(ITEM_PASSIVE_RULES), bindings.itemRule, "item passive registry drifted");
   assertExactSet(Object.keys(PERK_PASSIVE_RULES), bindings.perkRule, "perk passive registry drifted");
   assert.equal(bindings.itemRule.length, 5);
-  assert.equal(bindings.perkRule.length, 6);
+  assert.equal(bindings.perkRule.length, 4);
 
   const innateUniverse = new Set(innateIds);
   const perkUniverse = new Set(perkIds);
@@ -182,13 +182,17 @@ test("item and perk rule bindings are exact, reachable, and semantically mapped"
   for (const id of bindings.perkRule) assert.equal(perkUniverse.has(id), true, "perk binding is unreachable " + id);
 
   const mapped = sorted([...bindings.itemRule, ...bindings.perkRule]);
-  assert.equal(mapped.length, 7);
+  assert.equal(mapped.length, 5);
   assertExactSet(mapped, contract.families.itemPerkComplex.classes.persistentStatic, "persistent item binding drifted");
   assertExactSet(mapped.filter((id) => itemComplexIds.includes(id)), mapped, "item binding is not projected");
 });
 
 test("known unresolved and conditional item complexes cannot silently gain static rules", () => {
   const classes = contract.families.itemPerkComplex.classes;
+  assert.deepEqual(classes.retiredInherent, [
+    "SkillSet_Unique_Accessory_Skill_01",
+    "SkillSet_Unique_Armor_Skill_01",
+  ]);
   assert.deepEqual(classes.persistentOwnerSemanticsUnresolved, ["SkillSet_WP_Item_FieldBoss_T3_CR_02"]);
   assert.deepEqual(classes.sourceConflict, []);
   assert.deepEqual(classes.unresolvedDecode, []);
@@ -196,6 +200,7 @@ test("known unresolved and conditional item complexes cannot silently gain stati
   assert.equal(classes.conditional.includes("SkillSet_WP_Item_FieldBoss_T3_ST_02"), true, "Aridus must remain conditional");
 
   const forbiddenStaticRules = [
+    ...classes.retiredInherent,
     ...classes.persistentOwnerSemanticsUnresolved,
     ...classes.sourceConflict,
     ...classes.unresolvedDecode,

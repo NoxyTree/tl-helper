@@ -66,11 +66,9 @@ test("calculableItemPerkVariants is stable, deduplicated, and rule-backed", () =
   const variants = core.calculableItemPerkVariants(item);
   assert.deepEqual(variants.map(({ perkId, passiveId, requiredWeapon }) => ({ perkId, passiveId, requiredWeapon })), [
     { perkId: "", passiveId: "", requiredWeapon: "" },
-    { perkId: "accessory", passiveId: "SkillSet_Unique_Accessory_Skill_01", requiredWeapon: "" },
-    { perkId: "armor-a", passiveId: "SkillSet_Unique_Armor_Skill_01", requiredWeapon: "" },
     { perkId: "mind-eye", passiveId: "SkillSet_WP_Item_A08_kAA_BO", requiredWeapon: "bow" },
   ]);
-  assert.equal(variants[2].perk, backedArmorFirst);
+  assert.equal(variants[1].perk, backedWeapon);
   assert.ok(!variants.some((variant) => variant.perkId === "unsupported"));
 });
 

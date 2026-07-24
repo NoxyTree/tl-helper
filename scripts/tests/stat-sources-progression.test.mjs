@@ -8,6 +8,7 @@ import {
   itemSetStatSources,
   materialBonusStatSources,
 } from "../lib/stat-sources-progression.mjs";
+import { ARMOR_MATERIAL_BONUSES } from "../../web/tl-questlog-rules.js";
 
 const resolveStatTaxonomy = (raw) => raw === "all_double_attack"
   ? { canonicalStatId: "heavy_attack_chance", displayName: "Heavy Attack Chance", unit: "points", scale: 0.1, attackScope: "all", labelSource: "test", labelStatus: "verified" }
@@ -82,6 +83,10 @@ test("material rules preserve stacking and equipment conditions", () => {
   assert.equal(conditions.equippedWeaponType, "staff");
   assert.equal(conditions.appliesPerQualifyingArmorPiece, true);
   assert.equal(conditions.appliesForEachEquippedWeapon, true);
+  assert.deepEqual(ARMOR_MATERIAL_BONUSES.wand.fabric.stats, {
+    cost_consumption_modifier: 300,
+    heal_modifier: 300,
+  });
 });
 
 test("all progression rows match the 22-column stat source contract", () => {

@@ -11,9 +11,14 @@ const appData = await loadWebDataFromFile(join(repoRoot, "web", "data", "app-dat
 await core.initCore(appData);
 
 test("conditional weapon behaviour is not reported as missing from static Armory totals", () => {
+  assert.equal(core.runeTypesCanActivateSynergy(["attack", "defense", "assist"]), true);
+  assert.equal(core.runeTypesCanActivateSynergy(["attack", "defense", "chaos"]), true);
+  assert.equal(core.runeTypesCanActivateSynergy(["defense", "defense", "defense"]), false);
+  assert.equal(core.runeTypesCanActivateSynergy(["assist", "assist", "assist"]), false);
+
   const build = core.createInitialBuild();
   const weapon = core.indexes.itemById.crossbow_aa_S1_002;
-  assert.equal(weapon.name, "Arctic Roar Tracking Crossbows");
+  assert.equal(weapon.name, "Coldblooded Commander Pursuit Crossbows");
   assert.equal(weapon.passives?.name, "Blessing Steal");
 
   build.equipment.main_hand = {

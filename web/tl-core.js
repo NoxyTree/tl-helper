@@ -525,6 +525,60 @@ export function normalizeMasterySelections(rows) {
   return normalized;
 }
 
+// Questlog keys stored Heroic effects by its own group numbering, which does not
+// always line up with this catalogue's random_stat_group_N ordering. Trusting
+// that number verbatim produced rows the validator rejects
+// ("cannot use X in stored Heroic effect group N"), and because those rejections
+// are blocking issues a single mismatch made the whole imported build
+// uncalculable, locking the owner out of the optimizer entirely.
+//
+// The item data is the authority: place each stat in a group that actually
+// offers it, preferring the stored group number when that is legal. A stat no
+// group offers is dropped rather than stored as an invalid row.
+function importedHeroicEffects(item, stored) {
+  const groups = heroicEffectGroupCount(item);
+  if (!groups || item?.grade !== HEROIC_GRADE) return [];
+  const offeredByGroup = Array.from({ length: groups }, (_, index) =>
+    new Set(heroicEffectOptions(item, index).map((option) => option.statId)));
+  const rows = new Array(groups).fill(null);
+  const placed = new Set();
+  const entries = Object.entries(stored ?? {})
+    .map(([groupNumber, statId]) => ({ hint: Number(groupNumber) - 1, statId: String(statId ?? "").trim() }))
+    .filter((entry) => entry.statId)
+    .sort((left, right) => left.hint - right.hint || left.statId.localeCompare(right.statId));
+  const place = (entry, index) => {
+    if (!Number.isInteger(index) || index < 0 || index >= groups) return false;
+    if (rows[index] || placed.has(entry.statId) || !offeredByGroup[index].has(entry.statId)) return false;
+    rows[index] = { statId: entry.statId, level: 0, levelKnown: false };
+    placed.add(entry.statId);
+    return true;
+  };
+  for (const entry of entries) place(entry, entry.hint);
+  for (const entry of entries) {
+    if (placed.has(entry.statId)) continue;
+    for (let index = 0; index < groups; index += 1) if (place(entry, index)) break;
+  }
+  return rows.map((row) => row ?? emptyHeroicEffect());
+}
+
+// Questlog's payload carries the selected Overall Mastery nodes but no Overall
+// Mastery Level, and the calculator needs that level to verify the unlocks.
+// Leaving it unset made every import with a unified selection raise a blocking
+// issue ("Overall Mastery Level is not stored"), and blocking issues stop the
+// optimizer from running on the build at all.
+//
+// The selections are themselves evidence of the level: the game would not have
+// let the character pick a node above their Overall Mastery Level, so the
+// highest requiredLevel among the selected nodes is a sound lower bound. It
+// validates exactly the nodes the character demonstrably has and unlocks
+// nothing beyond them, so an imported build can never claim more than it proves.
+function impliedOverallMasteryLevel(unifiedMasteryIds) {
+  const levels = unifiedMasteryIds
+    .map((masteryId) => Number(indexes.masteryById?.[masteryId]?.requiredLevel ?? 0))
+    .filter((level) => Number.isFinite(level) && level > 0);
+  return levels.length ? Math.max(...levels) : null;
+}
+
 export function importQuestlogBuild(payload) {
   const characterData = payload?.characterPayload?.result?.data ?? payload?.characterPayload ?? payload?.characterData ?? payload;
   const character = characterData?.character ?? payload?.character ?? {};
@@ -543,10 +597,7 @@ export function importQuestlogBuild(payload) {
     const row = sourceBuild.equipment[slot.id];
     const item = indexes.itemById[row?.id];
     if (!row?.id || !item) continue;
-    const heroicEffects = [];
-    for (const [groupNumber, statId] of Object.entries(row.heroic ?? {})) {
-      if (statId) heroicEffects[Number(groupNumber) - 1] = { statId, level: 0, levelKnown: false };
-    }
+    const heroicEffects = importedHeroicEffects(item, row.heroic);
     const selection = {
       ...emptyEquipmentSelection(),
       itemId: item.id,
@@ -571,6 +622,10 @@ export function importQuestlogBuild(payload) {
   const masteryBuild = payload?.masteryBuild ?? payload?.masteryData?.builds?.find((row) => row.id === sourceBuild.weaponSpecializationBuildId);
   build.masteries = Object.fromEntries(values(masteryBuild?.specialization).map((row) => [row.id, { level: Number(row.lvl ?? row.level ?? 1) }]));
   build.unifiedMasteries = Object.values(masteryBuild?.unified ?? {}).filter(Boolean);
+  const storedOverallMasteryLevel = Number(sourceBuild.overallMasteryLevel ?? masteryBuild?.overallMasteryLevel);
+  build.overallMasteryLevel = Number.isSafeInteger(storedOverallMasteryLevel) && storedOverallMasteryLevel >= 0
+    ? storedOverallMasteryLevel
+    : impliedOverallMasteryLevel(build.unifiedMasteries);
   return {
     profile: {
       name: character.name ?? build.name,
@@ -1488,6 +1543,17 @@ export function findRuneSynergy(category, types) {
   return candidates.map((candidate) => synergies.find((synergy) => (
     (synergy.combination ?? []).join("|") === candidate.join("|")
   ))).find(Boolean) ?? null;
+}
+
+export function runeTypesCanActivateSynergy(types) {
+  if (!Array.isArray(types) || types.length !== 3) return false;
+  const ordinaryCounts = { attack: 0, defense: 0, assist: 0 };
+  for (const type of types) {
+    if (type === "chaos") continue;
+    if (!(type in ordinaryCounts)) return false;
+    ordinaryCounts[type] += 1;
+  }
+  return Object.values(ordinaryCounts).every((count) => count <= 1);
 }
 
 // ---------- skills helpers ----------
@@ -3640,7 +3706,7 @@ export function validateBuild(runeSynergies, build, progression = effectiveProgr
     if (chaosCount > 1) {
       dataBacked.push({ severity: "error", code: "chaos_rune_cap_exceeded", calculationImpact: "invalid", message: `${slotById(slot).label} has ${chaosCount} Chaos runes. Only one Chaos rune may be equipped on an item.` });
     }
-    if (selectedRunes.length === 3 && !runeSynergies[slot]) {
+    if (selectedRunes.length === 3 && runeTypesCanActivateSynergy(selectedRunes.map((rune) => rune.runeType)) && !runeSynergies[slot]) {
       dataBacked.push({ severity: "warning", code: "rune_synergy_missing", calculationImpact: "provisional", message: `${slotById(slot).label} has three runes but no matching rune synergy in the cached table.` });
     }
   }
