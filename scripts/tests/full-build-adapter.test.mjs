@@ -793,6 +793,27 @@ test("gear-aware scratch progression reranks exact finalists once and drops ille
   assert.ok(fixture.evaluatedAttributes.every((attributes) => attributes.dex === 7), "progression must evaluate against each finalist's fixed attributes");
 });
 
+test("attribute-stage floors defer rejection while additive progression remains", async () => {
+  const fixture = gearAwareProgressionFixture();
+  const adapter = await createOptimizerAdapter({
+    core: fixture.core,
+    storage: {},
+    loadArmoryState: () => ({ ok: false }),
+    optimizeScratchProgression: fixture.optimizeProgression,
+  });
+  const result = await adapter.optimize({
+    build: { build: { equipment: { head: fixture.empty() }, artifacts: {}, supportSlots: {} }, attributes: { dex: 7 }, sourceKind: "scratch" },
+    sourceKind: "scratch",
+    attributePointBudget: 0,
+    goals: { priorities: [{ id: "attack", rank: 1, mode: "at_least", minimum: 120 }] },
+    progression: { enabled: true },
+    rules: {},
+  });
+
+  assert.equal(result.build.equipment.head.itemId, "item-1");
+  assert.ok(result.goalResults[0].value >= 120);
+});
+
 test("gear-aware scratch progression uses deterministic fast and thorough finalist bounds", async () => {
   const run = async (depth) => {
     const fixture = gearAwareProgressionFixture();
@@ -877,6 +898,46 @@ test("progression finalist task keeps attributes fixed and reports protected-sta
   assert.equal(result.minimumsSatisfied, false);
   assert.equal(result.build.equipment.head.itemId, "item-1");
   assert.equal(result.progression.settings.gearItemId, "item-1");
+});
+
+test("progression retries with an escalating floor penalty only after the ordinary objective misses", () => {
+  const fixture = gearAwareProgressionFixture();
+  const calculate = fixture.core.calculateBuild;
+  fixture.core.calculateBuild = (build, attributes, options) => {
+    const result = calculate(build, attributes, options);
+    if (!build.floorBoost) return result;
+    return {
+      ...result,
+      stats: result.stats.map((row) => row.id === "attack"
+        ? { ...row, total: row.total - 10 }
+        : row.id === "guard" ? { ...row, total: row.total + 100 } : row),
+    };
+  };
+  let attempts = 0;
+  const progressionOptimizer = ({ build, settings, evaluate, score }) => {
+    attempts += 1;
+    const ordinary = structuredClone(build);
+    const floorAware = { ...structuredClone(build), floorBoost: true };
+    const selected = score(evaluate(floorAware)) > score(evaluate(ordinary)) ? floorAware : ordinary;
+    return { build: selected, settings, summary: { masteryPointsByWeapon: {}, passiveSkills: 0, unifiedMasteries: 0 } };
+  };
+  const build = { equipment: { head: { ...fixture.empty(), itemId: "item-0" } }, artifacts: {}, supportSlots: {} };
+  const result = optimizeProgressionFinalistTask(fixture.core, { build, attributes: {} }, {
+    weapons: [],
+    settings: { enabled: true },
+    rankedGoals: [{ id: "attack", components: ["attack"], weight: 1 }],
+    constraintGoals: [{ id: "attack", components: ["attack"], weight: 1 }, { id: "guard", components: ["guard"], weight: 0 }],
+    baseline: { attack: 0 },
+    scales: { attack: 100, guard: 100 },
+    protectedStats: { guard: { min: 50 } },
+    minimums: { guard: 50 },
+    includeSetEffects: true,
+    scenario: null,
+  }, progressionOptimizer);
+
+  assert.equal(attempts, 2);
+  assert.equal(result.stats.guard, 100);
+  assert.equal(result.minimumsSatisfied, true);
 });
 
 test("Questlog import uses the hosted adapter and normalizes the requested build", async () => {

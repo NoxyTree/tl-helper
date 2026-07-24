@@ -311,3 +311,26 @@ test("goal-minimum targets reserve floor-capable states through beam pruning", a
   assert.equal(aware.frontier.some(meetsFloors), true, "minimum targets must carry a joint-floor state into the frontier");
   assert.equal(aware.best.selections.slot.id, unaware.best.selections.slot.id, "reservation is additive and must not change the unconstrained best result");
 });
+
+test("an explicitly empty minimum-target list is byte-identical to the no-floor path", async () => {
+  const options = {
+    candidatesBySlot: {
+      first: [
+        { id: "a", stats: { attack: 10 } },
+        { id: "b", stats: { attack: 9, guard: 2 } },
+      ],
+      second: [
+        { id: "c", stats: { attack: 4 } },
+        { id: "d", stats: { guard: 5 } },
+      ],
+    },
+    weights: { attack: 1, guard: 0.2 },
+    paretoStats: ["attack", "guard"],
+    beamWidth: 2,
+    paretoWidth: 2,
+    evaluate: async (_selections, context) => ({ score: context.approximateStats.attack + context.approximateStats.guard * 0.2, stats: context.approximateStats }),
+  };
+  const omitted = await optimizeFullBuild(options);
+  const empty = await optimizeFullBuild({ ...options, minimumTargets: [] });
+  assert.deepEqual(empty, omitted);
+});
