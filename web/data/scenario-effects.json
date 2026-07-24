@@ -29,15 +29,15 @@
     "limitation": "Only entries with an explicit executableSemantics reference may be evaluated. Every other entry remains a non-executable work-queue shell, and descriptions never create rules."
   },
   "counts": {
-    "total": 534,
+    "total": 535,
     "byFamily": {
       "weaponPassive": 65,
-      "masteryNonStructured": 159,
+      "masteryNonStructured": 160,
       "itemPerkComplex": 286,
       "setBreakpointConditional": 24
     },
     "bySupportState": {
-      "catalogued_unmodeled": 489,
+      "catalogued_unmodeled": 490,
       "scenario_executable_decoded": 22,
       "unsupported_static_calculator": 9,
       "static_component_only": 14
@@ -32729,6 +32729,67 @@
           "projectionPath": "data.masteries[id=Spear_High_Attack_01].passives",
           "rankCount": 10,
           "selectedDescriptionRank": 10
+        }
+      ],
+      "unresolvedFields": [
+        "activationCondition",
+        "applicationOrder",
+        "cooldown",
+        "duration",
+        "formula",
+        "procProbability",
+        "recipient",
+        "stacking",
+        "trigger",
+        "uptime"
+      ],
+      "executableSemantics": null
+    },
+    {
+      "catalogId": "masteryNonStructured:Spear_High_Attack_Skill",
+      "sourceFamily": "masteryNonStructured",
+      "sourceId": "Spear_High_Attack_Skill",
+      "name": "Ultimate Impact",
+      "description": "Mortal Wrath Damage is boosted by 225%, but can only be activated 1 time per skill. Magic, Melee, and Ranged Defense decreases by 200.",
+      "carriers": [
+        {
+          "kind": "mastery_node",
+          "id": "Spear_High_Attack_Skill",
+          "name": "Ultimate Impact",
+          "specializationType": "synergy",
+          "weaponActivatedOnly": false
+        }
+      ],
+      "weaponRequirements": [
+        "spear"
+      ],
+      "supportState": "catalogued_unmodeled",
+      "precision": {
+        "stage": "unsupported",
+        "source": "projected",
+        "semantics": "unresolved",
+        "executable": false
+      },
+      "provenance": [
+        {
+          "kind": "projection",
+          "path": "web/data/projections/progression.json",
+          "selector": "data.masteries[id=Spear_High_Attack_Skill]"
+        },
+        {
+          "kind": "classification_contract",
+          "path": "web/tl-passive-effect-contract.js",
+          "selector": "PASSIVE_EFFECT_CONTRACT.families.masteryNonStructured.classes.conditional"
+        }
+      ],
+      "sourceEdges": [
+        {
+          "from": "Spear_High_Attack_Skill",
+          "relation": "has_rank_descriptions",
+          "to": "Spear_High_Attack_Skill:ranks",
+          "projectionPath": "data.masteries[id=Spear_High_Attack_Skill].passives",
+          "rankCount": 1,
+          "selectedDescriptionRank": 1
         }
       ],
       "unresolvedFields": [

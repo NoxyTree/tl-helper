@@ -15,6 +15,7 @@ import {
   MASTERY_SYNERGY_RULES,
   PASSIVE_SKILL_RULES,
   PERK_PASSIVE_RULES,
+  QUESTLOG_LEGACY_IMPORT_PERK_PASSIVE_RULES,
   SET_EXCLUSIVITY_GROUPS,
   CONTEXT_SPLIT_COMPOSITE_IDS,
   SET_PASSIVE_RULES,
@@ -598,11 +599,17 @@ export function importQuestlogBuild(payload) {
     const item = indexes.itemById[row?.id];
     if (!row?.id || !item) continue;
     const heroicEffects = importedHeroicEffects(item, row.heroic);
+    const importedPerkId = row.perk ?? "";
+    const importedPerk = values(item.availablePerks).find((perk) => perk?.id === importedPerkId);
+    const legacyPerkPassiveId = QUESTLOG_LEGACY_IMPORT_PERK_PASSIVE_RULES[importedPerk?.passive?.id]
+      ? importedPerk.passive.id
+      : "";
     const selection = {
       ...emptyEquipmentSelection(),
       itemId: item.id,
       level: Number(row.itemLevel ?? getItemLevels(item).at(-1) ?? 0),
-      perkId: row.perk ?? "",
+      perkId: importedPerkId,
+      ...(legacyPerkPassiveId ? { questlogLegacyPerkPassiveId: legacyPerkPassiveId } : {}),
       artifactStatId: row.artifact ?? "",
       potentialId: row.potential ?? "",
       traits: tierRows(item.itemStats?.traits, row.traits),
@@ -884,7 +891,10 @@ export function activePersistentItemPassiveSources(progression, selections) {
     });
     const perk = selectedItemPerk(item, selection);
     const perkPassiveId = perk?.passive?.id;
-    const perkRule = PERK_PASSIVE_RULES[perkPassiveId];
+    const legacyImportRule = selection?.questlogLegacyPerkPassiveId === perkPassiveId
+      ? QUESTLOG_LEGACY_IMPORT_PERK_PASSIVE_RULES[perkPassiveId]
+      : null;
+    const perkRule = PERK_PASSIVE_RULES[perkPassiveId] ?? legacyImportRule;
     const requiredWeaponEquipped = !perkRule?.requiredWeapon || weaponTypes.has(perkRule.requiredWeapon);
     if (perkRule && requiredWeaponEquipped) candidates.push({
       passiveId: perkPassiveId,

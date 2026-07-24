@@ -30,3 +30,20 @@ test("validated RowStruct locator decodes EffectProperty and Staff abnormal stat
     rmSync(output, { recursive: true, force: true });
   }
 });
+
+test("summary-bounded name map decodes names preceding the first /Game path", { skip: !existsSync(path.join(tableRoot, "TLStarJourney.uasset")) }, () => {
+  const output = mkdtempSync(path.join(tmpdir(), "tl-decoder-star-journey-"));
+  try {
+    const result = spawnSync(process.execPath, [decoder, path.join(tableRoot, "TLStarJourney.uasset"), "--out", output], { encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const decoded = JSON.parse(readFileSync(path.join(output, "TLStarJourney.json"), "utf8"));
+    assert.equal(decoded.decodedRowCount, 184);
+    assert.deepEqual(decoded.unsupportedTypes, []);
+    assert.deepEqual(decoded.warnings, []);
+    assert.equal(decoded.trailingBytes, 0);
+    assert.deepEqual(decoded.rows["#Adventure_Start"].RewardStats, []);
+    assert.deepEqual(decoded.rows.StarJourney_Adv_001.RewardStats, [{ RewardStatID: "hp_max_50", Seed: 1 }]);
+  } finally {
+    rmSync(output, { recursive: true, force: true });
+  }
+});

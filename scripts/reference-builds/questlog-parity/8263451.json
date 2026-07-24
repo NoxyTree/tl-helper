@@ -2,120 +2,114 @@
  "schema": "tl-helper.questlog-parity-fixture",
  "schemaVersion": 1,
  "characterSlug": "TheMysteryOfTheWoolenDungeon",
- "buildId": "8215841",
- "label": "Melee DPS (sword/greatsword)",
- "capturedAtUtc": "2026-07-24T00:00:00.000Z",
- "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/TheMysteryOfTheWoolenDungeon?build-id=8215841",
- "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (87/90).",
- "note": "Questlog payload and rendered Combined Stats panel frozen together. The panel is the reference; regenerate both at once or they desynchronise when the owner edits the build.",
+ "buildId": "8263451",
+ "label": "Melee DPS max-dmg (greatsword/dagger)",
+ "capturedAtUtc": "2026-07-24T03:00:00.000Z",
+ "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/TheMysteryOfTheWoolenDungeon?build-id=8263451",
+  "baselineMatched": 88,
+ "note": "Panel captured with build selection VERIFIED in-page (the selected build row carries id build-order-*-<buildId> and class border-accent) before reading the stats panel. Duplicate-label rows (Attack Speed, Range) excluded as unresolvable.",
  "questlogPanel": {
-  "Combat Power": "5669",
-  "Max Damage": "478",
-  "~": "1071",
-  "Range": "4.91m",
-  "Bonus Damage": "92",
-  "Species Damage Boost": "72",
-  "Melee Critical Hit Chance": "2,666",
-  "Magic Critical Hit Chance": "2,268",
-  "Ranged Critical Hit Chance": "2,268",
-  "Melee Heavy Attack Chance": "1,472",
-  "Ranged Heavy Attack Chance": "1,040",
-  "Magic Heavy Attack Chance": "1,040",
-  "Critical Damage": "51.7%",
-  "Melee Hit Chance": "4,134.4",
-  "Ranged Hit Chance": "3,290.4",
-  "Magic Hit Chance": "3,290.4",
-  "Damage Reduction": "30",
-  "Melee Defense": "3,614",
-  "Ranged Defense": "3,776",
-  "Magic Defense": "3,248",
-  "Melee Evasion": "552",
-  "Ranged Evasion": "552",
-  "Magic Evasion": "552",
-  "Melee Endurance": "102",
-  "Ranged Endurance": "138",
-  "Magic Endurance": "12",
-  "Melee Heavy Attack Evasion": "72",
-  "Ranged Heavy Attack Evasion": "72",
-  "Magic Heavy Attack Evasion": "120",
-  "Critical Damage Resistance": "25.3%",
-  "Heavy Attack Damage Resistance": "4%",
-  "Strength": "50",
-  "Dexterity": "120",
-  "Wisdom": "44",
-  "Perception": "100",
-  "Fortitude": "14",
-  "Max Health": "40,213.14",
-  "Health Regen": "259",
-  "Max Mana": "10,430",
-  "Mana Regen": "414",
-  "Mana Cost Efficiency": "33%",
-  "Movement Speed": "29%",
-  "Max Stamina": "35",
-  "Stamina Regen": "1.6",
-  "Skill Damage Boost": "587",
-  "Cooldown Speed": "47.5%",
-  "Buff Duration": "75.3%",
-  "Debuff Duration": "-11%",
-  "Weaken Resistance": "217",
-  "Stun Resistance": "202",
-  "Petrification Resistance": "142",
-  "Sleep Resistance": "187",
-  "Silence Resistance": "187",
-  "Fear Resistance": "187",
+  "Bind Chance": "752",
   "Bind Resistance": "277",
-  "Collision Resistance": "307",
-  "Skill Damage Resistance": "595",
-  "Stun Chance": "993",
-  "Fear Chance": "640",
-  "Bind Chance": "700",
-  "Petrification Chance": "640",
-  "Sleep Chance": "640",
-  "Collision Chance": "1,005",
-  "Silence Chance": "640",
-  "Weaken Chance": "665",
-  "PvP Melee Critical Hit Chance": "2,667.2",
-  "PvP Ranged Critical Hit Chance": "2,268",
-  "PvP Magic Critical Hit Chance": "2,268",
-  "PvP Melee Endurance": "103.2",
-  "PvP Ranged Endurance": "138",
-  "PvP Magic Endurance": "12",
-  "PvP Melee Hit Chance": "4,909.6",
-  "PvP Ranged Hit Chance": "4,064.4",
-  "PvP Magic Hit Chance": "4,064.4",
-  "PvP Melee Evasion": "553.2",
-  "PvP Ranged Evasion": "552",
-  "PvP Magic Evasion": "552",
-  "PvP Melee Heavy Attack Chance": "2,053.2",
-  "PvP Ranged Heavy Attack Chance": "1,040",
-  "PvP Magic Heavy Attack Chance": "1,040",
-  "PvP Melee Heavy Attack Evasion": "73.2",
-  "PvP Ranged Heavy Attack Evasion": "72",
-  "PvP Magic Heavy Attack Evasion": "120",
+  "Bonus Damage": "92",
   "Boss Damage Reduction": "30",
-  "Boss Melee Critical Hit Chance": "2,666",
-  "Boss Ranged Critical Hit Chance": "2,268",
-  "Boss Magic Critical Hit Chance": "2,268",
-  "Boss Melee Endurance": "102",
-  "Boss Ranged Endurance": "138",
-  "Boss Magic Endurance": "12",
-  "Boss Melee Hit Chance": "4,134.4",
-  "Boss Ranged Hit Chance": "3,290.4",
-  "Boss Magic Hit Chance": "3,290.4",
-  "Boss Melee Evasion": "552",
-  "Boss Ranged Evasion": "552",
+  "Boss Magic Critical Hit Chance": "2,348",
+  "Boss Magic Endurance": "177",
   "Boss Magic Evasion": "552",
-  "Boss Melee Heavy Attack Chance": "1,472",
-  "Boss Ranged Heavy Attack Chance": "1,040",
-  "Boss Magic Heavy Attack Chance": "1,040",
+  "Boss Magic Heavy Attack Chance": "880",
+  "Boss Magic Heavy Attack Evasion": "120",
+  "Boss Magic Hit Chance": "2,625.4",
+  "Boss Melee Critical Hit Chance": "2,746",
+  "Boss Melee Endurance": "267",
+  "Boss Melee Evasion": "552",
+  "Boss Melee Heavy Attack Chance": "1,307",
   "Boss Melee Heavy Attack Evasion": "72",
+  "Boss Melee Hit Chance": "2,999.4",
+  "Boss Ranged Critical Hit Chance": "2,348",
+  "Boss Ranged Endurance": "303",
+  "Boss Ranged Evasion": "552",
+  "Boss Ranged Heavy Attack Chance": "880",
   "Boss Ranged Heavy Attack Evasion": "72",
-  "Boss Magic Heavy Attack Evasion": "120"
+  "Boss Ranged Hit Chance": "2,625.4",
+  "Buff Duration": "75.3%",
+  "Collision Chance": "1,105",
+  "Collision Resistance": "307",
+  "Cooldown Speed": "65%",
+  "Critical Damage": "51.7%",
+  "Critical Damage Resistance": "25.3%",
+  "Damage Reduction": "30",
+  "Debuff Duration": "-11%",
+  "Dexterity": "120",
+  "Fear Chance": "640",
+  "Fear Resistance": "187",
+  "Fortitude": "14",
+  "Health Regen": "296",
+  "Heavy Attack Damage Resistance": "4%",
+  "Magic Critical Hit Chance": "2,348",
+  "Magic Defense": "3,248",
+  "Magic Endurance": "177",
+  "Magic Evasion": "552",
+  "Magic Heavy Attack Chance": "880",
+  "Magic Heavy Attack Evasion": "120",
+  "Magic Hit Chance": "2,625.4",
+  "Mana Regen": "677",
+  "Max Health": "40,971.94",
+  "Max Mana": "13,340",
+  "Max Stamina": "35",
+  "Melee Critical Hit Chance": "2,746",
+  "Melee Defense": "3,664",
+  "Melee Endurance": "267",
+  "Melee Evasion": "552",
+  "Melee Heavy Attack Chance": "1,307",
+  "Melee Heavy Attack Evasion": "72",
+  "Melee Hit Chance": "2,999.4",
+  "Movement Speed": "29%",
+  "Perception": "100",
+  "Petrification Chance": "640",
+  "Petrification Resistance": "142",
+  "PvP Magic Critical Hit Chance": "2,348",
+  "PvP Magic Endurance": "177",
+  "PvP Magic Evasion": "552",
+  "PvP Magic Heavy Attack Chance": "880",
+  "PvP Magic Heavy Attack Evasion": "120",
+  "PvP Magic Hit Chance": "3,399.4",
+  "PvP Melee Critical Hit Chance": "2,747.2",
+  "PvP Melee Endurance": "268.2",
+  "PvP Melee Evasion": "553.2",
+  "PvP Melee Heavy Attack Chance": "2,106.2",
+  "PvP Melee Heavy Attack Evasion": "73.2",
+  "PvP Melee Hit Chance": "3,774.6",
+  "PvP Ranged Critical Hit Chance": "2,348",
+  "PvP Ranged Endurance": "303",
+  "PvP Ranged Evasion": "552",
+  "PvP Ranged Heavy Attack Chance": "880",
+  "PvP Ranged Heavy Attack Evasion": "72",
+  "PvP Ranged Hit Chance": "3,399.4",
+  "Ranged Critical Hit Chance": "2,348",
+  "Ranged Defense": "3,826",
+  "Ranged Endurance": "303",
+  "Ranged Evasion": "552",
+  "Ranged Heavy Attack Chance": "880",
+  "Ranged Heavy Attack Evasion": "72",
+  "Ranged Hit Chance": "2,625.4",
+  "Silence Chance": "640",
+  "Silence Resistance": "187",
+  "Skill Damage Boost": "659",
+  "Skill Damage Resistance": "595",
+  "Sleep Chance": "640",
+  "Sleep Resistance": "187",
+  "Stamina Regen": "1.6",
+  "Strength": "60",
+  "Stun Chance": "993",
+  "Stun Resistance": "202",
+  "Weaken Chance": "665",
+  "Weaken Resistance": "217",
+  "Wisdom": "82"
  },
  "questlogPayload": {
   "build": {
-   "id": 8215841,
-   "name": "My Current In game Gear HIT",
+   "id": 8263451,
+   "name": "My Current In Game Gear Max DMG",
    "skillBuildId": 1373,
    "weaponSpecializationBuildId": 35318,
    "userId": "45881fe1-dc70-459a-9d4d-ef38cb38fcf8",
@@ -123,10 +117,10 @@
    "characterId": 776678,
    "attributes": {
     "con": 0,
-    "dex": 18,
-    "int": 4,
-    "per": 19,
-    "str": 18
+    "dex": 20,
+    "int": 20,
+    "per": 5,
+    "str": 14
    },
    "equipment": {
     "belt": {
@@ -352,9 +346,7 @@
     },
     "attack": {
      "id": "Usable_Food_Result_003_kB",
-     "heroic": {},
-     "traits": {},
-     "potential": null
+     "traits": {}
     },
     "brooch": {
      "id": "brooch_aa_t3_normal_001",
@@ -363,7 +355,6 @@
      "traits": {
       "skill_power_amplification": 800
      },
-     "potential": null,
      "resonance": null,
      "uniqueTraits": {}
     },
@@ -371,8 +362,8 @@
      "id": ""
     },
     "ring_1": {
-     "id": "ring_aa_t2_raid_001",
-     "perk": "SkillSet_Unique_Accessory_Skill_01",
+     "id": "ring_aa_t3_arena_001",
+     "perk": null,
      "runes": {
       "0": {
        "lvl": 80,
@@ -390,19 +381,16 @@
        "statId": "hp_max"
       }
      },
-     "heroic": {
-      "1": "per",
-      "2": "all_accuracy",
-      "3": "all_double_attack"
-     },
+     "heroic": {},
      "traits": {
       "hp_max": 600,
       "collide_amplification": 1000,
       "skill_power_amplification": 800
      },
      "potential": null,
-     "resonance": null,
-     "uniqueTraits": {}
+     "resonance": "hp_max",
+     "uniqueTraits": {},
+     "resonanceTier": 4
     },
     "ring_2": {
      "id": "ring_aa_S1_rift_001",
@@ -434,13 +422,14 @@
      "potential": null,
      "resonance": "hp_max",
      "uniqueTraits": {},
-     "resonanceTier": 4
+     "resonanceTier": 2
     },
     "defense": {
      "id": ""
     },
     "earring": {
-     "id": "earring_aa_t3_normal_007",
+     "id": "ear_aa_t2_raid_001",
+     "perk": "SkillSet_Unique_Accessory_Skill_01",
      "runes": {
       "0": {
        "lvl": 80,
@@ -458,16 +447,19 @@
        "statId": "hp_max"
       }
      },
-     "heroic": {},
+     "heroic": {
+      "1": "str",
+      "2": "dex",
+      "3": "int"
+     },
      "traits": {
       "rear_all_accuracy": 1600,
       "rear_all_double_attack": 1600,
       "rear_all_critical_attack": 1600
      },
      "potential": null,
-     "resonance": "hp_max",
-     "uniqueTraits": {},
-     "resonanceTier": 4
+     "resonance": null,
+     "uniqueTraits": {}
     },
     "utility": {
      "id": ""
@@ -531,12 +523,12 @@
       "3": null
      },
      "traits": {
-      "cost_max": 600,
+      "collide_amplification": 4000,
       "skill_power_amplification": 800,
       "buff_given_duration_modifier": 600
      },
      "potential": null,
-     "resonance": "hp_max",
+     "resonance": "bind_accuracy",
      "uniqueTraits": {},
      "resonanceTier": 4
     },
@@ -547,7 +539,7 @@
       "0": {
        "lvl": 90,
        "runeId": "Weapon_Atk_Rune_Usable_kAA_001",
-       "statId": "melee_accuracy"
+       "statId": "skill_power_amplification"
       },
       "1": {
        "lvl": 80,
@@ -557,7 +549,7 @@
       "2": {
        "lvl": 1,
        "runeId": "Weapon_All_Rune_Usable_kAA_001",
-       "statId": "melee_accuracy"
+       "statId": "melee_double_attack"
       }
      },
      "heroic": {},
@@ -603,7 +595,7 @@
       "0": {
        "lvl": 90,
        "runeId": "Weapon_Atk_Rune_Usable_kAA_001",
-       "statId": "melee_accuracy"
+       "statId": "skill_power_amplification"
       },
       "1": {
        "lvl": 80,
@@ -613,23 +605,21 @@
       "2": {
        "lvl": 1,
        "runeId": "Weapon_All_Rune_Usable_kAA_001",
-       "statId": "melee_accuracy"
+       "statId": "melee_double_attack"
       }
      },
      "heroic": {
-      "1": "all_accuracy",
-      "2": "melee_accuracy"
+      "1": "int",
+      "2": "per"
      },
      "traits": {
-      "all_accuracy": 800,
       "all_double_attack": 800,
+      "all_critical_attack": 800,
       "attack_speed_modifier": 800
      },
      "potential": null,
      "resonance": null,
-     "uniqueTraits": {
-      "per": 2
-     }
+     "uniqueTraits": {}
     },
     "riftstone": {
      "id": ""
@@ -697,7 +687,7 @@
      "id": ""
     }
    },
-   "order": 1000,
+   "order": 2000,
    "weaponTypes": [
     "sword2h",
     "dagger"
@@ -1166,6 +1156,5 @@
    "tags": []
   }
  },
- "baselineMatched": 90,
- "panelNote": "The \"Attack Speed\" row is deliberately absent: questlog renders that label TWICE with different units (0.33s and 132%), so a label-keyed panel cannot disambiguate it. Our 132% matches the percentage row."
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (85/88)."
 }

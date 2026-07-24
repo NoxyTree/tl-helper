@@ -22,7 +22,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-export const DECODER_VERSION = "0.2.0";
+export const DECODER_VERSION = "0.3.0";
 const EXTRACT_ROOT = process.env.TL_EXTRACT_ROOT ?? "D:\\TL_Extracted";
 const DATA_ROOT = process.env.TL_DATA_ROOT ?? "D:\\TL_Data";
 const BUILD = process.env.TL_STEAM_BUILD ?? "24118850";
@@ -64,23 +64,35 @@ class Reader {
 }
 
 function parseNameTable(buf) {
-  // The name table begins with the package's own object path string; anchor there.
-  const anchor = buf.indexOf(Buffer.from("/Game/"));
-  if (anchor < 2) throw new Error("no /Game/ anchor found — not a recognized Zen table package");
-  let off = anchor - 2;
+  // Zen's package summary declares the serialized-name payload at 0x18/0x1c.
+  // Do not anchor on the first /Game/ string: valid names may precede the
+  // package path (TLStarJourney has six), shifting every serialized FName index
+  // and making an otherwise valid export property stream unparseable.
+  if (buf.length < 0x20) throw new Error("truncated Zen package summary");
+  const nameOffset = buf.readUInt32LE(0x18);
+  const nameSize = buf.readUInt32LE(0x1c);
+  const nameEnd = nameOffset + nameSize;
+  if (nameOffset < 0x20 || nameSize <= 0 || nameEnd > buf.length) {
+    throw new Error(`invalid Zen name map bounds ${nameOffset}+${nameSize}`);
+  }
+  let off = nameOffset;
   const names = [];
-  while (off < buf.length - 2) {
+  while (off < nameEnd) {
+    if (off + 2 > nameEnd) throw new Error(`truncated serialized name header at ${off}`);
     const b0 = buf[off], b1 = buf[off + 1];
     const utf16 = (b0 & 0x80) !== 0;
     const len = ((b0 & 0x7f) << 8) | b1;
-    if (len === 0 || len > 1024) break;
+    if (len === 0 || len > 1024) throw new Error(`invalid serialized name length ${len} at ${off}`);
     const bytes = len * (utf16 ? 2 : 1);
+    if (off + 2 + bytes > nameEnd) throw new Error(`serialized name at ${off} exceeds name map`);
     const s = buf.slice(off + 2, off + 2 + bytes).toString(utf16 ? "utf16le" : "latin1");
-    if (!utf16 && !/^[\x09\x0a\x0d\x20-\x7e -￿]*$/.test(s)) break;
+    if (!utf16 && !/^[\x09\x0a\x0d\x20-\x7e -￿]*$/.test(s)) {
+      throw new Error(`invalid serialized ANSI name at ${off}`);
+    }
     names.push(s);
     off += 2 + bytes;
   }
-  return { names, endOffset: off };
+  return { names, endOffset: nameEnd };
 }
 
 // ---------------------------------------------------------------- tagged properties

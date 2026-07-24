@@ -190,6 +190,6 @@ test("new standalone mastery rules apply only their persistent sheet components"
   assert.equal(only(gauntlet, "critical_damage_dealt_modifier"), 1560);
   assert.equal(only(gauntlet, "critical_damage_taken_modifier"), 1560);
 
-  assert.equal(only(masteryRows("Spear_High_Attack_Skill", 1), "all_armor"), -200);
+  assert.equal(MASTERY_SYNERGY_RULES.Spear_High_Attack_Skill, undefined);
   assert.equal(only(masteryRows("Sword2h_Normal_Def_Skill", 1), "melee_double_attack"), -1000);
 });

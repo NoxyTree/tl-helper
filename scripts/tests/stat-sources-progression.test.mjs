@@ -85,7 +85,6 @@ test("material rules preserve stacking and equipment conditions", () => {
   assert.equal(conditions.appliesForEachEquippedWeapon, true);
   assert.deepEqual(ARMOR_MATERIAL_BONUSES.wand.fabric.stats, {
     cost_consumption_modifier: 300,
-    heal_modifier: 300,
   });
 });
 

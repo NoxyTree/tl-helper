@@ -142,9 +142,9 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
         "unified": 24
       },
       "expectedClassCounts": {
-        "persistentStatic": 33,
+        "persistentStatic": 32,
         "persistentUnrepresentable": 1,
-        "conditional": 159
+        "conditional": 160
       },
       "classes": {
         "persistentStatic": [
@@ -162,7 +162,6 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
           "GT_Hero_Tactic_04",
           "Spear_Hero_Tactic_04",
           "Spear_Hero_Util_02",
-          "Spear_High_Attack_Skill",
           "Staff_Hero_Attack_01",
           "Staff_Hero_Defense_03",
           "Staff_High_Def_Skill",
@@ -258,6 +257,7 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
           "Spear_Hero_Attack_01",
           "Spear_Hero_Defense_03",
           "Spear_High_Attack_01",
+          "Spear_High_Attack_Skill",
           "Spear_High_Def_Skill",
           "Spear_High_Tac_Skill",
           "Spear_High_Util_Skill",
@@ -711,7 +711,6 @@ export const PASSIVE_EFFECT_CONTRACT = Object.freeze({
       "GT_Hero_Tactic_04",
       "Spear_Hero_Tactic_04",
       "Spear_Hero_Util_02",
-      "Spear_High_Attack_Skill",
       "Staff_Hero_Attack_01",
       "Staff_Hero_Defense_03",
       "Staff_High_Def_Skill",

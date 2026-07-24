@@ -6,7 +6,7 @@
  "label": "Hit tank (sword/greatsword)",
  "capturedAtUtc": "2026-07-24T00:00:00.000Z",
  "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/MysteriesWithTheThunderousMortal?build-id=8197308",
- "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (73/73). Raise only alongside the change that earned it.",
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (73/73).",
  "note": "Questlog payload and rendered Combined Stats panel frozen together. The panel is the reference; regenerate both at once or they desynchronise when the owner edits the build.",
  "questlogPanel": {
   "Attack Speed": "97.6%",

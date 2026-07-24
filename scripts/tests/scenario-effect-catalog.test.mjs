@@ -33,15 +33,15 @@ test("catalogue covers the exact conditional source universe", () => {
   assert.equal(catalog.schemaVersion, SCENARIO_EFFECT_CATALOG_SCHEMA_VERSION);
   assert.equal(catalog.gameBuild, "24118850");
   assert.deepEqual(catalog.counts, {
-    total: 534,
+    total: 535,
     byFamily: {
       weaponPassive: 65,
-      masteryNonStructured: 159,
+      masteryNonStructured: 160,
       itemPerkComplex: 286,
       setBreakpointConditional: 24,
     },
     bySupportState: {
-      catalogued_unmodeled: 489,
+      catalogued_unmodeled: 490,
       scenario_executable_decoded: 22,
       unsupported_static_calculator: 9,
       static_component_only: 14,
@@ -76,7 +76,7 @@ test("every entry is an explicit shell with provenance, edges, and no inferred e
   assert.equal(catalog.policy.descriptionInference, false);
   assert.equal(Object.hasOwn(catalog, "defaultEffect"), false);
   assert.equal(Object.hasOwn(catalog, "defaultSupportState"), false);
-  assert.equal(new Set(catalog.effects.map((row) => row.catalogId)).size, 534);
+  assert.equal(new Set(catalog.effects.map((row) => row.catalogId)).size, 535);
   for (const effect of catalog.effects) {
     assert.ok(effect.sourceId);
     assert.ok(effect.name);

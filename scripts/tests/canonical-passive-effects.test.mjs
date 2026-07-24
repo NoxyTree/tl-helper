@@ -144,7 +144,7 @@ test("mastery direct and passive-interaction bindings cover exactly 33 persisten
   const bindings = contract.bindings;
   assertExactSet(Object.keys(MASTERY_SYNERGY_RULES), bindings.masteryRule, "mastery rule registry drifted");
   assertExactSet(Object.keys(UNIFIED_MASTERY_RULES), bindings.unifiedMasteryRule, "unified mastery registry drifted");
-  assert.equal(bindings.masteryRule.length, 26);
+  assert.equal(bindings.masteryRule.length, 25);
   assert.deepEqual(bindings.unifiedMasteryRule, ["WM_Common_SKILL_007"]);
   assert.equal(bindings.masteryPassiveInteraction.length, 12);
 
@@ -161,7 +161,7 @@ test("mastery direct and passive-interaction bindings cover exactly 33 persisten
   const directMasteries = new Set([...bindings.masteryRule, ...bindings.unifiedMasteryRule]);
   assert.equal(interactionMasteries.filter((id) => directMasteries.has(id)).length, 6);
   const mapped = sorted([...directMasteries, ...interactionMasteries]);
-  assert.equal(mapped.length, 33);
+  assert.equal(mapped.length, 32);
   assertExactSet(mapped, contract.families.masteryNonStructured.classes.persistentStatic, "persistent mastery binding drifted");
   assert.deepEqual(contract.families.masteryNonStructured.classes.persistentUnrepresentable, ["GT_Hero_Attack_01"]);
   assert.equal(mapped.includes("GT_Hero_Attack_01"), false);

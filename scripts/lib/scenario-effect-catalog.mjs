@@ -546,7 +546,7 @@ export function buildScenarioEffectCatalog({
   ].sort((left, right) => codepointSort(left.catalogId, right.catalogId));
 
   if (new Set(effects.map((row) => row.catalogId)).size !== effects.length) fail("catalog IDs must be unique");
-  if (effects.length !== 534) fail(`expected 534 conditional effect shells, received ${effects.length}`);
+  if (effects.length !== 535) fail(`expected 535 conditional effect shells, received ${effects.length}`);
 
   return Object.freeze({
     schema: SCENARIO_EFFECT_CATALOG_SCHEMA,

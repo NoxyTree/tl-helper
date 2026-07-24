@@ -6,7 +6,7 @@
  "label": "Healer (orb/wand)",
  "capturedAtUtc": "2026-07-24T02:20:00.000Z",
  "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/TheBloodOfTheThornyRavenous?build-id=8261110",
- "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (82/83). Raise only alongside the change that earned it.",
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (82/83).",
  "note": "Panel and payload verified to belong to the SAME build (\"t4 theory\"). The original capture paired this panel with build 8023583, which the character page was NOT displaying — a payload/panel desync that made a 98%-accurate archetype read as 6%.",
  "questlogPanel": {
   "Combat Power": "6982",
@@ -1158,5 +1158,5 @@
    "tags": []
   }
  },
- "baselineMatched": 82
+ "baselineMatched": 83
 }
