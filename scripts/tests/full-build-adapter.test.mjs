@@ -18,6 +18,24 @@ test("set-route representatives survive bounded downstream finalist selection", 
   assert.deepEqual(selected.map((row) => row.key), ["general", "alpha", "beta", "artifact"]);
 });
 
+test("floor-aware downstream retention keeps the historical objective lane", () => {
+  const rows = [
+    { key: "objective", evaluation: { score: 100, stats: { attack: 100, guard: 0 }, constraintLane: "objective" } },
+    { key: "near", evaluation: { score: 20, stats: { attack: 80, guard: 49 }, constraintLane: "feasibility" } },
+    { key: "feasible", evaluation: { score: 10, stats: { attack: 50, guard: 50 }, constraintLane: "feasibility" } },
+  ];
+  const selected = diverseFinalistsWithSetRoutes(
+    rows,
+    [{ id: "attack", components: ["attack"] }],
+    1,
+    [],
+    [],
+    { guard: 50 },
+    { guard: 50 },
+  );
+  assert.deepEqual(selected.map((row) => row.key), ["objective", "feasible"]);
+});
+
 test("same-item scratch and refit candidates preserve excluded potentials without cross-item inheritance", () => {
   const core = { emptyEquipmentSelection: () => ({ itemId: "", potentialId: "", traits: [] }), itemMaxLevel: () => 12 };
   const current = { itemId: "same", potentialId: "Potential_Stored", traits: [{ statId: "hp_max" }] };
@@ -101,6 +119,28 @@ test("attribute optimization conserves budget, follows the objective, and is det
   assert.equal(hpRuns[0].attributes.str, 10);
   const crit = optimizeAttributeAllocation({ core, build: {}, budget: 10, rankedGoals: critGoals, baseline: {}, scales: { all_critical_attack: 100 } });
   assert.equal(crit.attributes.dex, 10);
+});
+
+test("attribute floors retain objective-identical and feasibility-steered allocations", () => {
+  const core = attributeTestCore();
+  const result = optimizeAttributeAllocation({
+    core,
+    build: {},
+    budget: 10,
+    rankedGoals: normalizeRankedGoals({ priorities: [
+      { id: "hp_max", rank: 1 },
+      { id: "all_critical_attack", rank: 2, mode: "at_least", minimum: 100 },
+    ] }),
+    baseline: {},
+    scales: { hp_max: 100, all_critical_attack: 100 },
+    minimums: { all_critical_attack: 100 },
+    retainConstraintVariants: true,
+  });
+  const objective = result.constraintVariants.find((row) => row.constraintLane === "objective");
+  assert.equal(objective.attributes.str, 10);
+  assert.equal(objective.attributes.dex, 0);
+  assert.equal(result.attributes.dex, 10);
+  assert.equal(result.stats.all_critical_attack, 100);
 });
 
 test("gear-provided attributes reduce the allocation needed for a breakpoint", () => {

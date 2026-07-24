@@ -21,6 +21,7 @@ const totalMap = (calc) => Object.fromEntries((calc?.scenarioStats ?? calc?.stat
 // balance. See docs/optimizer-rank-decay-calibration-2026-07-17.md.
 const RANK_DECAY = 0.35;
 const PROGRESSION_FLOOR_PENALTY_MULTIPLIERS = Object.freeze([0, 2 ** 12, 2 ** 16]);
+const FLOOR_RECOVERY_REQUEST = Symbol("floorRecoveryRequest");
 
 export const OPTIMIZER_SEARCH_PROFILES = Object.freeze({
   preview: Object.freeze({ id: "preview", directCandidateCap: 8, runeCandidateLimit: 6, artifactBundleLimit: 12, beamWidth: 160, paretoWidth: 12, attributePoolSize: 16, runeRefinementLimit: 6, progressionPoolSize: 2 }),
@@ -342,7 +343,10 @@ function satisfiesProtectedStats(stats, protectedStats) {
   });
 }
 
-export function optimizeAttributeAllocation({ core, build, budget, rankedGoals, baseline, scales, includeSetEffects = true, minimums = {}, scenario = null, constraintGoals = null }) {
+export function optimizeAttributeAllocation({
+  core, build, budget, rankedGoals, baseline, scales, includeSetEffects = true,
+  minimums = {}, scenario = null, constraintGoals = null, retainConstraintVariants = false,
+}) {
   if (!Number.isInteger(budget) || budget < 0) throw new RangeError("attributePointBudget must be a nonnegative integer.");
   const zero = Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, 0]));
   const zeroCalc = core.calculateBuild(build, zero, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
@@ -384,20 +388,48 @@ export function optimizeAttributeAllocation({ core, build, budget, rankedGoals, 
     const violations = Object.entries(minimums).reduce((sum, [id, minimum]) => sum + Math.max(0, Number(minimum) - Number(stats[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum))), 0);
     return { attributes, calc, stats, violations, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), key: allocationKey(attributes) };
   };
-  const compare = (a, b) => a.violations - b.violations || b.score - a.score || a.key.localeCompare(b.key);
-  let best = [...seeds.values()].map(evaluate).sort(compare)[0];
-  // A small deterministic coordinate ascent catches useful splits between the
-  // breakpoint seeds without turning attributes into an exhaustive search.
-  for (let round = 0; round < 4; round += 1) {
-    const neighbors = [];
-    for (const from of ATTRIBUTE_IDS) if (best.attributes[from] > 0) for (const to of ATTRIBUTE_IDS) if (to !== from) {
-      neighbors.push(evaluate({ ...best.attributes, [from]: best.attributes[from] - 1, [to]: best.attributes[to] + 1 }));
+  const seedRows = [...seeds.values()].map(evaluate);
+  const optimizeWith = (compare) => {
+    let best = [...seedRows].sort(compare)[0];
+    // A small deterministic coordinate ascent catches useful splits between the
+    // breakpoint seeds without turning attributes into an exhaustive search.
+    for (let round = 0; round < 4; round += 1) {
+      const neighbors = [];
+      for (const from of ATTRIBUTE_IDS) if (best.attributes[from] > 0) for (const to of ATTRIBUTE_IDS) if (to !== from) {
+        neighbors.push(evaluate({ ...best.attributes, [from]: best.attributes[from] - 1, [to]: best.attributes[to] + 1 }));
+      }
+      const next = [best, ...neighbors].sort(compare)[0];
+      if (next.key === best.key) break;
+      best = next;
     }
-    const next = [best, ...neighbors].sort(compare)[0];
-    if (next.key === best.key) break;
-    best = next;
+    return { ...best, activeAttributeBreakpoints: activeAttributeBreakpoints(core, best.calc) };
+  };
+  const floorCompare = (a, b) => a.violations - b.violations || b.score - a.score || a.key.localeCompare(b.key);
+  const hasMinimums = Object.keys(minimums).length > 0;
+  if (!hasMinimums || !retainConstraintVariants) return optimizeWith(floorCompare);
+
+  // Attribute allocation is an intermediate stage when progression or rune
+  // refinement follows it. Keep the historical score optimum as a witness lane,
+  // plus finite-penalty and lexicographic-feasibility lanes. A single
+  // violation-first allocation can move away from the exact no-floor witness
+  // before a later stage has the chance to supply the remaining stat.
+  const variants = [];
+  const addVariant = (lane, row) => {
+    if (variants.some((variant) => variant.key === row.key)) return;
+    variants.push({ ...row, constraintLane: lane });
+  };
+  for (const multiplier of PROGRESSION_FLOOR_PENALTY_MULTIPLIERS) {
+    const compare = multiplier === 0
+      ? (a, b) => b.score - a.score || a.key.localeCompare(b.key)
+      : (a, b) => (b.score - multiplier * b.violations) - (a.score - multiplier * a.violations)
+        || a.violations - b.violations
+        || b.score - a.score
+        || a.key.localeCompare(b.key);
+    addVariant(multiplier === 0 ? "objective" : `penalty:${multiplier}`, optimizeWith(compare));
   }
-  return { ...best, activeAttributeBreakpoints: activeAttributeBreakpoints(core, best.calc) };
+  addVariant("feasibility", optimizeWith(floorCompare));
+  const best = [...variants].sort(floorCompare)[0];
+  return { ...best, constraintVariants: variants };
 }
 
 function minimumViolation(stats, minimums, scales) {
@@ -417,18 +449,60 @@ function minimumHeadroom(stats, minimums) {
 function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales = {}) {
   const minimumEntries = Object.entries(minimums ?? {});
   if (minimumEntries.length) {
-    const feasible = rows.filter((row) => minimumViolation(row.evaluation.stats, minimums, scales) === 0);
-    const selected = diverseFinalists(feasible, rankedGoals, limit);
-    if (selected.length >= limit) return selected;
-    const retained = new Map(selected.map((row) => [row.key, row]));
+    const hasConstraintLanes = rows.some((row) => row.evaluation.constraintLane);
+    if (!hasConstraintLanes) {
+      const feasible = rows.filter((row) => minimumViolation(row.evaluation.stats, minimums, scales) === 0);
+      const selected = diverseFinalists(feasible, rankedGoals, limit);
+      if (selected.length >= limit) return selected;
+      const retained = new Map(selected.map((row) => [row.key, row]));
+      const floorRows = [...rows].sort((a, b) =>
+        minimumViolation(a.evaluation.stats, minimums, scales) - minimumViolation(b.evaluation.stats, minimums, scales)
+        || minimumHeadroom(b.evaluation.stats, minimums) - minimumHeadroom(a.evaluation.stats, minimums)
+        || b.evaluation.score - a.evaluation.score
+        || a.key.localeCompare(b.key));
+      for (const row of floorRows) {
+        if (retained.size >= limit) break;
+        retained.set(row.key, row);
+      }
+      return [...retained.values()];
+    }
+    const retained = new Map();
+    const add = (row) => { if (row) retained.set(row.key, row); };
+    const boundedLimit = Math.max(1, limit) + 1;
+    // Preserve the exact historical lane even if another intermediate row has
+    // better current floor proximity. Only the completed downstream build can
+    // prove that this lane is unnecessary.
+    const objectiveLane = [...rows]
+      .filter((row) => row.evaluation.constraintLane === "objective")
+      .sort((a, b) => b.evaluation.score - a.evaluation.score || a.key.localeCompare(b.key))[0];
+    add(objectiveLane ?? diverseFinalists(rows, rankedGoals, 1)[0]);
+
     const floorRows = [...rows].sort((a, b) =>
       minimumViolation(a.evaluation.stats, minimums, scales) - minimumViolation(b.evaluation.stats, minimums, scales)
       || minimumHeadroom(b.evaluation.stats, minimums) - minimumHeadroom(a.evaluation.stats, minimums)
       || b.evaluation.score - a.evaluation.score
       || a.key.localeCompare(b.key));
+    add(floorRows[0]);
+    // Sum-of-shortfalls alone can erase the state best positioned for one
+    // binding floor as the number of floors grows. Reserve each per-floor
+    // extreme before filling the remaining joint-feasibility budget.
+    for (const [id, minimum] of minimumEntries) {
+      const perFloor = [...rows].sort((a, b) =>
+        Math.max(0, Number(minimum) - Number(a.evaluation.stats?.[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum)))
+          - Math.max(0, Number(minimum) - Number(b.evaluation.stats?.[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum)))
+        || b.evaluation.score - a.evaluation.score
+        || a.key.localeCompare(b.key))[0];
+      add(perFloor);
+      if (retained.size >= boundedLimit) break;
+    }
+    const feasible = rows.filter((row) => minimumViolation(row.evaluation.stats, minimums, scales) === 0);
+    for (const row of diverseFinalists(feasible, rankedGoals, limit)) {
+      if (retained.size >= boundedLimit) break;
+      add(row);
+    }
     for (const row of floorRows) {
-      if (retained.size >= limit) break;
-      retained.set(row.key, row);
+      if (retained.size >= boundedLimit) break;
+      add(row);
     }
     return [...retained.values()];
   }
@@ -609,52 +683,82 @@ export function optimizeAttributeFinalistTask(core, payload, context) {
     minimums: context.minimums,
     scenario,
     constraintGoals: context.constraintGoals ?? null,
+    retainConstraintVariants: context.retainConstraintVariants === true,
   });
-  const calculation = core.calculateBuild(payload.build, optimized.attributes, {
-    includeSetEffects: context.includeSetEffects !== false,
-    ...(scenario == null ? {} : { scenario }),
-  });
-  return {
-    score: optimized.score,
-    stats: optimized.stats,
-    attributes: optimized.attributes,
-    activeAttributeBreakpoints: optimized.activeAttributeBreakpoints,
-    setSummary: setEffectSummary(calculation),
-    blockingIssues: blockingCalculationIssues(core, calculation),
+  const shape = (row) => {
+    const calculation = row.calc ?? core.calculateBuild(payload.build, row.attributes, {
+      includeSetEffects: context.includeSetEffects !== false,
+      ...(scenario == null ? {} : { scenario }),
+    });
+    return {
+      score: row.score,
+      stats: row.stats,
+      attributes: row.attributes,
+      activeAttributeBreakpoints: row.activeAttributeBreakpoints,
+      setSummary: setEffectSummary(calculation),
+      blockingIssues: blockingCalculationIssues(core, calculation),
+      ...(row.constraintLane ? { constraintLane: row.constraintLane } : {}),
+    };
   };
+  const result = shape(optimized);
+  if (optimized.constraintVariants?.length) result.constraintVariants = optimized.constraintVariants.map(shape);
+  return result;
 }
 
 export function refineRuneFinalistTask(core, payload, context) {
   const scenario = taskScenarioForBuild(core, context.scenario, payload.build);
-  const refined = refineRuneConfiguration({
-    core,
-    build: payload.build,
-    attributes: payload.attributes,
-    budget: context.budget,
-    rankedGoals: context.rankedGoals,
-    baseline: context.baseline,
-    scales: context.scales,
-    minimums: context.minimums,
-    includeSetEffects: context.includeSetEffects !== false,
-    runeCandidatesByCategory: context.runeCandidatesByCategory,
-    lockedSlotIds: new Set(context.lockedSlotIds ?? []),
-    scenario,
-    constraintGoals: context.constraintGoals ?? null,
-  });
-  const finalScenario = taskScenarioForBuild(core, context.scenario, refined.build);
-  const calculation = core.calculateBuild(refined.build, refined.attributes, {
-    includeSetEffects: context.includeSetEffects !== false,
-    ...(finalScenario == null ? {} : { scenario: finalScenario }),
-  });
-  return {
-    score: refined.score,
-    stats: refined.stats,
-    build: refined.build,
-    attributes: refined.attributes,
-    activeAttributeBreakpoints: refined.activeAttributeBreakpoints,
-    runeInsights: refined.runeInsights,
-    blockingIssues: blockingCalculationIssues(core, calculation),
+  const refine = (minimums, constraintLane = null) => {
+    const refined = refineRuneConfiguration({
+      core,
+      build: payload.build,
+      attributes: payload.attributes,
+      budget: context.budget,
+      rankedGoals: context.rankedGoals,
+      baseline: context.baseline,
+      scales: context.scales,
+      minimums,
+      includeSetEffects: context.includeSetEffects !== false,
+      runeCandidatesByCategory: context.runeCandidatesByCategory,
+      lockedSlotIds: new Set(context.lockedSlotIds ?? []),
+      scenario,
+      constraintGoals: context.constraintGoals ?? null,
+    });
+    const finalScenario = taskScenarioForBuild(core, context.scenario, refined.build);
+    const calculation = core.calculateBuild(refined.build, refined.attributes, {
+      includeSetEffects: context.includeSetEffects !== false,
+      ...(finalScenario == null ? {} : { scenario: finalScenario }),
+    });
+    return {
+      score: refined.score,
+      stats: refined.stats,
+      build: refined.build,
+      attributes: refined.attributes,
+      activeAttributeBreakpoints: refined.activeAttributeBreakpoints,
+      runeInsights: refined.runeInsights,
+      blockingIssues: blockingCalculationIssues(core, calculation),
+      ...(constraintLane ? { constraintLane } : {}),
+    };
   };
+  const hasMinimums = Object.keys(context.minimums ?? {}).length > 0;
+  if (!hasMinimums) return refine({});
+  if (context.retainConstraintVariants !== true) return refine(context.minimums ?? {});
+
+  const variants = [];
+  const add = (row) => {
+    const key = JSON.stringify([row.build?.equipment ?? {}, row.attributes ?? {}]);
+    if (variants.some((variant) => variant._key === key)) return;
+    variants.push({ ...row, _key: key });
+  };
+  // Only an objective attribute lane can reproduce the exact no-floor witness.
+  // Preserve its historical rune/attribute refinement alongside the
+  // feasibility-first refinement; floor-derived inputs need only the latter.
+  if (payload.constraintLane === "objective") add(refine({}, "objective"));
+  add(refine(context.minimums ?? {}, "feasibility"));
+  const shaped = variants.map(({ _key, ...row }) => row);
+  const best = [...shaped].sort((a, b) =>
+    minimumViolation(a.stats, context.minimums, context.scales) - minimumViolation(b.stats, context.minimums, context.scales)
+    || b.score - a.score)[0];
+  return { ...best, constraintVariants: shaped };
 }
 
 export function optimizeProgressionFinalistTask(core, payload, context, progressionOptimizer = optimizeScratchProgression) {
@@ -924,7 +1028,7 @@ export async function createOptimizerAdapter(deps = {}) {
     { includeSetEffects, ...(scenario == null ? {} : { scenario }) },
   );
 
-  return {
+  const adapter = {
     async listWeaponTypes() {
       return (core.WEAPON_TYPES ?? []).map((id) => ({ id, name: core.label?.(id) ?? id })).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
     },
@@ -985,6 +1089,7 @@ export async function createOptimizerAdapter(deps = {}) {
     },
 
     async optimize(request, runtime = {}) {
+      const floorRecovery = request[FLOOR_RECOVERY_REQUEST] === true;
       const profile = optimizerSearchProfile(request.depth);
       const source = wrap(request.build);
       const scratch = request.sourceKind === "scratch" || request.build?.sourceKind === "scratch";
@@ -999,6 +1104,9 @@ export async function createOptimizerAdapter(deps = {}) {
       const setConstraints = (requireSetId || minimumActiveSetBonuses > 0 || forbidSetBreaking) && rules.includeSetEffects !== false
         ? { require: requireSetId, minimumActiveBonuses: minimumActiveSetBonuses, allowBreaking: !forbidSetBreaking }
         : null;
+      const floorRecoveryAllowed = !setConstraints
+        && !(request.lockedSlotIds?.length)
+        && !(request.locks?.length);
       const preferSets = setRules.prefer === true && rules.includeSetEffects !== false;
       const scenario = request.scenario ?? null;
       const scenarioForBuild = (build, weaponTypes = null) => {
@@ -1372,11 +1480,18 @@ export async function createOptimizerAdapter(deps = {}) {
           includeSetEffects: rules.includeSetEffects !== false,
           minimums: attributeMinimums,
           scenario,
+          retainConstraintVariants: floorRecovery,
         };
         const localAttributeTask = (payload, context) => {
           if (canonicalAttributeOptimizer) return optimizeAttributeFinalistTask(core, payload, context);
           const candidateScenario = scenarioForBuild(payload.build);
-          const optimized = runAttributeOptimizer({ core, build: payload.build, budget: context.budget, rankedGoals: context.rankedGoals, baseline: context.baseline, scales: context.scales, includeSetEffects: context.includeSetEffects, minimums: context.minimums, scenario: candidateScenario, constraintGoals: context.constraintGoals ?? null });
+          const optimized = runAttributeOptimizer({
+            core, build: payload.build, budget: context.budget, rankedGoals: context.rankedGoals,
+            baseline: context.baseline, scales: context.scales, includeSetEffects: context.includeSetEffects,
+            minimums: context.minimums, scenario: candidateScenario,
+            constraintGoals: context.constraintGoals ?? null,
+            retainConstraintVariants: context.retainConstraintVariants === true,
+          });
           const calculation = core.calculateBuild(payload.build, optimized.attributes, { includeSetEffects: context.includeSetEffects, ...(candidateScenario == null ? {} : { scenario: candidateScenario }) });
           return { score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, blockingIssues: blockingCalculationIssues(core, calculation) };
         };
@@ -1393,25 +1508,42 @@ export async function createOptimizerAdapter(deps = {}) {
           if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
           const candidate = preliminaryFrontier[index];
           const optimized = optimizedFinalists[index];
-          if (optimized.blockingIssues.length) {
-            recordBlockingIssues("attribute optimization", optimized.blockingIssues);
-            continue;
+          const variants = optimized.constraintVariants?.length ? optimized.constraintVariants : [optimized];
+          for (let variantIndex = 0; variantIndex < variants.length; variantIndex += 1) {
+            const variant = variants[variantIndex];
+            if (variant.blockingIssues.length) {
+              recordBlockingIssues("attribute optimization", variant.blockingIssues);
+              continue;
+            }
+            // Rune refinement and progression only add to these totals.
+            // Rejecting on the current value would be an inadmissible
+            // partial-state prune; without a proven upper bound on the
+            // remaining gain, defer the unchanged hard check to the completed
+            // build.
+            if (!progression && !runeRefinementPending && !satisfiesProtectedStats(variant.stats, protectedStats)) {
+              recordConstraintRejection("attributes", variant.stats);
+              continue;
+            }
+            exact.push({
+              ...candidate,
+              key: variants.length > 1 ? `${candidate.key}#attributes:${variant.constraintLane ?? variantIndex}` : candidate.key,
+              evaluation: {
+                ...candidate.evaluation,
+                score: variant.score,
+                stats: variant.stats,
+                attributes: variant.attributes,
+                activeAttributeBreakpoints: variant.activeAttributeBreakpoints,
+                legal: true,
+                blockingIssues: [],
+                ...(variant.constraintLane ? { constraintLane: variant.constraintLane } : {}),
+              },
+            });
           }
-          // Rune refinement and progression only add to these totals. Rejecting
-          // on the current value would be an inadmissible partial-state prune;
-          // without a proven upper bound on the remaining gain, defer the
-          // unchanged hard check to the completed build.
-          if (!progression && !runeRefinementPending && !satisfiesProtectedStats(optimized.stats, protectedStats)) {
-            recordConstraintRejection("attributes", optimized.stats);
-            continue;
-          }
-          exact.push({ ...candidate, evaluation: { ...candidate.evaluation, score: optimized.score, stats: optimized.stats, attributes: optimized.attributes, activeAttributeBreakpoints: optimized.activeAttributeBreakpoints, legal: true, blockingIssues: [] } });
         }
-        if (progression || runeRefinementPending) {
+        if (!floorRecovery && (progression || runeRefinementPending)) {
           const feasibleAtAttributes = exact.filter((row) => satisfiesProtectedStats(row.evaluation.stats, protectedStats));
-          // Preserve the historical downstream pool whenever this stage already
-          // covers every floor. Partial rows become a fallback only when eager
-          // filtering would otherwise erase the entire frontier.
+          // Preserve the established successful path and its serialized result.
+          // The recovery pass alone keeps partial rows for downstream stages.
           if (feasibleAtAttributes.length) exact.splice(0, exact.length, ...feasibleAtAttributes);
         }
         exact.sort(exactOrder);
@@ -1432,6 +1564,7 @@ export async function createOptimizerAdapter(deps = {}) {
             runeCandidatesByCategory: Object.fromEntries(runeCandidatesByCategory),
             lockedSlotIds: [...lockedSlotIds],
             scenario,
+            retainConstraintVariants: floorRecovery,
           };
           const localRuneTask = (payload, context) => {
             if (canonicalAttributeOptimizer) return refineRuneFinalistTask(core, payload, context);
@@ -1443,7 +1576,11 @@ export async function createOptimizerAdapter(deps = {}) {
           };
           const refinedFinalists = await runTaskBatch(
             "refine_runes",
-            refinementTargets.map((candidate) => ({ build: candidate.evaluation.build, attributes: candidate.evaluation.attributes })),
+            refinementTargets.map((candidate) => ({
+              build: candidate.evaluation.build,
+              attributes: candidate.evaluation.attributes,
+              constraintLane: candidate.evaluation.constraintLane ?? null,
+            })),
             runeTaskContext,
             localRuneTask,
             ({ completed, total, workerCount }) => runtime.onProgress?.({ percent: (progression ? 75 : 85) + 15 * completed / total, label: "Refining rune synergies", detail: `${completed} of ${total} diverse finalists across ${workerCount} calculation worker${workerCount === 1 ? "" : "s"}` }),
@@ -1453,12 +1590,33 @@ export async function createOptimizerAdapter(deps = {}) {
             if (runtime.signal?.aborted) throw new DOMException("Full-build optimization cancelled", "AbortError");
             const candidate = refinementTargets[index];
             const refined = refinedFinalists[index];
-            if (refined.blockingIssues.length) {
-              recordBlockingIssues("rune refinement", refined.blockingIssues);
-              continue;
-            }
             const exactIndex = exact.findIndex((row) => row.key === candidate.key);
-            exact[exactIndex] = { ...candidate, selections: { ...candidate.selections, ...clone(refined.build.equipment) }, evaluation: { ...candidate.evaluation, score: refined.score, stats: refined.stats, build: refined.build, attributes: refined.attributes, activeAttributeBreakpoints: refined.activeAttributeBreakpoints, runeInsights: refined.runeInsights } };
+            if (exactIndex < 0) continue;
+            const variants = refined.constraintVariants?.length ? refined.constraintVariants : [refined];
+            const replacements = [];
+            for (let variantIndex = 0; variantIndex < variants.length; variantIndex += 1) {
+              const variant = variants[variantIndex];
+              if (variant.blockingIssues.length) {
+                recordBlockingIssues("rune refinement", variant.blockingIssues);
+                continue;
+              }
+              replacements.push({
+                ...candidate,
+                key: variants.length > 1 ? `${candidate.key}#runes:${variant.constraintLane ?? variantIndex}` : candidate.key,
+                selections: { ...candidate.selections, ...clone(variant.build.equipment) },
+                evaluation: {
+                  ...candidate.evaluation,
+                  score: variant.score,
+                  stats: variant.stats,
+                  build: variant.build,
+                  attributes: variant.attributes,
+                  activeAttributeBreakpoints: variant.activeAttributeBreakpoints,
+                  runeInsights: variant.runeInsights,
+                  ...(variant.constraintLane ? { constraintLane: variant.constraintLane } : {}),
+                },
+              });
+            }
+            exact.splice(exactIndex, 1, ...replacements);
           }
           exact.sort(exactOrder);
         }
@@ -1767,6 +1925,7 @@ export async function createOptimizerAdapter(deps = {}) {
               : "";
           const error = new Error(`No build satisfies the protected or minimum stat constraints.${detail ? ` ${detail}.` : ""}`);
           error.constraintDiagnostics = { conflicts, closest, rejectionStages: Object.fromEntries(rejectionDiagnostics.constraintsByStage) };
+          if (!floorRecovery && floorRecoveryAllowed) return adapter.optimize({ ...request, [FLOOR_RECOVERY_REQUEST]: true }, runtime);
           throw error;
         }
         if (rejectionDiagnostics.setConstraints && setConstraints) {
@@ -1780,12 +1939,16 @@ export async function createOptimizerAdapter(deps = {}) {
           throw error;
         }
         if (blockingSummary) throw new Error(`No complete build passed the final calculation checks. ${blockingSummary}`);
-        if (Object.keys(protectedStats).length) throw new Error("No build satisfies the protected or minimum stat constraints.");
+        if (Object.keys(protectedStats).length) {
+          if (!floorRecovery && floorRecoveryAllowed) return adapter.optimize({ ...request, [FLOOR_RECOVERY_REQUEST]: true }, runtime);
+          throw new Error("No build satisfies the protected or minimum stat constraints.");
+        }
         throw new Error("No complete build passed the final calculation checks.");
       }
       return shapeResult(search.best);
     },
   };
+  return adapter;
 }
 
 export default createOptimizerAdapter;
