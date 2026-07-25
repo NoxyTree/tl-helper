@@ -5,6 +5,53 @@ import test from "node:test";
 
 const read = (relative) => readFile(new URL(`../../${relative}`, import.meta.url), "utf8");
 
+// An unanchored .vercelignore name matches at EVERY depth, not just the repo
+// root. `supabase/` — meant for the top-level Supabase CLI folder — therefore
+// also dropped web/vendor/supabase/, which 404'd the vendored client and broke
+// same-origin sign-in in production while every other page kept working.
+test("no .vercelignore pattern can strip a file out of the deployed web directory", async () => {
+  const patterns = (await read(".vercelignore"))
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"));
+  assert.ok(patterns.length > 10, "the ignore list was not parsed");
+
+  // Only bare names (`plans/`, `aes.txt`, `*.log`) float to arbitrary depth.
+  // Anything anchored with `/`, or carrying an internal path separator, is
+  // pinned to the repo root and cannot reach inside web/.
+  const floating = patterns
+    .filter((pattern) => !pattern.startsWith("/") && !pattern.replace(/\/$/, "").includes("/"))
+    .map((pattern) => pattern.replace(/\/$/, ""));
+
+  const names = new Set();
+  const queue = [new URL("../../web/", import.meta.url)];
+  while (queue.length) {
+    const directory = queue.pop();
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      names.add(entry.name);
+      if (entry.isDirectory()) queue.push(new URL(`${entry.name}/`, directory));
+    }
+  }
+  assert.ok(names.size > 100, "the web tree was not walked");
+
+  const matches = (pattern, name) =>
+    pattern.includes("*")
+      ? new RegExp(`^${pattern.split("*").map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join("[^/]*")}$`).test(name)
+      : pattern === name;
+
+  const collisions = floating.flatMap((pattern) =>
+    [...names].filter((name) => matches(pattern, name)).map((name) => `${pattern} → web/**/${name}`),
+  );
+  assert.deepEqual(collisions, [], "anchor these patterns with a leading slash so they stay at the repo root");
+});
+
+test("the vendored Supabase client ships with the app it is imported from", async () => {
+  const client = await read("web/tl-supabase.js");
+  const [, specifier] = client.match(/SUPABASE_LIB_URL\s*=\s*"([^"]+)"/) ?? [];
+  assert.ok(specifier, "tl-supabase.js declares the same-origin library URL");
+  await access(new URL(`../../web/${specifier.replace(/^\.\//, "")}`, import.meta.url));
+});
+
 test("Cloudflare Pages serves the web app and production domain", async () => {
   const config = await read("wrangler.toml");
   assert.match(config, /pages_build_output_dir\s*=\s*"\.\/web"/);
