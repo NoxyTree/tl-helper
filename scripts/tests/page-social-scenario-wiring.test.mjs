@@ -16,7 +16,10 @@ const CONTROL_IDS = [
   "scenario-allied-nonparty-within4",
 ];
 
-test("all three scenario pages expose the same optional social observations", () => {
+// Build From Scratch dropped its Combat Scenario setup panel, so it no longer
+// renders social observation inputs. Gear Viewer and Full Build Optimizer still
+// do, and must stay identical to each other.
+test("both scenario setup pages expose the same optional social observations", () => {
   for (const html of [gear, optimizer]) {
     for (const id of CONTROL_IDS) assert.match(html, new RegExp(`id="${id}"`), id);
   }
@@ -25,9 +28,9 @@ test("all three scenario pages expose the same optional social observations", ()
     "scenarioPartyWithin4",
     "scenarioPartyAdditional4To16",
     "scenarioAlliedNonpartyWithin4",
-  ]) assert.match(scratch, new RegExp(`value="\\{\\{ ${binding} \\}\\}"`), binding);
+  ]) assert.doesNotMatch(scratch, new RegExp(`value="\\{\\{ ${binding} \\}\\}"`), binding);
 
-  for (const html of [gear, optimizer, scratch]) {
+  for (const html of [gear, optimizer]) {
     assert.match(html, /Total party (?:members )?including self/i);
     assert.match(html, /Other party(?: members)? within (?:4m|4 metres)/i);
     assert.match(html, /Allied nonparty/i);

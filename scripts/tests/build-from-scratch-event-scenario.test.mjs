@@ -4,14 +4,13 @@ import test from "node:test";
 
 const html = await readFile(new URL("../../web/build-from-scratch.html", import.meta.url), "utf8");
 
-test("Build From Scratch exposes exact evaluation-instant event controls", () => {
-  assert.match(html, /Successful skill event at evaluation/);
-  assert.match(html, /value="mobility_now">Successful Mobility now/);
-  assert.match(html, /value="movement_now">Successful Movement now/);
-  assert.match(html, /value="mobility_movement_now">Successful Mobility \+ Movement now/);
-  assert.match(html, /aria-label="Scenario triggering selected weapon"/);
-  assert.match(html, /scenarioEventWeaponOptions/);
-  assert.match(html, /Exact selected-timestamp state only; no uptime is assumed/);
+test("the evaluation-instant event controls went with the Combat Scenario panel", () => {
+  // Removed with the rest of the scenario setup UI. The event state and its
+  // shared helper survive (next test), so this is presentation-only.
+  assert.doesNotMatch(html, /Successful skill event at evaluation/);
+  assert.doesNotMatch(html, /value="mobility_now">Successful Mobility now/);
+  assert.doesNotMatch(html, /aria-label="Scenario triggering selected weapon"/);
+  assert.doesNotMatch(html, /Exact selected-timestamp state only; no uptime is assumed/);
 });
 
 test("event state is initialized and converted through the shared helper", () => {

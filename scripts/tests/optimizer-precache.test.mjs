@@ -106,3 +106,21 @@ test("a committed precache is fresh and internally consistent", { skip: !existsS
     assert.equal(calc.status.state, "legal", `${fileName}: stored build must pass the legality calculation`);
   }
 });
+
+test("the Build Optimizer default progression matches what the precache is generated with", () => {
+  // overallMasteryLevel is part of the precache cache key (tl-optimizer-precache.js).
+  // If the UI default and the precompute script drift apart, every preset misses
+  // the cache and silently falls through to a live ~45s optimization — no error,
+  // no failing assertion anywhere else, just a site that got slow.
+  const html = readFileSync(join(repoRoot, "web", "build-from-scratch.html"), "utf8");
+  const script = readFileSync(join(repoRoot, "scripts", "precompute-optimizer-results.mjs"), "utf8");
+
+  const uiDefaults = html.match(/progression:\s*\{\s*enabled:true,\s*skillLevelCap:(\d+),.*?overallMasteryLevel:(\d+)\s*\}/);
+  assert.ok(uiDefaults, "could not locate the optimizer's default progression state in build-from-scratch.html");
+
+  const scriptDefaults = script.match(/progression:\s*\{\s*enabled:\s*true,\s*skillLevelCap:\s*(\d+),.*?overallMasteryLevel:\s*(\d+)\s*\}/);
+  assert.ok(scriptDefaults, "could not locate the default progression request in precompute-optimizer-results.mjs");
+
+  assert.equal(scriptDefaults[1], uiDefaults[1], "skillLevelCap drifted between the UI default and the precompute script");
+  assert.equal(scriptDefaults[2], uiDefaults[2], "overallMasteryLevel drifted between the UI default and the precompute script — presets would miss the precache");
+});

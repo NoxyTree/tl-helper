@@ -4,14 +4,16 @@ import test from "node:test";
 
 const html = await readFile(new URL("../../web/build-from-scratch.html", import.meta.url), "utf8");
 
-test("Build From Scratch exposes nullable source resource scenario controls", () => {
-  assert.match(html, /Combat Scenario/);
-  assert.match(html, /Score a combat scenario/);
+test("the Combat Scenario setup panel is gone but its engine wiring is intact", () => {
+  // The setup panel was removed - it confused far more people than it served,
+  // and the Forge scores persistent sheet totals regardless. This is a UI-only
+  // removal: the scenario state stays pinned to disabled, and every downstream
+  // scenario path (below) still works, so the engine support is untouched.
+  assert.doesNotMatch(html, /Combat Scenario/);
+  assert.doesNotMatch(html, /Score a combat scenario/);
+  assert.doesNotMatch(html, /aria-label="Scenario source Health percentage"/);
+  assert.doesNotMatch(html, /aria-label="Scenario source Mana percentage"/);
   assert.match(html, /scenario: \{ enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified'/);
-  assert.match(html, /aria-label="Scenario source Health percentage"/);
-  assert.match(html, /aria-label="Scenario source Mana percentage"/);
-  assert.match(html, /min="0" max="100" step="0\.01"/);
-  assert.match(html, /Blank means unspecified\./);
 });
 
 test("resource percentages are validated and converted to integer basis points", () => {

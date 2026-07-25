@@ -8,8 +8,11 @@ const [gear, optimizer, scratch] = await Promise.all([
   readFile(new URL("../../web/build-from-scratch.html", import.meta.url), "utf8"),
 ]);
 
-test("all three calculation pages expose the canonical motion dimensions", () => {
-  for (const html of [gear, optimizer, scratch]) {
+// Build From Scratch dropped its Combat Scenario setup panel, so it no longer
+// renders motion controls. The two pages that still offer scenario setup must
+// stay identical to each other.
+test("both scenario setup pages expose the canonical motion dimensions", () => {
+  for (const html of [gear, optimizer]) {
     assert.match(html, /Source movement/i);
     assert.match(html, /stationary/);
     assert.match(html, /moving_ordinary/);
@@ -17,6 +20,7 @@ test("all three calculation pages expose the canonical motion dimensions", () =>
     assert.match(html, /under_2s/);
     assert.match(html, /4s_or_more/);
   }
+  assert.doesNotMatch(scratch, /Source movement/i);
 });
 
 test("Gear Viewer carries motion through scenario identity, URLs, and compact preferences", () => {
