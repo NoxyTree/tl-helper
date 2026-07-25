@@ -408,11 +408,16 @@ export function optimizeAttributeAllocation({
     allocation[right.id] += right.needed;
     add(allocation);
   }
+  // totalsOnly is exact for scoring — identical totals, no presentation products
+  // (per-stat source rows, set-effect trace, validation, rune synergies), pinned
+  // by scripts/tests/calculate-build-totals-only.test.mjs. This runs ~600 times
+  // per finalist across the seed set and four comparator lanes; only the winning
+  // row needs a full calculation, and it is recomputed once in optimizeWith.
   const evaluate = (attributes) => {
-    const calc = core.calculateBuild(build, attributes, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
+    const calc = core.calculateBuild(build, attributes, { includeSetEffects, totalsOnly: true, ...(scenario == null ? {} : { scenario }) });
     const stats = withCompositeTotals(totalMap(calc), constraintGoals ?? rankedGoals);
     const violations = Object.entries(minimums).reduce((sum, [id, minimum]) => sum + Math.max(0, Number(minimum) - Number(stats[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum))), 0);
-    return { attributes, calc, stats, violations, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), key: allocationKey(attributes) };
+    return { attributes, stats, violations, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), key: allocationKey(attributes) };
   };
   const seedRows = [...seeds.values()].map(evaluate);
   const optimizeWith = (compare) => {
@@ -428,7 +433,11 @@ export function optimizeAttributeAllocation({
       if (next.key === best.key) break;
       best = next;
     }
-    return { ...best, activeAttributeBreakpoints: activeAttributeBreakpoints(core, best.calc) };
+    // The winner alone needs the full calculation: activeAttributeBreakpoints
+    // reads per-stat `sources`, which totalsOnly omits. One full call per lane
+    // instead of one per evaluation.
+    const calc = core.calculateBuild(build, best.attributes, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
+    return { ...best, calc, activeAttributeBreakpoints: activeAttributeBreakpoints(core, calc) };
   };
   const floorCompare = (a, b) => a.violations - b.violations || compareAttributeObjective(a, b) || a.key.localeCompare(b.key);
   const hasMinimums = Object.keys(minimums).length > 0;
@@ -610,10 +619,13 @@ export function refineRuneConfiguration({
   let workingBuild = clone(build);
   let workingAttributes = clone(attributes ?? {});
   const rowsFor = (category) => runeCandidatesByCategory instanceof Map ? runeCandidatesByCategory.get(category) : runeCandidatesByCategory?.[category];
+  // totalsOnly as above: this runs once per rune candidate per slot per round,
+  // roughly 500 times per finalist. The final full calculation is taken once at
+  // the end of the loop (finalCalc), which already falls back to a real call.
   const evaluateFixed = (candidateBuild, candidateAttributes) => {
-    const calc = core.calculateBuild(candidateBuild, candidateAttributes, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
+    const calc = core.calculateBuild(candidateBuild, candidateAttributes, { includeSetEffects, totalsOnly: true, ...(scenario == null ? {} : { scenario }) });
     const stats = withCompositeTotals(totalMap(calc), constraintGoals ?? rankedGoals);
-    return { calc, stats, attributes: candidateAttributes, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), violations: minimumViolation(stats, minimums, scales) };
+    return { stats, attributes: candidateAttributes, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), violations: minimumViolation(stats, minimums, scales) };
   };
   let current = evaluateFixed(workingBuild, workingAttributes);
   for (let round = 0; round < Math.max(1, rounds); round += 1) {
@@ -624,15 +636,19 @@ export function refineRuneConfiguration({
       if (!runeRows.length) continue;
       const currentKey = JSON.stringify(workingBuild.equipment[slot.id].runes ?? []);
       let best = { ...current, key: currentKey, runes: workingBuild.equipment[slot.id].runes ?? [] };
+      // Swap the one runes array in place rather than structuredClone-ing the
+      // whole build per candidate — that was ~8,000 full-build clones per
+      // request. evaluateFixed does not mutate, and the slot is restored below.
+      const restoreRunes = workingBuild.equipment[slot.id].runes;
       for (const row of runeRows) {
         if (JSON.stringify(row.selection) === currentKey) continue;
-        const trialBuild = clone(workingBuild);
-        trialBuild.equipment[slot.id].runes = clone(row.selection);
-        const trial = { ...evaluateFixed(trialBuild, workingAttributes), key: row.key, runes: row.selection };
+        workingBuild.equipment[slot.id].runes = row.selection;
+        const trial = { ...evaluateFixed(workingBuild, workingAttributes), key: row.key, runes: row.selection };
         if (trial.violations < best.violations - 1e-12
           || (Math.abs(trial.violations - best.violations) <= 1e-12 && compareAttributeObjective(trial, best) < -1e-12)
           || (Math.abs(trial.violations - best.violations) <= 1e-12 && Math.abs(compareAttributeObjective(trial, best)) <= 1e-12 && trial.key.localeCompare(best.key) < 0)) best = trial;
       }
+      workingBuild.equipment[slot.id].runes = restoreRunes;
       if (JSON.stringify(best.runes) !== currentKey) {
         workingBuild.equipment[slot.id].runes = clone(best.runes);
         current = best;
