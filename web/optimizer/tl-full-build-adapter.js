@@ -20,6 +20,12 @@ const totalMap = (calc) => Object.fromEntries((calc?.scenarioStats ?? calc?.stat
 // and a realistic attribute spread, matching how hand-made meta builds
 // balance. See docs/optimizer-rank-decay-calibration-2026-07-17.md.
 const RANK_DECAY = 0.35;
+// Comparator-only regularizer: allocations at or below the observed meta
+// one-third max-share shape are untouched; concentration above it pays a
+// quadratic cost. At 0.1, a 40/19 split pays 0.0119 (enough to flip the
+// measured 0.01137 margin), while the absolute maximum cost is only 0.0444.
+// The declared-goal score remains unchanged and reportable.
+const ATTRIBUTE_SPREAD_WEIGHT = 0.1;
 const PROGRESSION_FLOOR_PENALTY_MULTIPLIERS = Object.freeze([0, 2 ** 12, 2 ** 16]);
 const FLOOR_RECOVERY_REQUEST = Symbol("floorRecoveryRequest");
 
@@ -320,6 +326,26 @@ function allocationKey(allocation) {
   return ATTRIBUTE_IDS.map((id) => allocation[id]).join("|");
 }
 
+function attributeConcentrationPenalty(attributes = {}) {
+  const values = ATTRIBUTE_IDS.map((id) => Math.max(0, Number(attributes[id]) || 0));
+  const total = values.reduce((sum, value) => sum + value, 0);
+  if (total <= 0) return 0;
+  const excess = Math.max(0, Math.max(...values) / total - 1 / 3);
+  return excess * excess;
+}
+
+function attributeComparatorValue(row) {
+  const evaluation = row?.evaluation ?? row ?? {};
+  return Number(evaluation.score) - ATTRIBUTE_SPREAD_WEIGHT * attributeConcentrationPenalty(evaluation.attributes);
+}
+
+function compareAttributeObjective(a, b) {
+  const left = a?.evaluation ?? a ?? {};
+  const right = b?.evaluation ?? b ?? {};
+  return attributeComparatorValue(b) - attributeComparatorValue(a)
+    || Number(right.score) - Number(left.score);
+}
+
 function activeAttributeBreakpoints(core, calc) {
   const grouped = new Map();
   for (const stat of calc.stats ?? []) for (const source of stat.sources ?? []) {
@@ -404,7 +430,7 @@ export function optimizeAttributeAllocation({
     }
     return { ...best, activeAttributeBreakpoints: activeAttributeBreakpoints(core, best.calc) };
   };
-  const floorCompare = (a, b) => a.violations - b.violations || b.score - a.score || a.key.localeCompare(b.key);
+  const floorCompare = (a, b) => a.violations - b.violations || compareAttributeObjective(a, b) || a.key.localeCompare(b.key);
   const hasMinimums = Object.keys(minimums).length > 0;
   if (!hasMinimums || !retainConstraintVariants) return optimizeWith(floorCompare);
 
@@ -420,10 +446,10 @@ export function optimizeAttributeAllocation({
   };
   for (const multiplier of PROGRESSION_FLOOR_PENALTY_MULTIPLIERS) {
     const compare = multiplier === 0
-      ? (a, b) => b.score - a.score || a.key.localeCompare(b.key)
-      : (a, b) => (b.score - multiplier * b.violations) - (a.score - multiplier * a.violations)
+      ? (a, b) => compareAttributeObjective(a, b) || a.key.localeCompare(b.key)
+      : (a, b) => (attributeComparatorValue(b) - multiplier * b.violations) - (attributeComparatorValue(a) - multiplier * a.violations)
         || a.violations - b.violations
-        || b.score - a.score
+        || compareAttributeObjective(a, b)
         || a.key.localeCompare(b.key);
     addVariant(multiplier === 0 ? "objective" : `penalty:${multiplier}`, optimizeWith(compare));
   }
@@ -458,7 +484,7 @@ function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales =
       const floorRows = [...rows].sort((a, b) =>
         minimumViolation(a.evaluation.stats, minimums, scales) - minimumViolation(b.evaluation.stats, minimums, scales)
         || minimumHeadroom(b.evaluation.stats, minimums) - minimumHeadroom(a.evaluation.stats, minimums)
-        || b.evaluation.score - a.evaluation.score
+        || compareAttributeObjective(a, b)
         || a.key.localeCompare(b.key));
       for (const row of floorRows) {
         if (retained.size >= limit) break;
@@ -474,13 +500,13 @@ function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales =
     // prove that this lane is unnecessary.
     const objectiveLane = [...rows]
       .filter((row) => row.evaluation.constraintLane === "objective")
-      .sort((a, b) => b.evaluation.score - a.evaluation.score || a.key.localeCompare(b.key))[0];
+      .sort((a, b) => compareAttributeObjective(a, b) || a.key.localeCompare(b.key))[0];
     add(objectiveLane ?? diverseFinalists(rows, rankedGoals, 1)[0]);
 
     const floorRows = [...rows].sort((a, b) =>
       minimumViolation(a.evaluation.stats, minimums, scales) - minimumViolation(b.evaluation.stats, minimums, scales)
       || minimumHeadroom(b.evaluation.stats, minimums) - minimumHeadroom(a.evaluation.stats, minimums)
-      || b.evaluation.score - a.evaluation.score
+      || compareAttributeObjective(a, b)
       || a.key.localeCompare(b.key));
     add(floorRows[0]);
     // Sum-of-shortfalls alone can erase the state best positioned for one
@@ -490,7 +516,7 @@ function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales =
       const perFloor = [...rows].sort((a, b) =>
         Math.max(0, Number(minimum) - Number(a.evaluation.stats?.[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum)))
           - Math.max(0, Number(minimum) - Number(b.evaluation.stats?.[id] ?? 0)) / Math.max(1, Math.abs(Number(scales[id] ?? minimum)))
-        || b.evaluation.score - a.evaluation.score
+        || compareAttributeObjective(a, b)
         || a.key.localeCompare(b.key))[0];
       add(perFloor);
       if (retained.size >= boundedLimit) break;
@@ -510,7 +536,7 @@ function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales =
   const add = (row) => { if (row) retained.set(row.key, row); };
   for (const row of rows.slice(0, 4)) add(row);
   for (const goal of rankedGoals) {
-    const ordered = [...rows].sort((a, b) => goalValue(b.evaluation.stats, goal) - goalValue(a.evaluation.stats, goal) || b.evaluation.score - a.evaluation.score || a.key.localeCompare(b.key));
+    const ordered = [...rows].sort((a, b) => goalValue(b.evaluation.stats, goal) - goalValue(a.evaluation.stats, goal) || compareAttributeObjective(a, b) || a.key.localeCompare(b.key));
     for (const row of ordered.slice(0, 2)) add(row);
   }
   for (const row of rows) {
@@ -580,7 +606,7 @@ export function refineRuneConfiguration({
   const evaluateFixed = (candidateBuild, candidateAttributes) => {
     const calc = core.calculateBuild(candidateBuild, candidateAttributes, { includeSetEffects, ...(scenario == null ? {} : { scenario }) });
     const stats = withCompositeTotals(totalMap(calc), constraintGoals ?? rankedGoals);
-    return { calc, stats, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), violations: minimumViolation(stats, minimums, scales) };
+    return { calc, stats, attributes: candidateAttributes, score: scoreRankedGoals(stats, baseline, scales, rankedGoals), violations: minimumViolation(stats, minimums, scales) };
   };
   let current = evaluateFixed(workingBuild, workingAttributes);
   for (let round = 0; round < Math.max(1, rounds); round += 1) {
@@ -597,8 +623,8 @@ export function refineRuneConfiguration({
         trialBuild.equipment[slot.id].runes = clone(row.selection);
         const trial = { ...evaluateFixed(trialBuild, workingAttributes), key: row.key, runes: row.selection };
         if (trial.violations < best.violations - 1e-12
-          || (Math.abs(trial.violations - best.violations) <= 1e-12 && trial.score > best.score + 1e-12)
-          || (Math.abs(trial.violations - best.violations) <= 1e-12 && Math.abs(trial.score - best.score) <= 1e-12 && trial.key.localeCompare(best.key) < 0)) best = trial;
+          || (Math.abs(trial.violations - best.violations) <= 1e-12 && compareAttributeObjective(trial, best) < -1e-12)
+          || (Math.abs(trial.violations - best.violations) <= 1e-12 && Math.abs(compareAttributeObjective(trial, best)) <= 1e-12 && trial.key.localeCompare(best.key) < 0)) best = trial;
       }
       if (JSON.stringify(best.runes) !== currentKey) {
         workingBuild.equipment[slot.id].runes = clone(best.runes);
@@ -757,7 +783,7 @@ export function refineRuneFinalistTask(core, payload, context) {
   const shaped = variants.map(({ _key, ...row }) => row);
   const best = [...shaped].sort((a, b) =>
     minimumViolation(a.stats, context.minimums, context.scales) - minimumViolation(b.stats, context.minimums, context.scales)
-    || b.score - a.score)[0];
+    || compareAttributeObjective(a, b))[0];
   return { ...best, constraintVariants: shaped };
 }
 
@@ -1437,7 +1463,7 @@ export async function createOptimizerAdapter(deps = {}) {
       };
       const evaluateBuild = (selections) => evaluateOptimizerBuildTask(core, { selections }, buildEvaluationContext);
       const neutralTotal = (result, key) => Object.values(result.candidates).reduce((sum, candidate) => sum + Number(candidate[key] ?? 0), 0);
-      const exactOrder = (a, b) => b.evaluation.score - a.evaluation.score
+      const exactOrder = (a, b) => compareAttributeObjective(a, b)
         || (preferSets ? Number(b.evaluation.setSummary?.activeBonusCount ?? 0) - Number(a.evaluation.setSummary?.activeBonusCount ?? 0) : 0)
         || neutralTotal(a, "neutralHeroicCost") - neutralTotal(b, "neutralHeroicCost")
         || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")

@@ -109,6 +109,32 @@ test("a level-50 breakpoint consumes forty raw points after diminishing conversi
   assert.equal(result.activeAttributeBreakpoints.some((row) => row.attributeId === "str" && row.threshold === 50), true);
 });
 
+test("attribute spread is comparator-only and cannot override a genuine breakpoint win", () => {
+  const coreForBonus = (bonus) => ({
+    statName: (id) => id,
+    formatStat: (_id, value) => String(value),
+    calculateBuild(_build, attributes) {
+      const str = 20 + allocatedAttributeValue(attributes.str ?? 0);
+      const total = Object.values(attributes).reduce((sum, value) => sum + Number(value), 0) * 10 + (str >= 50 ? bonus : 0);
+      return { stats: [
+        { id: "str", total: str, sources: [] },
+        { id: "all_double_attack", total, sources: str >= 50 ? [{ type: "attribute_bracket", sourceLabel: "STR (50): Bonus", value: bonus }] : [] },
+      ] };
+    },
+  });
+  const goals = normalizeRankedGoals({ increase: ["all_double_attack"] });
+  const scales = { all_double_attack: 1000 };
+  const mild = optimizeAttributeAllocation({ core: coreForBonus(11), build: {}, budget: 59, rankedGoals: goals, baseline: {}, scales });
+  const concentrated = scoreRankedGoals({ all_double_attack: 601 }, {}, scales, goals);
+  assert.ok(Math.max(...Object.values(mild.attributes)) / 59 <= 1 / 3);
+  assert.ok(concentrated > mild.score, "the returned score must remain the honest declared-goal score");
+  assert.equal(mild.score, scoreRankedGoals(mild.stats, {}, scales, goals));
+
+  const genuine = optimizeAttributeAllocation({ core: coreForBonus(60), build: {}, budget: 59, rankedGoals: goals, baseline: {}, scales });
+  assert.equal(genuine.attributes.str, 40);
+  assert.equal(genuine.stats.all_double_attack, 650);
+});
+
 test("attribute optimization conserves budget, follows the objective, and is deterministic", () => {
   const core = attributeTestCore();
   const hpGoals = normalizeRankedGoals({ increase: ["hp_max"] });
