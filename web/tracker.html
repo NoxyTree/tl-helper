@@ -277,12 +277,17 @@
                   <button type="button" onClick="{{ row.onInc }}" aria-label="Increase" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">+</button>
                 </div>
               </sc-if>
-              <sc-if value="{{ row.custom }}" hint-placeholder-val="{{ false }}">
-                <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove" style="flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">✕</button>
-              </sc-if>
+              <button type="button" onClick="{{ row.onRemove }}" aria-label="{{ row.dismissTitle }}" title="{{ row.dismissTitle }}" style="flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">✕</button>
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ dailyHasHidden }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dotted rgba(212, 166, 94, 0.16);">
+            <span style="font-size: 10.5px; color: #6e5f49;">{{ dailyHiddenLabel }}</span>
+            <span style="flex: 1;"></span>
+            <button type="button" onClick="{{ onRestoreDaily }}" style="font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f; background: transparent; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 4px 11px; cursor: pointer;" style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.55);">Restore</button>
+          </div>
+        </sc-if>
         <div style="display: flex; gap: 8px; margin-top: 12px;">
           <input value="{{ newDaily }}" onInput="{{ onNewDailyInput }}" onKeyDown="{{ onNewDailyKey }}" placeholder="Add a daily task…" spellcheck="false"
             style="flex: 1; font-size: 12px; color: #f3e9d4; background: rgba(8, 6, 4, 0.6); border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 8px; padding: 8px 12px;"
@@ -390,12 +395,17 @@
                   <button type="button" onClick="{{ row.onInc }}" aria-label="Increase" style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.25); background: rgba(10, 8, 5, 0.6); color: #cbb185; cursor: pointer; font-size: 14px; line-height: 1; display: grid; place-items: center;" style-hover="border-color: rgba(232, 184, 106, 0.6); color: #f6d391;">+</button>
                 </div>
               </sc-if>
-              <sc-if value="{{ row.custom }}" hint-placeholder-val="{{ false }}">
-                <button type="button" onClick="{{ row.onRemove }}" aria-label="Remove" style="flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">✕</button>
-              </sc-if>
+              <button type="button" onClick="{{ row.onRemove }}" aria-label="{{ row.dismissTitle }}" title="{{ row.dismissTitle }}" style="flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(212, 166, 94, 0.18); background: transparent; color: #6e5f49; cursor: pointer; font-size: 12px; line-height: 1;" style-hover="color: #e56a6a; border-color: rgba(229, 106, 106, 0.45);">✕</button>
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ weeklyHasHidden }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dotted rgba(212, 166, 94, 0.16);">
+            <span style="font-size: 10.5px; color: #6e5f49;">{{ weeklyHiddenLabel }}</span>
+            <span style="flex: 1;"></span>
+            <button type="button" onClick="{{ onRestoreWeekly }}" style="font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a795f; background: transparent; border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 999px; padding: 4px 11px; cursor: pointer;" style-hover="color: #f6d391; border-color: rgba(232, 184, 106, 0.55);">Restore</button>
+          </div>
+        </sc-if>
         <div style="display: flex; gap: 8px; margin-top: 12px;">
           <input value="{{ newWeekly }}" onInput="{{ onNewWeeklyInput }}" onKeyDown="{{ onNewWeeklyKey }}" placeholder="Add a weekly task…" spellcheck="false"
             style="flex: 1; font-size: 12px; color: #f3e9d4; background: rgba(8, 6, 4, 0.6); border: 1px solid rgba(212, 166, 94, 0.2); border-radius: 8px; padding: 8px 12px;"
@@ -462,6 +472,8 @@ class Component extends DCLogic {
     enabledRaids: { hard: false, nightmare: false },
     customDaily: [],      // [{id,label}]
     customWeekly: [],
+    hiddenTasks: [],      // built-in task ids the player has hidden
+
     newDaily: "",
     newWeekly: "",
     lastDaily: "",
@@ -643,6 +655,7 @@ class Component extends DCLogic {
           },
           customDaily: Array.isArray(raw.customDaily) ? raw.customDaily : [],
           customWeekly: Array.isArray(raw.customWeekly) ? raw.customWeekly : [],
+          hiddenTasks: Array.isArray(raw.hiddenTasks) ? raw.hiddenTasks.filter((id) => typeof id === "string") : [],
           lastDaily: raw.lastDaily ?? "",
           lastWeekly: raw.lastWeekly ?? "",
         }, () => { if (migratedRaid) this.save(); });
@@ -658,6 +671,7 @@ class Component extends DCLogic {
         enabledRaids: this.state.enabledRaids,
         customDaily: this.state.customDaily,
         customWeekly: this.state.customWeekly,
+        hiddenTasks: this.state.hiddenTasks,
         lastDaily: this.state.lastDaily,
         lastWeekly: this.state.lastWeekly,
       }));
@@ -688,8 +702,18 @@ class Component extends DCLogic {
     return `${m}m ${p(sec)}s`;
   }
 
-  allDaily() { return [...this.DAILY, ...this.state.customDaily]; }
-  allWeekly() { return [...this.WEEKLY, ...this.state.customWeekly]; }
+  // A hidden task is gone from every count, total, and reset — the player opted
+  // out of that content, so leaving it in the denominator is the whole problem.
+  visibleTasks(tasks) {
+    const hidden = this.state.hiddenTasks ?? [];
+    return hidden.length ? tasks.filter((task) => !hidden.includes(task.id)) : tasks;
+  }
+  allDaily() { return this.visibleTasks([...this.DAILY, ...this.state.customDaily]); }
+  allWeekly() { return this.visibleTasks([...this.WEEKLY, ...this.state.customWeekly]); }
+  hiddenIn(scope) {
+    const hidden = this.state.hiddenTasks ?? [];
+    return (scope === "daily" ? this.DAILY : this.WEEKLY).filter((task) => hidden.includes(task.id));
+  }
   raidStageKey(raidId, stage) { return `w_raid_${raidId}_s${stage}`; }
   clearRaidProgress(counts) {
     for (const raid of this.RAIDS) {
@@ -796,6 +820,18 @@ class Component extends DCLogic {
     if (scope === "daily") this.setState({ customDaily: this.state.customDaily.filter((t) => t.id !== id), counts }, () => this.save());
     else this.setState({ customWeekly: this.state.customWeekly.filter((t) => t.id !== id), counts }, () => this.save());
   }
+  // Custom tasks are deleted; built-ins are hidden, so they can come back.
+  dismissTask(scope, id) {
+    const isCustom = [...this.state.customDaily, ...this.state.customWeekly].some((task) => task.id === id);
+    if (isCustom) return this.removeCustom(scope, id);
+    const counts = { ...this.state.counts }; delete counts[id];
+    const hiddenTasks = [...new Set([...(this.state.hiddenTasks ?? []), id])];
+    this.setState({ hiddenTasks, counts }, () => this.save());
+  }
+  restoreHidden(scope) {
+    const scoped = new Set((scope === "daily" ? this.DAILY : this.WEEKLY).map((task) => task.id));
+    this.setState({ hiddenTasks: (this.state.hiddenTasks ?? []).filter((id) => !scoped.has(id)) }, () => this.save());
+  }
   resetScope(scope) {
     const counts = { ...this.state.counts };
     for (const t of (scope === "daily" ? this.allDaily() : this.allWeekly())) delete counts[t.id];
@@ -813,6 +849,8 @@ class Component extends DCLogic {
       reward: task.reward || "",
       priority: Boolean(task.priority),
       custom: Boolean(task.custom),
+      dismissTitle: task.custom ? "Remove this custom task" : "Hide this task",
+      dismissLabel: task.custom ? "Remove" : "Hide",
       isCounter,
       done,
       progress: `${count} / ${task.target}`,
@@ -825,7 +863,7 @@ class Component extends DCLogic {
       onToggle: () => this.toggleTask(task),
       onInc: () => this.incTask(task),
       onDec: () => this.decTask(task),
-      onRemove: () => this.removeCustom(scope, task.id),
+      onRemove: () => this.dismissTask(scope, task.id),
     };
   }
 
@@ -834,6 +872,8 @@ class Component extends DCLogic {
     const dailyRows = this.allDaily().map((t) => this.taskRow(t, "daily"));
     const weeklyRows = this.allWeekly().map((t) => this.taskRow(t, "weekly"));
     const raidRows = this.raidRows();
+    const dailyHidden = this.hiddenIn("daily");
+    const weeklyHidden = this.hiddenIn("weekly");
     const dailyDone = dailyRows.filter((r) => r.done).length;
     const weeklyDone = weeklyRows.filter((r) => r.done).length + raidRows.filter((r) => r.done).length;
     const weeklyTotal = weeklyRows.length + raidRows.length;
@@ -882,12 +922,18 @@ class Component extends DCLogic {
       onNewDailyKey: (e) => { if (e.key === "Enter") this.addCustom("daily"); },
       onAddDaily: () => this.addCustom("daily"),
       onResetDaily: () => this.resetScope("daily"),
+      dailyHasHidden: dailyHidden.length > 0,
+      dailyHiddenLabel: `${dailyHidden.length} hidden`,
+      onRestoreDaily: () => this.restoreHidden("daily"),
 
       newWeekly: this.state.newWeekly,
       onNewWeeklyInput: (e) => this.setState({ newWeekly: e.target.value }),
       onNewWeeklyKey: (e) => { if (e.key === "Enter") this.addCustom("weekly"); },
       onAddWeekly: () => this.addCustom("weekly"),
       onResetWeekly: () => this.resetScope("weekly"),
+      weeklyHasHidden: weeklyHidden.length > 0,
+      weeklyHiddenLabel: `${weeklyHidden.length} hidden`,
+      onRestoreWeekly: () => this.restoreHidden("weekly"),
     };
   }
 }
