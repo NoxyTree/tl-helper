@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="v2bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d0911"/><stop offset=".58" stop-color="#080609"/><stop offset="1" stop-color="#0c0807"/></linearGradient>
+    <linearGradient id="v2panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1c150e"/><stop offset="1" stop-color="#0d0a08"/></linearGradient>
+    <linearGradient id="v2active" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#644017"/><stop offset="1" stop-color="#2f1f0f"/></linearGradient>
+    <linearGradient id="v2primary" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7d896"/><stop offset="1" stop-color="#c18237"/></linearGradient>
+    <linearGradient id="v2purple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2b1b36"/><stop offset="1" stop-color="#120d17"/></linearGradient>
+    <linearGradient id="v2track" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#a675c8"/><stop offset="1" stop-color="#e6bb66"/></linearGradient>
+    <filter id="v2shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".34"/></filter>
+    <filter id="v2glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#v2bg)"/>
+  <g stroke="#f7dfae" stroke-opacity=".016"><path d="M0 160H1600M0 280H1600M0 400H1600M0 520H1600M0 640H1600M0 760H1600"/></g>
+
+  <!-- Site shell -->
+  <rect width="1600" height="58" fill="#0d0a08"/><rect width="1600" height="5" fill="#6f503a"/><line x1="0" y1="58" x2="1600" y2="58" stroke="#d4a65e" stroke-opacity=".24"/>
+  <circle cx="38" cy="31" r="19" fill="#171006" stroke="#9b6d2b"/><text x="38" y="36" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-weight="700" font-size="14">TL</text>
+  <text x="69" y="27" fill="#e3c481" font-family="Arial" font-weight="700" font-size="11" letter-spacing="2">TL HELPER</text>
+  <text x="69" y="41" fill="#77664c" font-family="Arial" font-weight="700" font-size="7" letter-spacing="1.4">BUILD OPTIMIZER</text>
+  <g fill="#88775c" font-family="Arial" font-size="8" font-weight="700" letter-spacing=".7"><text x="548" y="34">ARMORY</text><text x="625" y="34">TRACKER</text><text x="704" y="34">ACHIEVEMENTS</text><text x="808" y="34">GEAR VIEWER</text></g>
+  <rect x="904" y="15" width="112" height="30" rx="15" fill="#24180c" stroke="#d4a65e" stroke-opacity=".5"/><text x="960" y="34" text-anchor="middle" fill="#daba77" font-family="Arial" font-size="8" font-weight="700">BUILD OPTIMIZER</text>
+  <line x1="1274" y1="13" x2="1274" y2="47" stroke="#d4a65e" stroke-opacity=".18"/><text x="1292" y="24" fill="#6e5e46" font-family="Arial" font-size="7" font-weight="700" letter-spacing="1">WEAPON SET</text><text x="1292" y="40" fill="#d9bc81" font-family="Georgia" font-size="12">Greatsword · Spear</text>
+  <line x1="1468" y1="13" x2="1468" y2="47" stroke="#d4a65e" stroke-opacity=".18"/><text x="1485" y="24" fill="#6e5e46" font-family="Arial" font-size="7" font-weight="700" letter-spacing="1">COMBAT POWER</text><text x="1532" y="41" fill="#d9bc81" text-anchor="middle" font-family="Georgia" font-size="12">—</text>
+
+  <!-- Compact result heading -->
+  <rect y="58" width="1600" height="78" fill="#100c0c" fill-opacity=".78"/><line x1="0" y1="136" x2="1600" y2="136" stroke="#d4a65e" stroke-opacity=".18"/>
+  <circle cx="30" cy="85" r="3.5" fill="#7edda1" filter="url(#v2glow)"/><text x="41" y="88" fill="#83d8a2" font-family="Arial" font-size="8" font-weight="700" letter-spacing="1.2">OPTIMIZATION COMPLETE</text>
+  <text x="27" y="119" fill="#f5d79a" font-family="Georgia" font-size="25">Greatsword + Spear build</text>
+  <g font-family="Arial" font-size="9" font-weight="700">
+    <rect x="1133" y="78" width="107" height="38" rx="8" fill="#21170d" stroke="#d4a65e" stroke-opacity=".42"/><text x="1186.5" y="101" text-anchor="middle" fill="#dacaaa">⚙  Edit goals</text>
+    <rect x="1248" y="78" width="77" height="38" rx="8" fill="#111821" stroke="#8fb2e8" stroke-opacity=".52"/><text x="1286.5" y="101" text-anchor="middle" fill="#c8d9f2">Compare</text>
+    <rect x="1333" y="78" width="93" height="38" rx="8" fill="#21170d" stroke="#d4a65e" stroke-opacity=".42"/><text x="1379.5" y="101" text-anchor="middle" fill="#dacaaa">Save preset</text>
+    <rect x="1434" y="78" width="138" height="38" rx="8" fill="url(#v2primary)" stroke="#f2c777"/><text x="1503" y="101" text-anchor="middle" fill="#160e05">Use in Armory</text>
+  </g>
+
+  <!-- Complete equipment rail -->
+  <rect x="24" y="150" width="360" height="725" rx="12" fill="url(#v2panel)" stroke="#d4a65e" stroke-opacity=".3" filter="url(#v2shadow)"/>
+  <text x="40" y="177" fill="#e7d4ad" font-family="Georgia" font-size="15">Equipment</text><text x="367" y="177" text-anchor="end" fill="#6e5e47" font-family="Arial" font-size="7" font-weight="700" letter-spacing=".9">15 SLOTS FILLED</text>
+
+  <!-- 13 compact equipment cards -->
+  <g font-family="Arial">
+    <g transform="translate(39 190)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">♜</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">HEAD · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Reborn Lord’s Cursed Hat</text></g>
+    <g transform="translate(207 190)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">♧</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">CLOAK · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Breath of Boundless Sky</text></g>
+    <g transform="translate(39 242)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">♛</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">CHEST · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Reborn Lord’s Prayer</text></g>
+    <g transform="translate(207 242)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">✦</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">HANDS · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Punisher’s Wings Gloves</text></g>
+    <g transform="translate(39 294)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">♞</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">LEGS · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Punisher’s Wings Greaves</text></g>
+    <g transform="translate(207 294)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#cb8c36" stroke-opacity=".52"/><circle cx="24" cy="22.5" r="15" fill="#2b190d" stroke="#cb8c36"/><text x="24" y="27" text-anchor="middle" fill="#edb96a" font-size="12">◆</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">FEET · 75</text><text x="47" y="32" fill="#edb96a" font-size="7.5" font-weight="700">Calanthia’s Fetters</text></g>
+    <g transform="translate(39 346)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#cb8c36" stroke-opacity=".52"/><circle cx="24" cy="22.5" r="15" fill="#2b190d" stroke="#cb8c36"/><text x="24" y="27" text-anchor="middle" fill="#edb96a" font-size="12">◇</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">NECKLACE · 75</text><text x="47" y="32" fill="#edb96a" font-size="7.5" font-weight="700">Choking Conviction</text></g>
+    <g transform="translate(207 346)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">◈</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">BRACELET · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Ancient Saurodoma Bracer</text></g>
+    <g transform="translate(39 398)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">═</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">BELT · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Belt of Bloodlust</text></g>
+    <g transform="translate(207 398)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">○</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">RING 1 · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Band of Universal Power</text></g>
+    <g transform="translate(39 450)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">○</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">RING 2 · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Amber Dimensional Band</text></g>
+    <g transform="translate(207 450)"><rect width="159" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">◉</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">EARRING · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Bands of Black Bastion</text></g>
+    <g transform="translate(39 502)"><rect width="327" height="45" rx="8" fill="#0a0808" stroke="#b96ee7" stroke-opacity=".3"/><circle cx="24" cy="22.5" r="15" fill="#24172a" stroke="#b96ee7"/><text x="24" y="27" text-anchor="middle" fill="#d69af0" font-size="12">✧</text><text x="47" y="18" fill="#75644c" font-size="5.5" font-weight="700">BROOCH · 80</text><text x="47" y="32" fill="#d083ed" font-size="7.5" font-weight="700">Brooch of the Primal King</text></g>
+  </g>
+
+  <!-- Weapons and artifacts remain inside the complete rail -->
+  <g font-family="Arial">
+    <rect x="39" y="560" width="327" height="50" rx="8" fill="#090706" stroke="#c88c36" stroke-opacity=".58"/><circle cx="66" cy="585" r="17" fill="#2d1b0c" stroke="#c88c36"/><text x="66" y="591" text-anchor="middle" fill="#efbd69" font-size="15">†</text><text x="92" y="579" fill="#78654d" font-size="5.5" font-weight="700">MAIN · GREATSWORD</text><text x="92" y="597" fill="#edb96a" font-family="Georgia" font-size="11">Crimson Snow Annihilation</text>
+    <rect x="39" y="617" width="327" height="50" rx="8" fill="#090706" stroke="#c88c36" stroke-opacity=".58"/><circle cx="66" cy="642" r="17" fill="#2d1b0c" stroke="#c88c36"/><text x="66" y="648" text-anchor="middle" fill="#efbd69" font-size="15">↟</text><text x="92" y="636" fill="#78654d" font-size="5.5" font-weight="700">OFF · SPEAR</text><text x="92" y="654" fill="#edb96a" font-family="Georgia" font-size="11">Calanthia’s Transfixion</text>
+  </g>
+  <text x="39" y="694" fill="#756249" font-family="Arial" font-size="6.5" font-weight="700" letter-spacing="1">ARTIFACTS</text>
+  <g fill="#172638" stroke="#4d91c1"><circle cx="136" cy="690" r="13"/><circle cx="169" cy="690" r="13"/><circle cx="202" cy="690" r="13"/><circle cx="235" cy="690" r="13"/><circle cx="268" cy="690" r="13"/><circle cx="301" cy="690" r="13"/></g>
+  <rect x="39" y="719" width="327" height="36" rx="8" fill="#24180d" stroke="#d4a65e" stroke-opacity=".42"/><text x="202.5" y="741" text-anchor="middle" fill="#d8c29a" font-family="Arial" font-size="8.5" font-weight="700">↻  Re-forge unlocked equipment</text>
+  <rect x="39" y="769" width="327" height="84" rx="8" fill="#090806" stroke="#83d8a2" stroke-opacity=".22"/><text x="54" y="793" fill="#756249" font-family="Arial" font-size="6.5" font-weight="700" letter-spacing=".8">LOADOUT AT A GLANCE</text><text x="54" y="817" fill="#c9b58e" font-family="Arial" font-size="8">15 slots · 6 artifacts · all game limits satisfied</text><text x="54" y="838" fill="#83d8a2" font-family="Arial" font-size="8">✓ Complete legal loadout</text>
+
+  <!-- Main workspace -->
+  <rect x="399" y="150" width="1177" height="725" rx="12" fill="url(#v2panel)" stroke="#d4a65e" stroke-opacity=".3" filter="url(#v2shadow)"/>
+  <rect x="413" y="164" width="1149" height="44" rx="9" fill="#090706" stroke="#d4a65e" stroke-opacity=".16"/><rect x="418" y="169" width="377" height="34" rx="7" fill="url(#v2active)" stroke="#f2c777" stroke-opacity=".6"/>
+  <text x="606" y="190" text-anchor="middle" fill="#efd08d" font-family="Arial" font-size="10" font-weight="700">Stats</text><text x="986" y="190" text-anchor="middle" fill="#76654d" font-family="Arial" font-size="10" font-weight="700">Upgrade Guide</text><text x="1369" y="190" text-anchor="middle" fill="#76654d" font-family="Arial" font-size="10" font-weight="700">Skills &amp; Mastery</text>
+  <g font-family="Arial" font-size="8" font-weight="700"><rect x="414" y="219" width="67" height="25" rx="12.5" fill="#3a2712" stroke="#f2c777" stroke-opacity=".58"/><text x="447.5" y="235" text-anchor="middle" fill="#efd08d">Summary</text><text x="513" y="235" fill="#806e52">Attack</text><text x="568" y="235" fill="#806e52">Defense</text><text x="632" y="235" fill="#806e52">Utility</text><text x="684" y="235" fill="#806e52">PvP</text><text x="722" y="235" fill="#806e52">Boss</text><text x="769" y="235" fill="#806e52">Gear</text></g>
+
+  <!-- Compact attributes, no longer the dominant feature -->
+  <rect x="413" y="255" width="1149" height="102" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/>
+  <text x="431" y="278" fill="#dfbf81" font-family="Georgia" font-size="13">Attributes</text><text x="1542" y="278" text-anchor="end" fill="#6c5c45" font-family="Arial" font-size="7">59 POINTS ALLOCATED · HOVER FOR BREAKPOINTS</text>
+  <g font-family="Arial">
+    <g transform="translate(430 291)"><rect width="207" height="50" rx="8" fill="#090706" stroke="#d4a65e" stroke-opacity=".15"/><text x="22" y="31" fill="#f2c777" font-family="Georgia" font-size="18">80</text><text x="56" y="21" fill="#c5b391" font-size="8">Strength</text><rect x="56" y="28" width="130" height="4" rx="2" fill="#050403"/><rect x="56" y="28" width="105" height="4" rx="2" fill="#e4b95f"/></g>
+    <g transform="translate(654 291)"><rect width="207" height="50" rx="8" fill="#090706" stroke="#d4a65e" stroke-opacity=".15"/><text x="22" y="31" fill="#f2c777" font-family="Georgia" font-size="18">80</text><text x="56" y="21" fill="#c5b391" font-size="8">Dexterity</text><rect x="56" y="28" width="130" height="4" rx="2" fill="#050403"/><rect x="56" y="28" width="105" height="4" rx="2" fill="#e4b95f"/></g>
+    <g transform="translate(878 291)"><rect width="207" height="50" rx="8" fill="#090706" stroke="#d4a65e" stroke-opacity=".15"/><text x="22" y="31" fill="#f2c777" font-family="Georgia" font-size="18">56</text><text x="56" y="21" fill="#c5b391" font-size="8">Wisdom</text><rect x="56" y="28" width="130" height="4" rx="2" fill="#050403"/><rect x="56" y="28" width="75" height="4" rx="2" fill="#e4b95f"/></g>
+    <g transform="translate(1102 291)"><rect width="207" height="50" rx="8" fill="#090706" stroke="#d4a65e" stroke-opacity=".15"/><text x="22" y="31" fill="#f2c777" font-family="Georgia" font-size="18">71</text><text x="56" y="21" fill="#c5b391" font-size="8">Perception</text><rect x="56" y="28" width="130" height="4" rx="2" fill="#050403"/><rect x="56" y="28" width="94" height="4" rx="2" fill="#e4b95f"/></g>
+    <g transform="translate(1326 291)"><rect width="217" height="50" rx="8" fill="#090706" stroke="#d4a65e" stroke-opacity=".15"/><text x="22" y="31" fill="#f2c777" font-family="Georgia" font-size="18">11</text><text x="56" y="21" fill="#c5b391" font-size="8">Fortitude</text><rect x="56" y="28" width="140" height="4" rx="2" fill="#050403"/><rect x="56" y="28" width="21" height="4" rx="2" fill="#e4b95f"/></g>
+  </g>
+
+  <!-- Alternatives are a primary, always-visible tool -->
+  <rect x="413" y="370" width="1149" height="337" rx="11" fill="url(#v2purple)" stroke="#c798f4" stroke-opacity=".36"/>
+  <rect x="430" y="386" width="32" height="32" rx="8" fill="#392348" stroke="#c798f4" stroke-opacity=".62"/><text x="446" y="407" text-anchor="middle" fill="#d9b6f8" font-family="Georgia" font-size="14">✦</text>
+  <text x="475" y="399" fill="#eadcf0" font-family="Georgia" font-size="15">Explore alternative builds</text><text x="475" y="416" fill="#947fa1" font-family="Arial" font-size="7.5">Adjust a priority to switch between 16 fully calculated finalists. Every slider position is a complete legal build.</text>
+  <rect x="1432" y="386" width="112" height="27" rx="13.5" fill="#24172d" stroke="#83d8a2" stroke-opacity=".4"/><text x="1488" y="403" text-anchor="middle" fill="#8fddb0" font-family="Arial" font-size="7" font-weight="700" letter-spacing=".7">16 ALTERNATIVES</text>
+
+  <!-- two-column slider layout -->
+  <g font-family="Arial">
+    <g transform="translate(431 437)">
+      <rect width="543" height="75" rx="9" fill="#160f1b" stroke="#c798f4" stroke-opacity=".22"/>
+      <text x="14" y="20" fill="#a98cb9" font-size="7" font-weight="700">PRIORITY 1</text><text x="79" y="20" fill="#e5d6e9" font-size="9" font-weight="700">Skill Damage Boost</text><text x="514" y="23" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="16">909</text>
+      <rect x="14" y="39" width="513" height="5" rx="3" fill="#09060b"/><rect x="14" y="39" width="498" height="5" rx="3" fill="url(#v2track)"/><circle cx="512" cy="41.5" r="8" fill="#f2c777" stroke="#fff0c9" stroke-width="1.5" filter="url(#v2glow)"/>
+      <text x="14" y="61" fill="#796784" font-size="6.5">LOWER · 544</text><text x="527" y="61" text-anchor="end" fill="#796784" font-size="6.5">HIGHER · 909</text>
+    </g>
+    <g transform="translate(990 437)">
+      <rect width="553" height="75" rx="9" fill="#160f1b" stroke="#c798f4" stroke-opacity=".22"/>
+      <text x="14" y="20" fill="#a98cb9" font-size="7" font-weight="700">PRIORITY 2</text><text x="79" y="20" fill="#e5d6e9" font-size="9" font-weight="700">PvP Melee Heavy Attack</text><text x="524" y="23" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="16">4,385</text>
+      <rect x="14" y="39" width="523" height="5" rx="3" fill="#09060b"/><rect x="14" y="39" width="392" height="5" rx="3" fill="url(#v2track)"/><circle cx="406" cy="41.5" r="8" fill="#f2c777" stroke="#fff0c9" stroke-width="1.5" filter="url(#v2glow)"/>
+      <text x="14" y="61" fill="#796784" font-size="6.5">LOWER · 3,252</text><text x="537" y="61" text-anchor="end" fill="#796784" font-size="6.5">HIGHER · 4,831</text>
+    </g>
+    <g transform="translate(431 522)">
+      <rect width="543" height="75" rx="9" fill="#160f1b" stroke="#c798f4" stroke-opacity=".22"/>
+      <text x="14" y="20" fill="#a98cb9" font-size="7" font-weight="700">PRIORITY 3</text><text x="79" y="20" fill="#e5d6e9" font-size="9" font-weight="700">Heavy Attack Damage</text><text x="514" y="23" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="16">33.4%</text>
+      <rect x="14" y="39" width="513" height="5" rx="3" fill="#09060b"/><rect x="14" y="39" width="148" height="5" rx="3" fill="url(#v2track)"/><circle cx="162" cy="41.5" r="8" fill="#f2c777" stroke="#fff0c9" stroke-width="1.5" filter="url(#v2glow)"/>
+      <text x="14" y="61" fill="#796784" font-size="6.5">LOWER · 20.7%</text><text x="527" y="61" text-anchor="end" fill="#796784" font-size="6.5">HIGHER · 80.8%</text>
+    </g>
+    <g transform="translate(990 522)">
+      <rect width="553" height="75" rx="9" fill="#160f1b" stroke="#c798f4" stroke-opacity=".22"/>
+      <text x="14" y="20" fill="#a98cb9" font-size="7" font-weight="700">PRIORITY 4</text><text x="79" y="20" fill="#e5d6e9" font-size="9" font-weight="700">Attack Speed</text><text x="524" y="23" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="16">115.1%</text>
+      <rect x="14" y="39" width="523" height="5" rx="3" fill="#09060b"/><rect x="14" y="39" width="232" height="5" rx="3" fill="url(#v2track)"/><circle cx="246" cy="41.5" r="8" fill="#f2c777" stroke="#fff0c9" stroke-width="1.5" filter="url(#v2glow)"/>
+      <text x="14" y="61" fill="#796784" font-size="6.5">LOWER · 102.8%</text><text x="537" y="61" text-anchor="end" fill="#796784" font-size="6.5">HIGHER · 134.8%</text>
+    </g>
+    <g transform="translate(431 607)">
+      <rect width="543" height="75" rx="9" fill="#160f1b" stroke="#c798f4" stroke-opacity=".22"/>
+      <text x="14" y="20" fill="#a98cb9" font-size="7" font-weight="700">PRIORITY 5</text><text x="79" y="20" fill="#e5d6e9" font-size="9" font-weight="700">PvP Melee Hit Chance</text><text x="514" y="23" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="16">3,046</text>
+      <rect x="14" y="39" width="513" height="5" rx="3" fill="#09060b"/><rect x="14" y="39" width="316" height="5" rx="3" fill="url(#v2track)"/><circle cx="330" cy="41.5" r="8" fill="#f2c777" stroke="#fff0c9" stroke-width="1.5" filter="url(#v2glow)"/>
+      <text x="14" y="61" fill="#796784" font-size="6.5">LOWER · 2,360</text><text x="527" y="61" text-anchor="end" fill="#796784" font-size="6.5">HIGHER · 3,412</text>
+    </g>
+    <g transform="translate(990 607)">
+      <rect width="553" height="75" rx="9" fill="#160f1b" stroke="#c798f4" stroke-opacity=".22"/>
+      <text x="14" y="20" fill="#a98cb9" font-size="7" font-weight="700">PRIORITY 6</text><text x="79" y="20" fill="#e5d6e9" font-size="9" font-weight="700">Cooldown Speed</text><text x="524" y="23" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="16">94.3%</text>
+      <rect x="14" y="39" width="523" height="5" rx="3" fill="#09060b"/><rect x="14" y="39" width="448" height="5" rx="3" fill="url(#v2track)"/><circle cx="462" cy="41.5" r="8" fill="#f2c777" stroke="#fff0c9" stroke-width="1.5" filter="url(#v2glow)"/>
+      <text x="14" y="61" fill="#796784" font-size="6.5">LOWER · 71.1%</text><text x="537" y="61" text-anchor="end" fill="#796784" font-size="6.5">HIGHER · 98.4%</text>
+    </g>
+  </g>
+
+  <!-- Supporting details remain visible without competing -->
+  <rect x="413" y="720" width="330" height="130" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/><text x="578" y="746" text-anchor="middle" fill="#dfbf81" font-family="Georgia" font-size="13">Weapons</text>
+  <g font-family="Arial" font-size="7.5"><text x="431" y="774" fill="#a99778">Base Damage</text><text x="724" y="774" text-anchor="end" fill="#ead8b6" font-weight="700">401–804</text><text x="431" y="797" fill="#a99778">Damage Reduction</text><text x="724" y="797" text-anchor="end" fill="#ead8b6" font-weight="700">30</text><text x="431" y="820" fill="#a99778">Attack Speed</text><text x="724" y="820" text-anchor="end" fill="#ead8b6" font-weight="700">0.28s</text></g>
+  <rect x="756" y="720" width="806" height="130" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/><text x="1159" y="746" text-anchor="middle" fill="#dfbf81" font-family="Georgia" font-size="13">Sets &amp; Runes</text>
+  <rect x="774" y="761" width="365" height="35" rx="7" fill="#090706" stroke="#d4a65e" stroke-opacity=".16"/><text x="787" y="776" fill="#d9bd84" font-family="Arial" font-size="7.5" font-weight="700">Punisher’s Wings Set · 2/5</text><text x="787" y="789" fill="#877559" font-family="Arial" font-size="6">Heavy Attack Chance +150 · Skill Damage Boost +50</text>
+  <rect x="1151" y="761" width="393" height="35" rx="7" fill="#090706" stroke="#d4a65e" stroke-opacity=".16"/><text x="1164" y="776" fill="#d9bd84" font-family="Arial" font-size="7.5" font-weight="700">Deathless One · 4/6</text><text x="1164" y="789" fill="#877559" font-family="Arial" font-size="6">Block Chance Penetration +10% · Bonus Damage +24</text>
+  <rect x="774" y="805" width="770" height="29" rx="7" fill="#090706" stroke="#83d8a2" stroke-opacity=".28"/><text x="787" y="823" fill="#83d8a2" font-family="Arial" font-size="7.5" font-weight="700">14 active rune synergies · Open Gear for the full slot breakdown</text>
+  <text x="416" y="866" fill="#5e5267" font-family="Arial" font-size="7">ⓘ About calculations · Item Potentials are not included in this release.</text>
+</svg>

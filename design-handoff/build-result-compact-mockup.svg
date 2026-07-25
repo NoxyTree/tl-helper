@@ -1,0 +1,266 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c0910"/>
+      <stop offset=".55" stop-color="#080609"/>
+      <stop offset="1" stop-color="#0b0807"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c150e"/>
+      <stop offset="1" stop-color="#0d0a08"/>
+    </linearGradient>
+    <linearGradient id="active" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5c3a17"/>
+      <stop offset="1" stop-color="#2b1c0e"/>
+    </linearGradient>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6d694"/>
+      <stop offset="1" stop-color="#bf8036"/>
+    </linearGradient>
+    <linearGradient id="purplePanel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2e1d38"/>
+      <stop offset="1" stop-color="#151019"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".32"/>
+    </filter>
+    <filter id="glowGold">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <path d="M0 160 H1600 M0 280 H1600 M0 400 H1600 M0 520 H1600 M0 640 H1600 M0 760 H1600"
+        stroke="#f7dfae" stroke-opacity=".018"/>
+
+  <!-- Shared site header -->
+  <rect width="1600" height="58" fill="#0d0a08"/>
+  <rect width="1600" height="5" fill="#6f503a"/>
+  <line x1="0" y1="58" x2="1600" y2="58" stroke="#d4a65e" stroke-opacity=".24"/>
+  <circle cx="38" cy="31" r="19" fill="#171006" stroke="#9b6d2b"/>
+  <text x="38" y="36" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-weight="700" font-size="14">TL</text>
+  <text x="69" y="27" fill="#e3c481" font-family="Arial" font-weight="700" font-size="11" letter-spacing="2">TL HELPER</text>
+  <text x="69" y="41" fill="#77664c" font-family="Arial" font-weight="700" font-size="7" letter-spacing="1.4">BUILD OPTIMIZER</text>
+
+  <g fill="#88775c" font-family="Arial" font-size="8" font-weight="700" letter-spacing=".7">
+    <text x="548" y="34">ARMORY</text>
+    <text x="625" y="34">TRACKER</text>
+    <text x="704" y="34">ACHIEVEMENTS</text>
+    <text x="808" y="34">GEAR VIEWER</text>
+  </g>
+  <rect x="904" y="15" width="112" height="30" rx="15" fill="#24180c" stroke="#d4a65e" stroke-opacity=".5"/>
+  <text x="960" y="34" text-anchor="middle" fill="#daba77" font-family="Arial" font-size="8" font-weight="700">BUILD OPTIMIZER</text>
+  <line x1="1274" y1="13" x2="1274" y2="47" stroke="#d4a65e" stroke-opacity=".18"/>
+  <text x="1292" y="24" fill="#6e5e46" font-family="Arial" font-size="7" font-weight="700" letter-spacing="1">WEAPON SET</text>
+  <text x="1292" y="40" fill="#d9bc81" font-family="Georgia" font-size="12">Greatsword · Spear</text>
+  <line x1="1468" y1="13" x2="1468" y2="47" stroke="#d4a65e" stroke-opacity=".18"/>
+  <text x="1485" y="24" fill="#6e5e46" font-family="Arial" font-size="7" font-weight="700" letter-spacing="1">COMBAT POWER</text>
+  <text x="1532" y="41" fill="#d9bc81" text-anchor="middle" font-family="Georgia" font-size="12">—</text>
+
+  <!-- Compact result toolbar -->
+  <rect y="58" width="1600" height="78" fill="#100c0c" fill-opacity=".78"/>
+  <line x1="0" y1="136" x2="1600" y2="136" stroke="#d4a65e" stroke-opacity=".18"/>
+  <circle cx="30" cy="85" r="3.5" fill="#7edda1" filter="url(#glowGold)"/>
+  <text x="41" y="88" fill="#83d8a2" font-family="Arial" font-size="8" font-weight="700" letter-spacing="1.2">OPTIMIZATION COMPLETE</text>
+  <text x="27" y="119" fill="#f5d79a" font-family="Georgia" font-size="25">Greatsword + Spear build</text>
+
+  <g font-family="Arial" font-size="9" font-weight="700">
+    <rect x="1133" y="78" width="107" height="38" rx="8" fill="#21170d" stroke="#d4a65e" stroke-opacity=".42"/>
+    <text x="1186.5" y="101" text-anchor="middle" fill="#dacaaa">⚙  Edit goals</text>
+    <rect x="1248" y="78" width="77" height="38" rx="8" fill="#111821" stroke="#8fb2e8" stroke-opacity=".52"/>
+    <text x="1286.5" y="101" text-anchor="middle" fill="#c8d9f2">Compare</text>
+    <rect x="1333" y="78" width="93" height="38" rx="8" fill="#21170d" stroke="#d4a65e" stroke-opacity=".42"/>
+    <text x="1379.5" y="101" text-anchor="middle" fill="#dacaaa">Save preset</text>
+    <rect x="1434" y="78" width="138" height="38" rx="8" fill="url(#primary)" stroke="#f2c777"/>
+    <text x="1503" y="101" text-anchor="middle" fill="#160e05">Use in Armory</text>
+  </g>
+
+  <!-- Left equipment rail -->
+  <rect x="25" y="151" width="325" height="721" rx="12" fill="url(#panel)" stroke="#d4a65e" stroke-opacity=".28" filter="url(#shadow)"/>
+  <text x="42" y="180" fill="#e7d4ad" font-family="Georgia" font-size="15">Equipment</text>
+  <text x="331" y="180" text-anchor="end" fill="#6e5e47" font-family="Arial" font-size="7" font-weight="700" letter-spacing=".9">HOVER TO INSPECT</text>
+
+  <!-- equipment cards -->
+  <g font-family="Arial">
+    <g transform="translate(40 196)">
+      <rect width="144" height="82" rx="9" fill="#0b0808" fill-opacity=".5" stroke="#b96ee7" stroke-opacity=".3"/>
+      <circle cx="29" cy="31" r="20" fill="#24172a" stroke="#b96ee7" stroke-width="1.5"/>
+      <text x="29" y="37" text-anchor="middle" fill="#d69af0" font-size="16">♜</text>
+      <text x="56" y="23" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">HEAD · LV 80</text>
+      <text x="56" y="42" fill="#d083ed" font-size="9" font-weight="700">Reborn Lord’s</text>
+      <text x="56" y="54" fill="#d083ed" font-size="9" font-weight="700">Cursed Hat</text>
+    </g>
+    <g transform="translate(192 196)">
+      <rect width="143" height="82" rx="9" fill="#0b0808" fill-opacity=".5" stroke="#b96ee7" stroke-opacity=".3"/>
+      <circle cx="29" cy="31" r="20" fill="#24172a" stroke="#b96ee7" stroke-width="1.5"/>
+      <text x="29" y="37" text-anchor="middle" fill="#d69af0" font-size="16">♧</text>
+      <text x="56" y="23" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">CLOAK · LV 80</text>
+      <text x="56" y="42" fill="#d083ed" font-size="9" font-weight="700">Breath of</text>
+      <text x="56" y="54" fill="#d083ed" font-size="9" font-weight="700">Boundless Sky</text>
+    </g>
+    <g transform="translate(40 286)">
+      <rect width="144" height="82" rx="9" fill="#0b0808" fill-opacity=".5" stroke="#b96ee7" stroke-opacity=".3"/>
+      <circle cx="29" cy="31" r="20" fill="#24172a" stroke="#b96ee7" stroke-width="1.5"/>
+      <text x="29" y="37" text-anchor="middle" fill="#d69af0" font-size="16">♛</text>
+      <text x="56" y="23" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">CHEST · LV 80</text>
+      <text x="56" y="42" fill="#d083ed" font-size="9" font-weight="700">Reborn Lord’s</text>
+      <text x="56" y="54" fill="#d083ed" font-size="9" font-weight="700">Prayer Vestment</text>
+    </g>
+    <g transform="translate(192 286)">
+      <rect width="143" height="82" rx="9" fill="#0b0808" fill-opacity=".5" stroke="#b96ee7" stroke-opacity=".3"/>
+      <circle cx="29" cy="31" r="20" fill="#24172a" stroke="#b96ee7" stroke-width="1.5"/>
+      <text x="29" y="37" text-anchor="middle" fill="#d69af0" font-size="16">✦</text>
+      <text x="56" y="23" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">HANDS · LV 80</text>
+      <text x="56" y="42" fill="#d083ed" font-size="9" font-weight="700">Punisher’s</text>
+      <text x="56" y="54" fill="#d083ed" font-size="9" font-weight="700">Wings Gloves</text>
+    </g>
+    <g transform="translate(40 376)">
+      <rect width="144" height="82" rx="9" fill="#0b0808" fill-opacity=".5" stroke="#b96ee7" stroke-opacity=".3"/>
+      <circle cx="29" cy="31" r="20" fill="#24172a" stroke="#b96ee7" stroke-width="1.5"/>
+      <text x="29" y="37" text-anchor="middle" fill="#d69af0" font-size="16">♞</text>
+      <text x="56" y="23" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">LEGS · LV 80</text>
+      <text x="56" y="42" fill="#d083ed" font-size="9" font-weight="700">Punisher’s</text>
+      <text x="56" y="54" fill="#d083ed" font-size="9" font-weight="700">Wings Greaves</text>
+    </g>
+    <g transform="translate(192 376)">
+      <rect width="143" height="82" rx="9" fill="#0b0808" fill-opacity=".5" stroke="#cb8c36" stroke-opacity=".52"/>
+      <circle cx="29" cy="31" r="20" fill="#2b190d" stroke="#cb8c36" stroke-width="1.5"/>
+      <text x="29" y="37" text-anchor="middle" fill="#edb96a" font-size="16">◆</text>
+      <text x="56" y="23" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">FEET · LV 75</text>
+      <text x="56" y="42" fill="#edb96a" font-size="9" font-weight="700">Calanthia’s</text>
+      <text x="56" y="54" fill="#edb96a" font-size="9" font-weight="700">Fetters</text>
+    </g>
+  </g>
+
+  <line x1="40" y1="474" x2="335" y2="474" stroke="#d4a65e" stroke-opacity=".14"/>
+  <g font-family="Arial">
+    <rect x="40" y="488" width="295" height="58" rx="9" fill="#090706" stroke="#c88c36" stroke-opacity=".58"/>
+    <circle cx="70" cy="517" r="19" fill="#2d1b0c" stroke="#c88c36" stroke-width="1.5"/>
+    <text x="70" y="523" text-anchor="middle" fill="#efbd69" font-size="17">†</text>
+    <text x="99" y="509" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">MAIN · GREATSWORD</text>
+    <text x="99" y="529" fill="#edb96a" font-family="Georgia" font-size="12">Crimson Snow Annihilation</text>
+    <rect x="40" y="554" width="295" height="58" rx="9" fill="#090706" stroke="#c88c36" stroke-opacity=".58"/>
+    <circle cx="70" cy="583" r="19" fill="#2d1b0c" stroke="#c88c36" stroke-width="1.5"/>
+    <text x="70" y="589" text-anchor="middle" fill="#efbd69" font-size="17">↟</text>
+    <text x="99" y="575" fill="#78654d" font-size="6" font-weight="700" letter-spacing=".8">OFF · SPEAR</text>
+    <text x="99" y="595" fill="#edb96a" font-family="Georgia" font-size="12">Calanthia’s Transfixion</text>
+  </g>
+  <line x1="40" y1="627" x2="335" y2="627" stroke="#d4a65e" stroke-opacity=".14"/>
+  <text x="40" y="651" fill="#756249" font-family="Arial" font-size="7" font-weight="700" letter-spacing="1">ARTIFACTS</text>
+  <g fill="#172638" stroke="#4d91c1">
+    <circle cx="135" cy="647" r="15"/><circle cx="172" cy="647" r="15"/><circle cx="209" cy="647" r="15"/>
+    <circle cx="246" cy="647" r="15"/><circle cx="283" cy="647" r="15"/><circle cx="320" cy="647" r="15"/>
+  </g>
+  <rect x="40" y="678" width="295" height="38" rx="8" fill="#24180d" stroke="#d4a65e" stroke-opacity=".42"/>
+  <text x="187.5" y="701" text-anchor="middle" fill="#d8c29a" font-family="Arial" font-size="9" font-weight="700">↻  Re-forge unlocked equipment</text>
+  <rect x="40" y="733" width="295" height="115" rx="9" fill="#0b0908" stroke="#d4a65e" stroke-opacity=".15"/>
+  <text x="55" y="756" fill="#816e51" font-family="Arial" font-size="7" font-weight="700" letter-spacing=".8">LOADOUT AT A GLANCE</text>
+  <text x="55" y="781" fill="#c9b58e" font-family="Arial" font-size="9">15 equipment slots filled</text>
+  <text x="55" y="802" fill="#c9b58e" font-family="Arial" font-size="9">6 active artifact bonuses</text>
+  <text x="55" y="823" fill="#83d8a2" font-family="Arial" font-size="9">✓ All game limits satisfied</text>
+
+  <!-- Right workspace -->
+  <rect x="365" y="151" width="1210" height="721" rx="12" fill="url(#panel)" stroke="#d4a65e" stroke-opacity=".28" filter="url(#shadow)"/>
+  <rect x="379" y="165" width="1182" height="44" rx="9" fill="#090706" stroke="#d4a65e" stroke-opacity=".16"/>
+  <rect x="384" y="170" width="388" height="34" rx="7" fill="url(#active)" stroke="#f2c777" stroke-opacity=".6"/>
+  <text x="578" y="191" text-anchor="middle" fill="#efd08d" font-family="Arial" font-size="10" font-weight="700">Stats</text>
+  <text x="970" y="191" text-anchor="middle" fill="#76654d" font-family="Arial" font-size="10" font-weight="700">Upgrade Guide</text>
+  <text x="1364" y="191" text-anchor="middle" fill="#76654d" font-family="Arial" font-size="10" font-weight="700">Skills &amp; Mastery</text>
+  <g font-family="Arial" font-size="8" font-weight="700">
+    <rect x="380" y="221" width="67" height="26" rx="13" fill="#3a2712" stroke="#f2c777" stroke-opacity=".58"/>
+    <text x="413.5" y="237" text-anchor="middle" fill="#efd08d">Summary</text>
+    <text x="478" y="237" fill="#806e52">Attack</text><text x="532" y="237" fill="#806e52">Defense</text>
+    <text x="595" y="237" fill="#806e52">Utility</text><text x="646" y="237" fill="#806e52">PvP</text>
+    <text x="683" y="237" fill="#806e52">Boss</text><text x="728" y="237" fill="#806e52">Gear</text>
+  </g>
+
+  <!-- Attributes -->
+  <rect x="379" y="260" width="760" height="354" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/>
+  <line x1="397" y1="288" x2="710" y2="288" stroke="#d4a65e" stroke-opacity=".28"/>
+  <line x1="808" y1="288" x2="1121" y2="288" stroke="#d4a65e" stroke-opacity=".28"/>
+  <text x="759" y="293" text-anchor="middle" fill="#dfbf81" font-family="Georgia" font-size="14">Attributes</text>
+  <text x="759" y="310" text-anchor="middle" fill="#665740" font-family="Arial" font-size="7">59 POINTS ALLOCATED</text>
+
+  <g font-family="Arial">
+    <g transform="translate(398 326)">
+      <rect width="722" height="48" rx="8" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+      <text x="28" y="30" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-size="20">80</text>
+      <text x="62" y="20" fill="#c7b695" font-size="9">Strength</text>
+      <rect x="62" y="28" width="580" height="5" rx="3" fill="#050403"/><rect x="62" y="28" width="472" height="5" rx="3" fill="#e6b95f"/>
+      <text x="695" y="27" text-anchor="end" fill="#b68ae0" font-size="7">+20 NEXT</text>
+    </g>
+    <g transform="translate(398 382)">
+      <rect width="722" height="48" rx="8" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+      <text x="28" y="30" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-size="20">80</text>
+      <text x="62" y="20" fill="#c7b695" font-size="9">Dexterity</text>
+      <rect x="62" y="28" width="580" height="5" rx="3" fill="#050403"/><rect x="62" y="28" width="472" height="5" rx="3" fill="#e6b95f"/>
+      <text x="695" y="27" text-anchor="end" fill="#b68ae0" font-size="7">+20 NEXT</text>
+    </g>
+    <g transform="translate(398 438)">
+      <rect width="722" height="48" rx="8" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+      <text x="28" y="30" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-size="20">56</text>
+      <text x="62" y="20" fill="#c7b695" font-size="9">Wisdom</text>
+      <rect x="62" y="28" width="580" height="5" rx="3" fill="#050403"/><rect x="62" y="28" width="329" height="5" rx="3" fill="#e6b95f"/>
+      <text x="695" y="27" text-anchor="end" fill="#b68ae0" font-size="7">+4 NEXT</text>
+    </g>
+    <g transform="translate(398 494)">
+      <rect width="722" height="48" rx="8" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+      <text x="28" y="30" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-size="20">71</text>
+      <text x="62" y="20" fill="#c7b695" font-size="9">Perception</text>
+      <rect x="62" y="28" width="580" height="5" rx="3" fill="#050403"/><rect x="62" y="28" width="423" height="5" rx="3" fill="#e6b95f"/>
+      <text x="695" y="27" text-anchor="end" fill="#b68ae0" font-size="7">+9 NEXT</text>
+    </g>
+    <g transform="translate(398 550)">
+      <rect width="722" height="48" rx="8" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+      <text x="28" y="30" text-anchor="middle" fill="#f2c777" font-family="Georgia" font-size="20">11</text>
+      <text x="62" y="20" fill="#c7b695" font-size="9">Fortitude</text>
+      <rect x="62" y="28" width="580" height="5" rx="3" fill="#050403"/><rect x="62" y="28" width="70" height="5" rx="3" fill="#e6b95f"/>
+      <text x="695" y="27" text-anchor="end" fill="#b68ae0" font-size="7">+19 NEXT</text>
+    </g>
+  </g>
+
+  <!-- Priority result panel -->
+  <rect x="1152" y="260" width="409" height="354" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/>
+  <text x="1173" y="289" fill="#dfbf81" font-family="Georgia" font-size="14">Priority results</text>
+  <text x="1538" y="289" text-anchor="end" fill="#6f6048" font-family="Arial" font-size="7">YOUR RANKED GOALS</text>
+  <g font-family="Arial">
+    <g transform="translate(1170 306)"><rect width="373" height="41" rx="8" fill="#30200f" stroke="#d4a65e" stroke-opacity=".4"/><rect x="9" y="9" width="22" height="22" rx="6" fill="#f1cb79"/><text x="20" y="24" text-anchor="middle" fill="#160e05" font-size="8" font-weight="700">1</text><text x="42" y="24" fill="#e6d6b7" font-size="9" font-weight="700">Skill Damage Boost</text><text x="355" y="27" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="15">909</text></g>
+    <g transform="translate(1170 354)"><rect width="373" height="41" rx="8" fill="#30200f" stroke="#d4a65e" stroke-opacity=".4"/><rect x="9" y="9" width="22" height="22" rx="6" fill="#f1cb79"/><text x="20" y="24" text-anchor="middle" fill="#160e05" font-size="8" font-weight="700">2</text><text x="42" y="24" fill="#e6d6b7" font-size="9" font-weight="700">PvP Melee Heavy Attack</text><text x="355" y="27" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="15">4,385</text></g>
+    <g transform="translate(1170 402)"><rect width="373" height="41" rx="8" fill="#30200f" stroke="#d4a65e" stroke-opacity=".4"/><rect x="9" y="9" width="22" height="22" rx="6" fill="#f1cb79"/><text x="20" y="24" text-anchor="middle" fill="#160e05" font-size="8" font-weight="700">3</text><text x="42" y="24" fill="#e6d6b7" font-size="9" font-weight="700">Heavy Attack Damage</text><text x="355" y="27" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="15">33.4%</text></g>
+    <g transform="translate(1170 450)"><rect width="373" height="41" rx="8" fill="#30200f" stroke="#d4a65e" stroke-opacity=".4"/><rect x="9" y="9" width="22" height="22" rx="6" fill="#f1cb79"/><text x="20" y="24" text-anchor="middle" fill="#160e05" font-size="8" font-weight="700">4</text><text x="42" y="24" fill="#e6d6b7" font-size="9" font-weight="700">Attack Speed</text><text x="355" y="27" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="15">115.1%</text></g>
+    <g transform="translate(1170 498)"><rect width="373" height="41" rx="8" fill="#30200f" stroke="#d4a65e" stroke-opacity=".4"/><rect x="9" y="9" width="22" height="22" rx="6" fill="#f1cb79"/><text x="20" y="24" text-anchor="middle" fill="#160e05" font-size="8" font-weight="700">5</text><text x="42" y="24" fill="#e6d6b7" font-size="9" font-weight="700">PvP Melee Hit Chance</text><text x="355" y="27" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="15">3,046</text></g>
+    <g transform="translate(1170 546)"><rect width="373" height="41" rx="8" fill="#30200f" stroke="#d4a65e" stroke-opacity=".4"/><rect x="9" y="9" width="22" height="22" rx="6" fill="#f1cb79"/><text x="20" y="24" text-anchor="middle" fill="#160e05" font-size="8" font-weight="700">6</text><text x="42" y="24" fill="#e6d6b7" font-size="9" font-weight="700">Cooldown Speed</text><text x="355" y="27" text-anchor="end" fill="#f2c777" font-family="Georgia" font-size="15">94.3%</text></g>
+  </g>
+
+  <!-- Lower content -->
+  <rect x="379" y="627" width="354" height="149" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/>
+  <text x="556" y="653" text-anchor="middle" fill="#dfbf81" font-family="Georgia" font-size="13">Weapons</text>
+  <g font-family="Arial" font-size="8">
+    <text x="397" y="680" fill="#a99778">Base Damage</text><text x="713" y="680" text-anchor="end" fill="#ead8b6" font-weight="700">401–804</text>
+    <text x="397" y="704" fill="#a99778">Damage Reduction</text><text x="713" y="704" text-anchor="end" fill="#ead8b6" font-weight="700">30</text>
+    <text x="397" y="728" fill="#a99778">Attack Speed</text><text x="713" y="728" text-anchor="end" fill="#ead8b6" font-weight="700">0.28s</text>
+    <text x="397" y="752" fill="#a99778">Range</text><text x="713" y="752" text-anchor="end" fill="#ead8b6" font-weight="700">5.0m</text>
+  </g>
+  <rect x="746" y="627" width="815" height="149" rx="10" fill="#100c08" stroke="#d4a65e" stroke-opacity=".22"/>
+  <text x="1153" y="653" text-anchor="middle" fill="#dfbf81" font-family="Georgia" font-size="13">Sets &amp; Runes</text>
+  <rect x="764" y="666" width="377" height="40" rx="7" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+  <text x="777" y="683" fill="#d9bd84" font-family="Arial" font-size="8" font-weight="700">Punisher’s Wings Set · 2/5</text>
+  <text x="777" y="697" fill="#88765a" font-family="Arial" font-size="7">Heavy Attack Chance +150 · Skill Damage Boost +50</text>
+  <rect x="1153" y="666" width="390" height="40" rx="7" fill="#0a0806" stroke="#d4a65e" stroke-opacity=".16"/>
+  <text x="1166" y="683" fill="#d9bd84" font-family="Arial" font-size="8" font-weight="700">Deathless One · 4/6</text>
+  <text x="1166" y="697" fill="#88765a" font-family="Arial" font-size="7">Block Chance Penetration +10% · Bonus Damage +24</text>
+  <rect x="764" y="716" width="779" height="42" rx="7" fill="#0a0806" stroke="#83d8a2" stroke-opacity=".3"/>
+  <text x="777" y="734" fill="#83d8a2" font-family="Arial" font-size="8" font-weight="700">14 active rune synergies</text>
+  <text x="777" y="748" fill="#718b78" font-family="Arial" font-size="7">Open the Gear tab to inspect every slot contribution.</text>
+
+  <!-- Collapsed alternatives -->
+  <rect x="379" y="791" width="1182" height="57" rx="10" fill="url(#purplePanel)" stroke="#c798f4" stroke-opacity=".4"/>
+  <rect x="393" y="802" width="34" height="34" rx="8" fill="#382346" stroke="#c798f4" stroke-opacity=".65"/>
+  <text x="410" y="824" text-anchor="middle" fill="#d9b6f8" font-family="Georgia" font-size="15">✦</text>
+  <text x="443" y="817" fill="#eadcf0" font-family="Georgia" font-size="13">Explore alternative builds</text>
+  <text x="443" y="834" fill="#907d9c" font-family="Arial" font-size="7">Switch between fully calculated finalists without starting over.</text>
+  <rect x="1415" y="805" width="126" height="29" rx="14.5" fill="#2b1c35" stroke="#c798f4" stroke-opacity=".5"/>
+  <text x="1478" y="823" text-anchor="middle" fill="#caa1ed" font-family="Arial" font-size="7" font-weight="700" letter-spacing=".7">16 ALTERNATIVES · OPEN ›</text>
+  <text x="382" y="864" fill="#5e5267" font-family="Arial" font-size="7">ⓘ About calculations · Item Potentials are not included in this release.</text>
+</svg>

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TL Helper — Compact Result Mockup</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#08060a;
+      --panel:#120e0a;
+      --panel-2:#0d0a08;
+      --line:rgba(212,166,94,.24);
+      --line-strong:rgba(242,199,119,.58);
+      --gold:#f2c777;
+      --gold-soft:#d9bb82;
+      --text:#eee1c7;
+      --muted:#9c8a6d;
+      --dim:#706149;
+      --purple:#c798f4;
+      --green:#83d8a2;
+      --blue:#8fb2e8;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg)}
+    body{
+      color:var(--text);
+      font-family:Inter,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(1000px 540px at 52% -180px,rgba(101,69,153,.17),transparent 67%),
+        radial-gradient(760px 460px at 93% 10%,rgba(187,116,41,.09),transparent 62%),
+        repeating-linear-gradient(0deg,rgba(255,235,190,.012) 0 1px,transparent 1px 7px),
+        #08060a;
+    }
+    button{font:inherit}
+    .serif{font-family:Georgia,"Times New Roman",serif}
+    .shell-header{
+      height:62px;
+      display:grid;
+      grid-template-columns:280px 1fr 360px;
+      align-items:center;
+      padding:0 28px;
+      border-top:6px solid #71513b;
+      border-bottom:1px solid rgba(212,166,94,.2);
+      background:linear-gradient(180deg,#120e0b,#0a0807);
+    }
+    .brand{display:flex;align-items:center;gap:13px}
+    .logo{
+      width:40px;height:40px;display:grid;place-items:center;border:1px solid #8b642d;border-radius:50%;
+      background:radial-gradient(circle at 34% 28%,#3d2c13,#0b0805 72%);
+      color:var(--gold);font:700 18px Georgia;box-shadow:0 0 18px rgba(0,0,0,.65);
+    }
+    .brand strong{display:block;color:#e4c584;font-size:13px;letter-spacing:.17em}
+    .brand small{display:block;margin-top:2px;color:#75664f;font-size:8px;letter-spacing:.14em}
+    .nav{display:flex;align-items:center;justify-content:center;gap:38px;color:#8c7b60;font-size:10px;font-weight:700;letter-spacing:.05em}
+    .nav .active{padding:10px 14px;border:1px solid rgba(242,199,119,.36);border-radius:999px;color:#d9ba7b;background:rgba(91,59,20,.13)}
+    .status{display:flex;justify-content:flex-end;gap:26px}
+    .status-block{padding-left:20px;border-left:1px solid rgba(212,166,94,.14)}
+    .status-block small{display:block;color:#6f5f49;font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .status-block strong{display:block;margin-top:4px;color:#d8bb81;font:400 14px Georgia}
+
+    .result-bar{
+      min-height:82px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+      padding:13px 29px;
+      border-bottom:1px solid rgba(212,166,94,.17);
+      background:linear-gradient(90deg,rgba(18,13,11,.72),rgba(10,8,8,.4));
+    }
+    .result-heading{min-width:0}
+    .result-kicker{display:flex;align-items:center;gap:8px;color:var(--green);font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    .result-kicker:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px rgba(131,216,162,.55)}
+    h1{margin:5px 0 0;color:#f5d79a;font:400 27px/1.05 Georgia}
+    .actions{display:flex;align-items:center;gap:8px;padding:5px;border:1px solid rgba(212,166,94,.15);border-radius:12px;background:rgba(8,6,5,.56)}
+    .btn{height:38px;padding:0 14px;border:1px solid rgba(212,166,94,.32);border-radius:8px;background:rgba(26,19,12,.62);color:#d9c9aa;font-size:11px;font-weight:700}
+    .btn.blue{border-color:rgba(143,178,232,.36);background:rgba(32,48,72,.18);color:#c8d9f2}
+    .btn.primary{padding-inline:19px;border-color:#f2c777;background:linear-gradient(135deg,#f5d695,#c58a3d);color:#130d06}
+
+    .layout{
+      display:grid;
+      grid-template-columns:360px minmax(0,1fr);
+      gap:15px;
+      max-width:1920px;
+      margin:0 auto;
+      padding:15px 29px 48px;
+      align-items:start;
+    }
+    .equipment,.workspace,.card{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(27,20,13,.87),rgba(12,9,7,.94));
+      box-shadow:0 18px 46px rgba(0,0,0,.18);
+    }
+    .equipment{position:sticky;top:14px;border-radius:13px;padding:14px}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .panel-head h2{margin:0;color:#e7d4ad;font:400 16px Georgia}
+    .panel-head span{color:#6d5d46;font-size:8px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+    .gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    .gear{
+      min-height:84px;display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:center;
+      padding:8px;border:1px solid rgba(199,145,244,.22);border-radius:9px;background:rgba(0,0,0,.2)
+    }
+    .orb{
+      width:42px;height:42px;display:grid;place-items:center;border:2px solid #ad63de;border-radius:50%;
+      background:radial-gradient(circle at 35% 30%,#3c263f,#130d17 70%);color:#deb5f7;font-size:18px;box-shadow:0 0 10px rgba(173,99,222,.24)
+    }
+    .gear small,.weapon small{display:block;color:#74644d;font-size:7px;letter-spacing:.12em;text-transform:uppercase}
+    .gear strong{display:block;margin-top:4px;color:#ce83ed;font-size:10px;line-height:1.24}
+    .weapon-list{display:grid;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(212,166,94,.12)}
+    .weapon{
+      min-height:58px;display:grid;grid-template-columns:44px 1fr auto;gap:9px;align-items:center;
+      padding:7px 9px;border:1px solid rgba(242,199,119,.37);border-radius:9px;background:rgba(0,0,0,.22)
+    }
+    .weapon .orb{border-color:#c78832;background:radial-gradient(circle at 35% 30%,#4a2f14,#130c07 70%);color:#f1c06d}
+    .weapon strong{display:block;margin-top:3px;color:#edb96a;font:400 12px/1.18 Georgia}
+    .weapon em{color:#948063;font-size:9px;font-style:normal}
+    .artifact-block{margin-top:9px;padding-top:9px;border-top:1px solid rgba(212,166,94,.12)}
+    .artifact-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .artifact-row>small{color:#74644d;font-size:7px;letter-spacing:.12em;text-transform:uppercase}
+    .artifacts{display:flex;gap:6px}
+    .artifact{width:31px;height:31px;border:1px solid #4b91c2;border-radius:50%;background:radial-gradient(circle at 35% 30%,#28425b,#0a1018 72%)}
+    .reforge{width:100%;height:36px;margin-top:9px;border:1px solid rgba(212,166,94,.34);border-radius:8px;background:rgba(37,26,14,.62);color:#d8c29a;font-size:10px;font-weight:700}
+
+    .workspace{border-radius:13px;padding:13px}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:4px;border:1px solid rgba(212,166,94,.14);border-radius:10px;background:rgba(0,0,0,.28)}
+    .tab{height:37px;border:1px solid transparent;border-radius:7px;background:transparent;color:#78684f;font-size:11px;font-weight:750}
+    .tab.active{border-color:rgba(242,199,119,.57);background:linear-gradient(90deg,rgba(106,68,22,.33),rgba(64,42,18,.21));color:#f1d28f}
+    .subtabs{display:flex;gap:6px;padding:11px 1px}
+    .chip{padding:6px 11px;border:1px solid rgba(212,166,94,.2);border-radius:999px;background:rgba(0,0,0,.18);color:#907c5e;font-size:9px;font-weight:700}
+    .chip.active{border-color:rgba(242,199,119,.5);color:#f0cf8a;background:rgba(106,68,22,.2)}
+    .summary-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:12px}
+    .summary-main{display:grid;gap:12px}
+    .card{border-radius:11px;padding:13px}
+    .section-title{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:#dfbf81;font:400 14px Georgia}
+    .section-title:before,.section-title:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(242,199,119,.35))}
+    .section-title:after{background:linear-gradient(90deg,rgba(242,199,119,.35),transparent)}
+    .attributes{display:grid;gap:7px}
+    .attribute{display:grid;grid-template-columns:45px 1fr 40px;gap:10px;align-items:center;padding:7px 9px;border:1px solid rgba(212,166,94,.14);border-radius:8px;background:rgba(0,0,0,.18)}
+    .attribute b{color:#f0c66f;font:400 20px Georgia;text-align:center}
+    .attribute small{display:block;color:#c2b18e;font-size:10px}
+    .track{height:5px;margin-top:5px;border-radius:10px;background:#090705;overflow:hidden}
+    .fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#a86f28,#f2c777)}
+    .next{color:#a785d0;font-size:8px;text-align:right}
+    .detail-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:12px}
+    .stat-row{display:flex;align-items:baseline;gap:8px;padding:5px 0;color:#aa9878;font-size:10px}
+    .stat-row i{flex:1;border-bottom:1px dotted rgba(212,166,94,.16)}
+    .stat-row b{color:#ead8b6;font-size:11px}
+    .set{padding:8px 9px;border:1px solid rgba(212,166,94,.14);border-radius:8px;background:rgba(0,0,0,.16)}
+    .set+.set{margin-top:6px}
+    .set strong{color:#d9bd84;font-size:10px}
+    .set small{display:block;margin-top:3px;color:#8f7c5d;font-size:8px;line-height:1.4}
+    .priority-list{display:grid;gap:6px}
+    .priority{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;padding:8px 9px;border:1px solid rgba(212,166,94,.22);border-radius:8px;background:rgba(55,38,17,.22)}
+    .rank{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:#f1cb79;color:#160e05;font-size:9px;font-weight:800}
+    .priority strong{font-size:10px;color:#e5d5b7}
+    .priority em{color:#f2c777;font:400 16px Georgia;font-style:normal}
+    .alternatives{
+      margin-top:12px;display:grid;grid-template-columns:34px 1fr auto;gap:11px;align-items:center;
+      padding:11px 13px;border:1px solid rgba(199,152,244,.35);border-radius:10px;
+      background:linear-gradient(90deg,rgba(70,42,92,.24),rgba(22,14,26,.38))
+    }
+    .spark{width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(199,152,244,.54);border-radius:8px;color:#d9b6f8;background:rgba(199,152,244,.1)}
+    .alternatives strong{display:block;color:#e7d9ed;font:400 13px Georgia}
+    .alternatives small{display:block;margin-top:3px;color:#907d9c;font-size:8px}
+    .count{padding:6px 9px;border:1px solid rgba(199,152,244,.35);border-radius:999px;color:#caa1ed;font-size:8px;font-weight:800;letter-spacing:.06em}
+    .quiet-note{margin:11px 3px 0;color:#61566b;font-size:8px}
+
+    @media(max-width:1100px){
+      .shell-header{grid-template-columns:1fr auto}.nav{display:none}.layout{grid-template-columns:1fr}.equipment{position:static}.gear-grid{grid-template-columns:repeat(4,1fr)}.summary-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <div class="brand">
+      <div class="logo">TL</div>
+      <div><strong>TL HELPER</strong><small>BUILD OPTIMIZER</small></div>
+    </div>
+    <nav class="nav"><span>ARMORY</span><span>TRACKER</span><span>ACHIEVEMENTS</span><span>GEAR VIEWER</span><span class="active">BUILD OPTIMIZER</span></nav>
+    <div class="status">
+      <div class="status-block"><small>Weapon set</small><strong>Greatsword · Spear</strong></div>
+      <div class="status-block"><small>Combat power</small><strong>—</strong></div>
+    </div>
+  </header>
+
+  <section class="result-bar">
+    <div class="result-heading">
+      <div class="result-kicker">Optimization complete</div>
+      <h1>Greatsword + Spear build</h1>
+    </div>
+    <div class="actions">
+      <button class="btn">⚙ Edit goals</button>
+      <button class="btn blue">Compare</button>
+      <button class="btn">Save preset</button>
+      <button class="btn primary">Use in Armory</button>
+    </div>
+  </section>
+
+  <main class="layout">
+    <aside class="equipment">
+      <div class="panel-head"><h2>Equipment</h2><span>Hover to inspect</span></div>
+      <div class="gear-grid">
+        <div class="gear"><span class="orb">♜</span><span><small>Head · Lv 80</small><strong>Reborn Lord’s Cursed Hat</strong></span></div>
+        <div class="gear"><span class="orb">♧</span><span><small>Cloak · Lv 80</small><strong>Breath of Boundless Sky</strong></span></div>
+        <div class="gear"><span class="orb">♛</span><span><small>Chest · Lv 80</small><strong>Reborn Lord’s Prayer Vestment</strong></span></div>
+        <div class="gear"><span class="orb">✦</span><span><small>Hands · Lv 80</small><strong>Punisher’s Wings Gloves</strong></span></div>
+        <div class="gear"><span class="orb">♞</span><span><small>Legs · Lv 80</small><strong>Punisher’s Wings Greaves</strong></span></div>
+        <div class="gear"><span class="orb" style="border-color:#c78832;color:#edb96a">◆</span><span><small>Feet · Lv 75</small><strong style="color:#edb96a">Calanthia’s Fetters</strong></span></div>
+        <div class="gear"><span class="orb" style="border-color:#c78832;color:#edb96a">◇</span><span><small>Necklace · Lv 75</small><strong style="color:#edb96a">Choking Conviction</strong></span></div>
+        <div class="gear"><span class="orb">◉</span><span><small>Earring · Lv 50</small><strong>Bands of the Black Bastion</strong></span></div>
+      </div>
+      <div class="weapon-list">
+        <div class="weapon"><span class="orb">†</span><span><small>Main · Greatsword</small><strong>Crimson Snow Annihilation</strong></span><em>3.85m</em></div>
+        <div class="weapon"><span class="orb">↟</span><span><small>Off · Spear</small><strong>Calanthia’s Transfixion</strong></span><em>5m</em></div>
+      </div>
+      <div class="artifact-block">
+        <div class="artifact-row"><small>Artifacts</small><div class="artifacts"><i class="artifact"></i><i class="artifact"></i><i class="artifact"></i><i class="artifact"></i><i class="artifact"></i><i class="artifact"></i></div></div>
+        <button class="reforge">↻ Re-forge unlocked equipment</button>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="tabs"><button class="tab active">Stats</button><button class="tab">Upgrade Guide</button><button class="tab">Skills &amp; Mastery</button></div>
+      <div class="subtabs"><span class="chip active">Summary</span><span class="chip">Attack</span><span class="chip">Defense</span><span class="chip">Utility</span><span class="chip">PvP</span><span class="chip">Boss</span><span class="chip">Gear</span></div>
+
+      <div class="summary-grid">
+        <div class="summary-main">
+          <section class="card">
+            <div class="section-title">Attributes</div>
+            <div class="attributes">
+              <div class="attribute"><b>80</b><div><small>Strength</small><div class="track"><div class="fill" style="width:82%"></div></div></div><span class="next">+20 next</span></div>
+              <div class="attribute"><b>80</b><div><small>Dexterity</small><div class="track"><div class="fill" style="width:82%"></div></div></div><span class="next">+20 next</span></div>
+              <div class="attribute"><b>56</b><div><small>Wisdom</small><div class="track"><div class="fill" style="width:57%"></div></div></div><span class="next">+4 next</span></div>
+              <div class="attribute"><b>71</b><div><small>Perception</small><div class="track"><div class="fill" style="width:73%"></div></div></div><span class="next">+9 next</span></div>
+              <div class="attribute"><b>11</b><div><small>Fortitude</small><div class="track"><div class="fill" style="width:12%"></div></div></div><span class="next">+19 next</span></div>
+            </div>
+          </section>
+
+          <div class="detail-grid">
+            <section class="card">
+              <div class="section-title">Weapons</div>
+              <div class="stat-row"><span>Base Damage</span><i></i><b>401–804</b></div>
+              <div class="stat-row"><span>Damage Reduction</span><i></i><b>30</b></div>
+              <div class="stat-row"><span>Attack Speed</span><i></i><b>0.28s</b></div>
+              <div class="stat-row"><span>Range</span><i></i><b>5.0m</b></div>
+            </section>
+            <section class="card">
+              <div class="section-title">Sets &amp; Runes</div>
+              <div class="set"><strong>Punisher’s Wings Set · 2/5</strong><small>Heavy Attack Chance +150 · Skill Damage Boost +50</small></div>
+              <div class="set"><strong>Deathless One · 4/6</strong><small>Block Chance Penetration +10% · Bonus Damage +24</small></div>
+              <div class="set"><strong>14 active rune synergies</strong><small>Open the Gear tab to inspect every slot contribution.</small></div>
+            </section>
+          </div>
+        </div>
+
+        <aside class="card">
+          <div class="section-title">Priority results</div>
+          <div class="priority-list">
+            <div class="priority"><span class="rank">1</span><strong>Skill Damage Boost</strong><em>909</em></div>
+            <div class="priority"><span class="rank">2</span><strong>PvP Melee Heavy Attack</strong><em>4,385</em></div>
+            <div class="priority"><span class="rank">3</span><strong>Heavy Attack Damage</strong><em>33.4%</em></div>
+            <div class="priority"><span class="rank">4</span><strong>Attack Speed</strong><em>115.1%</em></div>
+            <div class="priority"><span class="rank">5</span><strong>PvP Melee Hit Chance</strong><em>3,046</em></div>
+            <div class="priority"><span class="rank">6</span><strong>Cooldown Speed</strong><em>94.3%</em></div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="alternatives">
+        <span class="spark">✦</span>
+        <span><strong>Explore alternative builds</strong><small>Switch between fully calculated finalists without starting over.</small></span>
+        <span class="count">16 ALTERNATIVES · OPEN ›</span>
+      </div>
+      <div class="quiet-note">ⓘ About calculations · Item Potentials are not included in this release.</div>
+    </section>
+  </main>
+</body>
+</html>
