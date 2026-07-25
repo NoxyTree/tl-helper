@@ -6,7 +6,7 @@
  "label": "Melee DPS max-dmg (greatsword/dagger)",
  "capturedAtUtc": "2026-07-24T03:00:00.000Z",
  "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/TheMysteryOfTheWoolenDungeon?build-id=8263451",
-  "baselineMatched": 88,
+  "baselineMatched": 96,
  "note": "Panel captured with build selection VERIFIED in-page (the selected build row carries id build-order-*-<buildId> and class border-accent) before reading the stats panel. Duplicate-label rows (Attack Speed, Range) excluded as unresolvable.",
  "questlogPanel": {
   "Bind Chance": "752",
@@ -1156,5 +1156,5 @@
    "tags": []
   }
  },
- "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (85/88)."
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-25 (96/96)."
 }

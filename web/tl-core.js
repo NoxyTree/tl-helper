@@ -196,6 +196,16 @@ export const STAT_PAGE_DEFINITIONS = [
 ];
 export const STAT_PAGE_IDS = STAT_PAGE_DEFINITIONS.map(([id]) => id);
 
+// Questlog display names. The web-data projection only title-cases stat ids
+// ("Move Speed Modifier"), so every name a user or the parity verifier reads
+// comes from here or from derivedQuestlogStatName below. That makes this map the
+// single place where our naming can drift away from the panel Questlog renders,
+// and drift here is silent: verify-questlog-parity.mjs joins by display label,
+// so a stale name drops the stat out of the comparison instead of failing it.
+// Five names were stale that way until 2026-07-25 (Movement Speed, Shield
+// Health, Shield Health Received, Healing Received, Boss Ranged Evasion) and
+// hid 23 already-correct totals. When a name here disagrees with Questlog, this
+// map is what is wrong. See docs/questlog-parity-coverage-2026-07-25.md.
 export const STAT_ALIASES = {
   attack_power_main_hand_min: "Main Weapon Min Damage",
   attack_power_main_hand_max: "Main Weapon Max Damage",
@@ -213,7 +223,7 @@ export const STAT_ALIASES = {
   magic_damage_dealt_modifier: "Magic Damage",
   magic_doll_heal_modifier: "Magic Doll Healing",
   melee_damage_dealt_modifier: "Melee Damage",
-  move_speed_modifier: "Move Speed",
+  move_speed_modifier: "Movement Speed",
   off_hand_attack_chance: "Off-Hand Weapon Attack Chance",
   pvp_damage_dealt_modifier: "PvP Damage",
   pvp_all_evasion: "PvP Evasion",
@@ -224,10 +234,13 @@ export const STAT_ALIASES = {
   rear_all_evasion: "Back Evasion",
   rear_damage_reduction: "Back Damage Reduction",
   shield_block_chance: "Block Chance",
-  shield_modifier: "Shield Strength",
-  shield_taken_modifier: "Shield Received",
+  shield_modifier: "Shield Health",
+  shield_taken_modifier: "Shield Health Received",
   side_all_evasion: "Side Evasion",
-  skill_heal_taken_modifier: "Skill Healing Received",
+  // Questlog labels this stat plainly "Healing Received". Nothing in the game
+  // data grants a separate heal_taken_modifier, so there is no second row to
+  // confuse it with; "Skill Healing Received" was our invention.
+  skill_heal_taken_modifier: "Healing Received",
   skill_power_amplification: "Skill Damage Boost",
   skill_power_resistance: "Skill Damage Resistance",
   stamina_max: "Max Stamina",
@@ -3916,7 +3929,7 @@ export function sourceTypeLabel(type) {
 // ---------- formatting ----------
 
 function derivedQuestlogStatName(id) {
-  const match = String(id ?? "").match(/^(?:(pvp|boss|front|side|rear)_)?(?:(all|melee|range|magic)_)?(accuracy|armor|critical_attack|critical_defense|double_attack|double_defense)$/);
+  const match = String(id ?? "").match(/^(?:(pvp|boss|front|side|rear)_)?(?:(all|melee|range|magic)_)?(accuracy|armor|critical_attack|critical_defense|double_attack|double_defense|evasion)$/);
   if (!match) return "";
   const [, prefixId = "", subjectId = "", metricId] = match;
   const prefix = { pvp: "PvP", boss: "Boss", front: "Front", side: "Side", rear: "Back" }[prefixId] ?? "";
@@ -3928,6 +3941,11 @@ function derivedQuestlogStatName(id) {
     critical_defense: "Endurance",
     double_attack: "Heavy Attack Chance",
     double_defense: "Heavy Attack Evasion",
+    // Evasion was the one metric this family omitted, so boss_range_evasion
+    // fell through to the title-cased id ("Boss Range Evasion") while its
+    // siblings boss_range_accuracy and boss_range_critical_defense derived
+    // Questlog's "Ranged" wording correctly.
+    evasion: "Evasion",
   }[metricId];
   return [prefix, subject, metric].filter(Boolean).join(" ");
 }

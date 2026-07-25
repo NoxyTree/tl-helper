@@ -6,7 +6,7 @@
  "label": "Melee DPS (sword/greatsword)",
  "capturedAtUtc": "2026-07-24T00:00:00.000Z",
  "sourceUrl": "https://questlog.gg/throne-and-liberty/en/character-builder/TheMysteryOfTheWoolenDungeon?build-id=8215841",
- "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-24 (87/90).",
+ "baselineNote": "Ratchet on MATCHED STAT COUNT as of 2026-07-25 (102/102).",
  "note": "Questlog payload and rendered Combined Stats panel frozen together. The panel is the reference; regenerate both at once or they desynchronise when the owner edits the build.",
  "questlogPanel": {
   "Combat Power": "5669",
@@ -1166,6 +1166,6 @@
    "tags": []
   }
  },
- "baselineMatched": 90,
+ "baselineMatched": 102,
  "panelNote": "The \"Attack Speed\" row is deliberately absent: questlog renders that label TWICE with different units (0.33s and 132%), so a label-keyed panel cannot disambiguate it. Our 132% matches the percentage row."
 }
