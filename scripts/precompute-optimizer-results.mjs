@@ -72,7 +72,7 @@ function scratchRequest(build, presetId, weaponTypes) {
     attributePointBudget: 59,
     goals: { priorities, protect: [] },
     lockedSlotIds: [],
-    progression: { enabled: true, skillLevelCap: 20, masteryPointsByWeapon: {}, overallMasteryLevel: 0 },
+    progression: { enabled: true, skillLevelCap: 20, masteryPointsByWeapon: {}, overallMasteryLevel: 1300 },
     rules: {
       minimumItemLevel: 50,
       keepCurrentHeroics: false,

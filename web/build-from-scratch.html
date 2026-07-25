@@ -1563,7 +1563,7 @@ class Component extends DCLogic {
     dragInsertAfter: false,
     openWeaponMenu: '',
     weaponTypes: { main:'', off:'' },
-    progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, overallMasteryLevel:0 },
+    progression: { enabled:true, skillLevelCap:20, masteryPointsByWeapon:{}, overallMasteryLevel:1300 },
     scenario: { enabled:false, distance:'10', timeOfDay:'unspecified', healthPercent:'', manaPercent:'', motionMode:'unspecified', stationaryBand:'under_2s', movingBand:'unspecified', priorStationaryBand:'unspecified', eventMode:'unspecified', eventWeaponType:'', partyTotal:'', partyWithin4:'', partyAdditional4To16:'', alliedNonpartyWithin4:'' },
     openStatSource: null,
     skillFocusId: '',
@@ -3317,7 +3317,7 @@ class Component extends DCLogic {
       ||s.scenario.enabled
       ||!s.progression.enabled
       ||Number(s.progression.skillLevelCap)!==20
-      ||Number(s.progression.overallMasteryLevel)!==0
+      ||Number(s.progression.overallMasteryLevel)!==1300
       ||masteryAdjusted;
     const setupRuleStatus=setupRulesCustomized?'Changed by you':'Ready to go';
     const setupRuleCards=[

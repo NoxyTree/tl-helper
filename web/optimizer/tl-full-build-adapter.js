@@ -494,14 +494,25 @@ function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales =
     }
     const retained = new Map();
     const add = (row) => { if (row) retained.set(row.key, row); };
-    const boundedLimit = Math.max(1, limit) + 1;
-    // Preserve the exact historical lane even if another intermediate row has
-    // better current floor proximity. Only the completed downstream build can
-    // prove that this lane is unnecessary.
-    const objectiveLane = [...rows]
-      .filter((row) => row.evaluation.constraintLane === "objective")
-      .sort((a, b) => compareAttributeObjective(a, b) || a.key.localeCompare(b.key))[0];
-    add(objectiveLane ?? diverseFinalists(rows, rankedGoals, 1)[0]);
+    const objectiveRows = rows.filter((row) => row.evaluation.constraintLane === "objective");
+    const floorFreeObjectiveRows = objectiveRows.filter((row) => row.evaluation.recoveryObjectiveWitness === true);
+    const objectiveCohort = diverseFinalists(
+      floorFreeObjectiveRows.length ? floorFreeObjectiveRows : objectiveRows.length ? objectiveRows : rows,
+      rankedGoals,
+      Math.max(1, limit),
+    );
+    // The downstream progression search can reorder gear and rune states when
+    // passives or unified mastery interact with their stats. Preserve the same
+    // bounded, goal-diverse objective cohort the floor-free path would retain,
+    // rather than assuming its single pre-progression winner stays best.
+    for (const row of objectiveCohort) add(row);
+
+    // Objective diversity and floor diversity are independent lanes. Reserve a
+    // joint-nearest row and up to one extreme per declared floor in addition to
+    // the ordinary objective budget.
+    const boundedLimit = Math.max(1, limit)
+      + 1
+      + Math.min(minimumEntries.length, Math.max(1, limit));
 
     const floorRows = [...rows].sort((a, b) =>
       minimumViolation(a.evaluation.stats, minimums, scales) - minimumViolation(b.evaluation.stats, minimums, scales)
@@ -523,10 +534,6 @@ function diverseFinalists(rows, rankedGoals, limit = 16, minimums = {}, scales =
     }
     const feasible = rows.filter((row) => minimumViolation(row.evaluation.stats, minimums, scales) === 0);
     for (const row of diverseFinalists(feasible, rankedGoals, limit)) {
-      if (retained.size >= boundedLimit) break;
-      add(row);
-    }
-    for (const row of floorRows) {
       if (retained.size >= boundedLimit) break;
       add(row);
     }
@@ -1469,7 +1476,10 @@ export async function createOptimizerAdapter(deps = {}) {
         || neutralTotal(b, "neutralItemLevel") - neutralTotal(a, "neutralItemLevel")
         || neutralTotal(b, "neutralGrade") - neutralTotal(a, "neutralGrade")
         || a.key.localeCompare(b.key);
-      let search = await optimizeFullBuild({ candidatesBySlot, slotOrder: slots, evaluate: evaluateBuild,
+      const minimumTargets = rankedGoals
+        .filter((goal) => goal.minimum != null)
+        .map(({ id, components, minimum }) => ({ id, components, minimum }));
+      const fullBuildSearchOptions = { candidatesBySlot, slotOrder: slots, evaluate: evaluateBuild,
         ...(typeof optimizerTaskPool?.map === "function" ? {
           evaluateBatch: (entries, batchRuntime = {}) => runTaskBatch(
             "evaluate_build",
@@ -1491,7 +1501,32 @@ export async function createOptimizerAdapter(deps = {}) {
       // Goal minimums ride along as retention targets in every mode: scratch
       // enforces them only after attribute allocation, so floor-capable states
       // must survive the beam even while score-dominant states outrank them.
-      minimumTargets: rankedGoals.filter((goal) => goal.minimum != null).map(({ id, components, minimum }) => ({ id, components, minimum })), setRoutes, structuralStateKeys, routeLegalityMetadataComplete: true, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching compatible loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) });
+      minimumTargets, setRoutes, structuralStateKeys, routeLegalityMetadataComplete: true, beamWidth: profile.beamWidth, paretoWidth: profile.paretoWidth, alternativeCount: attributePointBudget == null ? (progression ? progressionPoolSize : 4) : attributePoolSize, frontierCount: attributePointBudget == null ? 24 : attributePoolSize, signal: runtime.signal, onProgress: (row) => runtime.onProgress?.({ percent: row.phase === "search" ? 5 + (attributePointBudget == null ? 45 : 30) * row.completedSlots / row.totalSlots : (attributePointBudget == null ? 50 : 35) + (attributePointBudget == null ? 50 : 25) * row.completed / row.total, label: row.phase === "search" ? "Searching compatible loadouts" : "Calculating preliminary finalists", detail: `${row.searched ?? row.completed ?? 0} combinations processed` }) };
+      let search = await optimizeFullBuild(fullBuildSearchOptions);
+      if (floorRecovery && minimumTargets.length) {
+        // Minimum-target reservations enlarge each successive beam. That is
+        // intentionally additive, but the extra states can still displace an
+        // objective state inside a later per-signature Pareto bound. Replay the
+        // bounded floor-free beam and merge its exact frontier so recovery
+        // retains both paths through attribute, rune, and progression stages.
+        const objectiveSearch = await optimizeFullBuild({ ...fullBuildSearchOptions, minimumTargets: [] });
+        const mergedFrontier = new Map((search.frontier ?? []).map((row) => [row.key, row]));
+        const objectivePreliminary = objectiveSearch.frontier?.length
+          ? objectiveSearch.frontier
+          : objectiveSearch.alternatives ?? [];
+        for (const row of objectivePreliminary) {
+          mergedFrontier.set(row.key, {
+            ...row,
+            evaluation: { ...row.evaluation, recoveryObjectiveWitness: true },
+          });
+        }
+        search = {
+          ...search,
+          frontier: [...mergedFrontier.values()],
+          searched: Number(search.searched ?? 0) + Number(objectiveSearch.searched ?? 0),
+          finalists: Number(search.finalists ?? 0) + Number(objectiveSearch.finalists ?? 0),
+        };
+      }
       const setRouteStages = { preliminary: search.setRouteMetrics ?? { requested: setRoutes.length, represented: 0, representedRouteIds: [] } };
       const structuralStateStages = { preliminary: search.structuralStateMetrics ?? { requested: structuralStateKeys.length, represented: 0, representedKeys: [] } };
       if (attributePointBudget != null) {

@@ -36,6 +36,26 @@ test("floor-aware downstream retention keeps the historical objective lane", () 
   assert.deepEqual(selected.map((row) => row.key), ["objective", "feasible"]);
 });
 
+test("floor recovery keeps a bounded objective-diverse cohort for downstream progression", () => {
+  const rows = [
+    { key: "floor-beam-objective", evaluation: { score: 101, stats: { attack: 101, guard: 0 }, constraintLane: "objective" } },
+    { key: "objective-top", evaluation: { score: 100, stats: { attack: 100, guard: 0 }, constraintLane: "objective", recoveryObjectiveWitness: true } },
+    { key: "objective-runner-up", evaluation: { score: 99, stats: { attack: 99, guard: 0 }, constraintLane: "objective", recoveryObjectiveWitness: true } },
+    { key: "objective-pruned", evaluation: { score: 98, stats: { attack: 98, guard: 0 }, constraintLane: "objective", recoveryObjectiveWitness: true } },
+    { key: "floor", evaluation: { score: 10, stats: { attack: 10, guard: 50 }, constraintLane: "feasibility" } },
+  ];
+  const selected = diverseFinalistsWithSetRoutes(
+    rows,
+    [{ id: "attack", components: ["attack"] }],
+    2,
+    [],
+    [],
+    { guard: 50 },
+    { guard: 50 },
+  );
+  assert.deepEqual(selected.map((row) => row.key), ["objective-top", "objective-runner-up", "floor"]);
+});
+
 test("same-item scratch and refit candidates preserve excluded potentials without cross-item inheritance", () => {
   const core = { emptyEquipmentSelection: () => ({ itemId: "", potentialId: "", traits: [] }), itemMaxLevel: () => 12 };
   const current = { itemId: "same", potentialId: "Potential_Stored", traits: [{ statId: "hp_max" }] };

@@ -203,17 +203,11 @@ test("scratch Overall Mastery uses decoded level choices and emits only the expl
   assert.match(html, /aria-label="Overall Mastery unlock threshold"/);
   assert.match(html, /Unlocked through level \$\{level\}/);
   assert.match(html, /OVERALL_MASTERY_LEVELS = Object\.freeze\(Array\.from\(\{length:13\},\(_,index\)=>index\*130\)\)/);
-  // KNOWN ISSUE, deliberately still 0. The 24 unified nodes are gated at
-  // requiredLevel 130..1560, so 0 unlocks none of them and silently disables
-  // the feature this panel advertises; real imported builds run 650-1560
-  // (median 1300). Raising it to 1300 was tried and reverted: it reopened a
-  // floor false-infeasibility (sword/dagger, 3 floors, short 13 of 5,123 on
-  // PvP Melee Hit Chance) that the bounded recovery pass cannot close in the
-  // wider progression search space. Raise it only once that is fixed, and
-  // change scripts/precompute-optimizer-results.mjs in the same commit - the
-  // value is part of the precache key, and drift silently turns every preset
-  // into a live optimization (guarded by scripts/tests/optimizer-precache.test.mjs).
-  assert.match(html, /overallMasteryLevel:0/);
+  // The real-player median unlock threshold is the product default. Keep it in
+  // sync with scripts/precompute-optimizer-results.mjs: the value is part of
+  // the precache key, and drift silently turns every preset into a live
+  // optimization (guarded by scripts/tests/optimizer-precache.test.mjs).
+  assert.match(html, /overallMasteryLevel:1300/);
   assert.match(html, /this\.OVERALL_MASTERY_LEVELS\.includes\(requested\)\?requested:0/);
   assert.match(html, /progression:\{\.\.\.this\.state\.progression,masteryPointsByWeapon:\{\.\.\.this\.state\.progression\.masteryPointsByWeapon\}\}/);
   assert.match(html, /this\._worker\.postMessage\(\{type:'optimize',request\}\)/);
