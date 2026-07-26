@@ -45,6 +45,14 @@ export function canonicalPrecacheRequest(request) {
   const priorities = normalizeRankedGoals(request.goals ?? {})
     .map(({ id, rank, mode, minimum, target }) => ({ id, rank, mode, minimum, target }));
   if (!priorities.length) return null;
+  // Pinned items change which build comes back, so they MUST be part of the
+  // key. Without this a request pinning the player's Heroic derives the same
+  // key as one pinning nothing and is served a build that quietly omits it.
+  // Emitted only when non-empty so requests without pins keep their existing
+  // keys and the committed cache stays reachable.
+  const pinnedItemIds = Object.fromEntries(
+    Object.entries(request.pinnedItemIds ?? {}).filter(([, itemId]) => itemId).sort(([a], [b]) => a.localeCompare(b)),
+  );
   const progression = request.progression ?? {};
   const rules = request.rules ?? {};
   return {
@@ -53,6 +61,7 @@ export function canonicalPrecacheRequest(request) {
     weaponTypes: (request.weaponTypes ?? []).map(String),
     attributePointBudget: Number(request.attributePointBudget) || 0,
     priorities,
+    ...(Object.keys(pinnedItemIds).length ? { pinnedItemIds } : {}),
     progression: {
       enabled: progression.enabled !== false,
       skillLevelCap: Number(progression.skillLevelCap ?? 20),
