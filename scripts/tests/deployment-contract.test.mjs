@@ -61,8 +61,16 @@ test("Cloudflare Pages serves the web app and production domain", async () => {
 test("Vercel serves the static web directory without invoking Vite", async () => {
   const config = JSON.parse(await read("vercel.json"));
   assert.equal(config.framework, null);
-  assert.equal(config.buildCommand, null);
   assert.equal(config.outputDirectory, "web");
+  // web/ still ships as-is — no bundler, no framework build. buildCommand is
+  // allowed to run a VERIFIER because it is the only hook a Vercel
+  // git-integration deploy gives us, and that path bypasses the npm
+  // predeploy:* hooks entirely. Anything that transforms the output is what
+  // this test exists to prevent.
+  assert.ok(
+    config.buildCommand === null || config.buildCommand === "node scripts/verify-precache-fresh.mjs",
+    `buildCommand must stay a verifier or null, got: ${config.buildCommand}`,
+  );
   const handler = await read("api/questlog/character.js");
   assert.match(handler, /export default async function handler/);
   assert.match(handler, /ALLOWED_HOSTS/);
