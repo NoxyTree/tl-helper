@@ -18,6 +18,30 @@ The function accepts only public HTTPS `questlog.gg` character-builder URLs,
 validates numeric build IDs, caps each upstream response at 8 MB, and never
 uses cookies or privileged credentials.
 
+## Changing engine sources? Regenerate the precache BEFORE pushing
+
+`vercel.json` runs `scripts/verify-precache-fresh.mjs` as its build command, so
+a precache that disagrees with the shipped engine **fails the deployment** —
+including a git-integration deploy, which is the whole reason it sits there.
+That is deliberate: a stale cache means a cached player and a live player get
+different numbers for the same request.
+
+The cost is that any edit to a module reachable from
+`web/optimizer/tl-builder-worker.js` changes the engine fingerprint and breaks
+deploys until the cache is regenerated:
+
+```bash
+node scripts/precompute-optimizer-results.mjs --force
+```
+
+~10 minutes for 14 entries; worth running on a spare machine. `npm test` fails
+on a stale cache too, so the signal is local — heed it rather than pushing and
+regenerating after, which is exactly how deploys broke across `5ac144e`
+through `4c15a84`.
+
+`scripts/verify-precache-determinism.mjs --all` is the deeper check (stored
+entries vs live reruns) but takes hours; it is a gate step, not a deploy step.
+
 ## Release gate
 
 Run from `D:\TL_Helper`:
