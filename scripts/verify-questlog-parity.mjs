@@ -155,3 +155,20 @@ if (regressions.length) {
   console.error(`\nLost previously-matching stats: ${regressions.map((row) => `${row.label} (${row.matched} < ${row.baselineMatched})`).join("; ")}`);
   process.exit(1);
 }
+
+// A ratchet regression was the only failure condition, so this verifier exited
+// 0 while reporting fixtures whose numbers we cannot explain — it announced the
+// problem and passed anyway. An unexplained blocker means a build we calculate
+// differently from our own reference, which is the thing this script exists to
+// catch. Expected blockers are the two fixtures proven to be faithful imports
+// (see mastery-achievement-parity-2026-07-25.md); everything else fails.
+const unexplained = results.filter((row) => row.unexpectedBlockingIssues.length);
+if (unexplained.length) {
+  console.error(`\n${unexplained.length} fixture${unexplained.length === 1 ? "" : "s"} carry unexplained blocking issues:`);
+  for (const row of unexplained) {
+    console.error(`  ${row.label} (${row.matched}/${row.compared})`);
+    for (const issue of row.unexpectedBlockingIssues) console.error(`    ! ${issue}`);
+  }
+  console.error("\nEither explain them and mark them expected, or fix the calculation.");
+  process.exit(1);
+}
