@@ -8,8 +8,12 @@
     "benchmark:optimizer": "node scripts/benchmark-build-optimizer.mjs --depth=fast --runs=1",
     "test": "node --test scripts/tests/*.test.mjs",
     "adviser:start": "node local-adviser/server.mjs",
+    "verify:precache": "node scripts/verify-precache-fresh.mjs",
+    "predeploy:preview": "npm run verify:precache",
     "deploy:preview": "npx --yes wrangler pages deploy web --project-name tl-helper --branch public-beta",
+    "predeploy:production": "npm run verify:precache",
     "deploy:production": "npx --yes vercel deploy --prod --yes --scope noxy-tree",
+    "predeploy:production:cloudflare": "npm run verify:precache",
     "deploy:production:cloudflare": "npx --yes wrangler pages deploy web --project-name tl-helper --branch master"
   },
   "devDependencies": {
