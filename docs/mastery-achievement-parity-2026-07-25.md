@@ -149,3 +149,38 @@ The next step is evidence about the game rule, not a code change: does an
 under-activated tier grant its stored effect or not? Questlog says no. We say
 yes. Nothing decoded so far settles it, and no rule should be written into the
 engine until something does.
+
+---
+
+# Double Impact — hypotheses eliminated, 2026-07-26
+
+`34.2 − 15.6 = 18.6` exactly: Questlog applies **none** of Double Impact, and
+that single node accounts for the whole Critical Damage disagreement (and the
++1.2 on Critical Damage Resistance). So the question is narrow — why does
+Questlog not apply a node the payload stores?
+
+Three explanations checked against the data and **all three are wrong**:
+
+| Hypothesis | Verdict |
+|---|---|
+| The node isn't actually selected | **No.** `GT_Hero_Tactic_04` is stored at `level: 10`. |
+| It's Epic-gated and the gate isn't met | **No.** The gate is 80 non-Epic normal points for a first Epic (`tl-core.js:2229`). The build has **216**. |
+| The weapon is over its point budget | **No.** `MASTERY_POINT_BUDGET = 220`; counting normal nodes only, no fixture on the fleet exceeds it. An earlier count of 226 wrongly included synergy nodes, which cost no points. |
+
+So by every rule this engine implements, Double Impact is legitimately
+unlocked, legitimately allocated, and should apply. Questlog disagrees.
+
+**That means the disagreement is about a game rule we do not know**, not about
+importing, gating, or budgeting. It cannot be resolved from anything currently
+in the repo.
+
+Resolving it needs external evidence — an in-game observation of a character
+with an Epic gauntlet Tactic node, or a decode that exposes an activation
+condition the current mastery records do not carry. Until then:
+
+- Both fixtures stay **unexpected** blockers; `verify-questlog-parity.mjs`
+  exits 1 on them.
+- The over-report is disclosed in both optimizer footers.
+- **Do not** write a rule into the engine to close the gap. Guessing a
+  condition that happens to zero out this node would fit the fixture and
+  silently break every build where the node legitimately applies.
