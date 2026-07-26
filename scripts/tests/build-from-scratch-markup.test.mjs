@@ -95,10 +95,14 @@ test("owned Heroic builder uses the canonical item-specific data model", () => {
   assert.match(html, /Skill Core/);
   assert.match(html, /itemSkillCores\(item\)/);
   assert.match(html, /perkId:cfg\.perkId\|\|''/);
-  assert.match(html, /perkRequired=group==='weapon'/);
+  // Skill Core and traits are OPTIONAL: naming the item is the point, and the
+  // optimizer configures what the player leaves blank. Partial traits are still
+  // rejected -- 1 or 2 is an unfinished entry, 0 is "you choose".
+  assert.match(html, /const perkRequired=false/);
+  assert.match(html, /draft\.traits\.length===0 \|\| draft\.traits\.length===3/);
+  assert.match(html, /pinnedItemIds\[item\.slotId\]=item\.id/, "an undescribed Heroic pins its item instead of locking the slot");
   assert.match(html, /const perks=group==='weapon'\?this\.core\.itemSkillCores\(item\):\[\]/);
   assert.match(html, /perkId:group==='weapon'\?\(cfg\.perkId\|\|''\):''/);
-  assert.match(html, /Choose the Skill Core shown on your item/);
   assert.match(html, /draftFixedStats:item\?this\.itemFixedStats/);
   assert.match(html, /<img src="\{\{ di\.imageUrl \}\}"/);
   assert.doesNotMatch(html, />Heroic Trait</);

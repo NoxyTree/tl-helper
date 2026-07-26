@@ -1247,6 +1247,13 @@ export async function createOptimizerAdapter(deps = {}) {
       const slots = core.EQUIPMENT_SLOTS.map((row) => row.id);
       const lockedIndexes = new Set((request.locks ?? []).filter((value) => Number.isInteger(Number(value))).map(Number));
       const lockedSlotIds = new Set(request.lockedSlotIds ?? []);
+      // "I own this item, use it, but I am not going to type in its traits."
+      // Locking the slot would freeze whatever the player left blank, which is
+      // strictly worse than not naming the item at all. A pin fixes the item's
+      // IDENTITY and leaves traits, Heroic effects, resonance and runes to the
+      // optimizer -- the same treatment heroicPolicy "keep_items" gives an
+      // existing build, which scratch builds could not reach.
+      const pinnedItemIds = new Map(Object.entries(request.pinnedItemIds ?? {}).filter(([, itemId]) => itemId));
       const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};
       const cap = profile.directCandidateCap;
@@ -1293,10 +1300,17 @@ export async function createOptimizerAdapter(deps = {}) {
           continue;
         }
         const rows = [];
+        const pinnedItemId = pinnedItemIds.get(slot);
         for (const item of core.slotItems(core.slotById(slot))) {
+          // A pinned slot enumerates exactly one item, but still runs the whole
+          // trait/effect/rune optimization below for it.
+          if (pinnedItemId && item.id !== pinnedItemId) continue;
           if (requiredWeaponType && item.equipmentType !== requiredWeaponType) continue;
           if (minimumItemLevel && core.itemMaxLevel(item) < minimumItemLevel) continue;
-          if (scratch && rules.allowUnownedHeroics === false && item.grade === core.HEROIC_GRADE) continue;
+          // A pinned Heroic is one the player told us they own, so the
+          // "no unowned Heroics" rule must not filter it out — that rule exists
+          // to stop the optimizer handing them gear they do not have.
+          if (scratch && rules.allowUnownedHeroics === false && item.grade === core.HEROIC_GRADE && item.id !== pinnedItemId) continue;
           let selection = optimizerItemSelection(core, item, current);
           if (rules.optimizeThreeTraits && item.grade !== core.HEROIC_GRADE) selection.traits = optimizedNormalTraits(item, rankedGoals, generationScales);
           selection.resonance = optimizedResonanceSelection(item, rankedGoals, generationScales);
@@ -1306,7 +1320,9 @@ export async function createOptimizerAdapter(deps = {}) {
           // and runes are re-optimized below). Without this, a higher-scoring
           // non-Heroic would silently replace the Heroic the user chose to keep.
           if (!scratch && heroicPolicy === "keep_items" && currentItem?.grade === core.HEROIC_GRADE && item.id !== current?.itemId) continue;
-          if ((rules.bestHeroicConfiguration || (heroicPolicy === "keep_items" && item.id === current?.itemId)) && item.grade === core.HEROIC_GRADE) {
+          // A pinned Heroic must be configured for the player, not left bare —
+          // pinning is how they say "use this item" without filling in traits.
+          if ((rules.bestHeroicConfiguration || item.id === pinnedItemId || (heroicPolicy === "keep_items" && item.id === current?.itemId)) && item.grade === core.HEROIC_GRADE) {
             selection = { ...selection, ...optimizeHeroicPotential(item, { allowDuplicateEffects: false, frontierLimit: 4, evaluate: (candidate) => weight(contribution(slot, { ...selection, ...candidate })) }).selection };
           }
           if (rules.runes?.mode === "keep") selection.runes = clone(current?.runes ?? []);

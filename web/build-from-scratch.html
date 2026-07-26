@@ -847,7 +847,7 @@
               </span>
               <div style="min-width:0;">
                 <select value="{{ perkValue }}" onChange="{{ onPerk }}" style="width:100%;padding:7px 8px;border:1px solid rgba(207,157,255,.3);border-radius:7px;background:rgba(7,5,3,.8);color:#eadcf7;font:600 11px 'Instrument Sans';">
-                  <option value="">Choose the Skill Core on your item</option>
+                  <option value="">Leave blank — the optimizer picks one</option>
                   <sc-for list="{{ perkOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                 </select>
                 <sc-if value="{{ hasSelectedPerk }}" hint-placeholder-val="{{ true }}">
@@ -2148,6 +2148,7 @@ class Component extends DCLogic {
     source.attributes={str:0,dex:0,int:0,per:0,con:0};
     if(source.build)source.build.attributes={...source.attributes};
     const lockedSlotIds=[];
+    const pinnedItemIds={};
     for (const [group,cfg] of Object.entries(this.state.heroics)) {
       if (!cfg || this.state.heroicMode==='none') continue;
       const item=this.findHeroic(group,cfg.itemId);
@@ -2160,7 +2161,12 @@ class Component extends DCLogic {
         heroicEffects:cfg.heroicEffects.map(row=>({...row})), resonance:cfg.resonance?[{...cfg.resonance}]:[],
         runes:cfg.runes.map(({runeId,statId,level})=>({runeId,statId,level})),
       };
-      lockedSlotIds.push(item.slotId);
+      // Only lock the slot when the player actually described the item. If they
+      // named it and left the details blank, locking would freeze the blanks --
+      // a Heroic with no traits and no Skill Core, which is worse than not
+      // naming it. Pin the identity instead and let the optimizer fill the rest.
+      const described = cfg.traits.length>0 || cfg.heroicEffects.some(row=>row.statId) || !!cfg.perkId || cfg.runes.some(r=>r.runeId);
+      if (described) lockedSlotIds.push(item.slotId); else pinnedItemIds[item.slotId]=item.id;
     }
     for (const [slot,locked] of Object.entries(this.state.locked)) if (locked && !lockedSlotIds.includes(slot)) lockedSlotIds.push(slot);
     const priorities=this.state.priorities.map((id,index)=>{
@@ -2173,7 +2179,7 @@ class Component extends DCLogic {
     const scenario=this.buildScenario(source.build);
     return {
       build:source, sourceKind:'scratch', weaponTypes:[this.state.weaponTypes.main,this.state.weaponTypes.off],
-      attributePointBudget:this.ATTR_BUDGET, goals:{priorities,protect:[]}, lockedSlotIds,
+      attributePointBudget:this.ATTR_BUDGET, goals:{priorities,protect:[]}, lockedSlotIds, pinnedItemIds,
       progression:{...this.state.progression,masteryPointsByWeapon:{...this.state.progression.masteryPointsByWeapon}},
       rules:{ minimumItemLevel:this.state.rules.endgame?50:0, keepCurrentHeroics:false, reconsiderHeroics:this.state.heroicMode==='theoretical',
         includeSetEffects:this.state.rules.sets, optimizeThreeTraits:this.state.rules.traits,
@@ -3362,8 +3368,15 @@ class Component extends DCLogic {
       const pickMode = !draft.itemId;
       const configMode = !!draft.itemId;
       const effectsOk = draft.heroicEffects.every(e=>!!e.statId);
-      const perkRequired=group==='weapon'&&(item?.availablePerks||[]).length>0;
-      const configValid = draft.traits.length===3 && effectsOk && (!perkRequired || !!draft.perkId) && chaosUsed<=1;
+      // Traits and Skill Core are OPTIONAL. Naming the item is the point; if the
+      // player does not want to transcribe its rolls, the optimizer configures
+      // it for them (the request pins the item rather than locking the slot).
+      // Partial traits are still rejected: 1 or 2 means "I started typing and
+      // stopped", which would silently ship an under-specified item, whereas 0
+      // is an explicit "you choose".
+      const perkRequired=false;
+      const traitsOk = draft.traits.length===0 || draft.traits.length===3;
+      const configValid = traitsOk && effectsOk && chaosUsed<=1;
       const valid = configMode && configValid;
       let list = this.heroicCatalog(group);
       if (group==='weapon') list = list.filter(it => [s.weaponTypes.main,s.weaponTypes.off].filter(Boolean).includes(it.wtype));
@@ -3444,8 +3457,7 @@ class Component extends DCLogic {
       }
       let warning='';
       if(configMode){
-        if(draft.traits.length!==3) warning='Select exactly 3 traits ('+draft.traits.length+'/3).';
-        else if(perkRequired&&!draft.perkId) warning='Choose the Skill Core shown on your item.';
+        if(draft.traits.length&&draft.traits.length!==3) warning='Select all 3 traits ('+draft.traits.length+'/3), or clear them and let the optimizer choose.';
         else if(chaosUsed>1) warning='Only one Chaos rune may be used on an item.';
       }
       drawerVals = {
