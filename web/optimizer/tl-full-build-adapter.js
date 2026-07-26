@@ -1254,6 +1254,12 @@ export async function createOptimizerAdapter(deps = {}) {
       // optimizer -- the same treatment heroicPolicy "keep_items" gives an
       // existing build, which scratch builds could not reach.
       const pinnedItemIds = new Map(Object.entries(request.pinnedItemIds ?? {}).filter(([, itemId]) => itemId));
+      // An unrecognised slot id would simply never be consulted, and the player
+      // would receive a build silently missing the item they asked for. Fail
+      // loudly instead: a dropped pin is indistinguishable from a wrong answer.
+      for (const slotId of pinnedItemIds.keys()) {
+        if (!core.EQUIPMENT_SLOTS.some((row) => row.id === slotId)) throw new Error(`Cannot pin an item to unknown slot "${slotId}".`);
+      }
       const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};
       const cap = profile.directCandidateCap;
@@ -1361,6 +1367,20 @@ export async function createOptimizerAdapter(deps = {}) {
             // such as future set completion and whole artifact-bundle estimates.
             rows.push({ id: itemCandidateId(item.id, variantSelection), selection: variantSelection, stats, directScore: weight(stats), ...candidateMeta(slot, item, variantSelection) });
           }
+        }
+        // A pin that survives no filter otherwise surfaces as the generic
+        // "No compatible equipment options were found for slot: X", which says
+        // nothing about the pin being the cause. Name it.
+        if (pinnedItemId && !rows.length) {
+          const pinned = core.indexes.itemById[pinnedItemId];
+          const label = core.slotById(slot)?.label ?? slot;
+          if (!pinned) throw new Error(`Cannot pin unknown item "${pinnedItemId}" to ${label}.`);
+          const why = requiredWeaponType && pinned.equipmentType !== requiredWeaponType
+            ? `it is a ${pinned.equipmentType}, but that slot is set to ${requiredWeaponType}`
+            : minimumItemLevel && core.itemMaxLevel(pinned) < minimumItemLevel
+              ? `its maximum level ${core.itemMaxLevel(pinned)} is below the required item level ${minimumItemLevel}`
+              : "it cannot be equipped there under the current build rules";
+          throw new Error(`${pinned.name} cannot be pinned to ${label}: ${why}.`);
         }
         const currentRow = { id: current?.itemId ? itemCandidateId(current.itemId, current, "current") : `empty:${slot}`, selection: clone(current), stats: contribution(slot, current), ...candidateMeta(slot, currentItem, current) };
         const ranked = rows.sort((a, b) => b.directScore - a.directScore

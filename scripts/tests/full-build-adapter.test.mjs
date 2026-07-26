@@ -1,6 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import * as core from "../../web/tl-core.js";
+import { loadWebDataFromFile } from "../lib/load-web-projections.mjs";
+
+// Initialised once and shared: initCore is global, so re-running it per test
+// would just repeat several seconds of projection loading.
+let corePromise = null;
+const loadCore = () => (corePromise ??= (async () => {
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+  await core.initCore(await loadWebDataFromFile(path.join(repoRoot, "web", "data", "app-data.json")));
+  return core;
+})());
+
 import { createOptimizerAdapter, deriveObjectiveScales, diverseFinalistsWithSetRoutes, expandCompositeGoals, normalizeRankedGoals, optimizeAttributeAllocation, optimizeProgressionFinalistTask, optimizedResonanceSelection, optimizerItemSelection, rawPointsForAttributeGain, refineRuneConfiguration, resolveWeaponTypeConstraints, scoreRankedGoals, sourceStatObjectiveScore } from "../../web/optimizer/tl-full-build-adapter.js";
 
 test("set-route representatives survive bounded downstream finalist selection", () => {
@@ -1037,4 +1052,49 @@ test("Questlog import uses the hosted adapter and normalizes the requested build
   const result = await adapter.importQuestlogBuild("https://questlog.gg/build/7");
   assert.equal(result.name, "Imported");
   assert.equal(imported.build.equipment.head.itemLevel, 12);
+});
+
+// Pinning is how a player says "use this item" without transcribing its rolls.
+// A dropped pin returns a build silently missing the item they asked for, which
+// is indistinguishable from a wrong answer — so every way a pin can fail must
+// be loud. Both silent paths below shipped briefly before being caught by test.
+test("a pin that cannot be honoured fails loudly rather than being dropped", async () => {
+  const core = await loadCore();
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const sword = core.slotItems(core.slotById("main_hand")).find((item) => item.grade === core.HEROIC_GRADE && item.equipmentType === "sword");
+  const request = async (pinnedItemIds) => ({
+    build: await adapter.createScratchBuild(), sourceKind: "scratch", weaponTypes: ["sword", "sword2h"],
+    attributePointBudget: 59, goals: { priorities: [{ id: "melee_critical_attack", rank: 1, mode: "maximize", minimum: null, target: null }], protect: [] },
+    lockedSlotIds: [], pinnedItemIds,
+    progression: { enabled: false, skillLevelCap: 20, masteryPointsByWeapon: {}, overallMasteryLevel: 0 },
+    rules: { minimumItemLevel: 50, keepCurrentHeroics: false, reconsiderHeroics: false, includeSetEffects: true, optimizeThreeTraits: true, bestHeroicConfiguration: false, allowUnownedHeroics: false, runes: { mode: "normal", chaosOwnershipRequired: true, normalDuplicateCap: 3, chaosDuplicateCap: 1 }, artifacts: { mode: "sets" } },
+    depth: "fast",
+  });
+
+  // A misspelled slot is never consulted, so the pin evaporates in silence.
+  await assert.rejects(adapter.optimize(await request({ main_hnd: sword.id })), /unknown slot "main_hnd"/);
+  await assert.rejects(adapter.optimize(await request({ main_hand: "no_such_item_xyz" })), /Cannot pin unknown item/);
+  // Right item, wrong slot: the generic "no compatible options" message named
+  // the slot but never the pin, which is what made this hard to diagnose.
+  await assert.rejects(adapter.optimize(await request({ feet: sword.id })), /cannot be pinned to Feet/);
+});
+
+test("a pinned Heroic survives the no-unowned-Heroics rule and gets configured", async () => {
+  const core = await loadCore();
+  const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }) });
+  const sword = core.slotItems(core.slotById("main_hand")).find((item) => item.grade === core.HEROIC_GRADE && item.equipmentType === "sword");
+  const result = await adapter.optimize({
+    build: await adapter.createScratchBuild(), sourceKind: "scratch", weaponTypes: ["sword", "sword2h"],
+    attributePointBudget: 59, goals: { priorities: [{ id: "melee_critical_attack", rank: 1, mode: "maximize", minimum: null, target: null }], protect: [] },
+    lockedSlotIds: [], pinnedItemIds: { main_hand: sword.id },
+    progression: { enabled: false, skillLevelCap: 20, masteryPointsByWeapon: {}, overallMasteryLevel: 0 },
+    // allowUnownedHeroics false is the trap: it excluded every Heroic candidate
+    // including the one the player had just said they own.
+    rules: { minimumItemLevel: 50, keepCurrentHeroics: false, reconsiderHeroics: false, includeSetEffects: true, optimizeThreeTraits: true, bestHeroicConfiguration: false, allowUnownedHeroics: false, runes: { mode: "normal", chaosOwnershipRequired: true, normalDuplicateCap: 3, chaosDuplicateCap: 1 }, artifacts: { mode: "sets" } },
+    depth: "fast",
+  });
+  const mainHand = result.build.equipment.main_hand;
+  assert.equal(mainHand.itemId, sword.id, "the pinned Heroic must be the equipped item");
+  assert.equal(mainHand.traits.length, 3, "pinning names the item; the optimizer still fills its traits");
+  assert.ok((mainHand.heroicEffects ?? []).length > 0, "a pinned Heroic must have its effects optimized, not left bare");
 });
