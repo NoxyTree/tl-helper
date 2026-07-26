@@ -18,7 +18,7 @@ import * as core from "../web/tl-core.js";
 import { createOptimizerAdapter } from "../web/optimizer/tl-full-build-adapter.js";
 import { createOptimizerWorkerPool } from "../web/optimizer/tl-optimizer-worker-pool.js";
 import { canonicalPrecacheRequest, precacheKey } from "../web/optimizer/tl-optimizer-precache.js";
-import { resolveOptimizerPreset, weaponStatFamily } from "../web/optimizer/tl-optimizer-presets.js";
+import { resolveClassPreset, weaponStatFamily } from "../web/optimizer/tl-optimizer-presets.js";
 import { loadWebDataFromFile } from "./lib/load-web-projections.mjs";
 import { optimizerEngineFingerprint } from "./lib/optimizer-engine-fingerprint.mjs";
 
@@ -26,13 +26,23 @@ import { optimizerEngineFingerprint } from "./lib/optimizer-engine-fingerprint.m
 // popularity evidence (scripts/combat-opponents/questlog-roster.json chassis
 // plus long-standing meta pairings); extend freely — the client falls back to
 // a live run for anything not listed here.
+// These are the CLASS presets the scratch page's role/preset chips actually
+// apply (build-from-scratch.html:2857 -> applyClassPreset), not the
+// OPTIMIZER_PRESETS vocabulary. The two are different sets of ids resolving to
+// different priorities, and generating against the wrong one produced a cache
+// that could never be hit: a real UI request canonicalized fine, fetched
+// index.json, derived a key that was not in it, and fell through to a live run
+// every single time. Verified end-to-end in a browser before and after.
+//
+// Pairs carry over from the previous matrix; each row maps to the class preset
+// a player would reach for the same intent.
 const MATRIX = [
-  { preset: "boss-dps", pairs: [["dagger", "sword2h"], ["crossbow", "dagger"], ["staff", "dagger"]] },
-  { preset: "pvp-burst", pairs: [["sword2h", "dagger"], ["crossbow", "dagger"], ["staff", "dagger"]] },
-  { preset: "pvp-evasion", pairs: [["sword", "dagger"], ["sword", "wand"]] },
-  { preset: "frontline-tank", pairs: [["sword", "wand"], ["sword", "dagger"]] },
-  { preset: "pvp-skirmisher", pairs: [["dagger", "sword"], ["staff", "dagger"]] },
-  { preset: "support", pairs: [["wand", "orb"], ["wand", "sword"]] },
+  { role: "dps", preset: "pve-dps", pairs: [["dagger", "sword2h"], ["crossbow", "dagger"], ["staff", "dagger"]] },
+  { role: "dps", preset: "pvp-heavy-dps", pairs: [["sword2h", "dagger"], ["crossbow", "dagger"], ["staff", "dagger"]] },
+  { role: "dps", preset: "pvp-evasion-dps", pairs: [["sword", "dagger"], ["sword", "wand"]] },
+  { role: "dps", preset: "pvp-crit-dps", pairs: [["dagger", "sword"], ["staff", "dagger"]] },
+  { role: "tank", preset: "pve-tank", pairs: [["sword", "wand"], ["sword", "dagger"]] },
+  { role: "oracle", preset: "pvp-endurance-oracle", pairs: [["wand", "orb"], ["wand", "sword"]] },
 ];
 
 const option = (name, fallback) => process.argv.find((row) => row.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -59,12 +69,19 @@ const optimizerTaskPool = createOptimizerWorkerPool({
 });
 const adapter = await createOptimizerAdapter({ core, storage: {}, loadArmoryState: () => ({ ok: false }), optimizerTaskPool });
 
-function scratchRequest(build, presetId, weaponTypes) {
-  const preset = resolveOptimizerPreset(presetId, { family: weaponStatFamily(weaponTypes[0]) });
-  const priorities = [
-    ...preset.maximize.map((id) => ({ id, mode: "maximize", minimum: null, target: null })),
-    ...preset.floors.map(({ id, display }) => ({ id, mode: "at_least", minimum: core.statDisplayToRaw(id, display), target: null })),
-  ].map((row, index) => ({ ...row, rank: index + 1 }));
+// Mirrors resolvePresetStats + applyClassPreset in build-from-scratch.html:
+// family comes from the MAIN weapon, unknown ids are dropped against
+// adapter.listStats(), duplicates are removed keeping first position, and every
+// goal is left on the default "maximize" — the chips set no goalModes or
+// goalValues, so nothing becomes a floor. Any drift from that page's behaviour
+// silently reintroduces a permanently-missing cache.
+function scratchRequest(build, role, presetId, weaponTypes, knownStatIds) {
+  const preset = resolveClassPreset(role, presetId, { family: weaponStatFamily(weaponTypes[0]) });
+  if (!preset) throw new Error(`Unknown class preset: ${role}/${presetId}`);
+  const seen = new Set();
+  const stats = preset.stats.filter((id) => knownStatIds.has(id) && !seen.has(id) && seen.add(id));
+  if (!stats.length) throw new Error(`${role}/${presetId}: resolved to no known stats.`);
+  const priorities = stats.map((id, index) => ({ id, rank: index + 1, mode: "maximize", minimum: null, target: null }));
   return {
     build,
     sourceKind: "scratch",
@@ -101,14 +118,16 @@ const indexPath = path.join(outDir, "index.json");
 const fingerprint = optimizerEngineFingerprint(path.resolve("web"));
 const entries = {};
 
-for (const { preset, pairs } of MATRIX) {
+const knownStatIds = new Set((await adapter.listStats()).map((row) => row.id));
+
+for (const { role, preset, pairs } of MATRIX) {
   for (const weaponTypes of pairs) {
     const fileName = `${preset}-${weaponTypes[0]}-${weaponTypes[1]}.json`;
     const filePath = path.join(outDir, fileName);
     // No name override: the page calls createScratchBuild() bare, and stored
     // results must be indistinguishable from a live run's.
     const build = await adapter.createScratchBuild();
-    const request = scratchRequest(build, preset, weaponTypes);
+    const request = scratchRequest(build, role, preset, weaponTypes, knownStatIds);
     const canonical = canonicalPrecacheRequest(request);
     if (!canonical) throw new Error(`${fileName}: request is not cache-eligible; generator and canonicalizer disagree.`);
     const key = await precacheKey(canonical, data.gameBuild);
