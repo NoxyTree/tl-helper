@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": null,
+  "//buildCommand": "Not a build -- web/ ships as-is. This is the only hook Vercel gives a git-integration deploy, which bypasses the npm predeploy:* hooks entirely. A precache that disagrees with the shipped engine means cached and live players get different numbers for the same request, so the deploy must fail rather than serve it.",
+  "buildCommand": "node scripts/verify-precache-fresh.mjs",
   "outputDirectory": "web",
   "cleanUrls": true,
   "headers": [
