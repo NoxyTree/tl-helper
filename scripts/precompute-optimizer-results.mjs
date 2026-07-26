@@ -127,6 +127,19 @@ for (const { preset, pairs } of MATRIX) {
     const result = await adapter.optimize(request);
     assertJsonSafe(result);
     const roundTripped = JSON.parse(JSON.stringify(result));
+    // tuningFrontier is ~95% of a stored entry (1,924KB of 2,032KB measured):
+    // up to `frontierCount` candidates, each carrying a full cloned build plus a
+    // redundant activeAttributeBreakpoints list. Keeping it would put a
+    // full-coverage cache (45 weapon pairs x 6 presets = 270 entries) at ~540MB
+    // of git blobs, regenerated wholesale on every engine-fingerprint change.
+    // Dropping it lands the same coverage at ~29MB.
+    //
+    // Cost: a cache HIT serves no tuning candidates, so the result view shows no
+    // tuning sliders (build-from-scratch.html guards on
+    // `tuningFrontier.length > 1`). Everything else — the build, its stats, goal
+    // results, alternatives — is unaffected. A live run still returns the full
+    // frontier, so tuning is only absent on precached presets.
+    delete roundTripped.tuningFrontier;
     writeFileSync(filePath, JSON.stringify({
       schema: "tl-helper.optimizer-precache-entry",
       schemaVersion: 1,
