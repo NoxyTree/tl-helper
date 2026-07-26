@@ -41,6 +41,31 @@ const asJson = process.argv.includes("--json");
 const data = await loadWebDataFromFile(path.join(repoRoot, "web", "data", "app-data.json"));
 await core.initCore(data);
 
+// These frozen Questlog builds genuinely store fewer activated Achievement
+// effects than validateMasterySelections requires. Their specialization arrays
+// import one-for-one, and the payload/panel pairs were captured together, so
+// synthesizing another effect would make the import less faithful. Keep the
+// core legality warning, but distinguish these exact known source conditions
+// from unexpected blockers in the parity report.
+// Scoped to the two fixtures where the evidence is conclusive: both reach FULL
+// parity (hit tank 73/73, healer 83/83) with the under-activation in place, so
+// Questlog demonstrably rendered the same one-effect tier we do.
+//
+// Juggernaut (8227612) and Magic DPS (8290225) carry the same warning but do
+// NOT match Questlog, and their misses sit in exactly the stat families an
+// Achievement effect grants — Magic DPS is 6 Critical Damage Resistance LOW,
+// Juggernaut is 100 Melee Heavy Attack Chance LOW. "Ours lower" is the
+// signature of a missing second effect, i.e. the warning may be correct for
+// them. They stay unexpected until those misses are explained.
+const EXPECTED_BLOCKING_ISSUES = new Map([
+  ["8197308", new Set([
+    "Greatsword Uncommon mastery must activate 2 Achievement effects; 1 are stored.",
+  ])],
+  ["8261110", new Set([
+    "Orb Common mastery must activate 2 Achievement effects; 1 are stored.",
+  ])],
+]);
+
 // Both sides render from the same game data, so display labels are the join key.
 const idsByLabel = new Map();
 for (const id of Object.keys(core.data.statLabels ?? {})) {
@@ -75,11 +100,17 @@ function verifyFixture(fixture) {
   }
 
   const matched = compared.filter((row) => row.match).length;
+  const blockingIssues = calculation.status?.blockingIssues ?? [];
+  const expectedMessages = EXPECTED_BLOCKING_ISSUES.get(String(fixture.buildId)) ?? new Set();
+  const expectedBlockingIssues = blockingIssues.filter((row) => expectedMessages.has(row.message));
+  const unexpectedBlockingIssues = blockingIssues.filter((row) => !expectedMessages.has(row.message));
   return {
     buildId: fixture.buildId,
     label: fixture.label,
     status: calculation.status?.state ?? "unknown",
-    blockingIssues: (calculation.status?.blockingIssues ?? []).map((row) => row.message),
+    blockingIssues: blockingIssues.map((row) => row.message),
+    expectedBlockingIssues: expectedBlockingIssues.map((row) => row.message),
+    unexpectedBlockingIssues: unexpectedBlockingIssues.map((row) => row.message),
     compared: compared.length,
     matched,
     parity: compared.length ? matched / compared.length : 0,
@@ -102,8 +133,13 @@ if (asJson) {
   for (const row of results.sort((a, b) => b.parity - a.parity)) {
     const pct = (row.parity * 100).toFixed(1).padStart(5);
     const flag = row.matched < row.baselineMatched ? "  REGRESSED" : row.matched > row.baselineMatched ? "  (+" + (row.matched - row.baselineMatched) + ")" : "";
-    console.log(`  ${pct}%  ${String(row.matched).padStart(3)}/${String(row.compared).padEnd(3)}  ${row.label.padEnd(32)} [${row.status}]${row.blockingIssues.length ? ` ${row.blockingIssues.length} blocking` : ""} (ratchet ${row.baselineMatched})${flag}`);
-    for (const issue of row.blockingIssues) console.log(`           ! ${issue}`);
+    const blockerFlags = [
+      row.unexpectedBlockingIssues.length ? `${row.unexpectedBlockingIssues.length} blocking` : "",
+      row.expectedBlockingIssues.length ? `${row.expectedBlockingIssues.length} expected blocking` : "",
+    ].filter(Boolean);
+    console.log(`  ${pct}%  ${String(row.matched).padStart(3)}/${String(row.compared).padEnd(3)}  ${row.label.padEnd(32)} [${row.status}]${blockerFlags.length ? ` ${blockerFlags.join(", ")}` : ""} (ratchet ${row.baselineMatched})${flag}`);
+    for (const issue of row.unexpectedBlockingIssues) console.log(`           ! ${issue}`);
+    for (const issue of row.expectedBlockingIssues) console.log(`           ~ expected: ${issue}`);
     if (verbose) {
       for (const m of row.mismatches) {
         console.log(`           ${m.label.padEnd(34)} questlog ${String(m.questlog).padStart(10)}  ours ${String(m.ours).padStart(10)}  delta ${m.delta}`);
