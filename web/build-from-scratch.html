@@ -1973,8 +1973,10 @@ class Component extends DCLogic {
   };
   RUNE_TYPE_COLOR = { attack:'#f0a933', defense:'#87acef', assist:'#c984f1' };
   HERO_MODES = [
-    { id:'owned', label:'Only use Heroic gear I own', explain:'Empty categories stay empty. The optimizer will only use the Heroic items you add here.' },
-    { id:'theoretical', label:'Suggest the best Heroic gear', explain:'The optimizer may choose Heroic gear you have not added. Add one of yours only when you want to force that exact item into the build.' },
+    // Both modes keep every Heroic you add. The only difference is what happens
+    // to a category you leave empty, so the labels say that and nothing else.
+    { id:'owned', label:'Only the Heroics I add', explain:'A category you leave empty stays empty in the build.' },
+    { id:'theoretical', label:'Mine, then fill the gaps', explain:'Your Heroics are kept. Any category you leave empty is filled with the strongest option, including gear you may not own yet.' },
   ];
 
   heroicCatalog(group) {
@@ -3249,10 +3251,10 @@ class Component extends DCLogic {
       ?'radial-gradient(360px 210px at 100% 0%,rgba(65,151,99,.1),transparent 60%),linear-gradient(180deg,rgba(19,29,21,.82),rgba(11,13,10,.94))'
       :'radial-gradient(320px 200px at 50% 0%,rgba(255,152,45,.08),transparent 60%),linear-gradient(180deg,rgba(26,20,13,.82),rgba(13,10,8,.92))';
     const heroicPanelIntro=heroicSuggestMode
-      ?'Automatic Heroic picks are on. Add gear you own only when you want to lock that exact item into the result.'
+      ?'Add the Heroic gear you own — it will be used, and its traits, effects and runes optimized for you. Empty categories get the strongest option instead.'
       :heroicOwnedMode
-        ?'Add the Heroic gear you own. Any category you leave empty will stay empty in the generated build.'
-        :'Add Heroic gear you own, or let the optimizer recommend the strongest options.';
+        ?'Add the Heroic gear you own — it will be used, and its traits, effects and runes optimized for you. Empty categories stay empty.'
+        :'Add the Heroic gear you own, or let the optimizer recommend the strongest options.';
     const heroicModes = this.HERO_MODES.map(m => {
       const on = s.heroicMode === m.id;
       const suggest=m.id==='theoretical';
@@ -3262,7 +3264,7 @@ class Component extends DCLogic {
         color:on?(suggest?'#a8e0bb':'#ffcf8c'):'#8a795f' };
     });
     const heroicModeExplain = (this.HERO_MODES.find(m=>m.id===s.heroicMode)||{}).explain;
-    const heroicModeTitle=heroicSuggestMode?'Automatic picks are on':'Only your gear will be used';
+    const heroicModeTitle=heroicSuggestMode?'Your gear, gaps filled':'Only your gear will be used';
     const heroicModeAccent=heroicSuggestMode?'rgba(92,190,129,.72)':'rgba(255,183,101,.62)';
     const heroicModeBg=heroicSuggestMode?'rgba(48,116,73,.11)':'rgba(255,152,45,.05)';
     const heroicModeTitleColor=heroicSuggestMode?'#a8e0bb':'#f1cb8d';
@@ -3271,12 +3273,12 @@ class Component extends DCLogic {
       const cfg = s.heroics[g.key];
       if (!cfg) return {
         group:g.key,label:g.label,empty:true,configured:false,auto:heroicSuggestMode,
-        emptyTitle:heroicSuggestMode?'Automatic choice allowed':'Nothing added',
+        emptyTitle:heroicSuggestMode?'Will be filled for you':'Will stay empty',
         emptyNote:heroicSuggestMode?'The optimizer may choose the strongest option.':'No Heroic item from this category will be used.',
         emptyBorder:heroicSuggestMode?'rgba(92,190,129,.46)':'rgba(255,183,101,.4)',
         emptyBg:heroicSuggestMode?'rgba(40,103,63,.1)':'rgba(0,0,0,.2)',
         emptyAccent:heroicSuggestMode?'#70bd8e':'#8c6636',
-        actionLabel:heroicSuggestMode?'Lock mine':'＋ Add mine',
+        actionLabel:'＋ Add mine',
         actionBorder:heroicSuggestMode?'rgba(92,190,129,.55)':'rgba(255,183,101,.5)',
         actionBg:heroicSuggestMode?'rgba(42,111,68,.2)':'rgba(150,86,24,.22)',
         actionColor:heroicSuggestMode?'#a8e0bb':'#ffcf8c',

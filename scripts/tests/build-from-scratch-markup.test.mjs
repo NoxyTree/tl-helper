@@ -110,12 +110,14 @@ test("owned Heroic builder uses the canonical item-specific data model", () => {
   assert.match(html, /patchDraft\(p\)[\s\S]{0,240}hover:null/);
   assert.match(html, /closeDrawer = \(\) => this\.setState\(\{ drawer:null, hover:null \}\)/);
   assert.match(html, /Choose the exact owned rune, stat roll, and level/);
-  assert.match(html, /Only use Heroic gear I own/);
-  assert.match(html, /Suggest the best Heroic gear/);
+  assert.match(html, /Only the Heroics I add/);
+  assert.match(html, /Mine, then fill the gaps/);
   assert.match(html, /aria-pressed="\{\{ m\.selected \}\}"/);
-  assert.match(html, /heroicModeTitle=heroicSuggestMode\?'Automatic picks are on':'Only your gear will be used'/);
-  assert.match(html, /emptyTitle:heroicSuggestMode\?'Automatic choice allowed':'Nothing added'/);
-  assert.match(html, /actionLabel:heroicSuggestMode\?'Lock mine':'＋ Add mine'/);
+  assert.match(html, /heroicModeTitle=heroicSuggestMode\?'Your gear, gaps filled':'Only your gear will be used'/);
+  assert.match(html, /emptyTitle:heroicSuggestMode\?'Will be filled for you':'Will stay empty'/);
+  // Adding a Heroic no longer locks its slot, so the label is the same in both
+  // modes: you add what you own, the optimizer configures it either way.
+  assert.match(html, /actionLabel:'＋ Add mine'/);
   assert.match(html, /class="tl-heroic-auto-badge"/);
   // The "No Heroics" mode was retired — an optimized build always includes heroics.
   assert.doesNotMatch(html, /id:'none', label:'No Heroics'/);
