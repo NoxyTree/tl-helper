@@ -243,11 +243,17 @@ target with enough margin to absorb being wrong about part of it.
 Ordering note: (1) and (2) are independent code and can proceed in parallel. (2)
 collides with the in-flight attribute-spread quality work — sequence those.
 
-## Target, as decided by the owner (2026-07-24)
+## Target, as decided by the owner
 
-**10 seconds on Main-PC (Ryzen 7600X), for a fully qualified build that meets
-every declared floor.** Not a degraded or early-exit result — the same quality
-bar we ship today, just faster.
+**REVISED 2026-07-25: 15-20 seconds on Main-PC, not 10.** The owner's words:
+"we can have the performance to 15/20 seconds, I think that's more reasonable
+with a loading bar, we just need it to feel nice." A progress bar changes the
+requirement from "fast" to "responsive and honest about waiting", which is a
+materially easier target — roughly 2x from the ~40s median rather than 4x.
+
+Superseded original (2026-07-24): 10 seconds on Main-PC (Ryzen 7600X), for a
+fully qualified build that meets every declared floor. Not a degraded or
+early-exit result — the same quality bar we ship today, just faster.
 
 Low-end machines are explicitly NOT the bar. Birch-class hardware runs ~2.5x
 slower and will land proportionally higher; that is accepted. Presets are
