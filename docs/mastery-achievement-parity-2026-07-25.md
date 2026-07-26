@@ -87,3 +87,65 @@ After classification, the JSON report contains five expected mastery blockers, z
 The sole failure is `scripts/tests/optimizer-precache.test.mjs`, “a committed precache is fresh and internally consistent.” The committed cache stores engine fingerprint `0cffb6e7edd0c18775687d3f69772fe02c267de4eddd61fb598bd3f8f4e24863`; the current committed optimizer-engine module graph produces `93fa220de2df18192bd0aeea3b1188faba53be9defde23c3fafacd612e18f174`.
 
 This task did not cause that failure: none of the modules returned by `optimizerEngineModules()` is dirty, and `scripts/verify-questlog-parity.mjs` is not part of the optimizer fingerprint. Per the task constraint, the optimizer sources and precache were not edited or regenerated. A completely green full-suite result therefore remains blocked by the pre-existing stale optimizer precache, not by the mastery-parity change.
+
+---
+
+# CORRECTION — 2026-07-26
+
+The conclusion above ("candidate 3: faithful imports of genuinely
+under-activated builds") does not survive looking at the six signed deltas.
+It was reached without ever breaking down which SOURCE produces each
+disagreeing number.
+
+## The direction counts were wrong
+
+Not five "ours lower" and one "ours higher". Measured:
+
+| Fixture | Stat | Questlog | Ours | Delta |
+|---|---|---:|---:|---:|
+| Juggernaut | Critical Damage | 18.6 | 34.2 | **+15.6** |
+| Juggernaut | Critical Damage Resistance | 9.6 | 10.8 | **+1.2** |
+| Juggernaut | Melee Heavy Attack Chance (x3 contexts) | 1,567.8 | 1,467.8 | −100 |
+| Magic DPS | Critical Damage Resistance | 42 | 36 | −6 |
+
+Four low, two high. A missing Achievement effect cannot explain a stat we
+**over**-report, so the under-activation theory never fit these two fixtures.
+
+## Three of the four trace to exactly two mastery nodes
+
+Source breakdowns from `calculateBuild(..., { includeSetEffects: true })`:
+
+- **Critical Damage** — ours 3420 raw, Questlog 1860. Excess **1560**, which is
+  exactly the `Double Impact` source.
+- **Critical Damage Resistance** (Juggernaut) — ours 1080, Questlog 960. Excess
+  **120**, again exactly `Double Impact`.
+- **Melee Heavy Attack Chance** — ours 14678, Questlog 15678. Deficit **1000**,
+  exactly the `Steel Sacrifice` source, which contributes **−1000**.
+
+So we are not missing an effect. **We are applying two nodes Questlog does not.**
+
+## What those two nodes are
+
+- **`Steel Sacrifice` = `Sword2h_Normal_Def_Skill`** — `specializationType:
+  "synergy"`, grade 11 (Common). This is the *very node* the validator warns
+  about: it is the single stored Achievement effect in the under-activated
+  Greatsword Common tier. Questlog appears to treat an under-activated tier as
+  granting **nothing**, while we apply its member node.
+- **`Double Impact` = `GT_Hero_Tactic_04`** — `specializationType: "normal"`,
+  grade 41, gauntlet. A different mechanism: a normal node, not a synergy. We
+  apply it; Questlog does not. The shipped guide gates Epic nodes at 80/120
+  points, which is the first thing to check.
+
+## Status
+
+**Unresolved and not fixed.** The Magic DPS −6 (raw 600) is not attributable to
+a named source yet and runs the other way.
+
+This is a calculation disagreement in our favour on two stats — we inflate
+Critical Damage by 84%. It must not be marked expected, and the fixtures stay
+classified as unexpected blockers.
+
+The next step is evidence about the game rule, not a code change: does an
+under-activated tier grant its stored effect or not? Questlog says no. We say
+yes. Nothing decoded so far settles it, and no rule should be written into the
+engine until something does.
