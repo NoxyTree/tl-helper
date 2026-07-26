@@ -81,20 +81,27 @@ function firstDifference(left, right, trail = "result") {
   return null;
 }
 
+// Unattended runs need a machine-readable verdict and enough progress output
+// that a tail can tell "still working" from "wedged" — one entry takes minutes.
+const asJson = process.argv.includes("--json");
+const report = [];
+
 let failures = 0;
-for (const fileName of chosen) {
+for (const [position, fileName] of chosen.entries()) {
+  if (!asJson) console.log(`[${position + 1}/${chosen.length}] ${fileName} …`);
   const entryPath = path.join(cacheDir, fileName);
-  if (!existsSync(entryPath)) { console.error(`MISSING ${fileName}`); failures++; continue; }
+  if (!existsSync(entryPath)) { console.error(`MISSING ${fileName}`); failures++; report.push({ fileName, ok: false, reason: "file missing" }); continue; }
   const entry = JSON.parse(readFileSync(entryPath, "utf8"));
 
   const build = await adapter.createScratchBuild();
   const request = requestFrom(entry.canonicalRequest, build);
   const canonical = canonicalPrecacheRequest(request);
-  if (!canonical) { console.error(`FAIL ${fileName}: reconstructed request is not cache-eligible`); failures++; continue; }
+  if (!canonical) { console.error(`FAIL ${fileName}: reconstructed request is not cache-eligible`); failures++; report.push({ fileName, ok: false, reason: "not cache-eligible" }); continue; }
   const key = await precacheKey(canonical, index.gameBuild);
   if (key !== entry.key) {
     console.error(`FAIL ${fileName}: reconstruction does not re-derive the stored key — the comparison below would be meaningless`);
     failures++;
+    report.push({ fileName, ok: false, reason: "key does not re-derive" });
     continue;
   }
 
@@ -110,14 +117,26 @@ for (const fileName of chosen) {
     console.error(`FAIL ${fileName} (${elapsed}ms): live rerun differs from stored`);
     console.error(`  first difference at ${difference}`);
     failures++;
+    report.push({ fileName, ok: false, ms: elapsed, reason: `differs at ${difference}` });
   } else {
-    console.log(`ok   ${fileName} (${elapsed}ms) — live rerun is identical to stored`);
+    if (!asJson) console.log(`ok   ${fileName} (${elapsed}ms) — live rerun is identical to stored`);
+    report.push({ fileName, ok: true, ms: elapsed });
   }
 }
 
+if (asJson) {
+  console.log(JSON.stringify({
+    schema: "tl-helper.precache-determinism",
+    checked: chosen.length,
+    total: files.length,
+    failures,
+    engineFingerprint: index.engineFingerprint,
+    entries: report,
+  }, null, 1));
+}
 if (failures) {
   console.error(`\n${failures} of ${chosen.length} entries do not reproduce.`);
   console.error("Cached players would receive different numbers than live players.");
   process.exit(1);
 }
-console.log(`\nprecache determinism: ${chosen.length} of ${files.length} entries verified identical.`);
+if (!asJson) console.log(`\nprecache determinism: ${chosen.length} of ${files.length} entries verified identical.`);
