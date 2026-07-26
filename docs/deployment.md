@@ -53,10 +53,38 @@ node --test scripts\tests\*.test.mjs
 node scripts\verify-build-snapshot.mjs
 node scripts\verify-reference-build.mjs
 node scripts\verify-edge-cases.mjs
+node scripts\verify-questlog-parity.mjs
+node scripts\verify-precache-fresh.mjs
+node scripts\verify-precache-determinism.mjs
 D:\TL_Data\cache\tools\dotnet-sdk\dotnet.exe test src\TlCollector\TlCollector.slnx -c Release --no-restore
 git diff --check
 git status --short
 ```
+
+**`verify-questlog-parity.mjs` exits 1 today, and that is not a broken gate.**
+Two fixtures (Juggernaut, Magic DPS) carry blocking issues nobody has explained
+— we apply two mastery nodes Questlog does not, over-reporting Critical Damage
+by 84%. See `mastery-achievement-parity-2026-07-25.md`. It is meant to block a
+release until that is resolved or deliberately accepted; it used to print the
+problem and exit 0, which is how it went unnoticed.
+
+`verify-precache-determinism.mjs` reruns the optimizer against a stored cache
+entry and asserts the result is byte-identical. It defaults to **one** entry
+(~90s on a spare machine, longer on a loaded one) because that is enough to
+catch the failure that matters: a cache produced by different code than the one
+being shipped. `verify-precache-fresh.mjs` compares fingerprints; this compares
+*answers*, which is not the same claim.
+
+Run the full sweep before a major release or after any optimizer change:
+
+```bash
+node scripts/verify-precache-determinism.mjs --all --json
+```
+
+14 entries, ~23 minutes measured on a spare 12-core box, `--json` for a
+machine-readable verdict. It runs single-threaded on purpose while the
+generator runs 4-way parallel, so a pass means the same request produced the
+same bytes under different execution modes — not merely that a replay replays.
 
 Then verify in a browser:
 
