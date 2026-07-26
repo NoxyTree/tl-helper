@@ -15,7 +15,7 @@
 // ship.
 //
 //   node scripts/verify-precache-fresh.mjs
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -44,6 +44,21 @@ if (String(index.gameBuild) !== String(appData.gameBuild)) {
 }
 if (index.engineFingerprint !== expected) {
   problems.push(`engine fingerprint mismatch:\n    cache    ${index.engineFingerprint}\n    engine   ${expected}`);
+}
+
+// Renaming the matrix leaves the previous generation's files behind: the index
+// stops referencing them but nothing deletes them, so they ship as dead weight
+// and any tool that walks the directory rather than the index sees stale
+// entries as real ones. That happened -- 14 orphans survived a regeneration and
+// a determinism check picked one of them to verify.
+const referenced = new Set(Object.values(index.entries ?? {}));
+const orphans = readdirSync(path.dirname(indexPath))
+  .filter((name) => name !== "index.json" && name.endsWith(".json") && !referenced.has(name));
+if (orphans.length) {
+  problems.push(`${orphans.length} entry file(s) are not referenced by the index: ${orphans.join(", ")}`);
+}
+for (const fileName of referenced) {
+  if (!existsSync(path.join(path.dirname(indexPath), fileName))) problems.push(`index references a missing file: ${fileName}`);
 }
 
 if (problems.length) {
