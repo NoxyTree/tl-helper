@@ -1259,6 +1259,16 @@ export async function createOptimizerAdapter(deps = {}) {
       // loudly instead: a dropped pin is indistinguishable from a wrong answer.
       for (const slotId of pinnedItemIds.keys()) {
         if (!core.EQUIPMENT_SLOTS.some((row) => row.id === slotId)) throw new Error(`Cannot pin an item to unknown slot "${slotId}".`);
+        // Lock and pin are contradictory instructions for the same slot, and the
+        // lock branch below runs first and `continue`s -- so the pin was
+        // silently discarded and the slot kept whatever the caller had put
+        // there. For a pinned item that is a bare Heroic with no traits and no
+        // effects, which is the precise outcome pinning exists to avoid, and it
+        // happened without any error at all.
+        if (lockedSlotIds.has(slotId)) {
+          const label = core.slotById(slotId)?.label ?? slotId;
+          throw new Error(`${label} is both locked and pinned. Locking keeps the slot exactly as it is, while pinning asks the optimizer to configure the item — fill in the item's traits, or unlock the slot.`);
+        }
       }
       const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};

@@ -1077,6 +1077,14 @@ test("a pin that cannot be honoured fails loudly rather than being dropped", asy
   // Right item, wrong slot: the generic "no compatible options" message named
   // the slot but never the pin, which is what made this hard to diagnose.
   await assert.rejects(adapter.optimize(await request({ feet: sword.id })), /cannot be pinned to Feet/);
+
+  // Locked AND pinned. The lock branch runs first and `continue`s, so the pin
+  // was discarded and the slot kept a bare Heroic -- 0 traits, 0 effects, no
+  // error. Reachable from the UI: the per-slot lock toggle
+  // (build-from-scratch.html toggleLock) is independent of the Heroic drawer.
+  const conflicted = await request({ main_hand: sword.id });
+  conflicted.lockedSlotIds = ["main_hand"];
+  await assert.rejects(adapter.optimize(conflicted), /both locked and pinned/);
 });
 
 test("a pinned Heroic survives the no-unowned-Heroics rule and gets configured", async () => {
