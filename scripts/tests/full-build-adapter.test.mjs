@@ -1085,6 +1085,13 @@ test("a pin that cannot be honoured fails loudly rather than being dropped", asy
   const conflicted = await request({ main_hand: sword.id });
   conflicted.lockedSlotIds = ["main_hand"];
   await assert.rejects(adapter.optimize(conflicted), /both locked and pinned/);
+
+  // Only one Heroic per group may be equipped. Two pins in one group is
+  // unsatisfiable and surfaced as "No complete build passed the final
+  // calculation checks", naming neither the pins nor the cap.
+  const gloves = core.slotItems(core.slotById("hands")).find((item) => item.grade === core.HEROIC_GRADE);
+  const boots = core.slotItems(core.slotById("feet")).find((item) => item.grade === core.HEROIC_GRADE);
+  await assert.rejects(adapter.optimize(await request({ hands: gloves.id, feet: boots.id })), /only one Heroic armor item can be equipped/);
 });
 
 test("a pinned Heroic survives the no-unowned-Heroics rule and gets configured", async () => {

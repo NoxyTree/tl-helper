@@ -1270,6 +1270,21 @@ export async function createOptimizerAdapter(deps = {}) {
           throw new Error(`${label} is both locked and pinned. Locking keeps the slot exactly as it is, while pinning asks the optimizer to configure the item — fill in the item's traits, or unlock the slot.`);
         }
       }
+      // Only one Heroic per group may be equipped (heroicCaps below). Two pins
+      // in one group is unsatisfiable, and the search reports that as the
+      // generic "No complete build passed the final calculation checks", which
+      // names neither the pins nor the cap. Not reachable from the current UI
+      // (one config per group) but trivially reachable through the API.
+      const pinnedGroups = new Map();
+      for (const [slotId, itemId] of pinnedItemIds) {
+        if (core.indexes.itemById[itemId]?.grade !== core.HEROIC_GRADE) continue;
+        const group = core.heroicSlotGroupForSlot(slotId);
+        if (!group) continue;
+        if (pinnedGroups.has(group)) {
+          throw new Error(`Two Heroic ${group} items are pinned (${core.slotById(pinnedGroups.get(group))?.label ?? pinnedGroups.get(group)} and ${core.slotById(slotId)?.label ?? slotId}), but only one Heroic ${group} item can be equipped.`);
+        }
+        pinnedGroups.set(group, slotId);
+      }
       const minimumItemLevel = Math.max(0, Number(rules.minimumItemLevel ?? 0) || 0);
       const candidatesBySlot = {};
       const cap = profile.directCandidateCap;
