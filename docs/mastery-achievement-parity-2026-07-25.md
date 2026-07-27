@@ -184,3 +184,53 @@ condition the current mastery records do not carry. Until then:
 - **Do not** write a rule into the engine to close the gap. Guessing a
   condition that happens to zero out this node would fit the fixture and
   silently break every build where the node legitimately applies.
+
+---
+
+# 2026-07-27: Juggernaut fully characterised, Magic DPS narrowed
+
+The two fixtures are **not the same problem**, which is why no single theory
+ever fit both. One over-applies, one under-applies.
+
+## Juggernaut (8227612) — completely explained
+
+Removing exactly two nodes takes it from **89/94 to 94/94**. Full parity, no
+residual mismatch anywhere in the panel:
+
+- `GT_Hero_Tactic_04` (Double Impact) — grade 41, `normal`, gauntlet/tactic
+- `Sword2h_Normal_Def_Skill` (Steel Sacrifice) — grade 11, `synergy`
+
+So Questlog's panel is *exactly* our calculation minus those two. This is no
+longer "we disagree on five stats"; it is one precise claim with a clean test.
+
+Ruled out, each by measurement: the nodes are stored (level 10 / present); the
+Epic gate is met (80 required, 216 non-Epic points present); the weapon is
+within the 220-point budget; and `reconcileMasterySelections` removes neither,
+so no prerequisite is unsatisfied.
+
+## Magic DPS (8290225) — still unexplained, but narrowed to one stat
+
+A single miss: **Critical Damage Resistance, Questlog 42 vs ours 36** — raw 600
+we do not have. Opposite direction to Juggernaut, so "we over-apply" cannot
+explain it.
+
+Eliminated:
+
+- **A missing rune synergy.** All 13 three-rune slots produce one; 13 applied.
+- **A missing second Achievement effect** — the original theory. Adding each
+  candidate for the flagged Staff Uncommon tier (`Staff_High_Attack_Skill`,
+  `Staff_High_Tac_Skill`, `Staff_High_Util_Skill`) leaves it at 76/77 with the
+  identical shortfall. Removing the stored `Staff_High_Def_Skill` makes it
+  *worse*, so Questlog does apply that one.
+
+## What would settle it
+
+For Juggernaut, one in-game observation on character 8227612: does the
+Critical Damage on the character sheet include Double Impact's contribution
+(34.2, our figure) or not (18.6, Questlog's)? That decides which side is wrong
+with no further analysis.
+
+**Do not** write a rule to close either gap. A condition invented to zero out
+Double Impact would fit this fixture and break every build where the node
+legitimately applies — and the Magic DPS shortfall runs the other way, so any
+such rule would make that fixture worse.
