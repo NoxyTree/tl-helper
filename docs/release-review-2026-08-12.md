@@ -9,11 +9,12 @@ One gate was failing and is fixed (§2). One gate is still failing and is an
 owner decision, not a code fix (§3). Everything else in the standing bundle
 passes.
 
-**Landed since this review was written** — `fe80ca3`, `0b19805`, `8ace2da`,
-`ba8f440`: the precache regeneration (§2), the portrait persistence fix (§4.1),
-the horizontal-overflow fixes (§4.2, plus a pre-existing 83px desktop case the
-review had not caught), and rate limiting on all four proxy variants (§4.3).
-`npm test` is **935/935** at `ba8f440`. §3 and the §4.4–4.6 cleanups are open.
+**Landed since this review was written** — the precache regeneration (§2), the
+portrait persistence fix (§4.1), the horizontal-overflow fixes (§4.2, plus a
+pre-existing 83px desktop case the review had not caught), rate limiting on all
+four proxy variants (§4.3), and the parity acceptance (§3). Every gate in §1 now
+passes. Only the §4.4–4.6 cleanups and G10 are open, and none of them block a
+launch.
 
 ---
 
@@ -29,7 +30,7 @@ review had not caught), and rate limiting on all four proxy variants (§4.3).
 | Precache determinism | `verify-precache-determinism.mjs` | pass — live rerun byte-identical to stored |
 | Collector | `dotnet test TlCollector.slnx -c Release` | 92/92 |
 | Whitespace | `git diff --check` | clean |
-| **Questlog parity** | `verify-questlog-parity.mjs` | **exit 1 — see §3** |
+| Questlog parity | `verify-questlog-parity.mjs` | exit 1 at review time — **accepted and now exit 0, see §3** |
 
 `update-tl-helper.mjs --validate` needs `--build 24118850` on a machine without
 the game installed; without it the build resolves to `0` and every input path
@@ -71,7 +72,20 @@ equals the stored score. That is the precache half of G8 step 2.
 
 ---
 
-## 3. Still blocking: Questlog parity (owner decision)
+## 3. Questlog parity — was blocking, accepted 2026-08-12
+
+> **Resolved as a decision, not a fix.** Both fixtures are marked expected and
+> the verifier exits 0. Nothing in this section was explained; the disagreement
+> is disclosed in both optimizer footers and pinned by signed delta so it cannot
+> grow unnoticed. Details and cost: `mastery-achievement-parity-2026-07-25.md`;
+> the G3 override is recorded in `production-gates.md`.
+>
+> Note for anyone reading the old plan: **the ratchets could not be raised.**
+> They are floors on matched stats and already sit at the current counts (76 and
+> 83). Setting 77 and 88 would fail the run immediately — that is what a fix
+> earns, not what an acceptance permits.
+
+The state at review time, which is what was accepted:
 
 `verify-questlog-parity.mjs` exits 1, exactly as `docs/deployment.md` intends.
 Overall **819/825 = 99.3%** across 10 archetypes; 8 fixtures are fully clean.
@@ -237,14 +251,14 @@ Still genuinely open from the existing checklist: **G10 class names** — the
 Done: precache (§2, `fe80ca3`), portrait (§4.1, `0b19805`), overflow (§4.2,
 `8ace2da`), rate limiting (§4.3, `ba8f440`).
 
-Remaining, in order:
+Also done: Questlog parity accepted (§3) — every gate now passes.
 
-1. **Decide Questlog parity** (§3) — fix, or write down the acceptance and raise
-   the ratchets. This is the only open item that touches "our numbers are the
-   player's real numbers", and the only one blocking a gate.
-2. Cleanup: dead modules, Babel, the redirect hop, console noise (§4.4–4.6).
-   None of these block a launch.
-3. G10 class names, still absent.
+Remaining, none of them launch blockers:
+
+1. Cleanup: dead modules, Babel, the redirect hop, console noise (§4.4–4.6).
+2. G10 class names, still absent.
+3. The in-game Critical Damage reading on character 8227612, which would retire
+   the parity acceptance in one direction or the other.
 
 Notes on what landed, for anyone re-reading the sections above:
 

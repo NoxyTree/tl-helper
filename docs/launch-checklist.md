@@ -51,7 +51,23 @@ that would complete a set never survive to be scored.
 - **Done when:** re-applied, a build completes a set, and score is
   non-decreasing case-by-case across the 144-case sweep.
 
-### A2. Six parity stats — we OVER-APPLY two mastery nodes
+### A2. Six parity stats — ACCEPTED 2026-08-12, no longer a blocker
+
+**Owner decision: ship it.** Both fixtures are marked expected,
+`verify-questlog-parity.mjs` exits 0, and the release is not held on this.
+Nothing below was solved — the disagreement is disclosed in both optimizer
+footers and pinned by signed delta in `ACCEPTED_MISMATCHES` so it cannot grow
+unnoticed. This overrides G3's hard condition knowingly; see
+`mastery-achievement-parity-2026-07-25.md` for the cost and the reasoning, and
+`questlog-parity-acceptance.test.mjs` for the guard that replaced the block.
+
+Still worth getting, just not before launch: one in-game reading of Critical
+Damage on character 8227612 decides which side is wrong.
+
+The original analysis is kept below because it is what the acceptance is
+accepting.
+
+### A2-original (kept for the record) — we OVER-APPLY two mastery nodes
 
 **Updated 2026-07-26, and the direction counts below were wrong.** Measured: four
 "ours lower" and two "ours HIGHER", not five and one. Three of the four distinct

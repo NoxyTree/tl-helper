@@ -260,6 +260,31 @@ Three sub-criteria, all at the release SHA, all after G0:
 - Fixture rule stands: no edits to `scripts/reference-builds/questlog-parity/*.json`
   except `baselineMatched` ratchet raises.
 
+> **CLOSED BY OWNER OVERRIDE, 2026-08-12 — not by satisfying the condition.**
+>
+> Neither branch was met. The Juggernaut over-report has no specific
+> explanation; it is characterised to two named nodes and no further, and the
+> Magic DPS −6 is still unattributed. Both fixtures are now marked expected
+> anyway, and the verifier exits 0.
+>
+> The hard condition above was overridden deliberately, on the judgement that
+> waiting on an in-game observation is a worse trade than launching with a
+> disagreement that is disclosed in both optimizer footers, bounded, and pinned.
+> Full reasoning and cost in `mastery-achievement-parity-2026-07-25.md`.
+>
+> The ratchet branch was never available: it requires matched 825/825, and
+> ratchets are floors on matched stats — 77 and 88 cannot be set while the
+> fixtures match 76 and 83. Raising them is what a *fix* would earn, not what an
+> acceptance permits.
+>
+> Replacement guard, so the gate did not simply lose its teeth: each accepted
+> disagreement is pinned by signed delta in `ACCEPTED_MISMATCHES`. A delta that
+> grows, or a new mismatch in either fixture, fails the run — which the ratchet
+> could never catch, since it only counts matched stats. Proven non-vacuous by
+> `scripts/tests/questlog-parity-acceptance.test.mjs`.
+>
+> Reopen this gate if the in-game observation on character 8227612 ever lands.
+
 ### G4 — Undeclared-stat collapse is either flagged or disclosed (checklist A3)
 Not currently gateable; becomes gateable the moment the owner picks a form.
 

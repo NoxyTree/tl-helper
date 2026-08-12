@@ -234,3 +234,43 @@ with no further analysis.
 Double Impact would fit this fixture and break every build where the node
 legitimately applies — and the Magic DPS shortfall runs the other way, so any
 such rule would make that fixture worse.
+
+---
+
+# 2026-08-12: accepted, not explained — owner decision
+
+Both fixtures are now marked expected in `verify-questlog-parity.mjs`, which
+exits 0 again. **Nothing above was resolved.** This is a decision to stop
+blocking a release on a question the repo cannot answer, not a finding.
+
+What that costs, stated plainly: the site ships a Critical Damage figure for
+under-activated Juggernaut-shaped builds that is **84% higher than Questlog's**
+for the same build, and the Magic DPS Critical Damage Resistance is 6 low. Both
+optimizer footers already disclose the six-stat disagreement and the 84% figure,
+so a player is told; the gate no longer stops the release over it.
+
+Two things make this an acceptance rather than an amnesty:
+
+1. **The deltas are pinned.** `ACCEPTED_MISMATCHES` records each disagreement by
+   signed delta — +15.6 Critical Damage, +1.2 Critical Damage Resistance, −100
+   on the three Melee Heavy Attack Chance contexts, −6 for Magic DPS. The
+   ratchet could never guard these: it counts matched stats, and an accepted
+   mismatch is already unmatched, so the delta could grow without bound and
+   every number the ratchet watches would hold. A delta that changes size, or a
+   new disagreement in either fixture, fails the run. `scripts/tests/
+   questlog-parity-acceptance.test.mjs` proves each of those fires.
+2. **The do-not-invent-a-rule instruction above is unchanged.** Accepting the
+   disagreement is explicitly *not* permission to close it with a guessed
+   activation condition. The gap stays open and visible until evidence arrives.
+
+This overrides the hard condition in `production-gates.md` G3, which forbids
+classifying an unexplained "ours higher" as expected under any circumstances.
+That rule was right to demand an explanation; the override is a judgement that
+waiting for an in-game observation is a worse trade than launching with a
+disclosed, bounded, pinned disagreement. Recorded here so the override is a
+decision on the record rather than a quietly relaxed gate.
+
+**What still settles it, unchanged:** one in-game observation on character
+8227612 — does the character sheet's Critical Damage include Double Impact
+(34.2, ours) or not (18.6, Questlog's)? That answer retires the acceptance in
+either direction, and it is still worth getting.
