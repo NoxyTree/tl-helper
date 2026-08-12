@@ -333,13 +333,13 @@
 <body>
   <a class="tl-skip-link" href="#main-content">Skip to full-build optimizer</a>
   <header class="tl-app-header">
-    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Build Optimizer</span></span></a>
-    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="./index.html">Armory</a><a class="tl-app-nav-item" href="./tracker.html">Tracker</a><a class="tl-app-nav-item" href="./achievements.html">Achievements</a><a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a><a class="tl-app-nav-item is-active" href="./full-build-optimizer.html" aria-current="page">Build Optimizer</a></nav>
+    <a class="tl-app-brand" href="/" aria-label="TL Helper Armory"><span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span><span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Build Optimizer</span></span></a>
+    <nav class="tl-app-nav" aria-label="Primary navigation"><a class="tl-app-nav-item" href="/">Armory</a><a class="tl-app-nav-item" href="/tracker">Tracker</a><a class="tl-app-nav-item" href="/achievements">Achievements</a><a class="tl-app-nav-item" href="/gear-viewer">Gear Viewer</a><a class="tl-app-nav-item is-active" href="/full-build-optimizer" aria-current="page">Build Optimizer</a></nav>
     <div class="tl-app-header-end"><div class="tl-app-status-group"><div class="tl-app-status"><span class="tl-app-status-label">Optimizer</span><strong class="tl-app-status-value" id="engine-status">Connecting</strong></div></div></div>
   </header>
 
 <main id="main-content">
-<div id="page-head" class="page-head"><div><div class="eyebrow">Build optimizer</div><h1>Keep what matters. Improve the rest.</h1><p class="lede">Start from your current build, choose what should improve, and lock only the items or stats you refuse to lose.</p></div><nav class="optimizer-mode-switch" aria-label="Choose optimizer mode"><span class="active" aria-current="page">Improve my build</span><a href="./build-from-scratch.html">Build from scratch</a></nav></div>
+<div id="page-head" class="page-head"><div><div class="eyebrow">Build optimizer</div><h1>Keep what matters. Improve the rest.</h1><p class="lede">Start from your current build, choose what should improve, and lock only the items or stats you refuse to lose.</p></div><nav class="optimizer-mode-switch" aria-label="Choose optimizer mode"><span class="active" aria-current="page">Improve my build</span><a href="/build-from-scratch">Build from scratch</a></nav></div>
 <p class="optimizer-note" role="note">Set effects and three compatible traits are included automatically. Results only come from the calculation engine; Item Potentials are not yet included.</p>
     <div id="setup-state" class="setup-workspace">
         <nav class="wizard-progress" aria-label="Build optimizer steps">
@@ -438,7 +438,7 @@
     <div class="tl-app-footer-inner">
       <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
       <span>Totals are checked against Questlog, not the game client, and six stats on imported mastery builds are known to disagree — Critical Damage can read up to 84% high. Stats you do not list are not protected &mdash; the optimizer may trade them away sharply to reach the ones you did.</span>
-      <a href="./privacy.html">Privacy</a>
+      <a href="/privacy">Privacy</a>
     </div>
   </footer>
   <div id="result-hover" class="hidden" role="tooltip" aria-hidden="true"></div>
@@ -809,8 +809,8 @@
       const scenario=result.scenario??activeScenario(),scenarioNote=scenario?`Scenario scoring used ${formatOptimizerScenario(scenario)}. Conditional overlays remain separate from persistent static totals.`:"",assumptions=[...(result.assumptions??[])];
       if(scenarioNote&&!assumptions.includes(scenarioNote)) assumptions.push(scenarioNote);
       const resultWithScenario=scenario?{...result,scenario,assumptions}:result;
-      state.handoff.storeImprovedResult(sessionStorage,{result:resultWithScenario,priorities:state.increase,includeSetEffects:true,returnUrl:"./full-build-optimizer.html"});
-      location.href="./build-from-scratch.html?result=improved";
+      state.handoff.storeImprovedResult(sessionStorage,{result:resultWithScenario,priorities:state.increase,includeSetEffects:true,returnUrl:"/full-build-optimizer"});
+      location.href="/build-from-scratch?result=improved";
     }
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     function dollItem(loadout,slot) { const group=slot.startsWith("talistone")||slot.startsWith("gemstone")?loadout?.artifacts:loadout?.equipment; const row=Array.isArray(group)?group.find(item=>item.id===slot):group?.[slot]; if(row?.name)return { name:row.name, icon:row.imageUrl??row.icon??"" }; const item=state.core?.indexes?.itemById?.[row?.itemId]; return item?{ name:item.name, icon:item.imageUrl??"" }:null; }
@@ -857,7 +857,7 @@
       $("results-state").innerHTML=`<div class="result-toolbar"><div><div class="section-kicker">Optimization complete</div><strong>Your improved build</strong>${scenarioBadge}</div><div class="result-toolbar-actions"><button id="edit-build-goals" class="secondary" type="button">Edit goals</button><button id="save-result-preset" class="secondary" type="button">Save as preset</button><button id="use-result-build" class="primary" type="button">Use in Armory</button><p id="result-status" class="result-status" role="status">Hover recommended equipment to inspect its complete configured item card.</p></div></div><div class="result-stage">${renderDoll(result)}<div class="result-detail"><div class="result-summary"><div><div class="section-kicker">Best result found</div><h2>${esc(result.name??"Recommended build")}</h2></div><div><div class="score">${esc(result.scoreLabel??result.score??"")}</div><div class="hint">${scenario?`Scenario fit score · ${esc(scenarioDescription)}`:"Static fit score"}</div></div></div><div class="table-scroll"><table class="comparison"><thead><tr><th>Slot</th><th>Current</th><th>Recommended</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table></div><div class="delta-grid">${deltas}</div><div class="explanations"><h3>Why this build</h3><ul>${notes.map(note=>`<li>${esc(typeof note==="string"?note:note.text)}</li>`).join("")||"<li>No additional assumptions reported.</li>"}</ul></div>${alternatives?`<div class="alternatives"><h3>Other strong finalists</h3>${alternatives}</div>`:""}</div></div>`;
       $("edit-build-goals").onclick=()=>{ $("engine-status").textContent="Ready"; setView("setup"); updateReady(); };
       $("save-result-preset").onclick=()=>{ try{const savedName=saveResultAsPreset(result);$("result-status").textContent=`Saved as “${savedName}”. Your current Armory build is untouched.`;}catch{$("result-status").textContent="The preset could not be saved in this browser.";} };
-      $("use-result-build").onclick=()=>{ try{state.persistence.backupArmoryStateForUndo(localStorage); state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="./index.html";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
+      $("use-result-build").onclick=()=>{ try{state.persistence.backupArmoryStateForUndo(localStorage); state.persistence.saveArmoryState(localStorage,resultSnapshot(result),{gameBuild:state.core.data?.gameBuild??"unversioned"}); location.href="/";}catch{$("result-status").textContent="The build could not be saved in this browser.";} };
       bindResultHover(result); $("engine-status").textContent="Complete"; setView("result");
     }
     $("run-optimizer").addEventListener("click",()=>{

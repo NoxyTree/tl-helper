@@ -21,7 +21,10 @@ for (const page of pages) {
     const html = await readFile(new URL(`../../web/${page}`, import.meta.url), "utf8");
     const nav = html.match(/<nav class="tl-app-nav"[\s\S]*?<\/nav>/)?.[0] ?? "";
     assert.ok(nav, `${page} keeps the shared navigation`);
-    assert.doesNotMatch(nav, /combat-lab\.html/);
+    // Match the bare slug, not a link form. This guard was written against
+    // "combat-lab.html" and the move to clean URLs would have left it passing
+    // while checking for a string no page could contain any more.
+    assert.doesNotMatch(nav, /combat-lab/);
   });
 }
 

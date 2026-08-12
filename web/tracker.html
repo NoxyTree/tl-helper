@@ -69,7 +69,7 @@
 
   <!-- top bar -->
   <header class="tl-app-header">
-    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
+    <a class="tl-app-brand" href="/" aria-label="TL Helper Armory">
       <div class="tl-app-brand-mark" aria-hidden="true">
         <span>T</span>
       </div>
@@ -80,11 +80,11 @@
     </a>
 
     <nav class="tl-app-nav" aria-label="Primary navigation">
-      <a class="tl-app-nav-item" href="./index.html">Armory</a>
-      <a class="tl-app-nav-item is-active" href="./tracker.html" aria-current="page">Tracker</a>
-      <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
-      <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
-      <a class="tl-app-nav-item" href="./full-build-optimizer.html">Build Optimizer</a>
+      <a class="tl-app-nav-item" href="/">Armory</a>
+      <a class="tl-app-nav-item is-active" href="/tracker" aria-current="page">Tracker</a>
+      <a class="tl-app-nav-item" href="/achievements">Achievements</a>
+      <a class="tl-app-nav-item" href="/gear-viewer">Gear Viewer</a>
+      <a class="tl-app-nav-item" href="/full-build-optimizer">Build Optimizer</a>
     </nav>
 
     <div class="tl-app-header-end">
@@ -201,16 +201,16 @@
               </span>
             </sc-for>
             <span style="flex: 1;"></span>
-            <a href="./index.html" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #cbb185;" style-hover="color: #f6d391;">{{ artifactSetSummary }} →</a>
+            <a href="/" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #cbb185;" style-hover="color: #f6d391;">{{ artifactSetSummary }} →</a>
           </div>
 
-          <a href="./index.html" style="display: block; text-align: center; margin-top: 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f;" style-hover="color: #f6d391;">Edit build in the Armory →</a>
+          <a href="/" style="display: block; text-align: center; margin-top: 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a795f;" style-hover="color: #f6d391;">Edit build in the Armory →</a>
         </div>
       </sc-if>
       <sc-if value="{{ charLoading }}" hint-placeholder-val="{{ true }}">
         <div style="border: 1px solid rgba(212, 166, 94, 0.16); border-radius: 12px; background: rgba(18, 14, 9, 0.5); padding: 40px 20px; text-align: center; color: #8a795f; font-size: 12px; line-height: 1.6;">
           Loading your character…<br>
-          <a href="./index.html">Open the Armory</a> to set up a build.
+          <a href="/">Open the Armory</a> to set up a build.
         </div>
       </sc-if>
       <sc-if value="{{ charError }}" hint-placeholder-val="{{ false }}">
@@ -428,7 +428,7 @@
   <footer class="tl-app-footer">
     <div class="tl-app-footer-inner">
       <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
-      <a href="./privacy.html">Privacy</a>
+      <a href="/privacy">Privacy</a>
     </div>
   </footer>
 </x-dc>

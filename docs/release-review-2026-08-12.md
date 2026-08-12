@@ -187,12 +187,44 @@ global concurrency cap, before the site is announced.
   fires for a `jsx` `x-import`, and the only `x-import` on any page is
   `./image-slot.js` — confirmed by network trace. It uploads on every deploy.
 
+> **Resolved:** the two dead modules and their two test files are deleted.
+> Nothing imported them — the pages have their own superseded implementations
+> (`build-from-scratch.html` renders its own stat-tab ledger, `gear-viewer.html`
+> its own hover card). Recoverable from history if the A3 post-launch ledger
+> work wants a starting point.
+>
+> **Babel is deliberately NOT deleted.** The size is real but it buys nothing to
+> remove it: the code path that loads it lives in `support.js`, which is
+> generated from a `dc-runtime` project that is not in this repo ("do not edit
+> — rebuild with bun"). Deleting only the vendored copy leaves `ensureBabel()`
+> intact and falls back to unpkg, so the first `.jsx` x-import anyone ever adds
+> would silently pull a third-party script at runtime — exactly what vendoring
+> exists to prevent, and the same failure shape as the `supabase/` incident the
+> `.vercelignore` header warns about. 3.1 MB of deploy weight that never reaches
+> a user is the cheaper side of that trade. Delete it when the runtime is
+> rebuilt without the jsx branch, not before.
+
 ### 4.5 Every internal link takes a redirect
 
 `vercel.json` sets `cleanUrls: true` and canonicals/sitemap use `/tracker`, but
 in-app navigation is written as `./tracker.html`. Each click 308s. Rewriting the
 nav hrefs extensionless removes a round-trip per navigation and makes the landed
 URL match the canonical.
+
+> **Resolved:** 61 links plus six JS navigation targets rewritten to root
+> clean URLs. Two things this turned up that the review had not:
+>
+> - One link carried a query string (`./build-from-scratch.html?result=improved`)
+>   and would have been missed by an href-only sweep.
+> - `combat-lab-navigation.test.mjs` asserted `doesNotMatch(nav, /combat-lab\.html/)`.
+>   The rename would have left that guard passing while checking for a string no
+>   page could contain — the unlisted-page protection would have quietly stopped
+>   protecting anything. It now matches the bare slug.
+>
+> `scripts/serve-web.mjs` resolves extensionless paths so local review matches
+> production, and the two `python -m http.server` entries in `.claude/launch.json`
+> are replaced with a second `serve-web.mjs` instance — python cannot serve these
+> URLs, so those entries would 404 on every nav click.
 
 ### 4.6 Console noise
 
@@ -205,10 +237,31 @@ Two errors fire on Armory / Build-from-scratch loads:
 
 Source is `MasteryWheel.dc.html:37-38` — the browser's HTML parser sees the raw
 template attributes before dc-runtime hydrates. **The wheel itself renders
-correctly** (verified: 4 rings with numeric `r`, 48 polylines). Cosmetic, but
-G8 step 2 asks for no console errors on the listed pages, so it currently fails
-that line. Moving the placeholders to `data-*` attributes the runtime reads would
-clear it.
+correctly** (verified: 4 rings with numeric `r`, 48 polylines).
+
+> **Not fixed, and not fixable from this repo.** Traced to `parseDcText` in
+> `web/support.js:44`: it slices the template out of the source as a *raw
+> string*, then separately runs `new DOMParser().parseFromString(src, "text/html")`
+> over the whole file purely to find `script[data-dc-script]` and read its
+> `data-props`. The parsed DOM's SVG is discarded — the browser is validating
+> geometry attributes in a document nothing uses, and that validation is the
+> entire source of the noise.
+>
+> The one-line upstream fix is to scope that parse to the script tag instead of
+> the document. `support.js` is generated from a `dc-runtime` project that is not
+> in this repo, so patching the shipped file here would be reverted by the next
+> `bun run build`.
+>
+> No template-side fix exists either: any `{{ }}` in `r` or `points` is invalid
+> to the SVG attribute parser by construction, and the CSS-geometry alternative
+> (`style="r: …"`) is not supported in Firefox and has no equivalent for
+> `polyline points` at all — it would trade two console lines for a broken
+> mastery wheel.
+>
+> Consequence for G8 step 2: the "no console errors" line cannot be met on the
+> Armory and Build-from-scratch until the runtime is rebuilt. Worth recording as
+> a known deviation rather than leaving the gate looking unmet for an unstated
+> reason.
 
 ---
 
@@ -251,13 +304,20 @@ Still genuinely open from the existing checklist: **G10 class names** — the
 Done: precache (§2, `fe80ca3`), portrait (§4.1, `0b19805`), overflow (§4.2,
 `8ace2da`), rate limiting (§4.3, `ba8f440`).
 
-Also done: Questlog parity accepted (§3) — every gate now passes.
+Also done: Questlog parity accepted (§3), dead modules removed and clean URLs
+adopted (§4.4, §4.5). Every gate passes.
 
-Remaining, none of them launch blockers:
+Remaining, none of them launch blockers, and two of them deliberately not done:
 
-1. Cleanup: dead modules, Babel, the redirect hop, console noise (§4.4–4.6).
-2. G10 class names, still absent.
-3. The in-game Critical Damage reading on character 8227612, which would retire
+1. **Babel** (§4.4) — left in place on purpose. Removing the vendored copy
+   without removing the code path that loads it would introduce a runtime CDN
+   dependency. Revisit when `dc-runtime` is rebuilt.
+2. **Console noise** (§4.6) — not fixable from this repo; the fix belongs in
+   generated `support.js`. G8 step 2's "no console errors" line is a known
+   deviation until then.
+3. **G10 class names** — the 45-pair mapping is still not in the repo, and it is
+   data that has to be supplied, not derived.
+4. The in-game Critical Damage reading on character 8227612, which would retire
    the parity acceptance in one direction or the other.
 
 Notes on what landed, for anyone re-reading the sections above:

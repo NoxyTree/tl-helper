@@ -2,22 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "tl-tracker-web",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "web"],
-      "port": 8791
-    },
-    {
-      "name": "tl-tracker-web-2",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8792", "--directory", "web"],
-      "port": 8792
-    },
-    {
       "name": "tl-web-api",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve-web.mjs", "web", "8790"],
       "port": 8790
+    },
+    {
+      "name": "tl-web-api-2",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-web.mjs", "web", "8791"],
+      "port": 8791
     }
   ]
 }

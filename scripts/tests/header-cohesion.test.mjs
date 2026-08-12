@@ -3,14 +3,14 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const pages = [
-  ["index.html", "./index.html", "Armory", "Armory | TL Helper"],
-  ["tracker.html", "./tracker.html", "Tracker", "Tracker | TL Helper"],
-  ["achievements.html", "./achievements.html", "Achievements", "Achievements | TL Helper"],
+  ["index.html", "/", "Armory", "Armory | TL Helper"],
+  ["tracker.html", "/tracker", "Tracker", "Tracker | TL Helper"],
+  ["achievements.html", "/achievements", "Achievements", "Achievements | TL Helper"],
   // combat-lab.html is intentionally unlisted: it keeps the shared header but
   // has no navigation entry, so combat-lab-navigation.test.mjs covers it.
-  ["gear-viewer.html", "./gear-viewer.html", "Gear Viewer", "Gear Viewer | TL Helper"],
-  ["full-build-optimizer.html", "./full-build-optimizer.html", "Build Optimizer", "Build Optimizer | TL Helper"],
-  ["build-from-scratch.html", "./full-build-optimizer.html", "Build Optimizer", "Build Optimizer: Build from Scratch | TL Helper"],
+  ["gear-viewer.html", "/gear-viewer", "Gear Viewer", "Gear Viewer | TL Helper"],
+  ["full-build-optimizer.html", "/full-build-optimizer", "Build Optimizer", "Build Optimizer | TL Helper"],
+  ["build-from-scratch.html", "/full-build-optimizer", "Build Optimizer", "Build Optimizer: Build from Scratch | TL Helper"],
   ["privacy.html", null, null, "Privacy | TL Helper"],
 ];
 
@@ -25,11 +25,11 @@ const socialTitles = new Map([
 ]);
 
 const expectedNavigation = [
-  ["./index.html", "Armory"],
-  ["./tracker.html", "Tracker"],
-  ["./achievements.html", "Achievements"],
-  ["./gear-viewer.html", "Gear Viewer"],
-  ["./full-build-optimizer.html", "Build Optimizer"],
+  ["/", "Armory"],
+  ["/tracker", "Tracker"],
+  ["/achievements", "Achievements"],
+  ["/gear-viewer", "Gear Viewer"],
+  ["/full-build-optimizer", "Build Optimizer"],
 ];
 
 const load = (page) => readFile(new URL(`../../web/${page}`, import.meta.url), "utf8");
@@ -44,7 +44,7 @@ test("every public page uses one cohesive branded application header", async () 
 
     assert.ok(header, `${page} has the shared header`);
     assert.doesNotMatch(header.match(/^<header[^>]*>/i)?.[0] ?? "", /style=/i, `${page} does not fork header layout inline`);
-    assert.match(header, /<a class="tl-app-brand" href="\.\/index\.html"[^>]*>/i, `${page} links the brand to Armory`);
+    assert.match(header, /<a class="tl-app-brand" href="\/"[^>]*>/i, `${page} links the brand to Armory`);
     assert.match(header, /class="tl-app-brand-mark"/i, `${page} uses the shared image mark`);
     assert.match(header, /class="tl-app-brand-title">TL HELPER</i, `${page} keeps the common brand title`);
     assert.match(header, /class="tl-app-header-end(?: [^"]+)?"/i, `${page} reserves the shared end slot`);
@@ -76,13 +76,13 @@ test("privacy is available in the shared footer instead of primary navigation", 
     const header = html.match(/<header class="tl-app-header(?: [^"]+)?">[\s\S]*?<\/header>/i)?.[0] ?? "";
     const footer = html.match(/<footer class="tl-app-footer">[\s\S]*?<\/footer>/i)?.[0] ?? "";
 
-    assert.doesNotMatch(header, /href="\.\/privacy\.html"/i, `${page} keeps Privacy out of primary navigation`);
+    assert.doesNotMatch(header, /href="\/privacy"/i, `${page} keeps Privacy out of primary navigation`);
     assert.ok(footer, `${page} includes the shared utility footer`);
     assert.match(footer, /TL Helper is an independent fan project/i, `${page} identifies the project in its footer`);
     if (page === "privacy.html") {
       assert.match(footer, /class="tl-app-footer-current" aria-current="page">Privacy<\/span>/i, "Privacy marks its footer destination as current");
     } else {
-      assert.match(footer, /<a href="\.\/privacy\.html">Privacy<\/a>/i, `${page} links to Privacy from the footer`);
+      assert.match(footer, /<a href="\/privacy">Privacy<\/a>/i, `${page} links to Privacy from the footer`);
     }
   }
 });

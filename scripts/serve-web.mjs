@@ -30,13 +30,19 @@ const server = http.createServer(async (request, response) => {
     return;
   }
   const pathname = url.pathname === "/" ? "/index.html" : decodeURIComponent(url.pathname);
-  const file = path.resolve(root, `.${pathname}`);
+  const requested = path.resolve(root, `.${pathname}`);
 
-  if (!file.startsWith(root)) {
+  if (!requested.startsWith(root)) {
     response.writeHead(403);
     response.end("Forbidden");
     return;
   }
+
+  // Match production's clean URLs. vercel.json sets `cleanUrls: true` and
+  // Cloudflare Pages strips .html by default, so every in-app link is written
+  // extensionless (/tracker, not ./tracker.html). Without this the dev server
+  // 404s on every navigation and local review stops matching what ships.
+  const file = !path.extname(requested) && fs.existsSync(`${requested}.html`) ? `${requested}.html` : requested;
 
   fs.readFile(file, (error, data) => {
     if (error) {

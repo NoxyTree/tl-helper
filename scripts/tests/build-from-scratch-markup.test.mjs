@@ -75,7 +75,7 @@ test("setup focuses one guided step at a time and collapses advanced choices", (
 
 test("scratch mode exposes its sister page and gives weapon selection active contrast", () => {
   assert.match(html, /class="tl-optimizer-mode-switch"/);
-  assert.match(html, /href="\.\/full-build-optimizer\.html"/);
+  assert.match(html, /href="\/full-build-optimizer"/);
   assert.match(html, /class="tl-weapon-orb \{\{ w\.orbClass \}\}"/);
   assert.match(html, /orbClass:selected\?'has-weapon':'is-empty'/);
   assert.match(html, /name_color:selected\?'#f2c777':'#ead8b7'/);

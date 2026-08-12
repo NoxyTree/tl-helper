@@ -166,16 +166,16 @@
 
   <!-- ===== HEADER ===== -->
   <header class="tl-app-header">
-    <a class="tl-app-brand" href="./index.html" aria-label="TL Helper Armory">
+    <a class="tl-app-brand" href="/" aria-label="TL Helper Armory">
       <span class="tl-app-brand-mark" aria-hidden="true"><span>T</span></span>
       <span class="tl-app-brand-copy"><span class="tl-app-brand-title">TL HELPER</span><span class="tl-app-brand-subtitle">Build Optimizer</span></span>
     </a>
     <nav class="tl-app-nav" aria-label="Primary navigation">
-      <a class="tl-app-nav-item" href="./index.html">Armory</a>
-      <a class="tl-app-nav-item" href="./tracker.html">Tracker</a>
-      <a class="tl-app-nav-item" href="./achievements.html">Achievements</a>
-      <a class="tl-app-nav-item" href="./gear-viewer.html">Gear Viewer</a>
-      <a class="tl-app-nav-item is-active" href="./full-build-optimizer.html" aria-current="location">Build Optimizer</a>
+      <a class="tl-app-nav-item" href="/">Armory</a>
+      <a class="tl-app-nav-item" href="/tracker">Tracker</a>
+      <a class="tl-app-nav-item" href="/achievements">Achievements</a>
+      <a class="tl-app-nav-item" href="/gear-viewer">Gear Viewer</a>
+      <a class="tl-app-nav-item is-active" href="/full-build-optimizer" aria-current="location">Build Optimizer</a>
     </nav>
     <div class="tl-app-header-end">
       <div class="tl-app-status-group">
@@ -212,7 +212,7 @@
       </sc-if>
     </div>
     <sc-if value="{{ isSetup }}" hint-placeholder-val="{{ true }}">
-      <nav class="tl-optimizer-mode-switch" aria-label="Choose optimizer mode"><a href="./full-build-optimizer.html">Improve my build</a><span class="active" aria-current="page">Build from scratch</span></nav>
+      <nav class="tl-optimizer-mode-switch" aria-label="Choose optimizer mode"><a href="/full-build-optimizer">Improve my build</a><span class="active" aria-current="page">Build from scratch</span></nav>
     </sc-if>
     <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
       <div class="tl-result-actions" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
@@ -1532,7 +1532,7 @@
   <div class="tl-app-footer-inner">
     <span>TL Helper is an independent fan project, not affiliated with Amazon Games or NCSOFT.</span>
     <span>Totals are checked against Questlog, not the game client, and six stats on imported mastery builds are known to disagree — Critical Damage can read up to 84% high. Stats you do not list are not protected &mdash; the optimizer may trade them away sharply to reach the ones you did.</span>
-    <a href="./privacy.html">Privacy</a>
+    <a href="/privacy">Privacy</a>
   </div>
 </footer>
 </x-dc>
@@ -1577,7 +1577,7 @@ class Component extends DCLogic {
     result: null,
     resultCalc: null,
     resultOrigin: 'scratch',
-    resultReturnUrl: './full-build-optimizer.html',
+    resultReturnUrl: '/full-build-optimizer',
     resultActionMessage: '',
     savePanelOpen: false,
     saveName: '',
@@ -1669,7 +1669,7 @@ class Component extends DCLogic {
         const knownStatIds=new Set(statOptions.map(row=>row.id));
         const restoredPriorities=(improved.priorities||[]).filter(id=>knownStatIds.has(id));
         this.setState({source:{build:structuredClone(result.build),attributes:{...attributes},sourceKind:'existing',name:result.name},statOptions,engineReady:true,heroics,heroicMode,heroicsEngaged:Boolean(saved.heroics),
-          result,resultCalc,phase:'result',resultOrigin:'improved',resultReturnUrl:improved.returnUrl||'./full-build-optimizer.html',priorities:restoredPriorities,kept,locked:{...kept},
+          result,resultCalc,phase:'result',resultOrigin:'improved',resultReturnUrl:improved.returnUrl||'/full-build-optimizer',priorities:restoredPriorities,kept,locked:{...kept},
           weaponTypes:{main:itemType('main_hand'),off:itemType('off_hand')},rules:{...this.state.rules,sets:improved.includeSetEffects},scenario:this.scenarioStateFromCanonical(result.scenario)});
         return;
       }
@@ -2256,7 +2256,7 @@ class Component extends DCLogic {
   editGoals = () => {
     if(this.state.resultOrigin==='improved'){
       if(history.length>1){history.back();return;}
-      location.href=this.state.resultReturnUrl||'./full-build-optimizer.html';
+      location.href=this.state.resultReturnUrl||'/full-build-optimizer';
       return;
     }
     this.setState({ phase:'setup' });
@@ -2357,7 +2357,7 @@ class Component extends DCLogic {
     try{
       this.persistence.backupArmoryStateForUndo(localStorage);
       this.persistence.saveArmoryState(localStorage,this.resultSnapshot(),{gameBuild:this.core.data?.gameBuild??'unversioned'});
-      location.href='./index.html';
+      location.href='/';
     }catch{this.setState({resultActionMessage:'The build could not be saved in this browser.'});}
   };
   tuneContext() {

@@ -27,7 +27,7 @@ export function keptSlotsFromResult(result) {
   }).map((row) => row.slotId))];
 }
 
-export function storeImprovedResult(storage, { result, priorities = [], includeSetEffects = true, returnUrl = "./full-build-optimizer.html" } = {}) {
+export function storeImprovedResult(storage, { result, priorities = [], includeSetEffects = true, returnUrl = "/full-build-optimizer" } = {}) {
   if (!storage?.setItem) throw new TypeError("A browser storage target is required.");
   if (!validResult(result)) throw new TypeError("The optimizer result is incomplete and cannot be opened in the shared result screen.");
   const document = {

@@ -31,7 +31,7 @@ test("full-build optimizer is a standalone shared-shell page", () => {
 test("optimizer exposes source, goal, lock, and search controls", () => {
   assert.match(html, /data-source="armory"/);
   assert.match(html, /data-source="questlog"/);
-  assert.match(html, /href="\.\/build-from-scratch\.html"/);
+  assert.match(html, /href="\/build-from-scratch"/);
   assert.doesNotMatch(html, /data-source="scratch"/);
   assert.match(html, /id="increase-picker"/);
   assert.match(html, /id="protect-picker"/);
@@ -120,7 +120,7 @@ test("optimizer uses full-screen setup and loading before opening the shared res
   assert.match(html, /setView\("progress"\)/);
   assert.match(html, /openSharedResult/);
   assert.match(html, /storeImprovedResult/);
-  assert.match(html, /build-from-scratch\.html\?result=improved/);
+  assert.match(html, /build-from-scratch\?result=improved/);
   assert.doesNotMatch(html, /id="empty-state"/);
   assert.match(html, /new Worker\("\.\/optimizer\/tl-builder-worker\.js"/);
   assert.match(html, /message\.type==="progress"/);
@@ -140,7 +140,7 @@ test("optimizer setup is a progressive four-step flow", () => {
 test("optimizer mode switch remains visible above the guided steps", () => {
   assert.match(html, /class="optimizer-mode-switch"/);
   assert.match(html, /aria-label="Choose optimizer mode"/);
-  assert.match(html, /href="\.\/build-from-scratch\.html"/);
+  assert.match(html, /href="\/build-from-scratch"/);
 });
 
 test("optimizer steps follow the same order in the document and on screen", () => {
@@ -153,7 +153,7 @@ test("optimizer steps follow the same order in the document and on screen", () =
 
 test("improved results reuse the Build from Scratch result experience", () => {
   assert.match(html, /import\("\.\/optimizer\/tl-optimizer-result-handoff\.js"\)/);
-  assert.match(html, /location\.href="\.\/build-from-scratch\.html\?result=improved"/);
+  assert.match(html, /location\.href="\/build-from-scratch\?result=improved"/);
   assert.doesNotMatch(html, /renderResult\(message\.result\)/);
 });
 

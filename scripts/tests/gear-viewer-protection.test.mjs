@@ -36,7 +36,7 @@ test("Gear Viewer is public and linked from the primary product pages", async ()
   assert.match(html, /rel="canonical" href="https:\/\/tlhelper\.org\/gear-viewer"/);
   for (const page of ["index.html", "tracker.html", "achievements.html", "combat-lab.html"]) {
     const source = await readFile(new URL(`../../web/${page}`, import.meta.url), "utf8");
-    assert.match(source, /href="\.\/gear-viewer\.html"[^>]*>Gear Viewer<\/a>/);
+    assert.match(source, /href="\/gear-viewer"[^>]*>Gear Viewer<\/a>/);
   }
 });
 
