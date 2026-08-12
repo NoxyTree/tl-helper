@@ -159,6 +159,44 @@
   // page. Reads via fetch() so viewing works anywhere the HTML and sidecar
   // are served together; writes go through window.omelette.writeFile, which
   // the host allowlists to *.state.json basenames only.
+  //
+  // On a plain web server neither half exists: the sidecar fetch 404s and
+  // there is no writeFile. That made a dropped image render and then vanish
+  // on the next reload, with no way for the player to tell it had not saved.
+  // Fall back to localStorage there — the same place every other TL Helper
+  // surface keeps its state, so the portrait now survives a reload like the
+  // rest of the build does. The host path is unchanged and still wins.
+  const LOCAL_KEY = 'tl-helper.image-slots.v1';
+  const hostWrite = () => (window.omelette && window.omelette.writeFile) || null;
+  // Probe once: Safari private mode and blocked third-party storage throw on
+  // access, not on write, and the editable gate below needs an answer before
+  // any drop happens.
+  const localAvailable = (() => {
+    try {
+      const probe = LOCAL_KEY + '.probe';
+      localStorage.setItem(probe, '1');
+      localStorage.removeItem(probe);
+      return true;
+    } catch (e) { return false; }
+  })();
+  function localRead() {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (e) { return null; }
+  }
+  // Returns false when the write did not land. A 1200px WebP at q=0.85 is
+  // ~150-300KB against a ~5MB quota, so this is the rare case — but it is the
+  // exact failure this fallback exists to stop happening silently.
+  function localWrite(json) {
+    try { localStorage.setItem(LOCAL_KEY, json); return true; }
+    catch (e) {
+      console.warn('<image-slot> could not save the image locally (storage full or blocked); it will be lost on reload.', e);
+      return false;
+    }
+  }
+
   const subs = new Set();
   let slots = {};
   // ids explicitly cleared before the sidecar fetch resolved — otherwise
@@ -172,6 +210,16 @@
     if (loadP) return loadP;
     loadP = fetch(STATE_FILE)
       .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      // Fold in the localStorage mirror that save()/flushNow() write. On the
+      // public site there is no sidecar and this is the only source; inside
+      // the host the sidecar wins per id, so a shared page still renders what
+      // its author saved. Merging rather than `j || localRead()` also keeps an
+      // empty-but-present sidecar ({} is truthy) from masking local state.
+      .then((j) => {
+        const local = localRead();
+        return j || local ? Object.assign({}, local, j) : null;
+      })
       .then((j) => {
         // Merge: sidecar loses to any in-memory change that raced ahead of
         // the fetch (drop or clear) so neither is clobbered by hydration.
@@ -214,14 +262,19 @@
   // cannot happen in an unloading document anyway).
   function flushNow() {
     if (!loaded) return;
-    const w = window.omelette && window.omelette.writeFile;
-    if (!w) return;
-    try { Promise.resolve(w(STATE_FILE, JSON.stringify(slots))).catch(() => {}); } catch (e) {}
+    const json = JSON.stringify(slots);
+    const w = hostWrite();
+    // localStorage is synchronous, so the unload-time flush this function
+    // exists for is simply not at risk on that path.
+    if (!w) { localWrite(json); return; }
+    try { Promise.resolve(w(STATE_FILE, json)).catch(() => {}); } catch (e) {}
   }
   function save() {
     if (saving) { saveDirty = true; return; }
-    const w = window.omelette && window.omelette.writeFile;
-    if (!w) return;
+    const w = hostWrite();
+    // No serialization needed for the synchronous path: there is no in-flight
+    // window for a second write to reorder into.
+    if (!w) { localWrite(JSON.stringify(slots)); return; }
     saving = true;
     Promise.resolve(w(STATE_FILE, JSON.stringify(slots)))
       .catch(() => {})
@@ -1056,7 +1109,10 @@
       this._ring.style.display = mask ? 'none' : '';
 
       // Controls and reframe entry gate on this so share links stay read-only.
-      const editable = !!(window.omelette && window.omelette.writeFile);
+      // localStorage counts: on the public site it is the persistence backend,
+      // so hiding "browse files" and the Replace/Edit controls there left the
+      // slot advertising a drop it would not keep.
+      const editable = !!hostWrite() || localAvailable;
       this.toggleAttribute('data-editable', editable);
       this._sub.style.display = editable ? '' : 'none';
 
