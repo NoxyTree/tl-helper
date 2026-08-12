@@ -7,6 +7,52 @@ const PROCEDURE = "auctionHouse.getAuctionItem";
 const MAX_RESPONSE_BYTES = 8_000_000;
 const UPSTREAM_ERROR = "Questlog is unavailable right now. Try again in a minute.";
 const TIMEOUT_ERROR = "Questlog took too long to respond. Try again in a minute.";
+const BUSY_ERROR = "Too many price lookups right now. Wait a minute and try again.";
+
+// Upstream rate limit -- same contract as the character adapter; see the long
+// note there for why two buckets and why this is per-isolate best-effort.
+//
+// The ceilings are higher here because one gearing view legitimately prices a
+// whole loadout in a burst, and tokens are only spent on a cache MISS, so a
+// second look at the same items costs nothing.
+const PER_CLIENT = { capacity: 60, perMs: 60 / 60_000 };
+const PER_INSTANCE = { capacity: 300, perMs: 300 / 60_000 };
+const MAX_TRACKED_CLIENTS = 5_000;
+const clientBuckets = new Map();
+const instanceBucket = { tokens: PER_INSTANCE.capacity, updatedAt: Date.now() };
+
+function spend(bucket, limit, now) {
+  bucket.tokens = Math.min(limit.capacity, bucket.tokens + (now - bucket.updatedAt) * limit.perMs);
+  bucket.updatedAt = now;
+  if (bucket.tokens < 1) return false;
+  bucket.tokens -= 1;
+  return true;
+}
+
+function clientKey(request) {
+  return String(request.headers.get("cf-connecting-ip") ?? "").trim() || "unknown";
+}
+
+// Test hook. The buckets are module state that outlives a single request, so a
+// suite exercising this endpoint repeatedly would otherwise trip its own limit
+// and turn an unrelated assertion into a confusing 429. Unused at runtime.
+export function __resetRateLimitForTests() {
+  clientBuckets.clear();
+  instanceBucket.tokens = PER_INSTANCE.capacity;
+  instanceBucket.updatedAt = Date.now();
+}
+
+function withinRateLimit(request) {
+  const now = Date.now();
+  if (!spend(instanceBucket, PER_INSTANCE, now)) return false;
+  const key = clientKey(request);
+  if (!clientBuckets.has(key) && clientBuckets.size >= MAX_TRACKED_CLIENTS) {
+    clientBuckets.delete(clientBuckets.keys().next().value);
+  }
+  const bucket = clientBuckets.get(key) ?? { tokens: PER_CLIENT.capacity, updatedAt: now };
+  clientBuckets.set(key, bucket);
+  return spend(bucket, PER_CLIENT, now);
+}
 
 export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
@@ -23,6 +69,7 @@ export async function onRequestGet(context) {
     const cache = caches.default;
     const cached = await cache.match(cacheKey);
     if (cached) return cached;
+    if (!withinRateLimit(context.request)) return json({ error: BUSY_ERROR }, 429, "no-store", { "retry-after": "60" });
 
     const data = await trpc(PROCEDURE, { language: "en", regionId: region, itemId, timespan: withHistory ? 360 : 1 });
     const response = json({
@@ -75,13 +122,14 @@ async function trpc(procedure, input) {
   return wrapper?.json ?? wrapper ?? null;
 }
 
-function json(body, status, cacheControl = "no-store") {
+function json(body, status, cacheControl = "no-store", extraHeaders) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "cache-control": cacheControl,
       "content-type": "application/json; charset=utf-8",
       "x-content-type-options": "nosniff",
+      ...extraHeaders,
     },
   });
 }

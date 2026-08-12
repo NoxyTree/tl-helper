@@ -7,6 +7,68 @@ const PROCEDURES = Object.freeze({
 const MAX_RESPONSE_BYTES = 8_000_000;
 const UPSTREAM_ERROR = "Questlog is unavailable right now. Try again in a minute.";
 const TIMEOUT_ERROR = "Questlog took too long to respond. Try again in a minute.";
+const BUSY_ERROR = "Too many imports right now. Wait a minute and try again.";
+
+// Upstream rate limit. Everything else here bounds what a request may ask for;
+// nothing bounded how OFTEN. The Sec-Fetch-Site gate deliberately admits
+// header-less clients, so a script could proxy questlog.gg through us without
+// limit -- their block would land on our egress IPs, and the invocations are
+// ours to pay for.
+//
+// Two buckets, because each answers a different abuse:
+//   - per client, so one player cannot monopolise the endpoint;
+//   - per isolate across all clients, because the client key comes from a
+//     header and header rotation would walk straight past the first bucket.
+//
+// Honest about its reach: Workers isolates do not share memory and are recycled
+// freely, so this bounds one isolate rather than the deployment. The gap
+// between "unlimited" and "a few per isolate per minute" is the one that
+// protects the upstream. Mirrors api/questlog/character.js.
+//
+// Tokens are spent only where a request actually reaches Questlog, i.e. after
+// the cache check, so repeat views of a cached character are never throttled.
+const PER_CLIENT = { capacity: 10, perMs: 10 / 60_000 };
+const PER_INSTANCE = { capacity: 60, perMs: 60 / 60_000 };
+const MAX_TRACKED_CLIENTS = 5_000;
+const clientBuckets = new Map();
+const instanceBucket = { tokens: PER_INSTANCE.capacity, updatedAt: Date.now() };
+
+function spend(bucket, limit, now) {
+  bucket.tokens = Math.min(limit.capacity, bucket.tokens + (now - bucket.updatedAt) * limit.perMs);
+  bucket.updatedAt = now;
+  if (bucket.tokens < 1) return false;
+  bucket.tokens -= 1;
+  return true;
+}
+
+// Cloudflare sets CF-Connecting-IP at the edge and it cannot be spoofed by the
+// client. Unknown callers share one bucket rather than getting a free pass each.
+function clientKey(request) {
+  return String(request.headers.get("cf-connecting-ip") ?? "").trim() || "unknown";
+}
+
+// Test hook. The buckets are module state that outlives a single request, so a
+// suite exercising this endpoint repeatedly would otherwise trip its own limit
+// and turn an unrelated assertion into a confusing 429. Unused at runtime.
+export function __resetRateLimitForTests() {
+  clientBuckets.clear();
+  instanceBucket.tokens = PER_INSTANCE.capacity;
+  instanceBucket.updatedAt = Date.now();
+}
+
+function withinRateLimit(request) {
+  const now = Date.now();
+  if (!spend(instanceBucket, PER_INSTANCE, now)) return false;
+  const key = clientKey(request);
+  // Evict oldest-inserted first; Map preserves insertion order. Bounded so a
+  // spray of distinct keys cannot grow this without limit.
+  if (!clientBuckets.has(key) && clientBuckets.size >= MAX_TRACKED_CLIENTS) {
+    clientBuckets.delete(clientBuckets.keys().next().value);
+  }
+  const bucket = clientBuckets.get(key) ?? { tokens: PER_CLIENT.capacity, updatedAt: now };
+  clientBuckets.set(key, bucket);
+  return spend(bucket, PER_CLIENT, now);
+}
 
 export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
@@ -21,6 +83,7 @@ export async function onRequestGet(context) {
     const cache = caches.default;
     const cached = await cache.match(cacheKey);
     if (cached) return cached;
+    if (!withinRateLimit(context.request)) return json({ error: BUSY_ERROR }, 429, "no-store", { "retry-after": "60" });
     const characterData = await trpc(PROCEDURES.character, { slug: parsed.characterSlug });
     const ownerSlug = characterData?.character?.user?.slug;
     if (!ownerSlug || !Array.isArray(characterData?.builds)) throw new Error("Questlog returned an incomplete character package.");
@@ -95,13 +158,14 @@ async function trpc(procedure, input) {
   return data;
 }
 
-function json(body, status, cacheControl = "no-store") {
+function json(body, status, cacheControl = "no-store", extraHeaders) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "cache-control": cacheControl,
       "content-type": "application/json; charset=utf-8",
       "x-content-type-options": "nosniff",
+      ...extraHeaders,
     },
   });
 }

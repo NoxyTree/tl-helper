@@ -4,11 +4,17 @@
 // clear 400s for input mistakes, and map upstream failures to 502/504 with
 // fixed messages that never echo internal error text.
 import assert from "node:assert/strict";
-import test from "node:test";
-import vercelHandler from "../../api/questlog/character.js";
-import { onRequestGet } from "../../functions/api/questlog/character.js";
+import test, { beforeEach } from "node:test";
+import vercelHandler, { __resetRateLimitForTests as resetVercelLimit } from "../../api/questlog/character.js";
+import { onRequestGet, __resetRateLimitForTests as resetCloudflareLimit } from "../../functions/api/questlog/character.js";
+import marketHandler, { __resetRateLimitForTests as resetMarketLimit } from "../../api/questlog/market.js";
 
 const GOOD_URL = (slug) => `https://questlog.gg/throne-and-liberty/en/character-builder/${slug}?buildId=7`;
+
+// The rate-limit buckets are module state shared by every test in this file.
+// Reset before each so one test's upstream traffic cannot starve the next and
+// surface as a confusing 429 somewhere unrelated.
+beforeEach(() => { resetVercelLimit(); resetCloudflareLimit(); });
 
 function upstreamJson(data) {
   const text = JSON.stringify({ result: { data } });
@@ -105,6 +111,100 @@ test("Vercel adapter maps timeouts to a fixed 504", async () => {
   assert.equal(res.body.error, "Questlog took too long to respond. Try again in a minute.");
 });
 
+test("Vercel adapter throttles sustained upstream traffic with a 429", async () => {
+  let upstreamCalls = 0;
+  await withFetch(async (url) => {
+    upstreamCalls += 1;
+    return upstreamJson(url.includes("getCharacter")
+      ? { character: { user: { slug: "owner" } }, builds: [{ id: 7 }] }
+      : { builds: [] });
+  }, async () => {
+    const statuses = [];
+    // Distinct slugs so every call misses the response cache and reaches upstream.
+    for (let i = 0; i < 14; i += 1) {
+      const res = mockResponse();
+      await vercelHandler(vercelRequest({ url: GOOD_URL(`Flood-${i}`) }), res);
+      statuses.push(res.statusCode);
+    }
+    assert.equal(statuses.filter((code) => code === 200).length, 10, "the per-client bucket admits its capacity");
+    assert.ok(statuses.slice(10).every((code) => code === 429), "and refuses the rest");
+    assert.ok(upstreamCalls > 0 && upstreamCalls <= 30, "throttled requests never reach Questlog");
+  });
+
+  // A throttled answer must say so plainly and tell the caller when to retry.
+  const throttled = mockResponse();
+  await withFetch(() => { throw new Error("must not reach upstream"); }, () =>
+    vercelHandler(vercelRequest({ url: GOOD_URL("Flood-after") }), throttled));
+  assert.equal(throttled.statusCode, 429);
+  assert.equal(throttled.headers["retry-after"], "60");
+  assert.equal(throttled.headers["cache-control"], "no-store");
+  assert.match(throttled.body.error, /Too many imports/);
+});
+
+test("a cached character costs no rate-limit budget", async () => {
+  const slug = "Cached-Regular";
+  await withFetch(healthyFetch(), async () => {
+    const first = mockResponse();
+    await vercelHandler(vercelRequest({ url: GOOD_URL(slug) }), first);
+    assert.equal(first.statusCode, 200);
+  });
+  // Same slug 40 times with a fetch that would throw if reached: served from
+  // the response cache, so a player re-opening a build is never throttled.
+  await withFetch(() => { throw new Error("must not reach upstream"); }, async () => {
+    for (let i = 0; i < 40; i += 1) {
+      const res = mockResponse();
+      await vercelHandler(vercelRequest({ url: GOOD_URL(slug) }), res);
+      assert.equal(res.statusCode, 200, `repeat ${i} stays cached rather than throttled`);
+    }
+  });
+});
+
+test("one client's flood does not throttle a different client", async () => {
+  const request = (slug, ip) => {
+    const base = vercelRequest({ url: GOOD_URL(slug) });
+    base.headers["x-real-ip"] = ip;
+    return base;
+  };
+  await withFetch(healthyFetch(), async () => {
+    for (let i = 0; i < 12; i += 1) {
+      const res = mockResponse();
+      await vercelHandler(request(`Noisy-${i}`, "203.0.113.9"), res);
+    }
+    const noisy = mockResponse();
+    await vercelHandler(request("Noisy-last", "203.0.113.9"), noisy);
+    assert.equal(noisy.statusCode, 429, "the flooding client is throttled");
+
+    const quiet = mockResponse();
+    await vercelHandler(request("Quiet-1", "198.51.100.4"), quiet);
+    assert.equal(quiet.statusCode, 200, "a different client still gets served");
+  });
+});
+
+// The market proxy carries the same limiter with a higher ceiling. Exercise it
+// rather than trusting the shape: an unrun copy of the code is an untested one,
+// and this is the endpoint a single page view fans out across.
+test("Vercel market adapter throttles at its own higher ceiling", async () => {
+  resetMarketLimit();
+  const marketRequest = (item) => ({ method: "GET", headers: { "x-real-ip": "203.0.113.7" }, query: { item, region: "na-f" } });
+  await withFetch(async () => upstreamJson({ json: { minPrice: 10, inStock: 2, grade: "epic" } }), async () => {
+    const statuses = [];
+    for (let i = 0; i < 64; i += 1) {
+      const res = mockResponse();
+      await marketHandler(marketRequest(`item-${i}`), res);
+      statuses.push(res.statusCode);
+    }
+    assert.equal(statuses.filter((code) => code === 200).length, 60, "a whole loadout prices without throttling");
+    assert.ok(statuses.slice(60).every((code) => code === 429), "sustained traffic past that is refused");
+  });
+
+  const throttled = mockResponse();
+  await withFetch(() => { throw new Error("must not reach upstream"); }, () =>
+    marketHandler(marketRequest("item-after"), throttled));
+  assert.equal(throttled.statusCode, 429);
+  assert.equal(throttled.headers["retry-after"], "60");
+  assert.match(throttled.body.error, /Too many price lookups/);
+});
+
 // ------------------------------------------------------------ Cloudflare ----
 
 function cfContext({ url, secFetchSite } = {}) {
@@ -161,5 +261,34 @@ test("Cloudflare adapter matches the Vercel abuse and failure contract", async (
       assert.equal(slow.status, 504);
       assert.equal((await slow.json()).error, "Questlog took too long to respond. Try again in a minute.");
     });
+  });
+});
+
+test("Cloudflare adapter throttles sustained upstream traffic with a 429", async () => {
+  await withCfCaches(async () => {
+    await withFetch(healthyFetch(), async () => {
+      const statuses = [];
+      for (let i = 0; i < 14; i += 1) {
+        // cf-connecting-ip is the client key; the mocked cache always misses,
+        // so every one of these reaches upstream.
+        const target = new URL("https://tlhelper.org/api/questlog/character");
+        target.searchParams.set("url", GOOD_URL(`Flood-${i}`));
+        const request = new Request(target, { headers: { "cf-connecting-ip": "203.0.113.9" } });
+        statuses.push((await onRequestGet({ request, waitUntil() {} })).status);
+      }
+      assert.equal(statuses.filter((code) => code === 200).length, 10, "same per-client capacity as the Vercel twin");
+      assert.ok(statuses.slice(10).every((code) => code === 429), "and refuses the rest");
+    });
+
+    const target = new URL("https://tlhelper.org/api/questlog/character");
+    target.searchParams.set("url", GOOD_URL("Flood-after"));
+    const throttled = await onRequestGet({
+      request: new Request(target, { headers: { "cf-connecting-ip": "203.0.113.9" } }),
+      waitUntil() {},
+    });
+    assert.equal(throttled.status, 429);
+    assert.equal(throttled.headers.get("retry-after"), "60");
+    assert.equal(throttled.headers.get("cache-control"), "no-store");
+    assert.match((await throttled.json()).error, /Too many imports/);
   });
 });

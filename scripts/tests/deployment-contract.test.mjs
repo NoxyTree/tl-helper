@@ -103,6 +103,36 @@ test("both Questlog adapter variants share the abuse and failure contract", asyn
   }
 });
 
+// Both proxies are unauthenticated and the Sec-Fetch-Site gate deliberately
+// admits header-less clients, so volume control is the only thing standing
+// between a script and unlimited proxied traffic to questlog.gg. Every variant
+// must carry it -- a limiter on one platform's twin only is not a limit.
+test("every Questlog proxy variant rate-limits its upstream traffic", async () => {
+  const variants = [
+    "api/questlog/character.js",
+    "api/questlog/market.js",
+    "functions/api/questlog/character.js",
+    "functions/api/questlog/market.js",
+  ];
+  for (const file of variants) {
+    const source = await read(file);
+    assert.match(source, /withinRateLimit\(/, `${file} gates upstream calls on a rate limit`);
+    assert.match(source, /PER_CLIENT\s*=\s*\{ capacity: \d+/, `${file} bounds a single client`);
+    assert.match(source, /PER_INSTANCE\s*=\s*\{ capacity: \d+/, `${file} bounds the instance, so header rotation cannot bypass the client bucket`);
+    assert.match(source, /429/, `${file} answers a throttled caller with 429`);
+    assert.match(source, /[Rr]etry-[Aa]fter/, `${file} tells the caller when to come back`);
+    assert.match(source, /MAX_TRACKED_CLIENTS/, `${file} bounds the bucket map so distinct keys cannot grow it without limit`);
+    // The token must be spent after the cache lookup: charging cached reads
+    // would throttle a player re-opening a build they already loaded. Anchor on
+    // the CALL site, not the first mention -- the declaration sits above both.
+    const cacheIndex = source.indexOf("const cached =");
+    const callIndex = source.indexOf("if (!withinRateLimit(");
+    assert.ok(cacheIndex >= 0, `${file} has a cache lookup to order against`);
+    assert.ok(callIndex >= 0, `${file} spends its token on a guarded call`);
+    assert.ok(cacheIndex < callIndex, `${file} checks its cache before spending a token`);
+  }
+});
+
 test("production headers protect documents without freezing stable projection names", async () => {
   const headers = await read("web/_headers");
   assert.match(headers, /X-Content-Type-Options: nosniff/);
