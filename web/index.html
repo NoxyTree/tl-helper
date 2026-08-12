@@ -69,6 +69,15 @@
       0% { color: var(--tl-shell-bad, #ff9d84); text-shadow: 0 0 9px rgba(255, 157, 132, 0.4); }
       100% { text-shadow: 0 0 0 rgba(255, 157, 132, 0); }
     }
+    /* The workspace's inner grid is minmax(480px, 1fr) + 330px + 20px gap, so
+       it needs 830px, and main-content's 470px doll column plus gap and page
+       padding costs another 552px. Below ~1382px total the two fixed tracks
+       cannot shrink and the whole document scrolled sideways -- 83px of it at
+       a 1280px laptop width. Collapse the workspace before that, while
+       main-content stays two-column down to 1100px. */
+    @media (max-width: 1400px) {
+      [data-screen-label="Workspace"] > div { grid-template-columns: minmax(0, 1fr) !important; }
+    }
     @media (max-width: 1100px) {
       [data-screen-label="Armory Builder"] { min-width: 0 !important; }
       [data-screen-label="Hero Stats"] { overflow-x: auto; padding: 11px 14px !important; }
@@ -98,6 +107,10 @@
       .tl-picker-filters input { grid-column: 1 / -1; }
       .tl-picker-config-pane { padding: 10px !important; }
       .tl-picker-config-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      /* Two columns of stat rows are unreadable at this width even once the
+         tracks can shrink -- the longest names ("Main Weapon Bonus Attack
+         Power") would be ellipsed down to a few words. */
+      .tl-stat-columns { grid-template-columns: minmax(0, 1fr) !important; }
       .tl-picker-level-row { flex-wrap: wrap; }
       .tl-picker-level-row input[type="range"] { min-width: 150px !important; }
     }
@@ -409,7 +422,7 @@
                       <span style="font-size: 8.5px; color: #75654d; font-variant-numeric: tabular-nums;">{{ group.count }}</span>
                       <span style="flex: 1; height: 1px; background: linear-gradient(90deg, rgba(232, 184, 106, 0.42), transparent);"></span>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px;">
+                    <div class="tl-stat-columns" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px;">
                       <sc-for list="{{ group.rows }}" as="row" hint-placeholder-count="6">
                         <div style="display: flex; align-items: center; border-radius: 6px; background: {{ row.bg }}; border-left: 2px solid {{ row.activeBorder }}; transition: background 0.12s ease, border-color 0.12s ease;" style-hover="background: rgba(212, 166, 94, 0.08);">
                           <button type="button" onClick="{{ row.onFavorite }}" aria-label="{{ row.favoriteLabel }}" title="{{ row.favoriteLabel }}" style="flex: none; width: 20px; border: none; background: transparent; color: {{ row.favoriteColor }}; cursor: pointer; font-size: 10px; opacity: {{ row.favoriteOpacity }}; transition: opacity 0.12s ease;">{{ row.favoriteGlyph }}</button>
